@@ -1,0 +1,13 @@
+Django==5.2.7
+python-decouple==3.8
+psycopg2-binary==2.9.11
+djangorestframework==3.16.1
+djangorestframework-simplejwt==5.5.1
+django-cors-headers==4.9.0
+dj-rest-auth==7.0.1
+redis==7.0.0
+channels==4.3.1
+channels-redis==4.3.0
+daphne==4.2.1
+celery==5.5.3
+gevent==25.9.1
