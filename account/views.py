@@ -1,6 +1,7 @@
 from datetime import timedelta, timezone, datetime
 from random import choice
 from string import digits
+from sys import platform
 
 from django.template.loader import render_to_string
 from rest_framework import permissions, status
@@ -131,7 +132,12 @@ class PasswordResetView(APIView):
                     # revoke 24h previous periodic task (default password_reset)
                     if user.task_id_password_reset:
                         task_id_password_reset = user.task_id_password_reset
-                        current_app.control.revoke(task_id_password_reset, terminate=True, signal='SIGKILL')
+                        if platform == 'win32':
+                            # Windows : signal POSIX
+                            current_app.control.revoke(task_id_password_reset, terminate=False)
+                        else:
+                            # Unix :
+                            current_app.control.revoke(task_id_password_reset, terminate=True, signal='SIGKILL')
                         user.task_id_password_reset = None
                         user.save()
                     user.set_password(serializer.data.get("new_password"))
@@ -163,7 +169,12 @@ class SendPasswordResetView(APIView):
                     # revoke 24h previous periodic task (default password reset)
                     task_id_password_reset = user.task_id_password_reset
                     if task_id_password_reset:
-                        current_app.control.revoke(task_id_password_reset, terminate=True, signal='SIGKILL')
+                        if platform == 'win32':
+                            # Windows : signal POSIX
+                            current_app.control.revoke(task_id_password_reset, terminate=False)
+                        else:
+                            # Unix :
+                            current_app.control.revoke(task_id_password_reset, terminate=True, signal='SIGKILL')
                         user.task_id_password_reset = None
                         user.save()
                     mail_subject = 'Renouvellement du mot de passe'
