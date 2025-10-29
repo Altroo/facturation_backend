@@ -29,8 +29,8 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES, default='', blank=True, null=True)
     avatar = models.ImageField(verbose_name='User Avatar', upload_to=get_avatar_path, blank=True, null=True,
                                default=None)
-    avatar_thumbnail = models.ImageField(verbose_name='User Avatar thumbnail', upload_to=get_avatar_path, blank=True, null=True,
-                                         default=None)
+    avatar_thumbnail = models.ImageField(verbose_name='User Avatar thumbnail', upload_to=get_avatar_path, blank=True,
+                                         null=True, default=None)
     # permissions
     is_staff = models.BooleanField(_('staff status'),
                                    default=False,
@@ -44,7 +44,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     # DATES
     date_joined = models.DateTimeField(_('date joined'), default=timezone.now)
     # Codes
-    password_reset_code = models.IntegerField(verbose_name='Password Reset Code', blank=True, null=True)
+    password_reset_code = models.CharField(verbose_name='Password Reset Code', blank=True, null=True)
     # Task ids for Codes
     task_id_password_reset = models.CharField(verbose_name='Task ID password reset',
                                               max_length=40, default=None, null=True, blank=True)

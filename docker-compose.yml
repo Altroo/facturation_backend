@@ -52,7 +52,29 @@ services:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
 
+  makemigrations:
+    build: .
+    command: python manage.py makemigrations --noinput
+    depends_on:
+      - db
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+
+  migrate:
+    build: .
+    command: python manage.py migrate --noinput
+    depends_on:
+      - db
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+
 volumes:
   static_volume:
   postgres_data:
   redis_data:
+
+
