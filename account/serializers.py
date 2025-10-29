@@ -52,10 +52,10 @@ class PasswordResetSerializer(serializers.Serializer):
     new_password = serializers.CharField(required=True)
     new_password2 = serializers.CharField(required=True)
 
-    @staticmethod
-    def validate_new_password(value):
-        validate_password(value)
-        return value
+    def validate(self, attrs):
+        if attrs.get("new_password") != attrs.get("new_password2"):
+            raise serializers.ValidationError({"new_password2": "Les mots de passe ne correspondent pas."})
+        return attrs
 
 
 class UserEmailSerializer(serializers.ModelSerializer):

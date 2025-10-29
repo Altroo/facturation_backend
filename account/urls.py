@@ -22,7 +22,7 @@ urlpatterns = [
     # GET : check if email & code are valid
     # PUT : reset with new password
     path('password_reset/', PasswordResetView.as_view()),
-    path('password_reset/<str:email>/<int:code>/', PasswordResetView.as_view()),
+    path('password_reset/<str:email>/<str:code>/', PasswordResetView.as_view()),
     # POST : Tokens, Verify if token valid, Refresh access token
     path('token_verify/', TokenVerifyView.as_view()),
     path('token_refresh/', get_refresh_view().as_view()),
