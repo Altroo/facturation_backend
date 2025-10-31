@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import (LoginView, LogoutView, PasswordResetView, PasswordChangeView,
-                    SendPasswordResetView, CheckEmailView, CreateAccountView)
+                    SendPasswordResetView, CheckEmailView, CreateAccountView, ProfileView)
 from rest_framework_simplejwt.views import TokenVerifyView
 from dj_rest_auth.jwt_auth import get_refresh_view
 
@@ -23,6 +23,9 @@ urlpatterns = [
     # PUT : reset with new password
     path('password_reset/', PasswordResetView.as_view()),
     path('password_reset/<str:email>/<str:code>/', PasswordResetView.as_view()),
+    # PATCH : Edit profil
+    # GET : Get profil data include avatar
+    path('profil/', ProfileView.as_view()),
     # POST : Tokens, Verify if token valid, Refresh access token
     path('token_verify/', TokenVerifyView.as_view()),
     path('token_refresh/', get_refresh_view().as_view()),

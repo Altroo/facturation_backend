@@ -1,8 +1,11 @@
 from datetime import timedelta, timezone, datetime
+from os import remove
 from random import choice
 from string import digits
 from sys import platform
+from io import BytesIO
 
+from django.core.exceptions import SuspiciousFileOperation
 from django.template.loader import render_to_string
 from rest_framework import permissions, status
 from dj_rest_auth.views import LoginView as Dj_rest_login
@@ -12,10 +15,11 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from celery import current_app
 
+from facturation_backend.utils import ImageProcessor
 from .models import CustomUser
 from .serializers import (PasswordResetSerializer, ChangePasswordSerializer, UserEmailSerializer,
-                          CreateAccountSerializer)
-from .tasks import send_email, start_deleting_expired_codes, generate_user_thumbnail
+                          CreateAccountSerializer, ProfileGETSerializer, ProfilePutSerializer)
+from .tasks import send_email, start_deleting_expired_codes, generate_user_thumbnail, resize_avatar_thumbnail
 
 
 class CreateAccountView(APIView):
@@ -197,3 +201,78 @@ class SendPasswordResetView(APIView):
                 raise ValidationError(self.errors)
         except CustomUser.DoesNotExist:
             raise ValidationError(self.errors)
+
+
+class ProfileView(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+    errors = {"error": ["Utilisateur n'éxiste pas!"]}
+
+    def get(self, request, *args, **kwargs):
+        try:
+            user = CustomUser.objects.get(pk=request.user.pk)
+            user_serializer = ProfileGETSerializer(user)
+            user_data = {
+                **user_serializer.data,
+                "is_admin": user.is_superuser
+            }
+            return Response(user_data, status=status.HTTP_200_OK)
+        except CustomUser.DoesNotExist:
+            raise ValidationError(self.errors)
+
+    @staticmethod
+    def patch(request, *args, **kwargs):
+        user = request.user
+
+        # Handle both base64 and file uploads
+        avatar = request.data.get('avatar')
+        avatar_bytes = None
+
+        if isinstance(avatar, str):
+            # base64 case
+            avatar_file = ImageProcessor.data_url_to_uploaded_file(avatar)
+            if avatar_file:
+                avatar_bytes = BytesIO(avatar_file.read())
+                avatar_file.seek(0)  # reset pointer if you want to save it later
+        else:
+            # multipart file case
+            avatar_file = request.FILES.get('avatar')
+            if avatar_file:
+                avatar_bytes = BytesIO(avatar_file.read())
+                avatar_file.seek(0)  # reset pointer so Django can still save it
+
+        # cleanup old avatar if needed
+        if avatar_file:
+            if user.avatar:
+                try:
+                    remove(user.avatar.path)
+                    user.avatar = None
+                    user.save(update_fields=['avatar'])
+                except (ValueError, SuspiciousFileOperation, FileNotFoundError):
+                    pass
+            if user.avatar_thumbnail:
+                try:
+                    remove(user.avatar_thumbnail.path)
+                    user.avatar_thumbnail = None
+                    user.save(update_fields=['avatar_thumbnail'])
+                except (ValueError, SuspiciousFileOperation, FileNotFoundError):
+                    pass
+
+        # update profile fields
+        data = {
+            'first_name': request.data.get('first_name'),
+            'last_name': request.data.get('last_name'),
+            'gender': request.data.get('gender', ''),
+        }
+        serializer = ProfilePutSerializer(data=data, partial=True)
+        if serializer.is_valid():
+            updated_account = serializer.update(user, serializer.validated_data)
+            user_pk = updated_account.pk
+
+            # Pass BytesIO to Celery task
+            resize_avatar_thumbnail.apply_async((user_pk, avatar_bytes))
+
+            data['pk'] = user_pk
+            data['date_joined'] = user.date_joined
+            return Response(data, status=status.HTTP_200_OK)
+
+        raise ValidationError(serializer.errors)

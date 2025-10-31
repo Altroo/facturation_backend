@@ -1,3 +1,8 @@
+from typing import Tuple
+
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
+
 from facturation_backend.celery_conf import app
 from celery.utils.log import get_task_logger
 from PIL import Image, ImageDraw, ImageFont
@@ -7,6 +12,8 @@ from io import BytesIO
 from random import shuffle
 from django.core.files import File
 from django.core.mail import EmailMessage
+
+from facturation_backend.utils import ImageProcessor
 
 logger = get_task_logger(__name__)
 
@@ -104,3 +111,41 @@ def generate_user_thumbnail(self, user_pk):
     thumbnail_ = from_img_to_io(thumbnail, 'WEBP')
     user.save_image('avatar', avatar_)
     user.save_image('avatar_thumbnail', thumbnail_)
+
+
+def resize_images_v2(bytes_) -> Tuple[BytesIO, BytesIO]:
+    image_processor = ImageProcessor()
+    loaded_img = image_processor.load_image_from_io(bytes_)
+
+    # Avatar 600x600 with blurred background
+    avatar_img = image_processor.resize_with_blurred_background(loaded_img, 600)
+    avatar_io = image_processor.from_img_to_io(avatar_img, 'WEBP')
+
+    # Thumbnail 300x300 with blurred background
+    thumb_img = image_processor.resize_with_blurred_background(loaded_img, 300)
+    thumb_io = image_processor.from_img_to_io(thumb_img, 'WEBP')
+
+    return avatar_io, thumb_io
+
+
+def generate_images_v2(query_, avatar: BytesIO, thumbnail: BytesIO):
+    query_.save_image("avatar", avatar)
+    query_.save_image("avatar_thumbnail", thumbnail)
+
+
+@app.task(bind=True, serializer='pickle')
+def resize_avatar_thumbnail(self, object_pk: int, avatar: BytesIO | None):
+    object_ = CustomUser.objects.get(pk=object_pk)
+    if isinstance(avatar, BytesIO):
+        avatar_io, thumb_io = resize_images_v2(avatar)
+        generate_images_v2(object_, avatar_io, thumb_io)
+        event = {
+            "type": "recieve_group_message",
+            "message": {
+                "type": "USER_AVATAR",
+                "pk": object_.pk,
+                "avatar": object_.get_absolute_avatar_img,
+            }
+        }
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)("%s" % object_.pk, event)

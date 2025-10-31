@@ -67,3 +67,26 @@ class UserEmailSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'email': {'write_only': True}
         }
+
+
+class ProfileGETSerializer(serializers.ModelSerializer):
+    avatar = serializers.CharField(source='get_absolute_avatar_img')
+    gender = serializers.SerializerMethodField()
+    date_joined = serializers.DateTimeField(format='%d/%m/%Y')
+
+    @staticmethod
+    def get_gender(instance):
+        if instance.gender != '':
+            return instance.gender
+        return None
+
+    class Meta:
+        model = CustomUser
+        fields = ['id', 'first_name', 'last_name',
+                  'gender', 'avatar', 'date_joined']
+
+
+class ProfilePutSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ['first_name', 'last_name', 'gender']
