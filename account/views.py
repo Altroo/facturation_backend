@@ -53,7 +53,6 @@ class CreateAccountView(APIView):
             })
             send_email.apply_async((user.pk, user.email, mail_subject, message), )
             return Response(status=status.HTTP_204_NO_CONTENT)
-        print('serializer not valid')
         raise ValidationError(serializer.errors)
 
 
@@ -258,10 +257,17 @@ class ProfileView(APIView):
                     pass
 
         # update profile fields
+        gender = request.data.get('gender', '')
+        if gender == 'Homme':
+            gender = 'H'
+        elif gender == 'Femme':
+            gender = 'F'
+        else:
+            gender = ''
         data = {
             'first_name': request.data.get('first_name'),
             'last_name': request.data.get('last_name'),
-            'gender': request.data.get('gender', ''),
+            'gender': gender,
         }
         serializer = ProfilePutSerializer(data=data, partial=True)
         if serializer.is_valid():

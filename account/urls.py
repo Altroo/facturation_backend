@@ -15,7 +15,7 @@ urlpatterns = [
     path('create_account/', CreateAccountView.as_view()),
     # POST : Check if email already exists
     path('check_email/', CheckEmailView.as_view()),
-    # POST : Password change
+    # PUT : Password change
     path('password_change/', PasswordChangeView.as_view()),
     # POST : Password reset
     path('send_password_reset/', SendPasswordResetView.as_view()),
