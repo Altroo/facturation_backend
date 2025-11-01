@@ -11,7 +11,7 @@ from io import BytesIO
 from uuid import uuid4
 
 
-def get_avatar_path(instance, filename):
+def get_avatar_path(_, filename):
     filename, file_extension = path.splitext(filename)
     return path.join('user_avatars/', str(uuid4()) + file_extension)
 
