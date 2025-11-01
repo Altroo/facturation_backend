@@ -278,6 +278,7 @@ class ProfileView(APIView):
             resize_avatar_thumbnail.apply_async((user_pk, avatar_bytes))
 
             data['pk'] = user_pk
+            data['avatar'] = updated_account.get_absolute_avatar_img
             data['date_joined'] = user.date_joined
             return Response(data, status=status.HTTP_200_OK)
 
