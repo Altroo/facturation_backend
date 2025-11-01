@@ -9,7 +9,7 @@ class CreateAccountSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ['email', 'password', 'password2', 'first_name', 'last_name']
+        fields = ['email', 'password', 'password2', 'first_name', 'last_name', 'is_staff', 'is_superuser']
         extra_kwargs = {
            'password': {'write_only': True},
         }
@@ -19,6 +19,8 @@ class CreateAccountSerializer(serializers.ModelSerializer):
             email=self.validated_data['email'],
             first_name=self.validated_data['first_name'],
             last_name=self.validated_data['last_name'],
+            is_staff=self.validated_data['is_staff'],
+            is_superuser=self.validated_data['is_superuser'],
         )
         account.set_password(self.validated_data['password'])
         account.save()

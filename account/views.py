@@ -33,13 +33,17 @@ class CreateAccountView(APIView):
         email = str(request.data.get('email')).lower()
         first_name = request.data.get('first_name')
         last_name = request.data.get('last_name')
+        is_staff = request.data.get('is_staff')
+        is_superuser = request.data.get('is_superuser')
         password = self.generate_random_password()
         serializer = CreateAccountSerializer(data={
             'email': email,
             'password': password,
             'password2': password,
             'first_name': first_name,
-            'last_name': last_name
+            'last_name': last_name,
+            'is_staff': is_staff,
+            'is_superuser': is_superuser,
         })
         if serializer.is_valid():
             user = serializer.save()
@@ -212,7 +216,8 @@ class ProfileView(APIView):
             user_serializer = ProfileGETSerializer(user)
             user_data = {
                 **user_serializer.data,
-                "is_admin": user.is_superuser
+                "is_staff": user.is_staff,
+                "is_superuser": user.is_superuser,
             }
             return Response(user_data, status=status.HTTP_200_OK)
         except CustomUser.DoesNotExist:
