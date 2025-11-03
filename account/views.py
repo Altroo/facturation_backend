@@ -1,7 +1,7 @@
 from datetime import timedelta, timezone, datetime
 from os import remove
 from random import choice
-from string import digits
+from string import digits, ascii_letters
 from sys import platform
 from io import BytesIO
 
@@ -27,12 +27,14 @@ class CreateAccountView(APIView):
 
     @staticmethod
     def generate_random_password(length=8):
-        return ''.join(choice(digits) for _ in range(length))
+        characters = digits + ascii_letters
+        return ''.join(choice(characters) for _ in range(length))
 
     def post(self, request):
         email = str(request.data.get('email')).lower()
         first_name = request.data.get('first_name')
         last_name = request.data.get('last_name')
+        gender = request.data.get('gender')
         is_staff = request.data.get('is_staff')
         is_superuser = request.data.get('is_superuser')
         password = self.generate_random_password()
@@ -42,6 +44,7 @@ class CreateAccountView(APIView):
             'password2': password,
             'first_name': first_name,
             'last_name': last_name,
+            'gender': gender,
             'is_staff': is_staff,
             'is_superuser': is_superuser,
         })

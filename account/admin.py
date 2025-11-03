@@ -16,6 +16,7 @@ class CustomUserAdmin(UserAdmin):
         ('Profile', {'fields': ('email', 'password', 'first_name', 'last_name', 'gender', 'avatar', 'avatar_thumbnail',
                                 'password_reset_code')}),
         ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser')}),
+        ('Groupes', {'fields': ('groups',)}),
         ("Date d'activité", {'fields': ('date_joined', 'last_login')}),
     )
     # add fields to the admin panel creation model
