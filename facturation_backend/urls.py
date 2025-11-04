@@ -14,17 +14,19 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
 from django.contrib import admin
 from django.urls import path, include, re_path
 from django.views.static import serve
+
 from facturation_backend.settings import STATICFILES_DIRS, MEDIA_ROOT
 
 urlpatterns = [
     # Account
-    path('api/account/', include('account.urls')),
+    path("api/account/", include("account.urls")),
     # Admin panel
-    path('admin/', admin.site.urls),
+    path("admin/", admin.site.urls),
     # Static & media files
-    re_path(r'^static/(?P<path>.*)$', serve, {'document_root': STATICFILES_DIRS}),
-    re_path(r'^media/(?P<path>.*)$', serve, {'document_root': MEDIA_ROOT}),
+    re_path(r"^static/(?P<path>.*)$", serve, {"document_root": STATICFILES_DIRS}),
+    re_path(r"^media/(?P<path>.*)$", serve, {"document_root": MEDIA_ROOT}),
 ]

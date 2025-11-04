@@ -1,25 +1,36 @@
 from datetime import timedelta, timezone, datetime
+from io import BytesIO
 from os import remove
 from random import choice
 from string import digits, ascii_letters
 from sys import platform
-from io import BytesIO
 
+from celery import current_app
+from dj_rest_auth.views import LoginView as Dj_rest_login
+from dj_rest_auth.views import LogoutView as Dj_rest_logout
 from django.core.exceptions import SuspiciousFileOperation
 from django.template.loader import render_to_string
 from rest_framework import permissions, status
-from dj_rest_auth.views import LoginView as Dj_rest_login
-from dj_rest_auth.views import LogoutView as Dj_rest_logout
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from celery import current_app
 
 from facturation_backend.utils import ImageProcessor
 from .models import CustomUser
-from .serializers import (PasswordResetSerializer, ChangePasswordSerializer, UserEmailSerializer,
-                          CreateAccountSerializer, ProfileGETSerializer, ProfilePutSerializer)
-from .tasks import send_email, start_deleting_expired_codes, generate_user_thumbnail, resize_avatar_thumbnail
+from .serializers import (
+    PasswordResetSerializer,
+    ChangePasswordSerializer,
+    UserEmailSerializer,
+    CreateAccountSerializer,
+    ProfileGETSerializer,
+    ProfilePutSerializer,
+)
+from .tasks import (
+    send_email,
+    start_deleting_expired_codes,
+    generate_user_thumbnail,
+    resize_avatar_thumbnail,
+)
 
 
 class CreateAccountView(APIView):
@@ -28,47 +39,52 @@ class CreateAccountView(APIView):
     @staticmethod
     def generate_random_password(length=8):
         characters = digits + ascii_letters
-        return ''.join(choice(characters) for _ in range(length))
+        return "".join(choice(characters) for _ in range(length))
 
     def post(self, request):
-        email = str(request.data.get('email')).lower()
-        first_name = request.data.get('first_name')
-        last_name = request.data.get('last_name')
-        gender = request.data.get('gender')
-        is_staff = request.data.get('is_staff')
-        is_superuser = request.data.get('is_superuser')
+        email = str(request.data.get("email")).lower()
+        first_name = request.data.get("first_name")
+        last_name = request.data.get("last_name")
+        gender = request.data.get("gender")
+        is_superuser = request.data.get("is_superuser")
         password = self.generate_random_password()
-        serializer = CreateAccountSerializer(data={
-            'email': email,
-            'password': password,
-            'password2': password,
-            'first_name': first_name,
-            'last_name': last_name,
-            'gender': gender,
-            'is_staff': is_staff,
-            'is_superuser': is_superuser,
-        })
+        serializer = CreateAccountSerializer(
+            data={
+                "email": email,
+                "password": password,
+                "password2": password,
+                "first_name": first_name,
+                "last_name": last_name,
+                "gender": gender,
+                "is_superuser": is_superuser,
+            }
+        )
         if serializer.is_valid():
             user = serializer.save()
             # Generate user avatar and thumbnail
-            generate_user_thumbnail.apply_async((user.pk, ),)
-            mail_subject = 'Invitation (Facturation Casa Di Lusso)'
-            mail_template = 'new_account.html'
-            message = render_to_string(mail_template, {
-                'fist_name': user.first_name,
-                'password': password
-            })
-            send_email.apply_async((user.pk, user.email, mail_subject, message), )
+            generate_user_thumbnail.apply_async(
+                (user.pk,),
+            )
+            mail_subject = "Invitation (Facturation Casa Di Lusso)"
+            mail_template = "new_account.html"
+            message = render_to_string(
+                mail_template, {"fist_name": user.first_name, "password": password}
+            )
+            send_email.apply_async(
+                (user.pk, user.email, mail_subject, message),
+            )
             return Response(status=status.HTTP_204_NO_CONTENT)
         raise ValidationError(serializer.errors)
 
 
 class CheckEmailView(APIView):
     permission_classes = (permissions.IsAdminUser,)
-    errors = {"email": ["Un utilisateur avec ce champ adresse électronique existe déjà."]}
+    errors = {
+        "email": ["Un utilisateur avec ce champ adresse électronique existe déjà."]
+    }
 
     def post(self, request, *args, **kwargs):
-        email = str(request.data.get('email')).lower()
+        email = str(request.data.get("email")).lower()
         try:
             CustomUser.objects.get(email=email)
             raise ValidationError(self.errors)
@@ -96,9 +112,9 @@ class PasswordChangeView(APIView):
         serializer = ChangePasswordSerializer(data=request.data)
         if serializer.is_valid():
             # check old password
-            old_password = serializer.data.get('old_password')
-            new_password = serializer.data.get('new_password')
-            new_password2 = serializer.data.get('new_password2')
+            old_password = serializer.data.get("old_password")
+            new_password = serializer.data.get("new_password")
+            new_password2 = serializer.data.get("new_password2")
             user = request.user
             if not user.check_password(old_password):
                 errors = {"old_password": ["Votre mot de passe est invalide."]}
@@ -107,9 +123,13 @@ class PasswordChangeView(APIView):
                 errors = {"new_password2": ["Les mots de passe ne correspondent pas."]}
                 raise ValidationError(errors)
             if len(new_password) < 8:
-                errors = {"new_password": ["Le mot de passe doit contenir au moins 8 caractères."]}
+                errors = {
+                    "new_password": [
+                        "Le mot de passe doit contenir au moins 8 caractères."
+                    ]
+                }
                 raise ValidationError(errors)
-            user.set_password(serializer.data.get('new_password'))
+            user.set_password(serializer.data.get("new_password"))
             user.save()
             return Response(status=status.HTTP_204_NO_CONTENT)
         raise ValidationError(serializer.errors)
@@ -120,8 +140,8 @@ class PasswordResetView(APIView):
     errors = {"error": ["Utilisateur ou code verification invalide."]}
 
     def get(self, request, *args, **kwargs):
-        email = str(kwargs.get('email')).lower()
-        code = kwargs.get('code')
+        email = str(kwargs.get("email")).lower()
+        code = kwargs.get("code")
 
         try:
             user = CustomUser.objects.get(email=email)
@@ -132,22 +152,30 @@ class PasswordResetView(APIView):
             raise ValidationError(self.errors)
 
     def put(self, request, *args, **kwargs):
-        email = str(request.data.get('email')).lower()
-        code = request.data.get('code')
+        email = str(request.data.get("email")).lower()
+        code = request.data.get("code")
         try:
             user = CustomUser.objects.get(email=email)
-            if code is not None and email is not None and code == str(user.password_reset_code):
+            if (
+                code is not None
+                and email is not None
+                and code == str(user.password_reset_code)
+            ):
                 serializer = PasswordResetSerializer(data=request.data)
                 if serializer.is_valid():
                     # revoke 24h previous periodic task (default password_reset)
                     if user.task_id_password_reset:
                         task_id_password_reset = user.task_id_password_reset
-                        if platform == 'win32':
+                        if platform == "win32":
                             # Windows : signal POSIX
-                            current_app.control.revoke(task_id_password_reset, terminate=False)
+                            current_app.control.revoke(
+                                task_id_password_reset, terminate=False
+                            )
                         else:
                             # Unix :
-                            current_app.control.revoke(task_id_password_reset, terminate=True, signal='SIGKILL')
+                            current_app.control.revoke(
+                                task_id_password_reset, terminate=True, signal="SIGKILL"
+                            )
                         user.task_id_password_reset = None
                         user.save()
                     user.set_password(serializer.data.get("new_password"))
@@ -167,10 +195,10 @@ class SendPasswordResetView(APIView):
 
     @staticmethod
     def generate_random_code(length=4):
-        return ''.join(choice(digits) for _ in range(length))
+        return "".join(choice(digits) for _ in range(length))
 
     def post(self, request, *args, **kwargs):
-        email = str(request.data.get('email')).lower()
+        email = str(request.data.get("email")).lower()
         try:
             user = CustomUser.objects.get(email=email)
             if user.email is not None:
@@ -179,26 +207,43 @@ class SendPasswordResetView(APIView):
                     # revoke 24h previous periodic task (default password reset)
                     task_id_password_reset = user.task_id_password_reset
                     if task_id_password_reset:
-                        if platform == 'win32':
+                        if platform == "win32":
                             # Windows : signal POSIX
-                            current_app.control.revoke(task_id_password_reset, terminate=False)
+                            current_app.control.revoke(
+                                task_id_password_reset, terminate=False
+                            )
                         else:
                             # Unix :
-                            current_app.control.revoke(task_id_password_reset, terminate=True, signal='SIGKILL')
+                            current_app.control.revoke(
+                                task_id_password_reset, terminate=True, signal="SIGKILL"
+                            )
                         user.task_id_password_reset = None
                         user.save()
-                    mail_subject = 'Renouvellement du mot de passe'
-                    mail_template = 'password_reset.html'
+                    mail_subject = "Renouvellement du mot de passe"
+                    mail_template = "password_reset.html"
                     code = self.generate_random_code()
-                    message = render_to_string(mail_template, {
-                        'first_name': user.first_name,
-                        'code': code,
-                    })
-                    send_email.apply_async((user.pk, user.email, mail_subject, message, code, 'password_reset_code'),)
+                    message = render_to_string(
+                        mail_template,
+                        {
+                            "first_name": user.first_name,
+                            "code": code,
+                        },
+                    )
+                    send_email.apply_async(
+                        (
+                            user.pk,
+                            user.email,
+                            mail_subject,
+                            message,
+                            code,
+                            "password_reset_code",
+                        ),
+                    )
                     date_now = datetime.now(timezone.utc)
                     shift = date_now + timedelta(hours=24)
-                    task_id_password_reset = start_deleting_expired_codes.apply_async((user.pk, 'password_reset'),
-                                                                                      eta=shift)
+                    task_id_password_reset = start_deleting_expired_codes.apply_async(
+                        (user.pk, "password_reset"), eta=shift
+                    )
                     user.task_id_password_reset = str(task_id_password_reset)
                     user.save()
                     return Response(status=status.HTTP_204_NO_CONTENT)
@@ -231,7 +276,7 @@ class ProfileView(APIView):
         user = request.user
 
         # Handle both base64 and file uploads
-        avatar = request.data.get('avatar')
+        avatar = request.data.get("avatar")
         avatar_bytes = None
 
         if isinstance(avatar, str):
@@ -242,7 +287,7 @@ class ProfileView(APIView):
                 avatar_file.seek(0)  # reset pointer if you want to save it later
         else:
             # multipart file case
-            avatar_file = request.FILES.get('avatar')
+            avatar_file = request.FILES.get("avatar")
             if avatar_file:
                 avatar_bytes = BytesIO(avatar_file.read())
                 avatar_file.seek(0)  # reset pointer so Django can still save it
@@ -253,29 +298,29 @@ class ProfileView(APIView):
                 try:
                     remove(user.avatar.path)
                     user.avatar = None
-                    user.save(update_fields=['avatar'])
+                    user.save(update_fields=["avatar"])
                 except (ValueError, SuspiciousFileOperation, FileNotFoundError):
                     pass
             if user.avatar_thumbnail:
                 try:
                     remove(user.avatar_thumbnail.path)
                     user.avatar_thumbnail = None
-                    user.save(update_fields=['avatar_thumbnail'])
+                    user.save(update_fields=["avatar_thumbnail"])
                 except (ValueError, SuspiciousFileOperation, FileNotFoundError):
                     pass
 
         # update profile fields
-        gender = request.data.get('gender', '')
-        if gender == 'Homme':
-            gender = 'H'
-        elif gender == 'Femme':
-            gender = 'F'
+        gender = request.data.get("gender", "")
+        if gender == "Homme":
+            gender = "H"
+        elif gender == "Femme":
+            gender = "F"
         else:
-            gender = ''
+            gender = ""
         data = {
-            'first_name': request.data.get('first_name'),
-            'last_name': request.data.get('last_name'),
-            'gender': gender,
+            "first_name": request.data.get("first_name"),
+            "last_name": request.data.get("last_name"),
+            "gender": gender,
         }
         serializer = ProfilePutSerializer(data=data, partial=True)
         if serializer.is_valid():
@@ -285,9 +330,9 @@ class ProfileView(APIView):
             # Pass BytesIO to Celery task
             resize_avatar_thumbnail.apply_async((user_pk, avatar_bytes))
 
-            data['pk'] = user_pk
-            data['avatar'] = updated_account.get_absolute_avatar_img
-            data['date_joined'] = user.date_joined
+            data["pk"] = user_pk
+            data["avatar"] = updated_account.get_absolute_avatar_img
+            data["date_joined"] = user.date_joined
             return Response(data, status=status.HTTP_200_OK)
 
         raise ValidationError(serializer.errors)

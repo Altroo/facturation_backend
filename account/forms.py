@@ -7,11 +7,11 @@ class CustomAuthShopCreationForm(UserCreationForm):
 
     class Meta(UserCreationForm):
         model = CustomUser
-        fields = ('email',)
+        fields = ("email",)
 
 
 class CustomAuthShopChangeForm(UserChangeForm):
 
     class Meta:
         model = CustomUser
-        fields = ('email',)
+        fields = ("email",)

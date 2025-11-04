@@ -1,4 +1,5 @@
 import os
+
 # Avoid daphne apps not loaded yet
 import django
 
@@ -11,11 +12,9 @@ from ws.routing import websocket_urlpatterns
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "facturation_backend.settings")
 
-application = ProtocolTypeRouter({
-    "http": get_asgi_application(),
-    "websocket": SimpleJwtTokenAuthMiddleware(
-        URLRouter(
-            websocket_urlpatterns
-        )
-    ),
-})
+application = ProtocolTypeRouter(
+    {
+        "http": get_asgi_application(),
+        "websocket": SimpleJwtTokenAuthMiddleware(URLRouter(websocket_urlpatterns)),
+    }
+)

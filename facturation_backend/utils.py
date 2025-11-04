@@ -1,18 +1,18 @@
-from rest_framework.views import exception_handler
-from http import HTTPStatus
-from rest_framework.response import Response
-from cv2 import imdecode, resize, INTER_AREA, cvtColor, COLOR_BGR2RGB, GaussianBlur
-
-from numpy import uint8, frombuffer
-from PIL import Image, UnidentifiedImageError
-from io import BytesIO
-from rest_framework import serializers
-from django.core.files.base import ContentFile
-from base64 import b64decode
-from six import string_types
-from uuid import uuid4
-from imghdr import what
 import binascii
+from base64 import b64decode
+from http import HTTPStatus
+from io import BytesIO
+from uuid import uuid4
+
+from PIL import Image, UnidentifiedImageError
+from cv2 import imdecode, resize, INTER_AREA, cvtColor, COLOR_BGR2RGB, GaussianBlur
+from django.core.files.base import ContentFile
+from imghdr import what
+from numpy import uint8, frombuffer
+from rest_framework import serializers
+from rest_framework.response import Response
+from rest_framework.views import exception_handler
+from six import string_types
 
 
 class ImageProcessor:
@@ -55,20 +55,31 @@ class ImageProcessor:
     def data_url_to_uploaded_file(data):
         if isinstance(data, string_types):
             # Check if the base64 string is in the "data:" format
-            if 'data:' in data and ';base64,' in data:
+            if "data:" in data and ";base64," in data:
                 # Break out the header from the base64 content
-                header, data = data.split(';base64,')
+                header, data = data.split(";base64,")
             # Try to decode the file. Return validation error if it fails.
             try:
                 decoded_file = b64decode(data)
                 # Generate file name:
                 file_name = str(uuid4())
                 # Get the file name extension:
-                file_extension = Base64ImageField.get_file_extension(file_name, decoded_file)
-                complete_file_name = "%s.%s" % (file_name, file_extension,)
+                file_extension = Base64ImageField.get_file_extension(
+                    file_name, decoded_file
+                )
+                complete_file_name = "%s.%s" % (
+                    file_name,
+                    file_extension,
+                )
                 data = ContentFile(decoded_file, name=complete_file_name)
                 return data
-            except (binascii.Error, ValueError, TypeError, UnidentifiedImageError, OSError):
+            except (
+                binascii.Error,
+                ValueError,
+                TypeError,
+                UnidentifiedImageError,
+                OSError,
+            ):
                 return None
         return None
 
@@ -95,7 +106,7 @@ class ImageProcessor:
         # Overlay resized image in the center
         x_offset = (target_size - new_w) // 2
         y_offset = (target_size - new_h) // 2
-        background[y_offset:y_offset + new_h, x_offset:x_offset + new_w] = resized
+        background[y_offset : y_offset + new_h, x_offset : x_offset + new_w] = resized
 
         return background
 
@@ -106,21 +117,24 @@ class Base64ImageField(serializers.ImageField):
         decoded_file = None
         if isinstance(data, string_types):
             # Check if the base64 string is in the "data:" format
-            if 'data:' in data and ';base64,' in data:
+            if "data:" in data and ";base64," in data:
                 # Break out the header from the base64 content
-                header, data = data.split(';base64,')
+                header, data = data.split(";base64,")
             # Try to decode the file. Return validation error if it fails.
             try:
                 decoded_file = b64decode(data)
             except TypeError:
-                self.fail('invalid_image')
+                self.fail("invalid_image")
 
             # Generate file name:
             file_name = str(uuid4())
             # Get the file name extension:
             file_extension = self.get_file_extension(file_name, decoded_file)
 
-            complete_file_name = "%s.%s" % (file_name, file_extension,)
+            complete_file_name = "%s.%s" % (
+                file_name,
+                file_extension,
+            )
 
             data = ContentFile(decoded_file, name=complete_file_name)
 
