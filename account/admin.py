@@ -1,7 +1,10 @@
+from django import forms
 from django.contrib import admin
+from django.contrib.admin import ModelAdmin
 from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.models import Group
 
-from account.models import CustomUser
+from account.models import CustomUser, Membership
 from .forms import CustomAuthShopChangeForm, CustomAuthShopCreationForm
 
 
@@ -43,16 +46,45 @@ class CustomUserAdmin(UserAdmin):
                     "password2",
                     "first_name",
                     "last_name",
-                    "activation_code",
-                    "password_reset_code",
+                    "gender",
                 )
             },
         ),
         ("Permissions", {"fields": ("is_active", "is_staff", "is_superuser")}),
+        ("Groupes", {"fields": ("groups",)}),
     )
     search_fields = ("email",)
     ordering = ("-id",)
 
 
+class MembershipAdminForm(forms.ModelForm):
+    # Override the field with a ChoiceField populated from Group names
+    role = forms.ChoiceField(
+        choices=[],
+        required=False,
+        label="Role",
+    )
+
+    class Meta:
+        model = Membership
+        fields = "__all__"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Build the choices list: (group.name, group.name)
+        group_choices = [(g.name, g.name) for g in Group.objects.all()]
+        # Optionally add a blank choice
+        self.fields["role"].choices = [("", "---------")] + group_choices
+
+
+class MembershipAdmin(ModelAdmin):
+    form = MembershipAdminForm
+    list_display = ("id", "user", "company", "role")
+    list_filter = ("role", "company")
+    search_fields = ("user__email", "company__raison_sociale", "role")
+
+
 # Account
 admin.site.register(CustomUser, CustomUserAdmin)
+# Membership
+admin.site.register(Membership, MembershipAdmin)

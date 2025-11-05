@@ -8,6 +8,7 @@ from sys import platform
 from celery import current_app
 from dj_rest_auth.views import LoginView as Dj_rest_login
 from dj_rest_auth.views import LogoutView as Dj_rest_logout
+from django.contrib.auth.models import Group
 from django.core.exceptions import SuspiciousFileOperation
 from django.template.loader import render_to_string
 from rest_framework import permissions, status
@@ -35,6 +36,7 @@ from .tasks import (
 
 class CreateAccountView(APIView):
     permission_classes = (permissions.IsAdminUser,)
+    # errors = {"group_name": ["Group spécifié n'existe pas."]}
 
     @staticmethod
     def generate_random_password(length=8):
@@ -48,6 +50,8 @@ class CreateAccountView(APIView):
         gender = request.data.get("gender")
         is_superuser = request.data.get("is_superuser")
         password = self.generate_random_password()
+        # group_name = request.data.get("group_name")
+
         serializer = CreateAccountSerializer(
             data={
                 "email": email,
@@ -61,6 +65,14 @@ class CreateAccountView(APIView):
         )
         if serializer.is_valid():
             user = serializer.save()
+            # add user to the requested group (if provided)
+            # if group_name:
+            #     try:
+            #         group = Group.objects.get(name=group_name)
+            #         user.groups.add(group)
+            #     except Group.DoesNotExist:
+            #         # optional: rollback user creation or just ignore
+            #         raise ValidationError(self.errors)
             # Generate user avatar and thumbnail
             generate_user_thumbnail.apply_async(
                 (user.pk,),
@@ -262,9 +274,9 @@ class ProfileView(APIView):
         try:
             user = CustomUser.objects.get(pk=request.user.pk)
             user_serializer = ProfileGETSerializer(user)
+            # group_names = list(user.groups.values_list("name", flat=True))
             user_data = {
                 **user_serializer.data,
-                "is_staff": user.is_staff,
                 "is_superuser": user.is_superuser,
             }
             return Response(user_data, status=status.HTTP_200_OK)
@@ -336,3 +348,12 @@ class ProfileView(APIView):
             return Response(data, status=status.HTTP_200_OK)
 
         raise ValidationError(serializer.errors)
+
+
+class GroupView(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    @staticmethod
+    def get(request, *args, **kwargs):
+        titles = list(Group.objects.values_list("name", flat=True))
+        return Response({"group_titles": titles}, status=status.HTTP_200_OK)

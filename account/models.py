@@ -2,20 +2,21 @@ from io import BytesIO
 from os import path
 from uuid import uuid4
 
-from django.contrib.auth.models import AbstractBaseUser
+from django.contrib.auth.models import AbstractBaseUser, Group
 from django.contrib.auth.models import PermissionsMixin
 from django.core.files.base import ContentFile
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
+from company.models import Company
 from facturation_backend.settings import API_URL
 from .managers import CustomUserManager
 
 
 def get_avatar_path(_, filename):
-    filename, file_extension = path.splitext(filename)
-    return path.join("user_avatars/", str(uuid4()) + file_extension)
+    _, ext = path.splitext(filename)
+    return path.join("user_avatars/", str(uuid4()) + ext)
 
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
@@ -100,3 +101,34 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         getattr(self, file_name).save(
             f"{str(uuid4())}.webp", ContentFile(image.getvalue()), save=True
         )
+
+
+class Membership(models.Model):
+    company = models.ForeignKey(
+        "company.Company",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="memberships",
+        verbose_name="Company",
+    )
+    user = models.ForeignKey(
+        CustomUser,
+        on_delete=models.CASCADE,
+        related_name="memberships",
+        verbose_name="User",
+    )
+
+    role = models.CharField(
+        max_length=100,
+        verbose_name="Role",
+        db_index=True,
+    )
+
+    class Meta:
+        verbose_name = "Membership"
+        verbose_name_plural = "Memberships"
+        ordering = ("role",)
+
+    def __str__(self):
+        return f"{self.user.email} – {self.role} @ {self.company or 'No Company'}"

@@ -24,6 +24,8 @@ from facturation_backend.settings import STATICFILES_DIRS, MEDIA_ROOT
 urlpatterns = [
     # Account
     path("api/account/", include("account.urls")),
+    # Company
+    path("api/company/", include("company.urls")),
     # Admin panel
     path("admin/", admin.site.urls),
     # Static & media files

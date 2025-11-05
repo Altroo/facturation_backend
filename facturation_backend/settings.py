@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt",
     "dj_rest_auth",
     "account.apps.AccountConfig",
+    "company.apps.CompanyConfig",
 ]
 
 MIDDLEWARE = [
@@ -167,6 +168,7 @@ REST_FRAMEWORK = {
         "dj_rest_auth.jwt_auth.JWTAuthentication",
         "rest_framework.authentication.SessionAuthentication",
     ),
+    "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 20,

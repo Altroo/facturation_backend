@@ -11,6 +11,7 @@ from .views import (
     CheckEmailView,
     CreateAccountView,
     ProfileView,
+    GroupView,
 )
 
 app_name = "account"
@@ -35,6 +36,8 @@ urlpatterns = [
     # PATCH : Edit profil
     # GET : Get profil data include avatar
     path("profil/", ProfileView.as_view()),
+    # GET : Get group permission
+    path("group/", GroupView.as_view()),
     # POST : Tokens, Verify if token valid, Refresh access token
     path("token_verify/", TokenVerifyView.as_view()),
     path("token_refresh/", get_refresh_view().as_view()),
