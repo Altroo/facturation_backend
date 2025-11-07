@@ -36,7 +36,6 @@ from .tasks import (
 
 class CreateAccountView(APIView):
     permission_classes = (permissions.IsAdminUser,)
-    # errors = {"group_name": ["Group spécifié n'existe pas."]}
 
     @staticmethod
     def generate_random_password(length=8):
@@ -50,7 +49,6 @@ class CreateAccountView(APIView):
         gender = request.data.get("gender")
         is_superuser = request.data.get("is_superuser")
         password = self.generate_random_password()
-        # group_name = request.data.get("group_name")
 
         serializer = CreateAccountSerializer(
             data={
@@ -65,14 +63,6 @@ class CreateAccountView(APIView):
         )
         if serializer.is_valid():
             user = serializer.save()
-            # add user to the requested group (if provided)
-            # if group_name:
-            #     try:
-            #         group = Group.objects.get(name=group_name)
-            #         user.groups.add(group)
-            #     except Group.DoesNotExist:
-            #         # optional: rollback user creation or just ignore
-            #         raise ValidationError(self.errors)
             # Generate user avatar and thumbnail
             generate_user_thumbnail.apply_async(
                 (user.pk,),

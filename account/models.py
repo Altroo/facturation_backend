@@ -118,12 +118,7 @@ class Membership(models.Model):
         related_name="memberships",
         verbose_name="User",
     )
-
-    role = models.CharField(
-        max_length=100,
-        verbose_name="Role",
-        db_index=True,
-    )
+    role = models.ForeignKey(Group, on_delete=models.PROTECT, null=True, blank=True)
 
     class Meta:
         verbose_name = "Membership"

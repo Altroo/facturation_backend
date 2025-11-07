@@ -32,7 +32,6 @@ class CustomUserAdmin(UserAdmin):
             },
         ),
         ("Permissions", {"fields": ("is_active", "is_staff", "is_superuser")}),
-        ("Groupes", {"fields": ("groups",)}),
         ("Date d'activité", {"fields": ("date_joined", "last_login")}),
     )
     # add fields to the admin panel creation model
@@ -51,16 +50,14 @@ class CustomUserAdmin(UserAdmin):
             },
         ),
         ("Permissions", {"fields": ("is_active", "is_staff", "is_superuser")}),
-        ("Groupes", {"fields": ("groups",)}),
     )
     search_fields = ("email",)
     ordering = ("-id",)
 
 
 class MembershipAdminForm(forms.ModelForm):
-    # Override the field with a ChoiceField populated from Group names
-    role = forms.ChoiceField(
-        choices=[],
+    role = forms.ModelChoiceField(
+        queryset=Group.objects.all(),
         required=False,
         label="Role",
     )
@@ -69,19 +66,12 @@ class MembershipAdminForm(forms.ModelForm):
         model = Membership
         fields = "__all__"
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Build the choices list: (group.name, group.name)
-        group_choices = [(g.name, g.name) for g in Group.objects.all()]
-        # Optionally add a blank choice
-        self.fields["role"].choices = [("", "---------")] + group_choices
-
 
 class MembershipAdmin(ModelAdmin):
     form = MembershipAdminForm
     list_display = ("id", "user", "company", "role")
     list_filter = ("role", "company")
-    search_fields = ("user__email", "company__raison_sociale", "role")
+    search_fields = ("user__email", "company__raison_sociale", "role__name")
 
 
 # Account

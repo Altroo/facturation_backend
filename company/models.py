@@ -5,8 +5,6 @@ from django.core.validators import RegexValidator
 from django.db import models
 from django.utils import timezone
 
-from facturation_backend import settings
-
 
 def get_company_image_path(_, filename):
     """Store company images in a dedicated folder with a random name."""
@@ -166,14 +164,6 @@ class Company(models.Model):
     # DATES
     date_created = models.DateTimeField(
         verbose_name="Date de création", default=timezone.now
-    )
-
-    # Relation to the user who created the company
-    managed_by = models.ManyToManyField(
-        settings.AUTH_USER_MODEL,
-        related_name="managed_companies",
-        blank=True,
-        verbose_name="Gestionnaires",
     )
 
     class Meta:
