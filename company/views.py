@@ -18,6 +18,13 @@ def _is_admin(user):
     return Membership.objects.filter(user=user, role__name="Admin").exists()
 
 
+def _is_admin_for_company(user, company):
+    """User has an Admin membership for the given company."""
+    return Membership.objects.filter(
+        user=user, company=company, role__name="Admin"
+    ).exists()
+
+
 class CompanyListCreateView(APIView):
     permission_classes = (IsAuthenticated,)
 
@@ -26,17 +33,11 @@ class CompanyListCreateView(APIView):
         paginator = CompanyPagination()
         paginator.page_size = 10
 
-        if _is_admin(request.user):
-            # Admin sees companies where they have an Admin membership
-            queryset = Company.objects.filter(
-                memberships__user=request.user,
-                memberships__role__name="Admin",
-            )
-        else:
-            # Non‑admin sees companies where they have any membership
-            queryset = Company.objects.filter(
-                memberships__user=request.user,
-            )
+        # Only companies where the user is an Admin member
+        queryset = Company.objects.filter(
+            memberships__user=request.user,
+            memberships__role__name="Admin",
+        )
 
         filterset = CompanyFilter(request.GET, queryset=queryset)
         queryset = filterset.qs.order_by("-id")
@@ -47,7 +48,7 @@ class CompanyListCreateView(APIView):
 
     @staticmethod
     def post(request, *args, **kwargs):
-        # Only users that already have an Admin membership may create a company
+        # User must be an admin somewhere to create a new company
         if not _is_admin(request.user):
             raise PermissionDenied(
                 detail="Seuls les Admins peuvent créer des sociétés."
@@ -60,7 +61,7 @@ class CompanyListCreateView(APIView):
         if not serializer.is_valid():
             raise ValidationError(serializer.errors)
 
-        # The Admin group must already exist; otherwise creation is forbidden
+        # Ensure the Admin group exists
         try:
             admin_group = Group.objects.get(name="Admin")
         except Group.DoesNotExist:
@@ -69,7 +70,7 @@ class CompanyListCreateView(APIView):
             )
 
         company = serializer.save()
-        # Record the creator as an Admin member
+        # Record the creator as an Admin member of the new company
         Membership.objects.create(
             company=company,
             user=request.user,
@@ -83,20 +84,13 @@ class CompanyDetailView(APIView):
 
     def get_object(self, pk):
         user = self.request.user
-        if _is_admin(user):
-            # Admin can access only companies where they are Admin
-            return get_object_or_404(
-                Company,
-                pk=pk,
-                memberships__user=user,
-                memberships__role__name="Admin",
+        company = get_object_or_404(Company, pk=pk)
+
+        if not _is_admin_for_company(user, company):
+            raise PermissionDenied(
+                detail="Seuls les Admins de cette société peuvent y accéder."
             )
-        # Others can access companies where they have any membership
-        return get_object_or_404(
-            Company,
-            pk=pk,
-            memberships__user=user,
-        )
+        return company
 
     def get(self, request, pk, *args, **kwargs):
         company = self.get_object(pk)
@@ -104,10 +98,6 @@ class CompanyDetailView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def put(self, request, pk, *args, **kwargs):
-        if not _is_admin(request.user):
-            raise PermissionDenied(
-                detail="Seuls les Admins peuvent mettre à jour les sociétés."
-            )
         company = self.get_object(pk)
         serializer = CompanyDetailSerializer(company, data=request.data)
         if serializer.is_valid():
@@ -116,10 +106,6 @@ class CompanyDetailView(APIView):
         raise ValidationError(serializer.errors)
 
     def delete(self, request, pk, *args, **kwargs):
-        if not _is_admin(request.user):
-            raise PermissionDenied(
-                detail="Seuls les Admins peuvent supprimer les sociétés."
-            )
         company = self.get_object(pk)
         company.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
