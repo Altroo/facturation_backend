@@ -7,6 +7,7 @@ from uuid import uuid4
 from PIL import Image, UnidentifiedImageError
 from cv2 import imdecode, resize, INTER_AREA, cvtColor, COLOR_BGR2RGB, GaussianBlur
 from django.core.files.base import ContentFile
+from django.utils.translation import gettext_lazy as _
 from imghdr import what
 from numpy import uint8, frombuffer
 from rest_framework import serializers
@@ -152,13 +153,27 @@ def api_exception_handler(exc, context):
     response = exception_handler(exc, context)
 
     if response is not None:
-        http_code_to_message = {v.value: v.description for v in HTTPStatus}
+        # French translations for HTTP status descriptions
+        http_code_to_message = {
+            400: _("Requête invalide"),
+            401: _("Non autorisé"),
+            403: _("Accès refusé"),
+            404: _("Aucune correspondance avec l’URI donnée"),
+            405: _("Méthode non autorisée"),
+            500: _("Erreur interne du serveur"),
+            # fallback to English for others
+            **{
+                v.value: v.description
+                for v in HTTPStatus
+                if v.value not in [400, 401, 403, 404, 405, 500]
+            },
+        }
+
         error_payload = {
             "status_code": response.status_code,
             "message": http_code_to_message.get(response.status_code, ""),
             "details": response.data,
         }
-        # Preserve the HTTP status code!
         return Response(error_payload, status=response.status_code)
 
     return response

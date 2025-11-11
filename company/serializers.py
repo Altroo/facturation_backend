@@ -231,7 +231,7 @@ class CompanyDetailSerializer(CompanySerializer):
             try:
                 role_group = Group.objects.get(name=role_name)
             except Group.DoesNotExist:
-                raise serializers.ValidationError(f"Role '{role_name}' does not exist.")
+                raise serializers.ValidationError(f"Rôle '{role_name}' n'existe pas.")
             Membership.objects.create(
                 company=company,
                 user_id=user_id,

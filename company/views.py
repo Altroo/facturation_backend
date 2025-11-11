@@ -1,5 +1,6 @@
 from django.contrib.auth.models import Group
-from django.shortcuts import get_object_or_404
+from django.http import Http404
+from django.utils.translation import gettext_lazy as _
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.permissions import IsAuthenticated
@@ -90,12 +91,16 @@ class CompanyDetailView(APIView):
 
     def get_object(self, pk):
         user = self.request.user
-        company = get_object_or_404(Company, pk=pk)
+        try:
+            company = Company.objects.get(pk=pk)
+        except Company.DoesNotExist:
+            raise Http404(_("Aucune entreprise ne correspond à la requête."))
 
         if not _is_admin_for_company(user, company):
             raise PermissionDenied(
-                detail="Seuls les Admins de cette société peuvent y accéder."
+                detail=_("Seuls les Admins de cette société peuvent y accéder.")
             )
+
         return company
 
     def get(self, request, pk, *args, **kwargs):

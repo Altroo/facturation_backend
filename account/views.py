@@ -333,11 +333,14 @@ class ProfileView(APIView):
             # Pass BytesIO to Celery task
             resize_avatar_thumbnail.apply_async((user_pk, avatar_bytes))
 
-            data["id"] = user_pk
-            data["avatar"] = updated_account.get_absolute_avatar_img
-            data["date_joined"] = user.date_joined
-            data["is_superuser"]: user.is_superuser
-            return Response(data, status=status.HTTP_200_OK)
+            user_data = {
+                **serializer.data,
+                "id": user_pk,
+                "avatar": updated_account.get_absolute_avatar_img,
+                "date_joined": user.date_joined,
+                "is_superuser": user.is_superuser,
+            }
+            return Response(user_data, status=status.HTTP_200_OK)
 
         raise ValidationError(serializer.errors)
 
