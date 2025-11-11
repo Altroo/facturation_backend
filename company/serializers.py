@@ -217,7 +217,7 @@ class CompanyDetailSerializer(CompanySerializer):
         fields = "__all__"
 
     @staticmethod
-    def _update_memberships(company, items):
+    def update_memberships(company, items):
         """
         Replace the company's memberships with the supplied list of
         {'pk': user_id, 'role': role_name} dictionaries.
@@ -247,7 +247,7 @@ class CompanyDetailSerializer(CompanySerializer):
 
         # Sync memberships if the client supplied a list
         if managed_items is not None:
-            self._update_memberships(instance, managed_items)
+            self.update_memberships(instance, managed_items)
 
         return instance
 

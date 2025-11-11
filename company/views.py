@@ -61,10 +61,7 @@ class CompanyListCreateView(APIView):
                 detail="Seuls les Admins peuvent créer des sociétés."
             )
 
-        data = request.data.copy()
-        data.pop("managed_by", None)  # safety, field no longer exists
-
-        serializer = CompanySerializer(data=data)
+        serializer = CompanySerializer(data=request.data)
         if not serializer.is_valid():
             raise ValidationError(serializer.errors)
 
@@ -75,15 +72,19 @@ class CompanyListCreateView(APIView):
             raise PermissionDenied(
                 detail="Le groupe 'Admin' n'existe pas. Un super‑utilisateur doit le créer et assigner les rôles."
             )
-
         company = serializer.save()
-        # Record the creator as an Admin member of the new company
         Membership.objects.create(
             company=company,
             user=request.user,
             role=admin_group,
         )
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        managed_by = request.data.get("managed_by")
+        if managed_by:
+            CompanyDetailSerializer.update_memberships(company, managed_by)
+        response_serializer = CompanyDetailSerializer(
+            company, context={"request": request}
+        )
+        return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
 
 class CompanyDetailView(APIView):
