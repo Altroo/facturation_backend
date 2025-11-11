@@ -25,6 +25,7 @@ from .serializers import (
     CreateAccountSerializer,
     ProfileGETSerializer,
     ProfilePutSerializer,
+    UserListSerializer,
 )
 from .tasks import (
     send_email,
@@ -348,3 +349,13 @@ class GroupView(APIView):
     def get(request, *args, **kwargs):
         titles = list(Group.objects.values_list("name", flat=True))
         return Response({"group_titles": titles}, status=status.HTTP_200_OK)
+
+
+class UserListView(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    @staticmethod
+    def get(request, *args, **kwargs):
+        users = CustomUser.objects.all()
+        serializer = UserListSerializer(users, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

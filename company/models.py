@@ -31,13 +31,33 @@ class Company(models.Model):
         null=True,
         default=None,
         verbose_name="Logo",
+        max_length=1000,
     )
+    logo_cropped = models.ImageField(
+        upload_to=get_company_image_path,
+        blank=True,
+        null=True,
+        default=None,
+        verbose_name="Logo cropped",
+        max_length=1000,
+    )
+
     cachet = models.ImageField(
         upload_to=get_company_image_path,
         blank=True,
         null=True,
         default=None,
         verbose_name="Cachet",
+        max_length=1000,
+    )
+
+    cachet_cropped = models.ImageField(
+        upload_to=get_company_image_path,
+        blank=True,
+        null=True,
+        default=None,
+        verbose_name="Cachet cropped",
+        max_length=1000,
     )
 
     # Number of employees (choice)

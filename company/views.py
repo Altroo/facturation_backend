@@ -10,7 +10,11 @@ from account.models import Membership
 from .filters import CompanyFilter
 from .models import Company
 from .pagination import CompanyPagination
-from .serializers import CompanySerializer, CompanyDetailSerializer
+from .serializers import (
+    CompanySerializer,
+    CompanyDetailSerializer,
+    CompanyListSerializer,
+)
 
 
 def _is_admin(user):
@@ -43,7 +47,9 @@ class CompanyListCreateView(APIView):
         queryset = filterset.qs.order_by("-id")
 
         page = paginator.paginate_queryset(queryset, request)
-        serializer = CompanySerializer(page, many=True)
+        serializer = CompanyListSerializer(
+            page, many=True, context={"request": request}
+        )
         return paginator.get_paginated_response(serializer.data)
 
     @staticmethod
@@ -94,12 +100,14 @@ class CompanyDetailView(APIView):
 
     def get(self, request, pk, *args, **kwargs):
         company = self.get_object(pk)
-        serializer = CompanyDetailSerializer(company)
+        serializer = CompanyDetailSerializer(company, context={"request": request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def put(self, request, pk, *args, **kwargs):
         company = self.get_object(pk)
-        serializer = CompanyDetailSerializer(company, data=request.data)
+        serializer = CompanyDetailSerializer(
+            company, data=request.data, context={"request": request}
+        )
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
