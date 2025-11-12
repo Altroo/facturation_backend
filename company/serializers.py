@@ -147,7 +147,13 @@ class CompanySerializer(serializers.ModelSerializer):
             "cachet_cropped", validated_data, instance
         )
 
-        # Remove from validated_data
+        # Detect explicit nulls to clear existing files
+        for field_name in ("logo", "logo_cropped", "cachet", "cachet_cropped"):
+            if field_name in validated_data and validated_data[field_name] is None:
+                # Delete the current file without saving the model yet
+                getattr(instance, field_name).delete(save=False)
+
+        # Remove image keys from validated_data (we’ll set them directly)
         validated_data.pop("logo", None)
         validated_data.pop("logo_cropped", None)
         validated_data.pop("cachet", None)
@@ -157,7 +163,7 @@ class CompanySerializer(serializers.ModelSerializer):
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
 
-        # Update image fields only if they're new uploads
+        # Update image fields only if they contain new uploads
         if logo and logo != getattr(instance, "logo"):
             instance.logo.save(logo.name, logo, save=False)
         if logo_cropped and logo_cropped != getattr(instance, "logo_cropped"):
