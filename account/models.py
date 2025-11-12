@@ -85,7 +85,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         return None
 
     @property
-    def get_absolute_avatar_thumbnail(self):
+    def get_absolute_avatar_thumbnail_img(self):
         if self.avatar_thumbnail:
             return f"{API_URL}{self.avatar_thumbnail.url}"
         return None

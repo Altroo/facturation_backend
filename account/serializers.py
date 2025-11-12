@@ -102,7 +102,27 @@ class ProfilePutSerializer(serializers.ModelSerializer):
 
 
 class UserListSerializer(serializers.ModelSerializer):
+    avatar = serializers.CharField(source="get_absolute_avatar_img")
+    avatar_thumbnail = serializers.CharField(source="get_absolute_avatar_thumbnail_img")
+    gender = serializers.SerializerMethodField()
+
+    @staticmethod
+    def get_gender(instance):
+        if instance.gender != "":
+            return instance.get_gender_display()
+        return None
 
     class Meta:
         model = CustomUser
-        fields = ["id", "first_name", "last_name"]
+        fields = [
+            "id",
+            "first_name",
+            "last_name",
+            "avatar",
+            "avatar_thumbnail",
+            "email",
+            "gender",
+            "is_active",
+            "date_joined",
+            "last_login",
+        ]
