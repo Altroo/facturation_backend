@@ -10,14 +10,18 @@ from dj_rest_auth.views import LoginView as Dj_rest_login
 from dj_rest_auth.views import LogoutView as Dj_rest_logout
 from django.contrib.auth.models import Group
 from django.core.exceptions import SuspiciousFileOperation
+from django.http import Http404
 from django.template.loader import render_to_string
+from django.utils.translation import gettext_lazy as _
 from rest_framework import permissions, status
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from facturation_backend.utils import ImageProcessor
+from .filters import UsersFilter
 from .models import CustomUser
+from .pagination import UsersPagination
 from .serializers import (
     PasswordResetSerializer,
     ChangePasswordSerializer,
@@ -25,7 +29,8 @@ from .serializers import (
     CreateAccountSerializer,
     ProfileGETSerializer,
     ProfilePutSerializer,
-    UserListSerializer,
+    UsersListSerializer,
+    UserDetailSerializer,
 )
 from .tasks import (
     send_email,
@@ -33,51 +38,6 @@ from .tasks import (
     generate_user_thumbnail,
     resize_avatar_thumbnail,
 )
-
-
-class CreateAccountView(APIView):
-    permission_classes = (permissions.IsAdminUser,)
-
-    @staticmethod
-    def generate_random_password(length=8):
-        characters = digits + ascii_letters
-        return "".join(choice(characters) for _ in range(length))
-
-    def post(self, request):
-        email = str(request.data.get("email")).lower()
-        first_name = request.data.get("first_name")
-        last_name = request.data.get("last_name")
-        gender = request.data.get("gender")
-        is_superuser = request.data.get("is_superuser")
-        password = self.generate_random_password()
-
-        serializer = CreateAccountSerializer(
-            data={
-                "email": email,
-                "password": password,
-                "password2": password,
-                "first_name": first_name,
-                "last_name": last_name,
-                "gender": gender,
-                "is_superuser": is_superuser,
-            }
-        )
-        if serializer.is_valid():
-            user = serializer.save()
-            # Generate user avatar and thumbnail
-            generate_user_thumbnail.apply_async(
-                (user.pk,),
-            )
-            mail_subject = "Invitation (Facturation Casa Di Lusso)"
-            mail_template = "new_account.html"
-            message = render_to_string(
-                mail_template, {"fist_name": user.first_name, "password": password}
-            )
-            send_email.apply_async(
-                (user.pk, user.email, mail_subject, message),
-            )
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        raise ValidationError(serializer.errors)
 
 
 class CheckEmailView(APIView):
@@ -268,7 +228,7 @@ class ProfileView(APIView):
             # group_names = list(user.groups.values_list("name", flat=True))
             user_data = {
                 **user_serializer.data,
-                "is_superuser": user.is_superuser,
+                "is_staff": user.is_staff,
             }
             return Response(user_data, status=status.HTTP_200_OK)
         except CustomUser.DoesNotExist:
@@ -338,7 +298,7 @@ class ProfileView(APIView):
                 "id": user_pk,
                 "avatar": updated_account.get_absolute_avatar_img,
                 "date_joined": user.date_joined,
-                "is_superuser": user.is_superuser,
+                "is_staff": user.is_staff,
             }
             return Response(user_data, status=status.HTTP_200_OK)
 
@@ -354,11 +314,97 @@ class GroupView(APIView):
         return Response({"group_titles": titles}, status=status.HTTP_200_OK)
 
 
-class UserListView(APIView):
-    permission_classes = (permissions.IsAuthenticated,)
+class UsersListCreateView(APIView):
+    permission_classes = (permissions.IsAdminUser,)
+
+    @staticmethod
+    def generate_random_password(length=8):
+        characters = digits + ascii_letters
+        return "".join(choice(characters) for _ in range(length))
 
     @staticmethod
     def get(request, *args, **kwargs):
-        users = CustomUser.objects.all()
-        serializer = UserListSerializer(users, many=True)
+        pagination = request.data.get("pagination", False)
+        queryset = CustomUser.objects.all()
+        if pagination:
+            paginator = UsersPagination()
+            filterset = UsersFilter(request.GET, queryset=queryset)
+            queryset = filterset.qs.order_by("-date_joined")
+            page = paginator.paginate_queryset(queryset, request)
+            serializer = UsersListSerializer(page, many=True)
+            return paginator.get_paginated_response(serializer.data)
+        else:
+            serializer = UsersListSerializer(queryset, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        email = str(request.data.get("email")).lower()
+        first_name = request.data.get("first_name")
+        last_name = request.data.get("last_name")
+        gender = request.data.get("gender")
+        is_staff = request.data.get("is_staff")
+        password = self.generate_random_password()
+
+        serializer = CreateAccountSerializer(
+            data={
+                "email": email,
+                "password": password,
+                "password2": password,
+                "first_name": first_name,
+                "last_name": last_name,
+                "gender": gender,
+                "is_staff": is_staff,
+            }
+        )
+        if serializer.is_valid():
+            user = serializer.save()
+            # Generate user avatar and thumbnail
+            generate_user_thumbnail.apply_async(
+                (user.pk,),
+            )
+            mail_subject = "Invitation (Facturation Casa Di Lusso)"
+            mail_template = "new_account.html"
+            message = render_to_string(
+                mail_template, {"fist_name": user.first_name, "password": password}
+            )
+            send_email.apply_async(
+                (user.pk, user.email, mail_subject, message),
+            )
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        raise ValidationError(serializer.errors)
+
+
+class UserDetailView(APIView):
+    permission_classes = (permissions.IsAdminUser,)
+
+    @staticmethod
+    def get_object(pk):
+        try:
+            user = CustomUser.objects.get(pk=pk)
+        except CustomUser.DoesNotExist:
+            raise Http404(_("Aucune utilisateur ne correspond à la requête."))
+
+        return user
+
+    def get(self, request, *args, **kwargs):
+        pk = kwargs.get("pk")
+        user = self.get_object(pk)
+        serializer = UserDetailSerializer(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def put(self, request, *args, **kwargs):
+        pk = kwargs.get("pk")
+        # TODO include images like in PATCH of ProfileView
+        user = self.get_object(pk)
+        serializer = UserDetailSerializer(user, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        raise ValidationError(serializer.errors)
+
+    def delete(self, request, *args, **kwargs):
+        pk = kwargs.get("pk")
+        # TODO include delete images from media folder
+        user = self.get_object(pk)
+        user.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

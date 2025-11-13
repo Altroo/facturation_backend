@@ -9,10 +9,10 @@ from .views import (
     PasswordChangeView,
     SendPasswordResetView,
     CheckEmailView,
-    CreateAccountView,
     ProfileView,
     GroupView,
-    UserListView,
+    UsersListCreateView,
+    UserDetailView,
 )
 
 app_name = "account"
@@ -22,8 +22,6 @@ urlpatterns = [
     path("login/", LoginView.as_view()),
     # POST : Logout
     path("logout/", LogoutView.as_view()),
-    # POST : Create Account
-    path("create_account/", CreateAccountView.as_view()),
     # POST : Check if email already exists
     path("check_email/", CheckEmailView.as_view()),
     # PUT : Password change
@@ -40,7 +38,9 @@ urlpatterns = [
     # GET : Get group permission
     path("group/", GroupView.as_view()),
     # GET : Users list
-    path("users/", UserListView.as_view()),
+    path("users/", UsersListCreateView.as_view()),
+    # GET user detail, PUT update, DELETE
+    path("users/<int:pk>/", UserDetailView.as_view()),
     # POST : Tokens, Verify if token valid, Refresh access token
     path("token_verify/", TokenVerifyView.as_view()),
     path("token_refresh/", get_refresh_view().as_view()),

@@ -1,9 +1,9 @@
 from django.contrib.auth.models import Group
 from django.http import Http404
 from django.utils.translation import gettext_lazy as _
+from rest_framework import permissions
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied, ValidationError
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -18,9 +18,9 @@ from .serializers import (
 )
 
 
-def _is_admin(user):
-    """User has an Admin membership for any company."""
-    return Membership.objects.filter(user=user, role__name="Admin").exists()
+# def _is_admin(user):
+#     """User has an Admin membership for any company."""
+#     return Membership.objects.filter(user=user, role__name="Admin").exists()
 
 
 def _is_admin_for_company(user, company):
@@ -31,12 +31,11 @@ def _is_admin_for_company(user, company):
 
 
 class CompanyListCreateView(APIView):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (permissions.IsAdminUser,)
 
     @staticmethod
     def get(request, *args, **kwargs):
         paginator = CompanyPagination()
-        paginator.page_size = 10
 
         # Only companies where the user is an Admin member
         queryset = Company.objects.filter(
@@ -56,10 +55,10 @@ class CompanyListCreateView(APIView):
     @staticmethod
     def post(request, *args, **kwargs):
         # User must be an admin somewhere to create a new company
-        if not _is_admin(request.user):
-            raise PermissionDenied(
-                detail="Seuls les Admins peuvent créer des sociétés."
-            )
+        # if not _is_admin(request.user):
+        #     raise PermissionDenied(
+        #         detail="Seuls les Admins peuvent créer des sociétés."
+        #     )
 
         serializer = CompanySerializer(data=request.data)
         if not serializer.is_valid():
@@ -88,7 +87,7 @@ class CompanyListCreateView(APIView):
 
 
 class CompanyDetailView(APIView):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (permissions.IsAdminUser,)
 
     def get_object(self, pk):
         user = self.request.user

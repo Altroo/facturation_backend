@@ -16,7 +16,7 @@ class CreateAccountSerializer(serializers.ModelSerializer):
             "first_name",
             "last_name",
             "gender",
-            "is_superuser",
+            "is_staff",
         ]
         extra_kwargs = {
             "password": {"write_only": True},
@@ -28,7 +28,7 @@ class CreateAccountSerializer(serializers.ModelSerializer):
             first_name=self.validated_data["first_name"],
             last_name=self.validated_data["last_name"],
             gender=self.validated_data["gender"],
-            is_superuser=self.validated_data["is_superuser"],
+            is_staff=self.validated_data["is_staff"],
         )
         account.set_password(self.validated_data["password"])
         account.save()
@@ -101,7 +101,7 @@ class ProfilePutSerializer(serializers.ModelSerializer):
         fields = ["first_name", "last_name", "gender"]
 
 
-class UserListSerializer(serializers.ModelSerializer):
+class UsersListSerializer(serializers.ModelSerializer):
     avatar = serializers.CharField(source="get_absolute_avatar_img")
     avatar_thumbnail = serializers.CharField(source="get_absolute_avatar_thumbnail_img")
     gender = serializers.SerializerMethodField()
@@ -109,7 +109,7 @@ class UserListSerializer(serializers.ModelSerializer):
     @staticmethod
     def get_gender(instance):
         if instance.gender != "":
-            return instance.get_gender_display()
+            return instance.gender
         return None
 
     class Meta:
@@ -126,3 +126,32 @@ class UserListSerializer(serializers.ModelSerializer):
             "date_joined",
             "last_login",
         ]
+        read_only_fields = ("date_joined", "last_login")
+
+
+class UserDetailSerializer(serializers.ModelSerializer):
+    avatar = serializers.CharField(source="get_absolute_avatar_img")
+    avatar_thumbnail = serializers.CharField(source="get_absolute_avatar_thumbnail_img")
+    gender = serializers.SerializerMethodField()
+
+    @staticmethod
+    def get_gender(instance):
+        if instance.gender != "":
+            return instance.gender
+        return None
+
+    class Meta:
+        model = CustomUser
+        fields = [
+            "id",
+            "first_name",
+            "last_name",
+            "avatar",
+            "avatar_thumbnail",
+            "email",
+            "gender",
+            "is_active",
+            "date_joined",
+            "last_login",
+        ]
+        read_only_fields = ("id", "date_joined", "last_login")

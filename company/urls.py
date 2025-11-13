@@ -8,8 +8,8 @@ from .views import (
 app_name = "company"
 
 urlpatterns = [
-    # GET list (paginated) & POST create
+    # GET company list (paginated) & POST create
     path("", CompanyListCreateView.as_view()),
-    # GET detail, PUT update, DELETE
+    # GET company detail, PUT update, DELETE
     path("<int:pk>/", CompanyDetailView.as_view()),
 ]
