@@ -1,6 +1,4 @@
 from datetime import timedelta, timezone, datetime
-from io import BytesIO
-from os import remove
 from random import choice
 from string import digits, ascii_letters
 from sys import platform
@@ -9,7 +7,6 @@ from celery import current_app
 from dj_rest_auth.views import LoginView as Dj_rest_login
 from dj_rest_auth.views import LogoutView as Dj_rest_logout
 from django.contrib.auth.models import Group
-from django.core.exceptions import SuspiciousFileOperation
 from django.http import Http404
 from django.template.loader import render_to_string
 from django.utils.translation import gettext_lazy as _
@@ -18,7 +15,6 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from facturation_backend.utils import ImageProcessor
 from .filters import UsersFilter
 from .models import CustomUser
 from .pagination import UsersPagination
@@ -237,71 +233,31 @@ class ProfileView(APIView):
     @staticmethod
     def patch(request, *args, **kwargs):
         user = request.user
-
-        # Handle both base64 and file uploads
-        avatar = request.data.get("avatar")
-        avatar_bytes = None
-
-        if isinstance(avatar, str):
-            # base64 case
-            avatar_file = ImageProcessor.data_url_to_uploaded_file(avatar)
-            if avatar_file:
-                avatar_bytes = BytesIO(avatar_file.read())
-                avatar_file.seek(0)  # reset pointer if you want to save it later
-        else:
-            # multipart file case
-            avatar_file = request.FILES.get("avatar")
-            if avatar_file:
-                avatar_bytes = BytesIO(avatar_file.read())
-                avatar_file.seek(0)  # reset pointer so Django can still save it
-
-        # cleanup old avatar if needed
-        if avatar_file:
-            if user.avatar:
-                try:
-                    remove(user.avatar.path)
-                    user.avatar = None
-                    user.save(update_fields=["avatar"])
-                except (ValueError, SuspiciousFileOperation, FileNotFoundError):
-                    pass
-            if user.avatar_thumbnail:
-                try:
-                    remove(user.avatar_thumbnail.path)
-                    user.avatar_thumbnail = None
-                    user.save(update_fields=["avatar_thumbnail"])
-                except (ValueError, SuspiciousFileOperation, FileNotFoundError):
-                    pass
-
-        # update profile fields
-        gender = request.data.get("gender", "")
-        if gender == "Homme":
-            gender = "H"
-        elif gender == "Femme":
-            gender = "F"
-        else:
-            gender = ""
         data = {
             "first_name": request.data.get("first_name"),
             "last_name": request.data.get("last_name"),
-            "gender": gender,
+            "gender": request.data.get("gender", ""),
+            "avatar": request.data.get("avatar"),  # Can be base64, URL, or file
         }
-        serializer = ProfilePutSerializer(data=data, partial=True)
+        # Initialize serializer with context for URL building
+        serializer = ProfilePutSerializer(
+            instance=user, data=data, partial=True, context={"request": request}
+        )
         if serializer.is_valid():
-            updated_account = serializer.update(user, serializer.validated_data)
-            user_pk = updated_account.pk
-
-            # Pass BytesIO to Celery task
-            resize_avatar_thumbnail.apply_async((user_pk, avatar_bytes))
-
+            updated_account = serializer.save()
+            # Trigger Celery task if we have avatar bytes
+            avatar_bytes = getattr(updated_account, "_avatar_bytes_for_celery", None)
+            if avatar_bytes:
+                resize_avatar_thumbnail.apply_async((updated_account.pk, avatar_bytes))
+            # Build response data
             user_data = {
                 **serializer.data,
-                "id": user_pk,
+                "id": updated_account.pk,
                 "avatar": updated_account.get_absolute_avatar_img,
-                "date_joined": user.date_joined,
-                "is_staff": user.is_staff,
+                "date_joined": updated_account.date_joined,
+                "is_staff": updated_account.is_staff,
             }
             return Response(user_data, status=status.HTTP_200_OK)
-
         raise ValidationError(serializer.errors)
 
 

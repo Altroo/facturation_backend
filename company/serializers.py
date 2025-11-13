@@ -1,4 +1,6 @@
 from base64 import b64decode
+from os import remove
+from pathlib import Path
 from uuid import uuid4
 
 from django.contrib.auth.models import Group
@@ -67,39 +69,53 @@ class CompanySerializer(serializers.ModelSerializer):
     @staticmethod
     def _process_image_field(field_name, validated_data, instance):
         """
-        Process image field - handle both base64 and existing URLs
+        Process image field - handle base64, multipart files, and existing URLs
         """
         field_value = validated_data.get(field_name)
-
         if not field_value:
             # If empty/null, clear the field
             return None
-
         # If it's a URL (existing image), don't change it
         if isinstance(field_value, str) and field_value.startswith("http"):
             # Return the existing file instance, don't update
             return getattr(instance, field_name) if instance else None
-
+        # If it's a multipart file upload (InMemoryUploadedFile or TemporaryUploadedFile)
+        if hasattr(field_value, "read"):
+            try:
+                # Read the file content
+                field_value.seek(0)  # Reset pointer to start
+                data = field_value.read()
+                field_value.seek(0)  # Reset again for potential reuse
+                # Get extension from content_type or name
+                ext = (
+                    field_value.name.split(".")[-1]
+                    if "." in field_value.name
+                    else "jpg"
+                )
+                # Create a unique filename
+                filename = f"{uuid4()}.{ext}"
+                # Return ContentFile
+                return ContentFile(data, name=filename)
+            except Exception as e:
+                raise serializers.ValidationError(
+                    f"Invalid file upload for {field_name}: {str(e)}"
+                )
         # If it's base64 data, process it
         if isinstance(field_value, str) and field_value.startswith("data:image"):
             try:
                 # Extract format and base64 data
                 format_, imgstr = field_value.split(";base64,")
                 ext = format_.split("/")[-1]  # Get extension (png, jpg, etc.)
-
                 # Decode base64
                 data = b64decode(imgstr)
-
                 # Create a unique filename
                 filename = f"{uuid4()}.{ext}"
-
                 # Return ContentFile
                 return ContentFile(data, name=filename)
             except Exception as e:
                 raise serializers.ValidationError(
                     f"Invalid base64 image data for {field_name}: {str(e)}"
                 )
-
         # If we get here, it's an unexpected format
         raise serializers.ValidationError(f"Invalid image format for {field_name}")
 
@@ -147,13 +163,22 @@ class CompanySerializer(serializers.ModelSerializer):
             "cachet_cropped", validated_data, instance
         )
 
-        # Detect explicit nulls to clear existing files
+        # Detect explicit nulls and delete both file and reference
         for field_name in ("logo", "logo_cropped", "cachet", "cachet_cropped"):
             if field_name in validated_data and validated_data[field_name] is None:
-                # Delete the current file without saving the model yet
-                getattr(instance, field_name).delete(save=False)
+                field = getattr(instance, field_name)
+                if field:  # Only if there's an existing file
+                    try:
+                        # Delete physical file from disk
+                        if field.path and Path(field.path).exists():
+                            remove(field.path)
+                    except (ValueError, FileNotFoundError, OSError):
+                        # Log error but continue
+                        pass
+                    # Delete database reference
+                    field.delete(save=False)
 
-        # Remove image keys from validated_data (we’ll set them directly)
+        # Remove image keys from validated_data
         validated_data.pop("logo", None)
         validated_data.pop("logo_cropped", None)
         validated_data.pop("cachet", None)
@@ -163,17 +188,24 @@ class CompanySerializer(serializers.ModelSerializer):
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
 
-        # Update image fields only if they contain new uploads
-        if logo and logo != getattr(instance, "logo"):
-            instance.logo.save(logo.name, logo, save=False)
-        if logo_cropped and logo_cropped != getattr(instance, "logo_cropped"):
-            instance.logo_cropped.save(logo_cropped.name, logo_cropped, save=False)
-        if cachet and cachet != getattr(instance, "cachet"):
-            instance.cachet.save(cachet.name, cachet, save=False)
-        if cachet_cropped and cachet_cropped != getattr(instance, "cachet_cropped"):
-            instance.cachet_cropped.save(
-                cachet_cropped.name, cachet_cropped, save=False
-            )
+        # Update image fields - also delete old files when replacing
+        for field_name, new_file in [
+            ("logo", logo),
+            ("logo_cropped", logo_cropped),
+            ("cachet", cachet),
+            ("cachet_cropped", cachet_cropped),
+        ]:
+            if new_file and new_file != getattr(instance, field_name):
+                old_field = getattr(instance, field_name)
+                # Delete old file before saving new one
+                if old_field:
+                    try:
+                        if old_field.path and Path(old_field.path).exists():
+                            remove(old_field.path)
+                    except (ValueError, FileNotFoundError, OSError):
+                        pass
+                # Save new file
+                getattr(instance, field_name).save(new_file.name, new_file, save=False)
 
         instance.save()
         return instance
