@@ -1,4 +1,5 @@
 from datetime import timedelta, timezone, datetime
+from os import remove
 from random import choice
 from string import digits, ascii_letters
 from sys import platform
@@ -7,6 +8,7 @@ from celery import current_app
 from dj_rest_auth.views import LoginView as Dj_rest_login
 from dj_rest_auth.views import LogoutView as Dj_rest_logout
 from django.contrib.auth.models import Group
+from django.core.exceptions import SuspiciousFileOperation
 from django.http import Http404
 from django.template.loader import render_to_string
 from django.utils.translation import gettext_lazy as _
@@ -27,6 +29,7 @@ from .serializers import (
     ProfilePutSerializer,
     UsersListSerializer,
     UserDetailSerializer,
+    UserPatchSerializer,
 )
 from .tasks import (
     send_email,
@@ -281,7 +284,7 @@ class UsersListCreateView(APIView):
     @staticmethod
     def get(request, *args, **kwargs):
         pagination = request.data.get("pagination", False)
-        queryset = CustomUser.objects.all()
+        queryset = CustomUser.objects.all().exclude(pk=request.user.pk)
         if pagination:
             paginator = UsersPagination()
             filterset = UsersFilter(request.GET, queryset=queryset)
@@ -330,7 +333,7 @@ class UsersListCreateView(APIView):
         raise ValidationError(serializer.errors)
 
 
-class UserDetailView(APIView):
+class UserDetailEditDeleteView(APIView):
     permission_classes = (permissions.IsAdminUser,)
 
     @staticmethod
@@ -339,20 +342,24 @@ class UserDetailView(APIView):
             user = CustomUser.objects.get(pk=pk)
         except CustomUser.DoesNotExist:
             raise Http404(_("Aucune utilisateur ne correspond à la requête."))
-
         return user
 
     def get(self, request, *args, **kwargs):
         pk = kwargs.get("pk")
+        if pk == request.user.pk:
+            raise Http404(_("Aucune utilisateur ne correspond à la requête."))
         user = self.get_object(pk)
         serializer = UserDetailSerializer(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def put(self, request, *args, **kwargs):
         pk = kwargs.get("pk")
-        # TODO include images like in PATCH of ProfileView
+        if pk == request.user.pk:
+            raise Http404(_("Vous ne pouvez pas modifier votre utilisateur."))
         user = self.get_object(pk)
-        serializer = UserDetailSerializer(user, data=request.data)
+        serializer = UserPatchSerializer(
+            user, data=request.data, context={"request": request}, partial=True
+        )
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -360,7 +367,18 @@ class UserDetailView(APIView):
 
     def delete(self, request, *args, **kwargs):
         pk = kwargs.get("pk")
-        # TODO include delete images from media folder
+        if pk == request.user.pk:
+            raise Http404(_("Vous ne pouvez pas supprimer votre utilisateur."))
         user = self.get_object(pk)
+        media_paths_list = []
+        if user.avatar:
+            media_paths_list.append(user.avatar.path)
+        if user.avatar_thumbnail:
+            media_paths_list.append(user.avatar_thumbnail.path)
+        for media_path in media_paths_list:
+            try:
+                remove(media_path)
+            except (ValueError, SuspiciousFileOperation, FileNotFoundError):
+                pass
         user.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)

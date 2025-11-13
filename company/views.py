@@ -86,7 +86,7 @@ class CompanyListCreateView(APIView):
         return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
 
-class CompanyDetailView(APIView):
+class CompanyDetailEditDeleteView(APIView):
     permission_classes = (permissions.IsAdminUser,)
 
     def get_object(self, pk):

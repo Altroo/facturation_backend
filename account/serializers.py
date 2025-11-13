@@ -315,3 +315,22 @@ class UserDetailSerializer(serializers.ModelSerializer):
             "last_login",
         ]
         read_only_fields = ("id", "date_joined", "last_login")
+
+
+class UserPatchSerializer(ProfilePutSerializer):
+    class Meta:
+        model = CustomUser
+        fields = [
+            "id",
+            "first_name",
+            "last_name",
+            "avatar",
+            "avatar_thumbnail",
+            "email",
+            "gender",
+            "is_active",
+            "is_staff",
+            "date_joined",
+            "last_login",
+        ]
+        read_only_fields = ("id", "email", "date_joined", "last_login")

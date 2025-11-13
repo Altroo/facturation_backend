@@ -12,7 +12,7 @@ from .views import (
     ProfileView,
     GroupView,
     UsersListCreateView,
-    UserDetailView,
+    UserDetailEditDeleteView,
 )
 
 app_name = "account"
@@ -40,7 +40,7 @@ urlpatterns = [
     # GET : Users list
     path("users/", UsersListCreateView.as_view()),
     # GET user detail, PUT update, DELETE
-    path("users/<int:pk>/", UserDetailView.as_view()),
+    path("users/<int:pk>/", UserDetailEditDeleteView.as_view()),
     # POST : Tokens, Verify if token valid, Refresh access token
     path("token_verify/", TokenVerifyView.as_view()),
     path("token_refresh/", get_refresh_view().as_view()),
