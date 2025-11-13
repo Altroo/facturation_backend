@@ -182,7 +182,7 @@ class ProfilePutSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         """Handle avatar upload and update profile fields"""
         # Process avatar field
-        avatar_file = None
+        # avatar_file = None
         avatar_bytes = None
         if "avatar" in validated_data:
             avatar_file, avatar_bytes = self._process_image_field(
@@ -234,10 +234,6 @@ class ProfilePutSerializer(serializers.ModelSerializer):
         # Update regular fields
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
-        # Save new avatar if provided
-        if avatar_file and avatar_file != getattr(instance, "avatar"):
-            instance.avatar.save(avatar_file.name, avatar_file, save=False)
-        instance.save()
         # Store avatar_bytes on instance for Celery task (temporary attribute)
         instance._avatar_bytes_for_celery = avatar_bytes
         return instance

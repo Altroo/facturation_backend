@@ -3,7 +3,7 @@ from random import shuffle
 from typing import Tuple
 
 from PIL import Image, ImageDraw, ImageFont
-from asgiref.sync import async_to_sync
+from asgiref.sync import async_to_sync, sync_to_async
 from celery.utils.log import get_task_logger
 from channels.layers import get_channel_layer
 from django.core.files import File
@@ -150,17 +150,19 @@ def generate_images_v2(query_, avatar: BytesIO, thumbnail: BytesIO):
 
 @app.task(bind=True, serializer="pickle")
 def resize_avatar_thumbnail(self, object_pk: int, avatar: BytesIO | None):
-    object_ = CustomUser.objects.get(pk=object_pk)
-    if isinstance(avatar, BytesIO):
-        avatar_io, thumb_io = resize_images_v2(avatar)
-        generate_images_v2(object_, avatar_io, thumb_io)
-        event = {
-            "type": "recieve_group_message",
-            "message": {
-                "type": "USER_AVATAR",
-                "pk": object_.pk,
-                "avatar": object_.get_absolute_avatar_img,
-            },
-        }
-        channel_layer = get_channel_layer()
-        async_to_sync(channel_layer.group_send)("%s" % object_.pk, event)
+    user = CustomUser.objects.get(pk=object_pk)
+    if not isinstance(avatar, BytesIO):
+        return
+    avatar_io, thumb_io = resize_images_v2(avatar)
+    generate_images_v2(user, avatar_io, thumb_io)
+    event = {
+        "type": "recieve_group_message",
+        "message": {
+            "type": "USER_AVATAR",
+            "pk": user.pk,
+            "avatar": user.get_absolute_avatar_img,
+        },
+    }
+    channel_layer = get_channel_layer()
+    async_send = sync_to_async(channel_layer.group_send)
+    async_to_sync(async_send)(str(user.pk), event)
