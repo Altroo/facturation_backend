@@ -22,8 +22,8 @@ urlpatterns = [
     path("login/", LoginView.as_view()),
     # POST : Logout
     path("logout/", LogoutView.as_view()),
-    # POST : Check if email already exists
-    path("check_email/", CheckEmailView.as_view()),
+    # GET : Check if email already exists
+    path("check_email/<str:email>/", CheckEmailView.as_view()),
     # PUT : Password change
     path("password_change/", PasswordChangeView.as_view()),
     # POST : Password reset

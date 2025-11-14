@@ -23,6 +23,19 @@ class MembershipUserSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
+class MembershipCompanySerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(read_only=True)
+    raison_sociale = serializers.CharField(
+        source="company.raison_sociale", read_only=True
+    )
+    role = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = Membership
+        fields = ("id", "raison_sociale", "role")
+        read_only_fields = fields
+
+
 class CompanyListSerializer(serializers.ModelSerializer):
     # Return absolute URLs for the image fields
     logo = serializers.SerializerMethodField()
@@ -177,6 +190,7 @@ class CompanySerializer(serializers.ModelSerializer):
                         pass
                     # Delete database reference
                     field.delete(save=False)
+                setattr(instance, field_name, None)
 
         # Remove image keys from validated_data
         validated_data.pop("logo", None)

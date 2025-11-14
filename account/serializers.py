@@ -8,6 +8,7 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.files.base import ContentFile
 from rest_framework import serializers
 
+from company.serializers import MembershipCompanySerializer
 from .models import CustomUser
 
 
@@ -94,7 +95,7 @@ class ProfileGETSerializer(serializers.ModelSerializer):
     @staticmethod
     def get_gender(instance):
         if instance.gender != "":
-            return instance.gender
+            return instance.get_gender_display()
         return None
 
     class Meta:
@@ -180,63 +181,62 @@ class ProfilePutSerializer(serializers.ModelSerializer):
         raise serializers.ValidationError(f"Invalid image format for {field_name}")
 
     def update(self, instance, validated_data):
-        """Handle avatar upload and update profile fields"""
-        # Process avatar field
-        # avatar_file = None
+        """Handle avatar/avatar_thumbnail upload and removal."""
+        avatar_file = None
         avatar_bytes = None
+
         if "avatar" in validated_data:
+            # a) New image (base64, multipart, URL) → process it
             avatar_file, avatar_bytes = self._process_image_field(
                 "avatar", validated_data, instance
             )
-            # If we have a new avatar file, cleanup old files
-            if avatar_file and avatar_file != getattr(instance, "avatar"):
-                # Delete old avatar
-                if instance.avatar:
-                    try:
-                        if instance.avatar.path and Path(instance.avatar.path).exists():
-                            remove(instance.avatar.path)
-                    except (ValueError, FileNotFoundError, OSError):
-                        pass
-                    instance.avatar.delete(save=False)
-                # Delete old thumbnail
-                if instance.avatar_thumbnail:
-                    try:
-                        if (
-                            instance.avatar_thumbnail.path
-                            and Path(instance.avatar_thumbnail.path).exists()
-                        ):
-                            remove(instance.avatar_thumbnail.path)
-                    except (ValueError, FileNotFoundError, OSError):
-                        pass
-                    instance.avatar_thumbnail.delete(save=False)
-            # Handle explicit null (user wants to remove avatar)
-            elif validated_data["avatar"] is None:
-                if instance.avatar:
-                    try:
-                        if instance.avatar.path and Path(instance.avatar.path).exists():
-                            remove(instance.avatar.path)
-                    except (ValueError, FileNotFoundError, OSError):
-                        pass
-                    instance.avatar.delete(save=False)
-                if instance.avatar_thumbnail:
-                    try:
-                        if (
-                            instance.avatar_thumbnail.path
-                            and Path(instance.avatar_thumbnail.path).exists()
-                        ):
-                            remove(instance.avatar_thumbnail.path)
-                    except (ValueError, FileNotFoundError, OSError):
-                        pass
-                    instance.avatar_thumbnail.delete(save=False)
-            # Remove avatar from validated_data
-            validated_data.pop("avatar", None)
-            validated_data.pop("avatar_thumbnail", None)
-        # Update regular fields
+            # b) Explicit null → remove both files
+            if validated_data["avatar"] is None:
+                self._clear_media_fields(instance, clear_avatar=True, clear_thumb=True)
+        else:
+            # c) Key missing → treat as “clear”
+            self._clear_media_fields(instance, clear_avatar=True, clear_thumb=True)
+
+        if "avatar_thumbnail" in validated_data:
+            thumb_file, thumb_bytes = self._process_image_field(
+                "avatar_thumbnail", validated_data, instance
+            )
+            if validated_data["avatar_thumbnail"] is None:
+                self._clear_media_fields(instance, clear_thumb=True)
+            else:
+                # New thumbnail – replace old one
+                if thumb_file and thumb_file != getattr(instance, "avatar_thumbnail"):
+                    if instance.avatar_thumbnail:
+                        self._delete_file(instance.avatar_thumbnail)
+                    instance.avatar_thumbnail = thumb_file
+
+        validated_data.pop("avatar", None)
+        validated_data.pop("avatar_thumbnail", None)
+
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
-        # Store avatar_bytes on instance for Celery task (temporary attribute)
-        instance._avatar_bytes_for_celery = avatar_bytes
+        instance._avatar_bytes_for_celery = avatar_bytes if avatar_file else None
+        instance.save()
         return instance
+
+    @staticmethod
+    def _delete_file(field):
+        """Remove the file from storage and delete the model field."""
+        try:
+            if field.path and Path(field.path).exists():
+                remove(field.path)
+        except (ValueError, FileNotFoundError, OSError):
+            pass
+        field.delete(save=False)
+
+    def _clear_media_fields(self, instance, clear_avatar=False, clear_thumb=False):
+        """Set the given media fields to None and delete the underlying files."""
+        if clear_avatar and instance.avatar:
+            self._delete_file(instance.avatar)
+            instance.avatar = None
+        if clear_thumb and instance.avatar_thumbnail:
+            self._delete_file(instance.avatar_thumbnail)
+            instance.avatar_thumbnail = None
 
     def to_representation(self, instance):
         """Convert avatar to URL for output"""
@@ -269,7 +269,7 @@ class UsersListSerializer(serializers.ModelSerializer):
     @staticmethod
     def get_gender(instance):
         if instance.gender != "":
-            return instance.gender
+            return instance.get_gender_display()
         return None
 
     class Meta:
@@ -283,6 +283,7 @@ class UsersListSerializer(serializers.ModelSerializer):
             "email",
             "gender",
             "is_active",
+            "is_staff",
             "date_joined",
             "last_login",
         ]
@@ -294,10 +295,16 @@ class UserDetailSerializer(serializers.ModelSerializer):
     avatar_thumbnail = serializers.CharField(source="get_absolute_avatar_thumbnail_img")
     gender = serializers.SerializerMethodField()
 
+    companies = MembershipCompanySerializer(
+        source="memberships",
+        many=True,
+        read_only=True,
+    )
+
     @staticmethod
     def get_gender(instance):
         if instance.gender != "":
-            return instance.gender
+            return instance.get_gender_display()
         return None
 
     class Meta:
@@ -313,6 +320,7 @@ class UserDetailSerializer(serializers.ModelSerializer):
             "is_active",
             "date_joined",
             "last_login",
+            "companies",
         ]
         read_only_fields = ("id", "date_joined", "last_login")
 

@@ -35,22 +35,25 @@ class CompanyListCreateView(APIView):
 
     @staticmethod
     def get(request, *args, **kwargs):
-        paginator = CompanyPagination()
-
-        # Only companies where the user is an Admin member
+        pagination = request.query_params.get("pagination", "false").lower() == "true"
         queryset = Company.objects.filter(
             memberships__user=request.user,
             memberships__role__name="Admin",
         )
-
-        filterset = CompanyFilter(request.GET, queryset=queryset)
-        queryset = filterset.qs.order_by("-id")
-
-        page = paginator.paginate_queryset(queryset, request)
-        serializer = CompanyListSerializer(
-            page, many=True, context={"request": request}
-        )
-        return paginator.get_paginated_response(serializer.data)
+        if pagination:
+            paginator = CompanyPagination()
+            filterset = CompanyFilter(request.GET, queryset=queryset)
+            queryset = filterset.qs.order_by("-id")
+            page = paginator.paginate_queryset(queryset, request)
+            serializer = CompanyListSerializer(
+                page, many=True, context={"request": request}
+            )
+            return paginator.get_paginated_response(serializer.data)
+        else:
+            serializer = CompanyListSerializer(
+                queryset, many=True, context={"request": request}
+            )
+            return Response(serializer.data, status=status.HTTP_200_OK)
 
     @staticmethod
     def post(request, *args, **kwargs):

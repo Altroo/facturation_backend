@@ -1,5 +1,6 @@
 import django_filters
 from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
+from django.db.models import Q
 
 from .models import Company
 
@@ -14,28 +15,21 @@ class CompanyFilter(django_filters.FilterSet):
     @staticmethod
     def global_search(queryset, _name, value):
         """
-        PostgreSQL full-text search across multiple Company fields.
-        Uses weighted search vectors for better relevance ranking.
+        Hybrid search: PostgreSQL full-text search + icontains fallback for special characters.
+        Supports partial matching and relevance ranking.
         """
         if not value:
             return queryset
 
-        # Define search vectors with weights (A=highest, D=lowest)
+        # Define weighted search vector
         search_vector = (
-            # Most important: company name
             SearchVector("raison_sociale", weight="A")
-            +
-            # Important: contact person and email
-            SearchVector("nom_responsable", weight="B")
+            + SearchVector("nom_responsable", weight="B")
             + SearchVector("email", weight="B")
-            +
-            # Moderately important: address and contact details
-            SearchVector("adresse", weight="C")
+            + SearchVector("adresse", weight="C")
             + SearchVector("telephone", weight="C")
             + SearchVector("gsm_responsable", weight="C")
-            +
-            # Less important: administrative identifiers and other fields
-            SearchVector("ICE", weight="D")
+            + SearchVector("ICE", weight="D")
             + SearchVector("site_web", weight="D")
             + SearchVector("registre_de_commerce", weight="D")
             + SearchVector("identifiant_fiscal", weight="D")
@@ -45,10 +39,31 @@ class CompanyFilter(django_filters.FilterSet):
             + SearchVector("fax", weight="D")
         )
 
-        search_query = SearchQuery(value)
+        # Use prefix matching for full-text search
+        search_query = SearchQuery(f"{value}:*", search_type="raw")
 
-        return (
-            queryset.annotate(rank=SearchRank(search_vector, search_query))
-            .filter(rank__gte=0.001)  # Filter out very low relevance matches
-            .order_by("-rank")
+        # Full-text search results
+        fts_results = queryset.annotate(
+            rank=SearchRank(search_vector, search_query)
+        ).filter(rank__gte=0.001)
+
+        # Fallback for special characters and partial matches
+        fallback_results = queryset.filter(
+            Q(raison_sociale__icontains=value)
+            | Q(nom_responsable__icontains=value)
+            | Q(email__icontains=value)
+            | Q(adresse__icontains=value)
+            | Q(telephone__icontains=value)
+            | Q(gsm_responsable__icontains=value)
+            | Q(ICE__icontains=value)
+            | Q(site_web__icontains=value)
+            | Q(registre_de_commerce__icontains=value)
+            | Q(identifiant_fiscal__icontains=value)
+            | Q(numero_du_compte__icontains=value)
+            | Q(tax_professionnelle__icontains=value)
+            | Q(CNSS__icontains=value)
+            | Q(fax__icontains=value)
         )
+
+        # Combine and deduplicate
+        return (fts_results | fallback_results).distinct().order_by("-rank")

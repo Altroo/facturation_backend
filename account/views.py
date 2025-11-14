@@ -45,8 +45,8 @@ class CheckEmailView(APIView):
         "email": ["Un utilisateur avec ce champ adresse électronique existe déjà."]
     }
 
-    def post(self, request, *args, **kwargs):
-        email = str(request.data.get("email")).lower()
+    def get(self, request, *args, **kwargs):
+        email = str(kwargs.get("email")).lower()
         try:
             CustomUser.objects.get(email=email)
             raise ValidationError(self.errors)
@@ -283,7 +283,7 @@ class UsersListCreateView(APIView):
 
     @staticmethod
     def get(request, *args, **kwargs):
-        pagination = request.data.get("pagination", False)
+        pagination = request.query_params.get("pagination", "false").lower() == "true"
         queryset = CustomUser.objects.all().exclude(pk=request.user.pk)
         if pagination:
             paginator = UsersPagination()
@@ -354,8 +354,8 @@ class UserDetailEditDeleteView(APIView):
 
     def put(self, request, *args, **kwargs):
         pk = kwargs.get("pk")
-        if pk == request.user.pk:
-            raise Http404(_("Vous ne pouvez pas modifier votre utilisateur."))
+        # if pk == request.user.pk:
+        #     raise Http404(_("Vous ne pouvez pas modifier votre utilisateur dans cette page."))
         user = self.get_object(pk)
         serializer = UserPatchSerializer(
             user, data=request.data, context={"request": request}, partial=True
