@@ -35,7 +35,6 @@ from .tasks import (
     send_email,
     start_deleting_expired_codes,
     generate_user_thumbnail,
-    resize_avatar_thumbnail,
 )
 
 
@@ -45,8 +44,8 @@ class CheckEmailView(APIView):
         "email": ["Un utilisateur avec ce champ adresse électronique existe déjà."]
     }
 
-    def get(self, request, *args, **kwargs):
-        email = str(kwargs.get("email")).lower()
+    def post(self, request, *args, **kwargs):
+        email = str(request.data.get("email")).lower()
         try:
             CustomUser.objects.get(email=email)
             raise ValidationError(self.errors)
@@ -241,6 +240,9 @@ class ProfileView(APIView):
             "last_name": request.data.get("last_name"),
             "gender": request.data.get("gender", ""),
             "avatar": request.data.get("avatar"),  # Can be base64, URL, or file
+            "avatar_cropped": request.data.get(
+                "avatar_cropped"
+            ),  # Can be base64, URL, or file
         }
         # Initialize serializer with context for URL building
         serializer = ProfilePutSerializer(
@@ -249,14 +251,15 @@ class ProfileView(APIView):
         if serializer.is_valid():
             updated_account = serializer.save()
             # Trigger Celery task if we have avatar bytes
-            avatar_bytes = getattr(updated_account, "_avatar_bytes_for_celery", None)
-            if avatar_bytes:
-                resize_avatar_thumbnail.apply_async((updated_account.pk, avatar_bytes))
+            # avatar_bytes = getattr(updated_account, "_avatar_bytes_for_celery", None)
+            # if avatar_bytes:
+            #     resize_avatar.apply_async((updated_account.pk, avatar_bytes))
             # Build response data
             user_data = {
                 **serializer.data,
                 "id": updated_account.pk,
                 "avatar": updated_account.get_absolute_avatar_img,
+                "avatar_cropped": updated_account.get_absolute_avatar_cropped_img,
                 "date_joined": updated_account.date_joined,
                 "is_staff": updated_account.is_staff,
             }
@@ -297,30 +300,25 @@ class UsersListCreateView(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
-        email = str(request.data.get("email")).lower()
-        first_name = request.data.get("first_name")
-        last_name = request.data.get("last_name")
-        gender = request.data.get("gender")
-        is_staff = request.data.get("is_staff")
+        avatar = request.data.get("avatar")  # Can be base64, or file
+        avatar_cropped = request.data.get("avatar_cropped")  # Can be base64, or file
         password = self.generate_random_password()
 
+        data = request.data.copy()
+        data["password"] = password
+        data["email"] = str(data.get("email", "")).lower()
+
         serializer = CreateAccountSerializer(
-            data={
-                "email": email,
-                "password": password,
-                "password2": password,
-                "first_name": first_name,
-                "last_name": last_name,
-                "gender": gender,
-                "is_staff": is_staff,
-            }
+            data=data,
+            context={"request": request},
         )
         if serializer.is_valid():
             user = serializer.save()
-            # Generate user avatar and thumbnail
-            generate_user_thumbnail.apply_async(
-                (user.pk,),
-            )
+            # Generate user avatar and thumbnail if not provided
+            if avatar == "" or avatar_cropped == "":
+                generate_user_thumbnail.apply_async(
+                    (user.pk,),
+                )
             mail_subject = "Invitation (Facturation Casa Di Lusso)"
             mail_template = "new_account.html"
             message = render_to_string(
@@ -354,8 +352,10 @@ class UserDetailEditDeleteView(APIView):
 
     def put(self, request, *args, **kwargs):
         pk = kwargs.get("pk")
-        # if pk == request.user.pk:
-        #     raise Http404(_("Vous ne pouvez pas modifier votre utilisateur dans cette page."))
+        if pk == request.user.pk:
+            raise Http404(
+                _("Vous ne pouvez pas modifier votre utilisateur dans cette page.")
+            )
         user = self.get_object(pk)
         serializer = UserPatchSerializer(
             user, data=request.data, context={"request": request}, partial=True
@@ -373,8 +373,8 @@ class UserDetailEditDeleteView(APIView):
         media_paths_list = []
         if user.avatar:
             media_paths_list.append(user.avatar.path)
-        if user.avatar_thumbnail:
-            media_paths_list.append(user.avatar_thumbnail.path)
+        if user.avatar_cropped:
+            media_paths_list.append(user.avatar_cropped.path)
         for media_path in media_paths_list:
             try:
                 remove(media_path)

@@ -35,12 +35,20 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         null=True,
         default=None,
     )
-    avatar_thumbnail = models.ImageField(
-        verbose_name="User Avatar thumbnail",
+    # avatar_thumbnail = models.ImageField(
+    #     verbose_name="User Avatar thumbnail",
+    #     upload_to=get_avatar_path,
+    #     blank=True,
+    #     null=True,
+    #     default=None,
+    # )
+    avatar_cropped = models.ImageField(
         upload_to=get_avatar_path,
         blank=True,
         null=True,
         default=None,
+        verbose_name="Avatar cropped",
+        max_length=1000,
     )
     # permissions
     is_staff = models.BooleanField(
@@ -85,9 +93,9 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         return None
 
     @property
-    def get_absolute_avatar_thumbnail_img(self):
-        if self.avatar_thumbnail:
-            return f"{API_URL}{self.avatar_thumbnail.url}"
+    def get_absolute_avatar_cropped_img(self):
+        if self.avatar_cropped:
+            return f"{API_URL}{self.avatar_cropped.url}"
         return None
 
     class Meta:

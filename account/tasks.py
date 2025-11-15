@@ -1,6 +1,5 @@
 from io import BytesIO
 from random import shuffle
-from typing import Tuple
 
 from PIL import Image, ImageDraw, ImageFont
 from asgiref.sync import async_to_sync, sync_to_async
@@ -96,7 +95,7 @@ def from_img_to_io(image, format_):
     return bytes_io
 
 
-def generate_avatar_and_thumbnail(last_name, first_name):
+def generate_avatar(last_name, first_name):
     colors = random_color_picker()
     shuffle(colors)
     color = colors.pop()
@@ -107,13 +106,7 @@ def generate_avatar_and_thumbnail(last_name, first_name):
     drawn_avatar.text(
         (100, 136), "{}.{}".format(first_name, last_name), font=font_avatar, fill=fill
     )
-    thumbnail = Image.new("RGB", (300, 300), color=color)
-    font_thumb = ImageFont.truetype(STATIC_PATH + "/fonts/Poppins-Bold.ttf", 120)
-    drawn_thumb = ImageDraw.Draw(thumbnail)
-    drawn_thumb.text(
-        (50, 68), "{}.{}".format(first_name, last_name), font=font_thumb, fill=fill
-    )
-    return avatar, thumbnail
+    return avatar
 
 
 @app.task(bind=True, serializer="json")
@@ -121,14 +114,13 @@ def generate_user_thumbnail(self, user_pk):
     user = CustomUser.objects.get(pk=user_pk)
     last_name = str(user.last_name[0]).upper()
     first_name = str(user.first_name[0]).upper()
-    avatar, thumbnail = generate_avatar_and_thumbnail(last_name, first_name)
+    avatar = generate_avatar(last_name, first_name)
     avatar_ = from_img_to_io(avatar, "WEBP")
-    thumbnail_ = from_img_to_io(thumbnail, "WEBP")
     user.save_image("avatar", avatar_)
-    user.save_image("avatar_thumbnail", thumbnail_)
+    user.save_image("avatar_cropped", avatar_)
 
 
-def resize_images_v2(bytes_) -> Tuple[BytesIO, BytesIO]:
+def resize_images_v2(bytes_) -> BytesIO:
     image_processor = ImageProcessor()
     loaded_img = image_processor.load_image_from_io(bytes_)
 
@@ -136,25 +128,20 @@ def resize_images_v2(bytes_) -> Tuple[BytesIO, BytesIO]:
     avatar_img = image_processor.resize_with_blurred_background(loaded_img, 600)
     avatar_io = image_processor.from_img_to_io(avatar_img, "WEBP")
 
-    # Thumbnail 300x300 with blurred background
-    thumb_img = image_processor.resize_with_blurred_background(loaded_img, 300)
-    thumb_io = image_processor.from_img_to_io(thumb_img, "WEBP")
-
-    return avatar_io, thumb_io
+    return avatar_io
 
 
-def generate_images_v2(query_, avatar: BytesIO, thumbnail: BytesIO):
+def generate_images_v2(query_, avatar: BytesIO):
     query_.save_image("avatar", avatar)
-    query_.save_image("avatar_thumbnail", thumbnail)
 
 
 @app.task(bind=True, serializer="pickle")
-def resize_avatar_thumbnail(self, object_pk: int, avatar: BytesIO | None):
+def resize_avatar(self, object_pk: int, avatar: BytesIO | None):
     user = CustomUser.objects.get(pk=object_pk)
     if not isinstance(avatar, BytesIO):
         return
-    avatar_io, thumb_io = resize_images_v2(avatar)
-    generate_images_v2(user, avatar_io, thumb_io)
+    avatar_io = resize_images_v2(avatar)
+    generate_images_v2(user, avatar_io)
     event = {
         "type": "recieve_group_message",
         "message": {

@@ -26,7 +26,7 @@ class CustomUserAdmin(UserAdmin):
                     "last_name",
                     "gender",
                     "avatar",
-                    "avatar_thumbnail",
+                    "avatar_cropped",
                     "password_reset_code",
                 )
             },

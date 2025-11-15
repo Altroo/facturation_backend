@@ -24,7 +24,8 @@ class MembershipUserSerializer(serializers.ModelSerializer):
 
 
 class MembershipCompanySerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(read_only=True)
+    membership_id = serializers.IntegerField(source="pk", read_only=True)
+    company_id = serializers.IntegerField(source="company.pk", read_only=True)
     raison_sociale = serializers.CharField(
         source="company.raison_sociale", read_only=True
     )
@@ -32,7 +33,7 @@ class MembershipCompanySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Membership
-        fields = ("id", "raison_sociale", "role")
+        fields = ("membership_id", "company_id", "raison_sociale", "role")
         read_only_fields = fields
 
 
