@@ -5,4 +5,3 @@ class ParameterConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
     name = "parameter"
     verbose_name = "Paramètres"
-    label = "paramètres"

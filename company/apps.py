@@ -5,4 +5,3 @@ class CompanyConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
     name = "company"
     verbose_name = "Sociétés"
-    label = "sociétés"

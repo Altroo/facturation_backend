@@ -1,4 +1,5 @@
 from django import forms
+from django.apps import apps
 from django.contrib import admin
 from django.contrib.admin import ModelAdmin
 from django.contrib.auth.admin import UserAdmin
@@ -56,6 +57,12 @@ class CustomUserAdmin(UserAdmin):
 
 
 class MembershipAdminForm(forms.ModelForm):
+    # lazy queryset for the Company model
+    company = forms.ModelChoiceField(
+        queryset=apps.get_model("company", "Company").objects.all(),
+        required=False,
+        label="Company",
+    )
     role = forms.ModelChoiceField(
         queryset=Group.objects.all(),
         required=False,

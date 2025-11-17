@@ -49,8 +49,8 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt",
     "dj_rest_auth",
     "account.apps.AccountConfig",
-    "company.apps.CompanyConfig",
     "parameter.apps.ParameterConfig",
+    "company.apps.CompanyConfig",
     "client.apps.ClientConfig",
 ]
 

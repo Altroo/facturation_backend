@@ -8,7 +8,6 @@ from PIL import Image, UnidentifiedImageError
 from cv2 import imdecode, resize, INTER_AREA, cvtColor, COLOR_BGR2RGB, GaussianBlur
 from django.core.files.base import ContentFile
 from django.utils.translation import gettext_lazy as _
-from imghdr import what
 from numpy import uint8, frombuffer
 from rest_framework import serializers
 from rest_framework.response import Response
@@ -17,32 +16,9 @@ from six import string_types
 
 
 class ImageProcessor:
-
-    # @staticmethod
-    # def load_image(img_path: str):
-    #     return cvtColor(imread(img_path), COLOR_BGR2RGB)
-
     @staticmethod
     def load_image_from_io(bytes_: BytesIO):
         return cvtColor(imdecode(frombuffer(bytes_.read(), uint8), 1), COLOR_BGR2RGB)
-
-    # @staticmethod
-    # def image_resize(image, width=None, height=None, inter=INTER_AREA):
-    #     (h, w) = image.shape[:2]
-    #
-    #     if width is None and height is None:
-    #         return image
-    #
-    #     if width is None:
-    #         r = height / float(h)
-    #         dim = (int(w * r), height)
-    #
-    #     else:
-    #         r = width / float(w)
-    #         dim = (width, int(h * r))
-    #
-    #     resized = resize(image, dim, interpolation=inter)
-    #     return resized
 
     @staticmethod
     def from_img_to_io(image, format_):
@@ -68,12 +44,8 @@ class ImageProcessor:
                 file_extension = Base64ImageField.get_file_extension(
                     file_name, decoded_file
                 )
-                complete_file_name = "%s.%s" % (
-                    file_name,
-                    file_extension,
-                )
-                data = ContentFile(decoded_file, name=complete_file_name)
-                return data
+                complete_file_name = f"{file_name}.{file_extension}"
+                return ContentFile(decoded_file, name=complete_file_name)
             except (
                 binascii.Error,
                 ValueError,
@@ -83,10 +55,6 @@ class ImageProcessor:
             ):
                 return None
         return None
-
-    # @staticmethod
-    # def resize_exact(image, width, height, inter=INTER_AREA):
-    #     return resize(image, (width, height), interpolation=inter)
 
     @staticmethod
     def resize_with_blurred_background(image, target_size=600):
@@ -131,22 +99,19 @@ class Base64ImageField(serializers.ImageField):
             file_name = str(uuid4())
             # Get the file name extension:
             file_extension = self.get_file_extension(file_name, decoded_file)
-
-            complete_file_name = "%s.%s" % (
-                file_name,
-                file_extension,
-            )
-
+            complete_file_name = f"{file_name}.{file_extension}"
             data = ContentFile(decoded_file, name=complete_file_name)
 
         return super(Base64ImageField, self).to_internal_value(data)
 
     @staticmethod
-    def get_file_extension(file_name, decoded_file):
-        extension = what(file_name, decoded_file)
-        extension = "jpg" if extension == "jpeg" else extension
-
-        return extension
+    def get_file_extension(_, decoded_file):
+        try:
+            image = Image.open(BytesIO(decoded_file))
+            extension = image.format.lower()
+            return "jpg" if extension == "jpeg" else extension
+        except UnidentifiedImageError:
+            return "jpg"
 
 
 def api_exception_handler(exc, context):

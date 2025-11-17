@@ -9,7 +9,6 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-from company.models import Company
 from facturation_backend.settings import API_URL
 from .managers import CustomUserManager
 
