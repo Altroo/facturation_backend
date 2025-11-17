@@ -19,7 +19,7 @@ class MembershipUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Membership
-        fields = ("id", "first_name", "last_name", "role")
+        fields = ["id", "first_name", "last_name", "role"]
         read_only_fields = fields
 
 
@@ -33,7 +33,7 @@ class MembershipCompanySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Membership
-        fields = ("membership_id", "company_id", "raison_sociale", "role")
+        fields = ["membership_id", "company_id", "raison_sociale", "role"]
         read_only_fields = fields
 
 
@@ -59,7 +59,7 @@ class CompanyListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Company
         fields = "__all__"
-        read_only_fields = ("date_created",)
+        read_only_fields = ["date_created"]
 
 
 class CompanySerializer(serializers.ModelSerializer):
@@ -78,7 +78,7 @@ class CompanySerializer(serializers.ModelSerializer):
     class Meta:
         model = Company
         fields = "__all__"
-        read_only_fields = ("date_created",)
+        read_only_fields = ["date_created"]
 
     @staticmethod
     def _process_image_field(field_name, validated_data, instance):
@@ -252,7 +252,7 @@ class ManagedByItemSerializer(serializers.Serializer):
     role = serializers.CharField()
 
     class Meta:
-        fields = ("pk", "role")
+        fields = ["pk", "role"]
 
 
 class CompanyDetailSerializer(CompanySerializer):

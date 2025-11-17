@@ -35,13 +35,6 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         null=True,
         default=None,
     )
-    # avatar_thumbnail = models.ImageField(
-    #     verbose_name="User Avatar thumbnail",
-    #     upload_to=get_avatar_path,
-    #     blank=True,
-    #     null=True,
-    #     default=None,
-    # )
     avatar_cropped = models.ImageField(
         upload_to=get_avatar_path,
         blank=True,

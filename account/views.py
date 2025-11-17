@@ -250,10 +250,6 @@ class ProfileView(APIView):
         )
         if serializer.is_valid():
             updated_account = serializer.save()
-            # Trigger Celery task if we have avatar bytes
-            # avatar_bytes = getattr(updated_account, "_avatar_bytes_for_celery", None)
-            # if avatar_bytes:
-            #     resize_avatar.apply_async((updated_account.pk, avatar_bytes))
             # Build response data
             user_data = {
                 **serializer.data,

@@ -26,6 +26,10 @@ urlpatterns = [
     path("api/account/", include("account.urls")),
     # Company
     path("api/company/", include("company.urls")),
+    # Client
+    path("api/client/", include("client.urls")),
+    # Parameter
+    path("api/parameter/", include("parameter.urls")),
     # Admin panel
     path("admin/", admin.site.urls),
     # Static & media files

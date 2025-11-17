@@ -3,7 +3,7 @@ from django.http import Http404
 from django.utils.translation import gettext_lazy as _
 from rest_framework import permissions
 from rest_framework import status
-from rest_framework.exceptions import PermissionDenied, ValidationError
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -16,11 +16,6 @@ from .serializers import (
     CompanyDetailSerializer,
     CompanyListSerializer,
 )
-
-
-# def _is_admin(user):
-#     """User has an Admin membership for any company."""
-#     return Membership.objects.filter(user=user, role__name="Admin").exists()
 
 
 def _is_admin_for_company(user, company):
@@ -57,32 +52,27 @@ class CompanyListCreateView(APIView):
 
     @staticmethod
     def post(request, *args, **kwargs):
-        # User must be an admin somewhere to create a new company
-        # if not _is_admin(request.user):
-        #     raise PermissionDenied(
-        #         detail="Seuls les Admins peuvent créer des sociétés."
-        #     )
-
         serializer = CompanySerializer(data=request.data)
-        if not serializer.is_valid():
-            raise ValidationError(serializer.errors)
+        serializer.is_valid(raise_exception=True)
 
-        # Ensure the Admin group exists
         try:
             admin_group = Group.objects.get(name="Admin")
         except Group.DoesNotExist:
             raise PermissionDenied(
                 detail="Le groupe 'Admin' n'existe pas. Un super‑utilisateur doit le créer et assigner les rôles."
             )
+
         company = serializer.save()
         Membership.objects.create(
             company=company,
             user=request.user,
             role=admin_group,
         )
+
         managed_by = request.data.get("managed_by")
         if managed_by:
             CompanyDetailSerializer.update_memberships(company, managed_by)
+
         response_serializer = CompanyDetailSerializer(
             company, context={"request": request}
         )
@@ -116,10 +106,9 @@ class CompanyDetailEditDeleteView(APIView):
         serializer = CompanyDetailSerializer(
             company, data=request.data, context={"request": request}
         )
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        raise ValidationError(serializer.errors)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def delete(self, request, pk, *args, **kwargs):
         company = self.get_object(pk)

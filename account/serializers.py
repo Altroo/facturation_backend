@@ -31,7 +31,7 @@ class MembershipSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Membership
-        fields = ("membership_id", "company_id", "role", "raison_sociale")
+        fields = ["membership_id", "company_id", "role", "raison_sociale"]
 
     @staticmethod
     def _get_group(role_name: str) -> Group:
@@ -103,7 +103,7 @@ class CreateAccountSerializer(serializers.ModelSerializer):
             serializer.save()
 
     @staticmethod
-    def _process_image_field(field_name, validated_data, instance):
+    def _process_image_field(field_name, validated_data):
         """
         Process image field - handle base64, multipart files
         """
@@ -156,10 +156,8 @@ class CreateAccountSerializer(serializers.ModelSerializer):
         memberships_data = validated_data.pop("memberships", None)
 
         # Process avatar fields
-        avatar = self._process_image_field("avatar", validated_data, None)
-        avatar_cropped = self._process_image_field(
-            "avatar_cropped", validated_data, None
-        )
+        avatar = self._process_image_field("avatar", validated_data)
+        avatar_cropped = self._process_image_field("avatar_cropped", validated_data)
         validated_data.pop("avatar", None)
         validated_data.pop("avatar_cropped", None)
 
@@ -319,7 +317,7 @@ class ProfilePutSerializer(serializers.ModelSerializer):
             )
 
     @staticmethod
-    def _process_image_field(field_name, validated_data, instance):
+    def _process_image_field(field_name, validated_data):
         field_value = validated_data.get(field_name)
         if not field_value:
             return None, None, False
@@ -372,7 +370,7 @@ class ProfilePutSerializer(serializers.ModelSerializer):
         # ----- Avatar handling -------------------------------------------------
         if "avatar" in validated_data:
             avatar_file, avatar_bytes, is_url = self._process_image_field(
-                "avatar", validated_data, instance
+                "avatar", validated_data
             )
             # Explicit null or empty string → remove both files
             if validated_data["avatar"] is None or validated_data["avatar"] == "":
@@ -388,7 +386,7 @@ class ProfilePutSerializer(serializers.ModelSerializer):
         # ----- Avatar cropped handling ----------------------------------------
         if "avatar_cropped" in validated_data:
             avatar_cropped_file, _, is_url = self._process_image_field(
-                "avatar_cropped", validated_data, instance
+                "avatar_cropped", validated_data
             )
             # Explicit null or empty string → clear cropped
             if (

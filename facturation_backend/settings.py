@@ -50,6 +50,8 @@ INSTALLED_APPS = [
     "dj_rest_auth",
     "account.apps.AccountConfig",
     "company.apps.CompanyConfig",
+    "parameter.apps.ParameterConfig",
+    "client.apps.ClientConfig",
 ]
 
 MIDDLEWARE = [
@@ -167,21 +169,21 @@ AUTHENTICATION_BACKENDS = [
 SITE_ID = 1
 
 # Rest framework config
-REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": (
+REST_FRAMEWORK = dict(
+    DEFAULT_AUTHENTICATION_CLASSES=(
         "dj_rest_auth.jwt_auth.JWTAuthentication",
         "rest_framework.authentication.SessionAuthentication",
     ),
-    "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
-    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
-    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
-    "PAGE_SIZE": 20,
-    "DEFAULT_RENDERER_CLASSES": ("rest_framework.renderers.JSONRenderer",),
-    "DEFAULT_SCHEMA_CLASS": "rest_framework.schemas.coreapi.AutoSchema",
-    "EXCEPTION_HANDLER": "facturation_backend.utils.api_exception_handler",
-    "NON_FIELD_ERRORS_KEY": "error",
-    "TOKEN_MODEL": None,
-}
+    DEFAULT_FILTER_BACKENDS=["django_filters.rest_framework.DjangoFilterBackend"],
+    DEFAULT_PERMISSION_CLASSES=("rest_framework.permissions.IsAuthenticated",),
+    DEFAULT_PAGINATION_CLASS="rest_framework.pagination.PageNumberPagination",
+    PAGE_SIZE=20,
+    DEFAULT_RENDERER_CLASSES=("rest_framework.renderers.JSONRenderer",),
+    DEFAULT_SCHEMA_CLASS="rest_framework.schemas.coreapi.AutoSchema",
+    EXCEPTION_HANDLER="facturation_backend.utils.api_exception_handler",
+    NON_FIELD_ERRORS_KEY="error",
+    TOKEN_MODEL=None,
+)
 
 REST_AUTH = {
     "USE_JWT": True,
