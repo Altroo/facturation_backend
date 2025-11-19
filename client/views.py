@@ -1,5 +1,6 @@
 from re import search
 
+from django.core.exceptions import PermissionDenied
 from django.db.models import Max
 from django.http import Http404
 from django.utils.translation import gettext_lazy as _
@@ -7,19 +8,30 @@ from rest_framework import permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from account.models import Membership
 from .filters import ClientFilter
 from .models import Client
 from .pagination import ClientPagination
-from .serializers import ClientSerializer, ClientDetailSerializer, ClientListSerializer
+from .serializers import (
+    ClientSerializer,
+    ClientDetailSerializer,
+    ClientListSerializer,
+)
 
 
 class ClientListCreateView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
     @staticmethod
-    def get(request, *args, **kwargs):
+    def _user_company_ids(user):
+        """Return a queryset of company IDs the user is member of."""
+        return Membership.objects.filter(user=user).values_list("company_id", flat=True)
+
+    def get(self, request, *args, **kwargs):
         pagination = request.query_params.get("pagination", "false").lower() == "true"
-        queryset = Client.objects.all()
+        member_company_ids = self._user_company_ids(request.user)
+        # list only clients belonging to companies the user is member of
+        queryset = Client.objects.filter(company_id__in=member_company_ids)
         if pagination:
             paginator = ClientPagination()
             filterset = ClientFilter(request.GET, queryset=queryset)
@@ -32,6 +44,18 @@ class ClientListCreateView(APIView):
 
     @staticmethod
     def post(request, *args, **kwargs):
+        # the client must be created for a company the user belongs to
+        company_id = request.data.get("company")
+        if (
+            not company_id
+            or not Membership.objects.filter(
+                user=request.user, company_id=company_id
+            ).exists()
+        ):
+            raise PermissionDenied(
+                _("Vous n'êtes pas autorisé à créer un client pour cette société.")
+            )
+
         serializer = ClientSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -42,6 +66,11 @@ class ClientDetailEditDeleteView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
     @staticmethod
+    def _has_membership(user, company_id):
+        """True if the user has a Membership for the given company."""
+        return Membership.objects.filter(user=user, company_id=company_id).exists()
+
+    @staticmethod
     def get_object(pk):
         try:
             return Client.objects.get(pk=pk)
@@ -50,11 +79,15 @@ class ClientDetailEditDeleteView(APIView):
 
     def get(self, request, pk, *args, **kwargs):
         client = self.get_object(pk)
+        if not self._has_membership(request.user, client.company_id):
+            raise PermissionDenied(_("Vous n'êtes pas autorisé à consulter ce client."))
         serializer = ClientDetailSerializer(client)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def put(self, request, pk, *args, **kwargs):
         client = self.get_object(pk)
+        if not self._has_membership(request.user, client.company_id):
+            raise PermissionDenied(_("Vous n'êtes pas autorisé à modifier ce client."))
         serializer = ClientDetailSerializer(client, data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -62,8 +95,20 @@ class ClientDetailEditDeleteView(APIView):
 
     def delete(self, request, pk, *args, **kwargs):
         client = self.get_object(pk)
+        if not self._has_membership(request.user, client.company_id):
+            raise PermissionDenied(_("Vous n'êtes pas autorisé à supprimer ce client."))
         client.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def patch(self, request, pk, *args, **kwargs):
+        client = self.get_object(pk)
+        if not self._has_membership(request.user, client.company_id):
+            raise PermissionDenied(_("Vous n'êtes pas autorisé à modifier ce client."))
+        # reuse the same logic as ArchiveToggleClientView for partial updates
+        serializer = ClientDetailSerializer(client, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class GenerateClientCodeView(APIView):
@@ -116,8 +161,17 @@ class ArchiveToggleClientView(APIView):
         except Client.DoesNotExist:
             raise Http404(_("Aucun client ne correspond à la requête."))
 
+    @staticmethod
+    def _has_membership(user, company_id):
+        return Membership.objects.filter(user=user, company_id=company_id).exists()
+
     def patch(self, request, pk, *args, **kwargs):
         client = self.get_object(pk)
+
+        if not self._has_membership(request.user, client.company_id):
+            raise PermissionDenied(
+                _("Vous n'êtes pas autorisé à modifier l'état de ce client.")
+            )
 
         # Determine the desired state
         if "archived" in request.data:

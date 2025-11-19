@@ -1,5 +1,3 @@
-from typing import Any
-
 import pytest
 from channels.db import database_sync_to_async
 from channels.testing import WebsocketCommunicator
@@ -12,27 +10,27 @@ from facturation_backend.asgi import application
 @pytest.mark.asyncio
 @pytest.mark.django_db
 class TestWebSocketConsumer:
-    async def async_setup(self) -> None:
+    async def async_setup(self):
         self.user_model = get_user_model()
 
         # synchronous helpers
-        def _create_user_sync() -> Any:
+        def _create_user_sync():
             return self.user_model.objects.create_user(
                 email="wsuser@example.com", password="pass"
             )
 
-        def _generate_token_sync(user_obj: Any) -> str:
+        def _generate_token_sync(user_obj):
             return str(AccessToken.for_user(user_obj))
 
         # wrap sync helpers with database_sync_to_async
-        create_user: Any = database_sync_to_async(_create_user_sync)
-        generate_token: Any = database_sync_to_async(_generate_token_sync)
+        create_user = database_sync_to_async(_create_user_sync)
+        generate_token = database_sync_to_async(_generate_token_sync)
 
         # await the async wrappers (type-checker will accept these as Any)
-        self.user: Any = await create_user()
-        self.token: str = await generate_token(self.user)
+        self.user = await create_user()
+        self.token = await generate_token(self.user)
 
-    async def test_echo_message(self) -> None:
+    async def test_echo_message(self):
         await self.async_setup()
 
         communicator = WebsocketCommunicator(application, f"/ws?token={self.token}")
