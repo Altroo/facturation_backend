@@ -29,17 +29,19 @@ class ClientListCreateView(APIView):
 
     def get(self, request, *args, **kwargs):
         pagination = request.query_params.get("pagination", "false").lower() == "true"
-        member_company_ids = self._user_company_ids(request.user)
-        # list only clients belonging to companies the user is member of
-        queryset = Client.objects.filter(company_id__in=member_company_ids)
+        member_company_ids = list(self._user_company_ids(request.user))
+        # Start with all clients the user is allowed to see
+        base_queryset = Client.objects.filter(company_id__in=member_company_ids)
+        # Apply filters (including company_id, archived, search)
+        filterset = ClientFilter(request.GET, queryset=base_queryset)
+        filtered_queryset = filterset.qs
         if pagination:
             paginator = ClientPagination()
-            filterset = ClientFilter(request.GET, queryset=queryset)
-            queryset = filterset.qs.order_by("-id")
-            page = paginator.paginate_queryset(queryset, request)
+            ordered_qs = filtered_queryset.order_by("-id")
+            page = paginator.paginate_queryset(ordered_qs, request)
             serializer = ClientListSerializer(page, many=True)
             return paginator.get_paginated_response(serializer.data)
-        serializer = ClientListSerializer(queryset, many=True)
+        serializer = ClientListSerializer(filtered_queryset.order_by("-id"), many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @staticmethod
