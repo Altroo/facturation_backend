@@ -95,6 +95,10 @@ class ClientDetailSerializer(ClientSerializer):
 class ClientListSerializer(serializers.ModelSerializer):
     """Lightweight serializer for list view."""
 
+    company_name = serializers.ReadOnlyField(
+        source="company.raison_sociale", read_only=True
+    )
+
     class Meta:
         model = Client
         fields = [
@@ -106,6 +110,8 @@ class ClientListSerializer(serializers.ModelSerializer):
             "prenom",
             "ville",
             "company",
+            "company_name",
             "date_created",
             "archived",
         ]
+        read_only_fields = ["company_name"]

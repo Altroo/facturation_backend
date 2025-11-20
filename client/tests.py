@@ -4,6 +4,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
+from account.models import Membership
 from client.models import Client
 from company.models import Company
 from parameter.models import Ville
@@ -21,6 +22,8 @@ class TestClientAPI:
 
         self.ville = Ville.objects.create(nom="Casablanca")
         self.company = Company.objects.create(raison_sociale="TestCorp")
+
+        Membership.objects.create(user=self.user, company=self.company)
 
         self.client_pm = Client.objects.create(
             code_client="CLT0001",
@@ -42,6 +45,7 @@ class TestClientAPI:
             tel="+212600000000",
             delai_de_paiement=45,
             ville=self.ville,
+            company=self.company,
         )
 
     def test_list_clients(self):
@@ -77,6 +81,7 @@ class TestClientAPI:
             "tel": "+212611111111",
             "delai_de_paiement": 30,
             "ville": self.ville.id,
+            "company": self.company.id,
         }
         response = self.client.post(url, payload)
         assert response.status_code == status.HTTP_201_CREATED
@@ -88,7 +93,7 @@ class TestClientAPI:
         assert response.status_code == status.HTTP_200_OK
         assert response.data["code_client"] == self.client_pm.code_client
 
-    def test_update_client(self):
+    def test_update_client_pm(self):
         url = reverse("client:client-detail", args=[self.client_pm.id])
         payload = {
             "code_client": self.client_pm.code_client,
@@ -116,6 +121,7 @@ class TestClientAPI:
             "tel": "+212622222222",
             "delai_de_paiement": 60,
             "ville": self.ville.id,
+            "company": self.company.id,
         }
         response = self.client.put(url, payload)
         assert response.status_code == status.HTTP_200_OK
