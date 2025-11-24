@@ -1,10 +1,10 @@
 from re import search
 
-from django.core.exceptions import PermissionDenied
 from django.db.models import Max
 from django.http import Http404
 from django.utils.translation import gettext_lazy as _
 from rest_framework import permissions, status
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -29,10 +29,20 @@ class ClientListCreateView(APIView):
 
     def get(self, request, *args, **kwargs):
         pagination = request.query_params.get("pagination", "false").lower() == "true"
+        archived = request.query_params.get("archived", "false").lower() == "true"
         member_company_ids = list(self._user_company_ids(request.user))
-        # Start with all clients the user is allowed to see
-        base_queryset = Client.objects.filter(company_id__in=member_company_ids)
-        # Apply filters (including company_id, archived, search)
+        # Require company_id from query params
+        company_id = request.query_params.get("company_id")
+        if not company_id:
+            raise Http404(_("Aucune clients ne correspond à la requête."))
+        # Ensure user has access to that company
+        if int(company_id) not in member_company_ids:
+            raise PermissionDenied(
+                detail=_("Seuls les Admins de cette société peuvent y accéder.")
+            )
+        # Only clients of that company
+        base_queryset = Client.objects.filter(company_id=company_id, archived=archived)
+        # Apply filters (archived, search, etc.)
         filterset = ClientFilter(request.GET, queryset=base_queryset)
         filtered_queryset = filterset.qs
         if pagination:

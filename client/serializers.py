@@ -88,8 +88,14 @@ class ClientSerializer(ClientBaseSerializer):
 class ClientDetailSerializer(ClientSerializer):
     """Read‑only view for retrieve (GET)."""
 
+    ville_name = serializers.ReadOnlyField(source="ville.nom", read_only=True)
+
     class Meta(ClientSerializer.Meta):
-        read_only_fields = ClientSerializer.Meta.read_only_fields + ["archived"]
+        fields = ClientSerializer.Meta.fields + ["ville_name"]
+        read_only_fields = ClientSerializer.Meta.read_only_fields + [
+            "ville_name",
+            "archived",
+        ]
 
 
 class ClientListSerializer(serializers.ModelSerializer):
@@ -98,6 +104,7 @@ class ClientListSerializer(serializers.ModelSerializer):
     company_name = serializers.ReadOnlyField(
         source="company.raison_sociale", read_only=True
     )
+    ville_name = serializers.ReadOnlyField(source="ville.nom", read_only=True)
 
     class Meta:
         model = Client
@@ -109,9 +116,10 @@ class ClientListSerializer(serializers.ModelSerializer):
             "nom",
             "prenom",
             "ville",
+            "ville_name",
             "company",
             "company_name",
             "date_created",
             "archived",
         ]
-        read_only_fields = ["company_name"]
+        read_only_fields = ["company_name", "ville_name"]

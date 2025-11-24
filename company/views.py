@@ -1,4 +1,5 @@
 from django.contrib.auth.models import Group
+from django.db.models import Count
 from django.http import Http404
 from django.utils.translation import gettext_lazy as _
 from rest_framework import permissions
@@ -15,6 +16,7 @@ from .serializers import (
     CompanySerializer,
     CompanyDetailSerializer,
     CompanyListSerializer,
+    CompanyBasicListSerializer,
 )
 
 
@@ -114,3 +116,19 @@ class CompanyDetailEditDeleteView(APIView):
         company = self.get_object(pk)
         company.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class CompaniesByUserView(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    @staticmethod
+    def get(request, *args, **kwargs):
+        queryset = (
+            Company.objects.filter(memberships__user=request.user)
+            .annotate(_client_count=Count("clients"))
+            .order_by("-_client_count")
+        )
+        serializer = CompanyBasicListSerializer(
+            queryset, many=True, context={"request": request}
+        )
+        return Response(serializer.data, status=status.HTTP_200_OK)

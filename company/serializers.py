@@ -62,6 +62,13 @@ class CompanyListSerializer(serializers.ModelSerializer):
         read_only_fields = ["date_created"]
 
 
+class CompanyBasicListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Company
+        fields = ["id", "raison_sociale"]
+        read_only_fields = fields
+
+
 class CompanySerializer(serializers.ModelSerializer):
     date_created = serializers.DateTimeField(format="%d/%m/%Y", read_only=True)
 
