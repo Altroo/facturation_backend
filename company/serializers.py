@@ -63,10 +63,26 @@ class CompanyListSerializer(serializers.ModelSerializer):
 
 
 class CompanyBasicListSerializer(serializers.ModelSerializer):
+    role = serializers.SerializerMethodField()
+
     class Meta:
         model = Company
-        fields = ["id", "raison_sociale"]
+        fields = ["id", "raison_sociale", "role"]
         read_only_fields = fields
+
+    def get_role(self, obj):
+        """
+        Return the name of the role the requesting user has for the given company.
+        """
+        request = self.context.get("request")
+        if not request:
+            return None
+        membership = (
+            Membership.objects.filter(user=request.user, company=obj)
+            .select_related("role")
+            .first()
+        )
+        return membership.role.name if membership and membership.role else None
 
 
 class CompanySerializer(serializers.ModelSerializer):
