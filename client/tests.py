@@ -48,9 +48,16 @@ class TestClientAPI:
             company=self.company,
         )
 
+    def _list_url(self, extra=""):
+        """Helper to build the list URL with required company_id."""
+        base = reverse("client:client-list-create")
+        params = f"?company_id={self.company.id}"
+        if extra:
+            params += f"&{extra.lstrip('?')}"
+        return f"{base}{params}"
+
     def test_list_clients(self):
-        url = reverse("client:client-list-create")
-        response = self.client.get(url)
+        response = self.client.get(self._list_url())
         assert response.status_code == status.HTTP_200_OK
         assert len(response.data) == 2
 
@@ -157,8 +164,7 @@ class TestClientAPI:
         assert self.client_pp.archived != original_state
 
     def test_paginated_client_list(self):
-        url = reverse("client:client-list-create")
-        response = self.client.get(url + "?pagination=true&page_size=1")
+        response = self.client.get(self._list_url("pagination=true&page_size=1"))
         assert response.status_code == status.HTTP_200_OK
         assert "results" in response.data
         assert len(response.data["results"]) == 1
@@ -167,8 +173,7 @@ class TestClientAPI:
     def test_filter_archived_true(self):
         self.client_pp.archived = True
         self.client_pp.save()
-        url = reverse("client:client-list-create")
-        response = self.client.get(url + "?archived=true&pagination=true")
+        response = self.client.get(self._list_url("archived=true&pagination=true"))
         assert response.status_code == status.HTTP_200_OK
         assert all(
             client["code_client"] == self.client_pp.code_client
@@ -178,8 +183,7 @@ class TestClientAPI:
     def test_filter_archived_false(self):
         self.client_pp.archived = False
         self.client_pp.save()
-        url = reverse("client:client-list-create")
-        response = self.client.get(url + "?archived=false&pagination=true")
+        response = self.client.get(self._list_url("archived=false&pagination=true"))
         assert response.status_code == status.HTTP_200_OK
         assert any(
             client["code_client"] == self.client_pm.code_client
@@ -187,8 +191,7 @@ class TestClientAPI:
         )
 
     def test_search_client_by_code(self):
-        url = reverse("client:client-list-create")
-        response = self.client.get(url + "?search=CLT0001&pagination=true")
+        response = self.client.get(self._list_url("search=CLT0001&pagination=true"))
         assert response.status_code == status.HTTP_200_OK
         assert any(
             client["code_client"] == "CLT0001" for client in response.data["results"]
@@ -197,8 +200,7 @@ class TestClientAPI:
     def test_search_client_by_name(self):
         self.client_pp.nom = "Fatima"
         self.client_pp.save()
-        url = reverse("client:client-list-create")
-        response = self.client.get(url + "?search=Fatima&pagination=true")
+        response = self.client.get(self._list_url("search=Fatima&pagination=true"))
         assert response.status_code == status.HTTP_200_OK
         assert any(
             client.get("nom") and "Fatima" in client["nom"]

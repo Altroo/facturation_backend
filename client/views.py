@@ -23,35 +23,41 @@ class ClientListCreateView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
     @staticmethod
-    def _user_company_ids(user):
-        """Return a queryset of company IDs the user is member of."""
-        return Membership.objects.filter(user=user).values_list("company_id", flat=True)
+    def _get_bool_param(request, param: str, default: bool = False) -> bool:
+        """Parse boolean query param safely."""
+        val = request.query_params.get(param, str(default).lower())
+        return val.lower() == "true"
 
-    def get(self, request, *args, **kwargs):
-        pagination = request.query_params.get("pagination", "false").lower() == "true"
-        archived = request.query_params.get("archived", "false").lower() == "true"
-        member_company_ids = list(self._user_company_ids(request.user))
-        # Require company_id from query params
-        company_id = request.query_params.get("company_id")
-        if not company_id:
-            raise Http404(_("Aucune clients ne correspond à la requête."))
-        # Ensure user has access to that company
-        if int(company_id) not in member_company_ids:
+    @staticmethod
+    def _check_company_access(request, company_id: int) -> None:
+        """Raise PermissionDenied if user lacks membership for company."""
+        if not Membership.objects.filter(
+            user=request.user, company_id=company_id
+        ).exists():
             raise PermissionDenied(
                 detail=_("Seuls les Admins de cette société peuvent y accéder.")
             )
-        # Only clients of that company
+
+    def get(self, request, *args, **kwargs):
+        pagination = self._get_bool_param(request, "pagination")
+        archived = self._get_bool_param(request, "archived")
+        company_id_str = request.query_params.get("company_id")
+        if not company_id_str:
+            raise Http404(_("Aucune clients ne correspond à la requête."))
+        company_id = int(company_id_str)
+        self._check_company_access(request, company_id)
+
         base_queryset = Client.objects.filter(company_id=company_id, archived=archived)
-        # Apply filters (archived, search, etc.)
         filterset = ClientFilter(request.GET, queryset=base_queryset)
-        filtered_queryset = filterset.qs
+        ordered_qs = filterset.qs.order_by("-id")
+
         if pagination:
             paginator = ClientPagination()
-            ordered_qs = filtered_queryset.order_by("-id")
             page = paginator.paginate_queryset(ordered_qs, request)
             serializer = ClientListSerializer(page, many=True)
             return paginator.get_paginated_response(serializer.data)
-        serializer = ClientListSerializer(filtered_queryset.order_by("-id"), many=True)
+
+        serializer = ClientListSerializer(ordered_qs, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @staticmethod
@@ -130,14 +136,7 @@ class GenerateClientCodeView(APIView):
 
     @staticmethod
     def get(request, *args, **kwargs):
-        # Find the highest numeric part of existing codes
-        max_code = (
-            Client.objects.annotate(num=Max("code_client")).aggregate(
-                max_num=Max("code_client")
-            )
-        )["max_num"]
-
-        # Extract the numeric suffix; default to 0 if none exist
+        max_code = Client.objects.aggregate(max_code=Max("code_client"))["max_code"]
         match = search(r"CLT(\d+)", max_code or "")
         next_number = int(match.group(1)) + 1 if match else 1
 
