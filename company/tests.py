@@ -324,7 +324,7 @@ class TestCompanyImagesAndMemberships:
                 "raison_sociale": "ImgCorp",
                 "ICE": self.company.ICE,
                 "nbr_employe": self.company.nbr_employe,
-                "logo": "http://example.com/existing/logo.png",
+                "logo": "https://example.com/existing/logo.png",
             },
             format="json",
         )

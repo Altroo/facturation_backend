@@ -21,7 +21,12 @@ class TestClientAPI:
         self.client.force_authenticate(user=self.user)
 
         self.ville = Ville.objects.create(nom="Casablanca")
-        self.company = Company.objects.create(raison_sociale="TestCorp")
+        self.company = Company.objects.create(
+            raison_sociale="TestCorp",
+            ICE="ICE_MAIN",
+            registre_de_commerce="RC_MAIN",
+            nbr_employe=10,
+        )
 
         Membership.objects.create(user=self.user, company=self.company)
 
@@ -49,13 +54,13 @@ class TestClientAPI:
         )
 
     def _list_url(self, extra=""):
-        """Helper to build the list URL with required company_id."""
         base = reverse("client:client-list-create")
         params = f"?company_id={self.company.id}"
         if extra:
             params += f"&{extra.lstrip('?')}"
         return f"{base}{params}"
 
+    # --- Core CRUD tests ---
     def test_list_clients(self):
         response = self.client.get(self._list_url())
         assert response.status_code == status.HTTP_200_OK
@@ -163,6 +168,7 @@ class TestClientAPI:
         self.client_pp.refresh_from_db()
         assert self.client_pp.archived != original_state
 
+    # --- Pagination & filters ---
     def test_paginated_client_list(self):
         response = self.client.get(self._list_url("pagination=true&page_size=1"))
         assert response.status_code == status.HTTP_200_OK
@@ -206,3 +212,303 @@ class TestClientAPI:
             client.get("nom") and "Fatima" in client["nom"]
             for client in response.data["results"]
         )
+
+    def test_list_requires_company_id(self):
+        base = reverse("client:client-list-create")
+        response = self.client.get(base)
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    # --- Forbidden access cases ---
+    def test_list_forbidden_without_membership(self):
+        other_company = Company.objects.create(
+            raison_sociale="OtherCorp",
+            ICE="ICE001",
+            registre_de_commerce="RC001",
+            nbr_employe=1,
+        )
+        url = reverse("client:client-list-create") + f"?company_id={other_company.id}"
+        response = self.client.get(url)
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_create_forbidden_without_membership(self):
+        other_company = Company.objects.create(
+            raison_sociale="OtherCorp2",
+            ICE="ICE002",
+            registre_de_commerce="RC002",
+            nbr_employe=1,
+        )
+        url = reverse("client:client-list-create")
+        payload = {
+            "code_client": "CLT0100",
+            "client_type": "PM",
+            "raison_sociale": "NoAccessCo",
+            "ICE": "000",
+            "registre_de_commerce": "RC000",
+            "delai_de_paiement": 30,
+            "ville": self.ville.id,
+            "company": other_company.id,
+        }
+        response = self.client.post(url, payload)
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert not Client.objects.filter(code_client="CLT0100").exists()
+
+    def test_detail_forbidden_without_membership(self):
+        other_company = Company.objects.create(
+            raison_sociale="OtherCorp3",
+            ICE="ICE003",
+            registre_de_commerce="RC003",
+            nbr_employe=1,
+        )
+        alien = Client.objects.create(
+            code_client="CLT0099",
+            client_type=Client.PERSONNE_MORALE,
+            raison_sociale="AlienCo",
+            ICE="999",
+            registre_de_commerce="RC999",
+            delai_de_paiement=30,
+            ville=self.ville,
+            company=other_company,
+        )
+        url = reverse("client:client-detail", args=[alien.id])
+        response = self.client.get(url)
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_put_forbidden_without_membership(self):
+        other_company = Company.objects.create(
+            raison_sociale="OtherCorp4",
+            ICE="ICE004",
+            registre_de_commerce="RC004",
+            nbr_employe=1,
+        )
+        alien = Client.objects.create(
+            code_client="CLT0098",
+            client_type=Client.PERSONNE_MORALE,
+            raison_sociale="AlienCo2",
+            ICE="998",
+            registre_de_commerce="RC998",
+            delai_de_paiement=30,
+            ville=self.ville,
+            company=other_company,
+        )
+        url = reverse("client:client-detail", args=[alien.id])
+        payload = {
+            "code_client": "CLT0098",
+            "client_type": "PM",
+            "raison_sociale": "Updated",
+            "ICE": "998",
+            "registre_de_commerce": "RC998",
+            "delai_de_paiement": 30,
+            "ville": self.ville.id,
+            "company": other_company.id,
+        }
+        response = self.client.put(url, payload)
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_delete_forbidden_without_membership(self):
+        other_company = Company.objects.create(
+            raison_sociale="OtherCorp5",
+            ICE="ICE005",
+            registre_de_commerce="RC005",
+            nbr_employe=1,
+        )
+        alien = Client.objects.create(
+            code_client="CLT0097",
+            client_type=Client.PERSONNE_MORALE,
+            raison_sociale="AlienCo3",
+            ICE="997",
+            registre_de_commerce="RC997",
+            delai_de_paiement=30,
+            ville=self.ville,
+            company=other_company,
+        )
+        url = reverse("client:client-detail", args=[alien.id])
+        response = self.client.delete(url)
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_archive_toggle_forbidden_without_membership(self):
+        other_company = Company.objects.create(
+            raison_sociale="OtherCorp6",
+            ICE="ICE006",
+            registre_de_commerce="RC006",
+            nbr_employe=1,
+        )
+        alien = Client.objects.create(
+            code_client="CLT0500",
+            client_type=Client.PERSONNE_PHYSIQUE,
+            nom="Alien",
+            prenom="User",
+            adresse="Addr",
+            tel="+212655555555",
+            delai_de_paiement=20,
+            ville=self.ville,
+            company=other_company,
+        )
+        url = reverse("client:client-archive", args=[alien.id])
+        response = self.client.patch(url, {"archived": True})
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    # --- Validation & edge cases ---
+    def test_generate_code_increments_from_existing(self):
+        # Existing max code: CLT0002 already present
+        Client.objects.create(
+            code_client="CLT0010",
+            client_type=Client.PERSONNE_PHYSIQUE,
+            nom="Max",
+            prenom="Num",
+            adresse="Some",
+            tel="+212633333333",
+            delai_de_paiement=10,
+            ville=self.ville,
+            company=self.company,
+        )
+        url = reverse("client:client-generate-code")
+        response = self.client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+        # Should be CLT0011
+        assert response.data["code_client"] == "CLT0011"
+
+    def test_validation_required_fields_pm_missing_fields(self):
+        url = reverse("client:client-list-create")
+        payload = {
+            "code_client": "CLT0200",
+            "client_type": "PM",
+            "company": self.company.id,
+        }
+        response = self.client.post(url, payload)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        for field in [
+            "raison_sociale",
+            "ICE",
+            "registre_de_commerce",
+            "delai_de_paiement",
+            "ville",
+        ]:
+            assert field in response.data["details"]
+
+    def test_validation_required_fields_pp_missing_fields(self):
+        url = reverse("client:client-list-create")
+        payload = {
+            "code_client": "CLT0201",
+            "client_type": "PP",
+            "company": self.company.id,
+        }
+        response = self.client.post(url, payload)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        for field in ["nom", "prenom", "adresse", "ville", "tel", "delai_de_paiement"]:
+            assert field in response.data["details"]
+
+    def test_phone_validation_bad_format(self):
+        url = reverse("client:client-list-create")
+        payload = {
+            "code_client": "CLT0300",
+            "client_type": "PP",
+            "nom": "Bad",
+            "prenom": "Phone",
+            "adresse": "Addr",
+            "tel": "123-456",  # invalid
+            "delai_de_paiement": 30,
+            "ville": self.ville.id,
+            "company": self.company.id,
+        }
+        response = self.client.post(url, payload)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "tel" in response.data["details"]
+
+    def test_patch_partial_update_fields(self):
+        url = reverse("client:client-detail", args=[self.client_pm.id])
+        resp = self.client.patch(url, {"raison_sociale": "Partial Update"})
+        assert resp.status_code == status.HTTP_200_OK
+        self.client_pm.refresh_from_db()
+        assert self.client_pm.raison_sociale == "Partial Update"
+
+    def test_detail_includes_ville_name(self):
+        url = reverse("client:client-detail", args=[self.client_pm.id])
+        response = self.client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+        assert "ville_name" in response.data
+        assert response.data["ville_name"] == self.ville.nom
+
+    def test_list_includes_company_and_ville_names(self):
+        response = self.client.get(self._list_url())
+        assert response.status_code == status.HTTP_200_OK
+        assert all("company_name" in item for item in response.data)
+        assert all("ville_name" in item for item in response.data)
+
+    def test_archive_toggle_invalid_id(self):
+        url = reverse("client:client-archive", args=[999999])
+        response = self.client.patch(url, {"archived": True})
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_search_no_results(self):
+        response = self.client.get(self._list_url("search=NONEXISTENT&pagination=true"))
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["count"] == 0
+        assert response.data["results"] == []
+
+    def test_list_pagination_page_2(self):
+        Client.objects.create(
+            code_client="CLT0003",
+            client_type=Client.PERSONNE_PHYSIQUE,
+            nom="Page",
+            prenom="Two",
+            adresse="Addr",
+            tel="+212644444444",
+            delai_de_paiement=15,
+            ville=self.ville,
+            company=self.company,
+        )
+        response_page1 = self.client.get(
+            self._list_url("pagination=true&page_size=1&page=1")
+        )
+        response_page2 = self.client.get(
+            self._list_url("pagination=true&page_size=1&page=2")
+        )
+        assert response_page1.status_code == status.HTTP_200_OK
+        assert response_page2.status_code == status.HTTP_200_OK
+        assert "results" in response_page2.data
+        assert len(response_page2.data["results"]) == 1
+
+    def test_patch_archived_field_directly(self):
+        # Archived is read-only on the detail endpoint; use the archive endpoint instead
+        url = reverse("client:client-archive", args=[self.client_pm.id])
+        resp = self.client.patch(url, {"archived": True})
+        assert resp.status_code == status.HTTP_200_OK
+        self.client_pm.refresh_from_db()
+        assert self.client_pm.archived is True
+
+    def test_get_nonexistent_client_returns_404(self):
+        url = reverse("client:client-detail", args=[999999])
+        response = self.client.get(url)
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_put_nonexistent_client_returns_404(self):
+        url = reverse("client:client-detail", args=[999999])
+        payload = {
+            "code_client": "CLT9999",
+            "client_type": "PM",
+            "raison_sociale": "GhostCo",
+            "ICE": "000",
+            "registre_de_commerce": "RC000",
+            "delai_de_paiement": 30,
+            "ville": self.ville.id,
+            "company": self.company.id,
+        }
+        response = self.client.put(url, payload)
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_delete_nonexistent_client_returns_404(self):
+        url = reverse("client:client-detail", args=[999999])
+        response = self.client.delete(url)
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_patch_nonexistent_client_returns_404(self):
+        url = reverse("client:client-detail", args=[999999])
+        response = self.client.patch(url, {"raison_sociale": "Nope"})
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_generate_code_when_no_clients(self):
+        Client.objects.all().delete()
+        url = reverse("client:client-generate-code")
+        response = self.client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["code_client"] == "CLT0001"
