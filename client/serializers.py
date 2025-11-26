@@ -101,10 +101,17 @@ class ClientDetailSerializer(ClientSerializer):
 class ClientListSerializer(serializers.ModelSerializer):
     """Lightweight serializer for list view."""
 
+    client_type = serializers.SerializerMethodField()
     company_name = serializers.ReadOnlyField(
         source="company.raison_sociale", read_only=True
     )
     ville_name = serializers.ReadOnlyField(source="ville.nom", read_only=True)
+
+    @staticmethod
+    def get_client_type(instance):
+        if instance.client_type != "":
+            return instance.get_client_type_display()
+        return None
 
     class Meta:
         model = Client

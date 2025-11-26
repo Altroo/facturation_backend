@@ -1,6 +1,6 @@
 import django_filters
 from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
-from django.db.models import Q
+from django.db.models import Case, When, Value, CharField, Q
 
 from .models import Client
 
@@ -23,6 +23,16 @@ class ClientFilter(django_filters.FilterSet):
         if not value or not value.strip():
             return queryset
 
+        # Annotate readable client_type label
+        queryset = queryset.annotate(
+            client_type_display=Case(
+                When(client_type="PM", then=Value("Personne morale")),
+                When(client_type="PP", then=Value("Personne physique")),
+                default=Value(""),
+                output_field=CharField(),
+            )
+        )
+
         # Weighted search vector for relevant fields
         search_vector = (
             SearchVector("code_client", weight="A")
@@ -30,8 +40,10 @@ class ClientFilter(django_filters.FilterSet):
             + SearchVector("nom", weight="B")
             + SearchVector("prenom", weight="B")
             + SearchVector("email", weight="B")
+            + SearchVector("client_type_display", weight="B")
             + SearchVector("adresse", weight="C")
             + SearchVector("tel", weight="C")
+            + SearchVector("ville__nom", weight="C")
             + SearchVector("ICE", weight="D")
             + SearchVector("registre_de_commerce", weight="D")
             + SearchVector("identifiant_fiscal", weight="D")
@@ -39,16 +51,10 @@ class ClientFilter(django_filters.FilterSet):
             + SearchVector("taxe_professionnelle", weight="D")
             + SearchVector("CNSS", weight="D")
             + SearchVector("fax", weight="D")
-            + SearchVector("ville__nom", weight="C")  # search by city name
         )
 
         # Prefix matching for full‑text search
-        search_query = SearchQuery(f"{value.strip()}:*", search_type="raw")
-
-        # Full‑text search results
-        fts_results = queryset.annotate(
-            _rank=SearchRank(search_vector, search_query)
-        ).filter(_rank__gte=0.001)
+        search_query = SearchQuery(value.strip(), search_type="plain")
 
         # Fallback icontains queries
         fallback_q = (
@@ -69,7 +75,16 @@ class ClientFilter(django_filters.FilterSet):
             | Q(ville__nom__icontains=value)
         )
 
-        fallback_results = queryset.filter(fallback_q)
+        # Annotate rank for all results (0.0 for fallback-only matches)
+        from django.db.models.functions import Coalesce
 
-        # Combine, deduplicate, and order by relevance rank
-        return (fts_results | fallback_results).distinct().order_by("-_rank")
+        combined_results = (
+            queryset.annotate(
+                _rank=Coalesce(SearchRank(search_vector, search_query), Value(0.0))
+            )
+            .filter(Q(_rank__gte=0.001) | fallback_q)
+            .distinct()
+            .order_by("-_rank")
+        )
+
+        return combined_results
