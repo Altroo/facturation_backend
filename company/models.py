@@ -18,6 +18,7 @@ class Company(models.Model):
         max_length=255,
         blank=True,
         verbose_name="Raison sociale",
+        db_index=True,
     )
     email = models.EmailField(
         blank=True,
@@ -86,8 +87,6 @@ class Company(models.Model):
         max_length=4,
         choices=CIVILITE_CHOICES,
         default="",
-        blank=True,
-        null=True,
         verbose_name="Civilité du responsable",
     )
     nom_responsable = models.CharField(
@@ -183,13 +182,15 @@ class Company(models.Model):
 
     # DATES
     date_created = models.DateTimeField(
-        verbose_name="Date de création", default=timezone.now
+        verbose_name="Date de création",
+        default=timezone.now,
+        db_index=True,
     )
 
     class Meta:
         verbose_name = "Company"
         verbose_name_plural = "Companies"
-        ordering = ("raison_sociale",)
+        ordering = ("-date_created",)
 
     def __str__(self):
         return self.raison_sociale

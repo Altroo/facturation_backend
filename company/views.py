@@ -9,9 +9,9 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from account.models import Membership
+from facturation_backend.utils import CustomPagination
 from .filters import CompanyFilter
 from .models import Company
-from .pagination import CompanyPagination
 from .serializers import (
     CompanySerializer,
     CompanyDetailSerializer,
@@ -38,7 +38,7 @@ class CompanyListCreateView(APIView):
             memberships__role__name="Admin",
         )
         if pagination:
-            paginator = CompanyPagination()
+            paginator = CustomPagination()
             filterset = CompanyFilter(request.GET, queryset=queryset)
             queryset = filterset.qs.order_by("-id")
             page = paginator.paginate_queryset(queryset, request)

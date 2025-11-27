@@ -1,15 +1,24 @@
-from django.urls import path
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
 
 from .views import (
-    VilleListCreateView,
-    VilleDetailEditDeleteView,
+    VilleViewSet,
+    MarqueViewSet,
+    CategorieViewSet,
+    UniteViewSet,
+    EmplacementViewSet,
 )
 
 app_name = "parameter"
 
+# Create a router and register our viewsets
+router = DefaultRouter()
+router.register(r"ville", VilleViewSet, basename="ville")
+router.register(r"marque", MarqueViewSet, basename="marque")
+router.register(r"categorie", CategorieViewSet, basename="categorie")
+router.register(r"unite", UniteViewSet, basename="unite")
+router.register(r"emplacement", EmplacementViewSet, basename="emplacement")
+
 urlpatterns = [
-    # GET ville list & POST create
-    path("ville/", VilleListCreateView.as_view(), name="ville-list-create"),
-    # GET ville detail, PUT update, DELETE
-    path("ville/<int:pk>/", VilleDetailEditDeleteView.as_view(), name="ville-detail"),
+    path("", include(router.urls)),
 ]

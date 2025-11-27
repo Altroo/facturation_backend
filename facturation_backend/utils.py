@@ -10,6 +10,7 @@ from django.core.files.base import ContentFile
 from django.utils.translation import gettext_lazy as _
 from numpy import uint8, frombuffer
 from rest_framework import serializers
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import exception_handler
 from six import string_types
@@ -142,3 +143,12 @@ def api_exception_handler(exc, context):
         return Response(error_payload, status=response.status_code)
 
     return response
+
+
+class CustomPagination(PageNumberPagination):
+    # default size when the client does not specify one
+    page_size = 10
+    # allow the client to set the size with the `page_size` query param
+    page_size_query_param = "page_size"
+    # optional maximum to prevent abuse
+    max_page_size = 100

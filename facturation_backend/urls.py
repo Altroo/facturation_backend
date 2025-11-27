@@ -28,6 +28,8 @@ urlpatterns = [
     path("api/company/", include("company.urls")),
     # Client
     path("api/client/", include("client.urls")),
+    # Article
+    path("api/article/", include("article.urls")),
     # Parameter
     path("api/parameter/", include("parameter.urls")),
     # Admin panel

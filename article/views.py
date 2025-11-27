@@ -10,16 +10,16 @@ from rest_framework.views import APIView
 
 from account.models import Membership
 from facturation_backend.utils import CustomPagination
-from .filters import ClientFilter
-from .models import Client
+from .filters import ArticleFilter
+from .models import Article
 from .serializers import (
-    ClientSerializer,
-    ClientDetailSerializer,
-    ClientListSerializer,
+    ArticleSerializer,
+    ArticleDetailSerializer,
+    ArticleListSerializer,
 )
 
 
-class ClientListCreateView(APIView):
+class ArticleListCreateView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
     @staticmethod
@@ -43,23 +43,27 @@ class ClientListCreateView(APIView):
         archived = self._get_bool_param(request, "archived")
         company_id_str = request.query_params.get("company_id")
         if not company_id_str:
-            raise Http404(_("Aucune clients ne correspond à la requête."))
+            raise Http404(_("Aucun article ne correspond à la requête."))
         company_id = int(company_id_str)
         self._check_company_access(request, company_id)
-        base_queryset = Client.objects.filter(company_id=company_id, archived=archived)
-        filterset = ClientFilter(request.GET, queryset=base_queryset)
+        base_queryset = Article.objects.filter(company_id=company_id, archived=archived)
+        filterset = ArticleFilter(request.GET, queryset=base_queryset)
         ordered_qs = filterset.qs.order_by("-id")
         if pagination:
             paginator = CustomPagination()
             page = paginator.paginate_queryset(ordered_qs, request)
-            serializer = ClientListSerializer(page, many=True)
+            serializer = ArticleListSerializer(
+                page, many=True, context={"request": request}
+            )
             return paginator.get_paginated_response(serializer.data)
-        serializer = ClientListSerializer(ordered_qs, many=True)
+        serializer = ArticleListSerializer(
+            ordered_qs, many=True, context={"request": request}
+        )
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @staticmethod
     def post(request, *args, **kwargs):
-        # the client must be created for a company the user belongs to
+        # the article must be created for a company the user belongs to
         company_id = request.data.get("company")
         if (
             not company_id
@@ -68,15 +72,15 @@ class ClientListCreateView(APIView):
             ).exists()
         ):
             raise PermissionDenied(
-                _("Vous n'êtes pas autorisé à créer un client pour cette société.")
+                _("Vous n'êtes pas autorisé à créer un article pour cette société.")
             )
-        serializer = ClientSerializer(data=request.data)
+        serializer = ArticleSerializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
-class ClientDetailEditDeleteView(APIView):
+class ArticleDetailEditDeleteView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
     @staticmethod
@@ -87,66 +91,73 @@ class ClientDetailEditDeleteView(APIView):
     @staticmethod
     def get_object(pk):
         try:
-            return Client.objects.get(pk=pk)
-        except Client.DoesNotExist:
-            raise Http404(_("Aucun client ne correspond à la requête."))
+            return Article.objects.get(pk=pk)
+        except Article.DoesNotExist:
+            raise Http404(_("Aucun article ne correspond à la requête."))
 
     def get(self, request, pk, *args, **kwargs):
-        client = self.get_object(pk)
-        if not self._has_membership(request.user, client.company_id):
-            raise PermissionDenied(_("Vous n'êtes pas autorisé à consulter ce client."))
-        serializer = ClientDetailSerializer(client)
+        article = self.get_object(pk)
+        if not self._has_membership(request.user, article.company_id):
+            raise PermissionDenied(
+                _("Vous n'êtes pas autorisé à consulter cet article.")
+            )
+        serializer = ArticleDetailSerializer(article, context={"request": request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def put(self, request, pk, *args, **kwargs):
-        client = self.get_object(pk)
-        if not self._has_membership(request.user, client.company_id):
-            raise PermissionDenied(_("Vous n'êtes pas autorisé à modifier ce client."))
-        serializer = ClientDetailSerializer(client, data=request.data)
+        article = self.get_object(pk)
+        if not self._has_membership(request.user, article.company_id):
+            raise PermissionDenied(
+                _("Vous n'êtes pas autorisé à modifier cet article.")
+            )
+        serializer = ArticleDetailSerializer(
+            article, data=request.data, context={"request": request}
+        )
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def delete(self, request, pk, *args, **kwargs):
-        client = self.get_object(pk)
-        if not self._has_membership(request.user, client.company_id):
-            raise PermissionDenied(_("Vous n'êtes pas autorisé à supprimer ce client."))
-        client.delete()
+        article = self.get_object(pk)
+        if not self._has_membership(request.user, article.company_id):
+            raise PermissionDenied(
+                _("Vous n'êtes pas autorisé à supprimer cet article.")
+            )
+        article.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def patch(self, request, pk, *args, **kwargs):
-        client = self.get_object(pk)
-        if not self._has_membership(request.user, client.company_id):
-            raise PermissionDenied(_("Vous n'êtes pas autorisé à modifier ce client."))
-        serializer = ClientDetailSerializer(client, data=request.data, partial=True)
+        article = self.get_object(pk)
+        if not self._has_membership(request.user, article.company_id):
+            raise PermissionDenied(
+                _("Vous n'êtes pas autorisé à modifier cet article.")
+            )
+        serializer = ArticleDetailSerializer(
+            article, data=request.data, partial=True, context={"request": request}
+        )
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class GenerateClientCodeView(APIView):
-    """Return the next available ``code_client`` (e.g. ``CLT0018``)."""
+class GenerateArticleReferenceCodeView(APIView):
+    """Return the next available ``code_article`` (e.g. ``ART0012``)."""
 
     permission_classes = (permissions.IsAuthenticated,)
 
     @staticmethod
     def get(request, *args, **kwargs):
         # Get the highest existing reference value.
-        max_code = Client.objects.aggregate(max_code=Max("code_client"))["max_code"]
-        # Extract the numeric part; assume format like "CLT0012".
-        match = search(r"CLT(\d+)", max_code or "")
+        max_ref = Article.objects.aggregate(max_ref=Max("reference"))["max_ref"]
+        # Extract the numeric part; assume format like "ART0012".
+        match = search(r"ART(\d+)", max_ref or "")
         next_number = int(match.group(1)) + 1 if match else 1
-        # Build the new code with leading zeros (4 digits)
-        new_code = f"CLT{next_number:04d}"
-        return Response({"code_client": new_code}, status=status.HTTP_200_OK)
+        new_ref = f"ART{next_number:04d}"
+        return Response({"reference": new_ref}, status=status.HTTP_200_OK)
 
 
-class ArchiveToggleClientView(APIView):
-    """Toggle ``archived`` status for a client.
-    - PATCH with ``{"archived": true}`` → archive
-    - PATCH with ``{"archived": false}`` → un‑archive
-    - If the field is omitted, the status is simply toggled.
-    """
+class ArchiveToggleArticleView(APIView):
+    """Toggle ``archived`` status for an article."""
 
     permission_classes = (permissions.IsAuthenticated,)
 
@@ -164,27 +175,27 @@ class ArchiveToggleClientView(APIView):
     @staticmethod
     def get_object(pk):
         try:
-            return Client.objects.get(pk=pk)
-        except Client.DoesNotExist:
-            raise Http404(_("Aucun client ne correspond à la requête."))
+            return Article.objects.get(pk=pk)
+        except Article.DoesNotExist:
+            raise Http404(_("Aucun article ne correspond à la requête."))
 
     @staticmethod
     def _has_membership(user, company_id):
         return Membership.objects.filter(user=user, company_id=company_id).exists()
 
     def patch(self, request, pk, *args, **kwargs):
-        client = self.get_object(pk)
-        if not self._has_membership(request.user, client.company_id):
+        article = self.get_object(pk)
+        if not self._has_membership(request.user, article.company_id):
             raise PermissionDenied(
-                _("Vous n'êtes pas autorisé à modifier l'état de ce client.")
+                _("Vous n'êtes pas autorisé à modifier l'état de cet article.")
             )
         # Determine the desired state
         if "archived" in request.data:
             new_state = self._to_bool(request.data["archived"])
         else:
             # toggle when not explicitly provided
-            new_state = not client.archived
-        client.archived = new_state
-        client.save(update_fields=["archived"])
-        serializer = ClientDetailSerializer(client)
+            new_state = not article.archived
+        article.archived = new_state
+        article.save(update_fields=["archived"])
+        serializer = ArticleDetailSerializer(article, context={"request": request})
         return Response(serializer.data, status=status.HTTP_200_OK)

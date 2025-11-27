@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     "parameter.apps.ParameterConfig",
     "company.apps.CompanyConfig",
     "client.apps.ClientConfig",
+    "article.apps.ArticleConfig",
 ]
 
 MIDDLEWARE = [
@@ -136,7 +137,7 @@ LANGUAGES = [
     ("fr", "Français"),
 ]
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "Africa/Casablanca"
 
 USE_I18N = True
 

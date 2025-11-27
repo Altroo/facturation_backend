@@ -17,9 +17,9 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from facturation_backend.utils import CustomPagination
 from .filters import UsersFilter
 from .models import CustomUser
-from .pagination import UsersPagination
 from .serializers import (
     PasswordResetSerializer,
     ChangePasswordSerializer,
@@ -285,7 +285,7 @@ class UsersListCreateView(APIView):
         pagination = request.query_params.get("pagination", "false").lower() == "true"
         queryset = CustomUser.objects.all().exclude(pk=request.user.pk)
         if pagination:
-            paginator = UsersPagination()
+            paginator = CustomPagination()
             filterset = UsersFilter(request.GET, queryset=queryset)
             queryset = filterset.qs.order_by("-date_joined")
             page = paginator.paginate_queryset(queryset, request)

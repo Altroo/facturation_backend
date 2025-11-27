@@ -81,26 +81,39 @@ class Client(models.Model):
         blank=True,
         null=True,
     )
-
     # Champs spécifiques à la personne physique
-    nom = models.CharField(max_length=100, verbose_name="Nom", blank=True, null=True)
-    prenom = models.CharField(
-        max_length=100, verbose_name="Prénom", blank=True, null=True
+    nom = models.CharField(
+        max_length=100,
+        verbose_name="Nom",
+        blank=True,
+        null=True,
     )
-
+    prenom = models.CharField(
+        max_length=100,
+        verbose_name="Prénom",
+        blank=True,
+        null=True,
+    )
     # DATES
     date_created = models.DateTimeField(
-        verbose_name="Date de création", default=timezone.now
+        verbose_name="Date de création",
+        default=timezone.now,
+        db_index=True,
     )
     # Archive status
     archived = models.BooleanField(
         default=False,
         verbose_name="Archivé",
+        db_index=True,
     )
 
     class Meta:
         verbose_name = "Client"
         verbose_name_plural = "Clients"
+        ordering = ("-date_created",)
+        indexes = [
+            models.Index(fields=["company", "archived"]),
+        ]
 
     def __str__(self):
         return f"{self.code_client} - {self.get_client_type_display()}"

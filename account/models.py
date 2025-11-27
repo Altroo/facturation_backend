@@ -25,7 +25,9 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     last_name = models.CharField(_("last name"), max_length=30, blank=True)
     GENDER_CHOICES = (("", "Unset"), ("H", "Homme"), ("F", "Femme"))
     gender = models.CharField(
-        max_length=1, choices=GENDER_CHOICES, default="", blank=True, null=True
+        max_length=1,
+        choices=GENDER_CHOICES,
+        default="",
     )
     avatar = models.ImageField(
         verbose_name="User Avatar",
@@ -47,6 +49,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         _("staff status"),
         default=False,
         help_text=_("Designates whether the user can log into this admin site."),
+        db_index=True,
     )
     is_active = models.BooleanField(
         _("active"),
@@ -55,12 +58,18 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
             "Designates whether this user should be treated as active. "
             "Unselect this instead of deleting accounts."
         ),
+        db_index=True,
     )
     # DATES
-    date_joined = models.DateTimeField(_("date joined"), default=timezone.now)
+    date_joined = models.DateTimeField(
+        _("date joined"), default=timezone.now, db_index=True
+    )
     # Codes
     password_reset_code = models.CharField(
-        verbose_name="Password Reset Code", blank=True, null=True
+        verbose_name="Password Reset Code",
+        blank=True,
+        null=True,
+        db_index=True,
     )
     # Task ids for Codes
     task_id_password_reset = models.CharField(
@@ -69,6 +78,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         default=None,
         null=True,
         blank=True,
+        db_index=True,
     )
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
@@ -93,7 +103,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     class Meta:
         verbose_name = "User"
         verbose_name_plural = "Users"
-        ordering = ("date_joined",)
+        ordering = ("-date_joined",)
 
     def save_image(self, file_name, image):
         if not isinstance(image, BytesIO):
@@ -124,6 +134,10 @@ class Membership(models.Model):
         verbose_name = "Membership"
         verbose_name_plural = "Memberships"
         ordering = ("role",)
+        indexes = [
+            models.Index(fields=["user", "role"]),
+            models.Index(fields=["company", "role"]),
+        ]
 
     def __str__(self):
         return f"{self.user.email} – {self.role} @ {self.company or 'No Company'}"
