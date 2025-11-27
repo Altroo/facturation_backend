@@ -17,6 +17,7 @@ class BaseModelViewSet(viewsets.ModelViewSet):
     """
 
     permission_classes = (permissions.IsAuthenticated,)
+    pagination_class = None
 
     def get_queryset(self):
         # Order by descending ID for consistency
