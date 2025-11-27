@@ -1,18 +1,36 @@
 import os
+from datetime import datetime, timezone
+from io import BytesIO
+from unittest.mock import patch
 
 import pytest
+from PIL import Image
+from django.conf import settings as app_settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
+from django.core import mail
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
+
+from .models import CustomUser
+from .tasks import (
+    send_email,
+    start_deleting_expired_codes,
+    generate_user_thumbnail,
+    resize_avatar,
+)
 
 
 # Temporary MEDIA_ROOT for avatar file ops
 @pytest.fixture(autouse=True)
 def temp_media_root(settings, tmpdir):
     settings.MEDIA_ROOT = tmpdir.strpath
+
+
+# Use pytest-django marker globally
+pytestmark = pytest.mark.django_db
 
 
 @pytest.mark.django_db
@@ -463,3 +481,143 @@ class TestAccountAPIExtras:
         assert response.status_code == status.HTTP_200_OK
         for key in ("id", "is_staff", "date_joined", "last_login"):
             assert key in response.data
+
+
+# Testing tasks.py
+def test_send_email_task_updates_user_and_sends_mail():
+    # Sanity check: email backend must be locmem in tests
+    assert app_settings.EMAIL_BACKEND == "django.core.mail.backends.locmem.EmailBackend"
+
+    user = CustomUser.objects.create(email="test@example.com", password="1234")
+
+    send_email.delay(
+        user.pk,
+        user.email,
+        "Reset",
+        "<p>Hello</p>",
+        code="9999",
+        type_="password_reset_code",
+    )
+
+    # Email sent
+    assert len(mail.outbox) == 1
+    assert mail.outbox[0].subject == "Reset"
+    assert "Hello" in mail.outbox[0].body
+
+    # User updated
+    user.refresh_from_db()
+    assert user.password_reset_code == "9999"
+
+
+def test_start_deleting_expired_codes_clears_code():
+    user = CustomUser.objects.create(
+        email="test@example.com", password="1234", password_reset_code="9999"
+    )
+
+    # Eager mode should execute immediately
+    start_deleting_expired_codes.delay(user.pk, "password_reset")
+
+    user.refresh_from_db()
+    assert user.password_reset_code is None
+
+
+def test_generate_user_thumbnail_saves_images():
+    user = CustomUser.objects.create(
+        first_name="John", last_name="Doe", email="john@example.com"
+    )
+
+    generate_user_thumbnail.delay(user.pk)
+
+    user.refresh_from_db()
+    assert user.avatar is not None
+    assert user.avatar_cropped is not None
+
+
+@pytest.mark.django_db
+def test_resize_avatar_saves_and_sends_event(monkeypatch):
+    user = CustomUser.objects.create(
+        first_name="Jane", last_name="Doe", email="jane@example.com"
+    )
+
+    # Create a fake image buffer
+    img = Image.new("RGB", (100, 100), color="red")
+    buf = BytesIO()
+    img.save(buf, format="PNG")
+    buf.seek(0)
+
+    # Patch async wrappers to run synchronously and pass args through correctly
+    monkeypatch.setattr(
+        "account.tasks.sync_to_async",
+        lambda f: f,  # don't wrap into coroutine
+    )
+    monkeypatch.setattr(
+        "account.tasks.async_to_sync",
+        lambda f: (lambda *args, **kwargs: f(*args, **kwargs)),  # direct call-through
+    )
+
+    # Provide a real sync method (bound, with self) and capture calls
+    calls = []
+
+    class FakeChannelLayer:
+        @staticmethod
+        def group_send(group_name_, event_):
+            calls.append((group_name_, event_))
+            return None
+
+    monkeypatch.setattr("account.tasks.get_channel_layer", lambda: FakeChannelLayer())
+
+    # Execute task (eager mode runs synchronously in tests)
+    resize_avatar.delay(user.pk, buf)
+
+    user.refresh_from_db()
+    assert user.avatar is not None
+
+    # Verify one group_send call with expected payload
+    assert len(calls) == 1
+    group_name, event = calls[0]
+    assert group_name == str(user.pk)
+    assert isinstance(event, dict)
+    assert event["type"] == "recieve_group_message"
+    assert event["message"]["type"] == "USER_AVATAR"
+
+
+@patch("account.tasks.start_deleting_expired_codes.apply_async")
+@patch("account.views.current_app.control.revoke")
+def test_view_schedules_and_revokes(
+    revoke_mock, apply_async_mock, client, django_user_model
+):
+    user = django_user_model.objects.create(
+        email="test@example.com", password="1234", task_id_password_reset="prev-id"
+    )
+
+    # Mock apply_async to return an object with a short id (<= 40 chars)
+    class FakeAsyncResult:
+        id = "a" * 36  # typical UUID length
+
+        def __str__(self):
+            # Your view currently does: str(task_id_password_reset)
+            # Keep __str__ short to avoid DB DataError on CharField(40)
+            return self.id
+
+    apply_async_mock.return_value = FakeAsyncResult()
+
+    # Prefer reverse; fallback to explicit URL if not named
+    url = reverse("account:send_password_reset")
+    resp = client.post(url, {"email": user.email})
+    assert resp.status_code == 204
+
+    # Previous task revoked
+    revoke_mock.assert_called()
+
+    # Scheduling called with eta ~ 24h from now
+    assert apply_async_mock.called
+    _, kwargs = apply_async_mock.call_args
+    eta = kwargs["eta"]
+    assert isinstance(eta, datetime)
+    delta = (eta - datetime.now(timezone.utc)).total_seconds()
+    assert 86000 <= delta <= 86800  # ~24h window
+
+    # The view should have saved the task id (<= 40 chars)
+    user.refresh_from_db()
+    assert user.task_id_password_reset is not None
+    assert len(user.task_id_password_reset) <= 40
