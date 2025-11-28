@@ -28,7 +28,7 @@ class BaseAPITest:
 
     @staticmethod
     def _get_results(response):
-        return response.data.get("results", response.data)
+        return response.data
 
     def test_list(self):
         url = reverse(f"parameter:{self.basename}-list")
