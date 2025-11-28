@@ -143,7 +143,7 @@ def resize_avatar(self, object_pk: int, avatar: BytesIO | None):
     avatar_io = resize_images_v2(avatar)
     generate_images_v2(user, avatar_io)
     event = {
-        "type": "recieve_group_message",
+        "type": "receive_group_message",
         "message": {
             "type": "USER_AVATAR",
             "pk": user.pk,

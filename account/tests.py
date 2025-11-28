@@ -577,7 +577,7 @@ def test_resize_avatar_saves_and_sends_event(monkeypatch):
     group_name, event = calls[0]
     assert group_name == str(user.pk)
     assert isinstance(event, dict)
-    assert event["type"] == "recieve_group_message"
+    assert event["type"] == "receive_group_message"
     assert event["message"]["type"] == "USER_AVATAR"
 
 
