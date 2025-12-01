@@ -85,8 +85,8 @@ class Article(models.Model):
 
     # Type choice
     TYPE_CHOICES = [
-        ("produit", "Produit"),
-        ("service", "Service"),
+        ("Produit", "Produit"),
+        ("Service", "Service"),
     ]
     type_article = models.CharField(
         max_length=7,

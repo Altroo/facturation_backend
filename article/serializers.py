@@ -236,7 +236,7 @@ class ArticleDetailSerializer(ArticleSerializer):
 class ArticleListSerializer(serializers.ModelSerializer):
     """Lightweight serializer for list view."""
 
-    type_article_display = serializers.SerializerMethodField()
+    type_article = serializers.SerializerMethodField()
     company_name = serializers.ReadOnlyField(source="company.raison_sociale")
     marque_name = serializers.ReadOnlyField(source="marque.nom")
     categorie_name = serializers.ReadOnlyField(source="categorie.nom")
@@ -244,7 +244,7 @@ class ArticleListSerializer(serializers.ModelSerializer):
     unite_name = serializers.ReadOnlyField(source="unite.nom")
 
     @staticmethod
-    def get_type_article_display(instance):
+    def get_type_article(instance):
         return instance.get_type_article_display() if instance.type_article else None
 
     class Meta:
@@ -253,7 +253,7 @@ class ArticleListSerializer(serializers.ModelSerializer):
             "id",
             "reference",
             "designation",
-            "type_article_display",
+            "type_article",
             "company",
             "company_name",
             "marque",
@@ -264,8 +264,11 @@ class ArticleListSerializer(serializers.ModelSerializer):
             "emplacement_name",
             "unite",
             "unite_name",
+            "prix_achat",
             "prix_vente",
             "photo",
+            "tva",
+            "remarque",
             "archived",
             "date_created",
         ]

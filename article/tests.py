@@ -93,7 +93,7 @@ class TestArticleAPI:
         payload = {
             "reference": "ART0003",
             "designation": "Nouveau Produit",
-            "type_article": "produit",
+            "type_article": "Produit",
             "company": self.company.id,
             "marque": self.marque.id,
             "categorie": self.categorie.id,
@@ -113,7 +113,7 @@ class TestArticleAPI:
         payload = {
             "reference": "ART0004",
             "designation": "Nouveau Service",
-            "type_article": "service",
+            "type_article": "Service",
             "company": self.company.id,
             "prix_vente": 250,
             "tva": 20,
@@ -138,7 +138,7 @@ class TestArticleAPI:
         payload = {
             "reference": self.article_produit.reference,
             "designation": "Updated Designation",
-            "type_article": "produit",
+            "type_article": "Produit",
             "company": self.company.id,
             "prix_achat": 110,
             "prix_vente": 160,
@@ -264,7 +264,7 @@ class TestArticleAPI:
         payload = {
             "reference": "ART0100",
             "designation": "Forbidden Article",
-            "type_article": "produit",
+            "type_article": "Produit",
             "company": other_company.id,
             "prix_vente": 100,
             "tva": 20,
@@ -311,7 +311,7 @@ class TestArticleAPI:
         payload = {
             "reference": "ART0098",
             "designation": "Updated",
-            "type_article": "produit",
+            "type_article": "Produit",
             "company": other_company.id,
             "prix_vente": 150,
             "tva": 20,
@@ -361,7 +361,7 @@ class TestArticleAPI:
     def test_validation_required_fields_missing(self):
         url = reverse("article:article-list-create")
         payload = {
-            "type_article": "produit",
+            "type_article": "Produit",
             "company": self.company.id,
         }
         response = self.client.post(url, payload, format="json")
@@ -379,7 +379,7 @@ class TestArticleAPI:
         payload = {
             "reference": "ART9999",
             "designation": "Ghost",
-            "type_article": "produit",
+            "type_article": "Produit",
             "company": self.company.id,
             "prix_vente": 100,
             "tva": 20,
@@ -439,7 +439,7 @@ class TestArticleImagesAndPhotos:
         payload = {
             "reference": "ART0001",
             "designation": "Article avec photo",
-            "type_article": "produit",
+            "type_article": "Produit",
             "company": self.company.id,
             "prix_vente": 100,
             "tva": 20,
@@ -475,7 +475,7 @@ class TestArticleImagesAndPhotos:
             {
                 "reference": article.reference,
                 "designation": article.designation,
-                "type_article": "produit",
+                "type_article": "Produit",
                 "company": self.company.id,
                 "prix_vente": 100,
                 "tva": 20,
@@ -493,7 +493,7 @@ class TestArticleImagesAndPhotos:
             {
                 "reference": article.reference,
                 "designation": article.designation,
-                "type_article": "produit",
+                "type_article": "Produit",
                 "company": self.company.id,
                 "prix_vente": 100,
                 "tva": 20,
@@ -527,7 +527,7 @@ class TestArticleImagesAndPhotos:
             {
                 "reference": article.reference,
                 "designation": article.designation,
-                "type_article": "produit",
+                "type_article": "Produit",
                 "company": self.company.id,
                 "prix_vente": 100,
                 "tva": 20,
@@ -545,7 +545,7 @@ class TestArticleImagesAndPhotos:
             {
                 "reference": article.reference,
                 "designation": article.designation,
-                "type_article": "produit",
+                "type_article": "Produit",
                 "company": self.company.id,
                 "prix_vente": 100,
                 "tva": 20,
@@ -582,7 +582,7 @@ class TestArticleImagesAndPhotos:
             {
                 "reference": article.reference,
                 "designation": article.designation,
-                "type_article": "produit",
+                "type_article": "Produit",
                 "company": self.company.id,
                 "prix_vente": 100,
                 "tva": 20,
@@ -600,7 +600,7 @@ class TestArticleImagesAndPhotos:
             {
                 "reference": article.reference,
                 "designation": article.designation,
-                "type_article": "produit",
+                "type_article": "Produit",
                 "company": self.company.id,
                 "prix_vente": 100,
                 "tva": 20,
@@ -647,7 +647,7 @@ class TestArticleImagesAndPhotos:
             {
                 "reference": article.reference,
                 "designation": article.designation,
-                "type_article": "produit",
+                "type_article": "Produit",
                 "company": self.company.id,
                 "prix_vente": 100,
                 "tva": 20,
