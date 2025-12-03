@@ -67,22 +67,14 @@ class TestDeviAPI:
             created_by_user=self.user,
         )
 
-        # create a DeviLine via API (API bug fixed so POST sets `devis`)
-        url = reverse("devi:devi-line-list-create")
-        payload_line = {
-            "devis": self.devi.id,
-            "article": self.article.id,
-            "prix_achat": 100,
-            "prix_vente": 120,
-            "quantity": 2,
-            "pourcentage_remise": 5,
-        }
-        response = self.client_api.post(url, payload_line, format="json")
-        assert (
-            response.status_code == status.HTTP_201_CREATED
-        ), f"DeviLine POST failed: {response.status_code} {response.data}"
-        self.devi_line = DeviLine.objects.get(
-            devis=self.devi, article=self.article, prix_achat=100
+        # create a DeviLine directly (lines endpoints removed)
+        self.devi_line = DeviLine.objects.create(
+            devis=self.devi,
+            article=self.article,
+            prix_achat=100,
+            prix_vente=120,
+            quantity=2,
+            pourcentage_remise=5,
         )
 
     def test_list_devis(self):
@@ -108,11 +100,49 @@ class TestDeviAPI:
         assert devi is not None
         assert devi.created_by_user == self.user
 
+    def test_create_devi_with_lignes(self):
+        url = reverse("devi:devi-list-create")
+        payload = {
+            "numero_devis": "0004/25",
+            "client": self.client_obj.id,
+            "date_devis": "2024-06-05",
+            "numero_demande_prix_client": "REQ-010",
+            "mode_paiement": self.mode_paiement.id,
+            "remarque": "With lines",
+            "lignes": [
+                {
+                    "article": self.article.id,
+                    "prix_achat": 150,
+                    "prix_vente": 180,
+                    "quantity": 1,
+                    "pourcentage_remise": 0,
+                }
+            ],
+        }
+        response = self.client_api.post(url, payload, format="json")
+        assert response.status_code == status.HTTP_201_CREATED
+        # response should include detailed lignes with generated id
+        assert isinstance(response.data.get("lignes"), list)
+        assert len(response.data["lignes"]) == 1
+        line = response.data["lignes"][0]
+        assert line.get("article") == self.article.id
+        assert "id" in line
+        # DB has the line linked to the created devi
+        Devi.objects.get(pk=response.data["id"])  # ensure devi exists
+        assert DeviLine.objects.filter(
+            devis__id=response.data["id"], article=self.article
+        ).exists()
+
     def test_get_devi_detail(self):
         url = reverse("devi:devi-detail", args=[self.devi.id])
         response = self.client_api.get(url)
         assert response.status_code == status.HTTP_200_OK
         assert response.data["numero_devis"] == self.devi.numero_devis
+        # detail should include lignes
+        assert isinstance(response.data.get("lignes"), list)
+        assert any(
+            ligne.get("article") == self.article.id for ligne in response.data["lignes"]
+        )
 
     def test_update_devi(self):
         url = reverse("devi:devi-detail", args=[self.devi.id])
@@ -130,40 +160,52 @@ class TestDeviAPI:
         assert self.devi.remarque == "Updated remark"
         assert self.devi.created_by_user == self.user
 
+    def test_update_devi_with_lignes_upsert(self):
+        # update existing line and add a new one via PUT (upsert)
+        url = reverse("devi:devi-detail", args=[self.devi.id])
+        payload = {
+            "numero_devis": self.devi.numero_devis,
+            "client": self.client_obj.id,
+            "date_devis": "2024-06-07",
+            "numero_demande_prix_client": "REQ-004",
+            "mode_paiement": self.mode_paiement.id,
+            "remarque": "Upsert lines",
+            "lignes": [
+                {
+                    "id": self.devi_line.id,
+                    "article": self.article.id,
+                    "prix_achat": 110,
+                    "prix_vente": 130,
+                    "quantity": 5,
+                    "pourcentage_remise": 2,
+                },
+                {
+                    # new line (no id)
+                    "article": self.article.id,
+                    "prix_achat": 200,
+                    "prix_vente": 250,
+                    "quantity": 3,
+                    "pourcentage_remise": 10,
+                },
+            ],
+        }
+        response = self.client_api.put(url, payload, format="json")
+        assert response.status_code == status.HTTP_200_OK
+        # existing line updated
+        self.devi_line.refresh_from_db()
+        assert self.devi_line.prix_achat == 110
+        assert self.devi_line.quantity == 5
+        # new line created
+        assert DeviLine.objects.filter(devis=self.devi, prix_achat=200).exists()
+        # response includes both lines
+        returned_lines = response.data.get("lignes", [])
+        assert len(returned_lines) == 2
+
     def test_delete_devi(self):
         url = reverse("devi:devi-detail", args=[self.devi.id])
         response = self.client_api.delete(url)
         assert response.status_code == status.HTTP_204_NO_CONTENT
         assert not Devi.objects.filter(id=self.devi.id).exists()
-
-    def test_list_devi_lines(self):
-        # endpoint requires devis_id query param
-        url = reverse("devi:devi-line-list-create") + f"?devis_id={self.devi.id}"
-        response = self.client_api.get(url)
-        assert response.status_code == status.HTTP_200_OK
-        # response includes article id for each line
-        assert any(line.get("article") == self.article.id for line in response.data)
-
-    def test_create_devi_line(self):
-        url = reverse("devi:devi-line-list-create")
-        payload = {
-            "devis": self.devi.id,
-            "article": self.article.id,
-            "prix_achat": 200,
-            "prix_vente": 250,
-            "quantity": 3,
-            "pourcentage_remise": 10,
-        }
-        # send JSON so DRF parses relation fields correctly
-        response = self.client_api.post(url, payload, format="json")
-        assert response.status_code == status.HTTP_201_CREATED
-        # confirm object created and linked to the correct devi
-        assert DeviLine.objects.filter(
-            prix_achat=200, devis=self.devi, article=self.article
-        ).exists()
-        # if serializer returns the created object, basic checks:
-        if isinstance(response.data, dict):
-            assert response.data.get("article") == self.article.id
 
     def test_filter_devi_by_statut(self):
         # DeviListCreateView requires client_id parameter
@@ -201,10 +243,3 @@ class TestDeviAPI:
         assert response.status_code == status.HTTP_200_OK
         self.devi.refresh_from_db()
         assert self.devi.statut == "Accepté"
-
-    def test_filter_deviline_by_devis_id(self):
-        url = reverse("devi:devi-line-list-create") + f"?devis_id={self.devi.id}"
-        response = self.client_api.get(url)
-        assert response.status_code == status.HTTP_200_OK
-        # response doesn't include 'devis' key; assert returned lines contain the expected article id
-        assert any(line.get("article") == self.article.id for line in response.data)

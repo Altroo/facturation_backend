@@ -125,19 +125,6 @@ class ArticleDetailEditDeleteView(APIView):
         article.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    def patch(self, request, pk, *args, **kwargs):
-        article = self.get_object(pk)
-        if not self._has_membership(request.user, article.company_id):
-            raise PermissionDenied(
-                _("Vous n'êtes pas autorisé à modifier cet article.")
-            )
-        serializer = ArticleDetailSerializer(
-            article, data=request.data, partial=True, context={"request": request}
-        )
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
 
 class GenerateArticleReferenceCodeView(APIView):
     """Return the next available ``code_article`` (e.g. ``ART0012``)."""
