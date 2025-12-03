@@ -30,8 +30,16 @@ class DeviAdmin(admin.ModelAdmin):
     )
     inlines = [DeviLineInline]
     readonly_fields = ("date_created", "date_updated")
+    # remove from admin form
+    exclude = ("created_by_user",)
     list_select_related = ("client", "created_by_user")
-    autocomplete_fields = ("client", "created_by_user", "mode_paiement")
+    autocomplete_fields = ("client", "mode_paiement")
+
+    def save_model(self, request, obj, form, change):
+        # when creating, set the creator automatically
+        if not change or not getattr(obj, "created_by_user", None):
+            obj.created_by_user = request.user
+        super().save_model(request, obj, form, change)
 
 
 class DeviLineAdmin(admin.ModelAdmin):
