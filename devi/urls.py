@@ -22,7 +22,7 @@ urlpatterns = [
     ),
     # PATCH : switch status of devi
     path(
-        "<int:pk>/switch_status/",
+        "switch_status/<int:pk>/",
         DeviStatusUpdateView.as_view(),
         name="devi-status-update",
     ),
