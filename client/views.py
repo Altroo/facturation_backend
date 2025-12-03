@@ -113,6 +113,15 @@ class ClientDetailEditDeleteView(APIView):
         client.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+    def patch(self, request, pk, *args, **kwargs):
+        client = self.get_object(pk)
+        if not self._has_membership(request.user, client.company_id):
+            raise PermissionDenied(_("Vous n'êtes pas autorisé à modifier ce client."))
+        serializer = ClientDetailSerializer(client, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 class GenerateClientCodeView(APIView):
     """Return the next available ``code_client`` (e.g. ``CLT0018``)."""
