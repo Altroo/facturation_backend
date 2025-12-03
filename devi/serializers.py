@@ -84,9 +84,10 @@ class DeviSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def validate_numero_devis(value):
+        # e.g. 0001/25
         if not match(r"^\d{4}/\d{2}$", value):
             raise serializers.ValidationError(
-                "Invalid numero_devis format. Expected '0001/25'."
+                "Invalid numero_devis format. Expected `0001/25`."
             )
         return value
 

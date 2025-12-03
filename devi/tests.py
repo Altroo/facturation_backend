@@ -1,4 +1,5 @@
 from re import match
+from urllib.parse import quote
 
 import pytest
 from django.urls import reverse
@@ -57,7 +58,7 @@ class TestDeviAPI:
 
         # Devi: provide unique numero_devis
         self.devi = Devi.objects.create(
-            numero_devis="DEV-0001",
+            numero_devis="0002/25",
             client=self.client_obj,
             date_devis="2024-06-01",
             numero_demande_prix_client="REQ-001",
@@ -94,7 +95,7 @@ class TestDeviAPI:
     def test_create_devi(self):
         url = reverse("devi:devi-list-create")
         payload = {
-            "numero_devis": "DEV-0002",
+            "numero_devis": "0003/25",
             "client": self.client_obj.id,
             "date_devis": "2024-06-02",
             "numero_demande_prix_client": "REQ-002",
@@ -103,7 +104,7 @@ class TestDeviAPI:
         }
         response = self.client_api.post(url, payload, format="json")
         assert response.status_code == status.HTTP_201_CREATED
-        devi = Devi.objects.get(numero_devis="DEV-0002")
+        devi = Devi.objects.get(numero_devis=payload["numero_devis"])
         assert devi is not None
         assert devi.created_by_user == self.user
 
@@ -176,13 +177,15 @@ class TestDeviAPI:
         assert all(devi.get("statut") == "Brouillon" for devi in response.data)
 
     def test_search_devi_by_numero(self):
+        # use existing object from setup
+        numero = self.devi.numero_devis
         url = (
             reverse("devi:devi-list-create")
-            + f"?client_id={self.client_obj.id}&search=DEV-0001"
+            + f"?client_id={self.client_obj.id}&search={quote(numero, safe='')}"
         )
         response = self.client_api.get(url)
         assert response.status_code == status.HTTP_200_OK
-        assert any("DEV-0001" in devi.get("numero_devis", "") for devi in response.data)
+        assert any(numero in devi.get("numero_devis", "") for devi in response.data)
 
     def test_generate_numero_devis(self):
         url = reverse("devi:generate-numero-devis")
