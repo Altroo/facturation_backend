@@ -30,6 +30,8 @@ urlpatterns = [
     path("api/client/", include("client.urls")),
     # Article
     path("api/article/", include("article.urls")),
+    # Devi
+    path("api/devi/", include("devi.urls")),
     # Parameter
     path("api/parameter/", include("parameter.urls")),
     # Admin panel

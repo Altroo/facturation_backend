@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     "company.apps.CompanyConfig",
     "client.apps.ClientConfig",
     "article.apps.ArticleConfig",
+    "devi.apps.DeviConfig",
 ]
 
 MIDDLEWARE = [

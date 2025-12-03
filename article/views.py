@@ -1,6 +1,5 @@
 from re import search
 
-from django.db.models import Max
 from django.http import Http404
 from django.utils.translation import gettext_lazy as _
 from rest_framework import permissions, status
@@ -147,11 +146,28 @@ class GenerateArticleReferenceCodeView(APIView):
 
     @staticmethod
     def get(request, *args, **kwargs):
-        # Get the highest existing reference value.
-        max_ref = Article.objects.aggregate(max_ref=Max("reference"))["max_ref"]
-        # Extract the numeric part; assume format like "ART0012".
-        match = search(r"ART(\d+)", max_ref or "")
-        next_number = int(match.group(1)) + 1 if match else 1
+        max_num = 0
+        for ref in Article.objects.filter(reference__isnull=False).values_list(
+            "reference", flat=True
+        ):
+            if not ref:
+                continue
+            m = search(r"ART(\d+)", ref)
+            if m:
+                num_str = m.group(1)
+            else:
+                m_last = search(r"(\d+)(?!.*\d)", ref)
+                num_str = m_last.group(1) if m_last else None
+            if not num_str:
+                continue
+            try:
+                value = int(num_str)
+            except ValueError:
+                continue
+            if value > max_num:
+                max_num = value
+
+        next_number = max_num + 1
         new_ref = f"ART{next_number:04d}"
         return Response({"reference": new_ref}, status=status.HTTP_200_OK)
 

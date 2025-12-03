@@ -116,4 +116,10 @@ class Client(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.code_client} - {self.get_client_type_display()}"
+        if self.client_type == self.PERSONNE_MORALE and self.raison_sociale:
+            name = self.raison_sociale
+        elif self.client_type == self.PERSONNE_PHYSIQUE:
+            name = f"{self.nom or ''} {self.prenom or ''}".strip()
+        else:
+            name = self.code_client
+        return f"{self.code_client} - {self.get_client_type_display()} - {name}"

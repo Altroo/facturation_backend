@@ -12,17 +12,17 @@ class Ville(models.Model):
         return self.nom
 
 
-# class ModePaiement(models.Model):
-#     nom = models.CharField(
-#         max_length=255, unique=True, verbose_name="Nom du mode de paiement"
-#     )
-#
-#     class Meta:
-#         verbose_name = "Mode de paiement"
-#         verbose_name_plural = "Modes de paiement"
-#
-#     def __str__(self):
-#         return self.nom
+class ModePaiement(models.Model):
+    nom = models.CharField(
+        max_length=255, unique=True, verbose_name="Nom du mode de paiement"
+    )
+
+    class Meta:
+        verbose_name = "Mode de paiement"
+        verbose_name_plural = "Modes de paiement"
+
+    def __str__(self):
+        return self.nom
 
 
 class Marque(models.Model):
@@ -60,17 +60,17 @@ class Unite(models.Model):
         return self.nom
 
 
-# class ModeReglement(models.Model):
-#     nom = models.CharField(
-#         max_length=255, unique=True, verbose_name="Nom du mode de règlement"
-#     )
-#
-#     class Meta:
-#         verbose_name = "Mode de règlement"
-#         verbose_name_plural = "Modes de règlement"
-#
-#     def __str__(self):
-#         return self.nom
+class ModeReglement(models.Model):
+    nom = models.CharField(
+        max_length=255, unique=True, verbose_name="Nom du mode de règlement"
+    )
+
+    class Meta:
+        verbose_name = "Mode de règlement"
+        verbose_name_plural = "Modes de règlement"
+
+    def __str__(self):
+        return self.nom
 
 
 class Emplacement(models.Model):

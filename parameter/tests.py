@@ -4,7 +4,15 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from parameter.models import Ville, Marque, Categorie, Unite, Emplacement
+from parameter.models import (
+    Ville,
+    Marque,
+    Categorie,
+    Unite,
+    Emplacement,
+    ModePaiement,
+    ModeReglement,
+)
 
 
 @pytest.mark.django_db
@@ -135,3 +143,13 @@ class TestUniteAPI(BaseAPITest):
 class TestEmplacementAPI(BaseAPITest):
     model = Emplacement
     basename = "emplacement"
+
+
+class TestModePaiementAPI(BaseAPITest):
+    model = ModePaiement
+    basename = "mode_paiement"
+
+
+class TestModeRegelementAPI(BaseAPITest):
+    model = ModeReglement
+    basename = "mode_regelement"

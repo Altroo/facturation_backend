@@ -1,6 +1,14 @@
 from rest_framework import serializers
 
-from .models import Ville, Marque, Categorie, Unite, Emplacement
+from .models import (
+    Ville,
+    Marque,
+    Categorie,
+    Unite,
+    Emplacement,
+    ModePaiement,
+    ModeReglement,
+)
 
 
 class VilleSerializer(serializers.ModelSerializer):
@@ -40,4 +48,20 @@ class EmplacementSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Emplacement
+        fields = ("id", "nom")
+
+
+class ModePaiementSerializer(serializers.ModelSerializer):
+    """Serializer for the flat list view (id and name only)."""
+
+    class Meta:
+        model = ModePaiement
+        fields = ("id", "nom")
+
+
+class ModeRegelementSerializer(serializers.ModelSerializer):
+    """Serializer for the flat list view (id and name only)."""
+
+    class Meta:
+        model = ModeReglement
         fields = ("id", "nom")

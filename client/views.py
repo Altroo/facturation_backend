@@ -1,6 +1,5 @@
 from re import search
 
-from django.db.models import Max
 from django.http import Http404
 from django.utils.translation import gettext_lazy as _
 from rest_framework import permissions, status
@@ -131,12 +130,22 @@ class GenerateClientCodeView(APIView):
 
     @staticmethod
     def get(request, *args, **kwargs):
-        # Get the highest existing reference value.
-        max_code = Client.objects.aggregate(max_code=Max("code_client"))["max_code"]
-        # Extract the numeric part; assume format like "CLT0012".
-        match = search(r"CLT(\d+)", max_code or "")
-        next_number = int(match.group(1)) + 1 if match else 1
-        # Build the new code with leading zeros (4 digits)
+        # Robustly scan all existing codes and extract numeric parts.
+        max_num = 0
+        for code in Client.objects.filter(code_client__isnull=False).values_list(
+            "code_client", flat=True
+        ):
+            match = search(r"CLT(\d+)", code)
+            if not match:
+                continue
+            try:
+                value = int(match.group(1))
+            except ValueError:
+                continue
+            if value > max_num:
+                max_num = value
+
+        next_number = max_num + 1
         new_code = f"CLT{next_number:04d}"
         return Response({"code_client": new_code}, status=status.HTTP_200_OK)
 

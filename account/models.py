@@ -86,7 +86,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     objects = CustomUserManager()
 
     def __str__(self):
-        return "{}".format(self.email)
+        return "{} {}".format(self.first_name, self.last_name)
 
     @property
     def get_absolute_avatar_img(self):

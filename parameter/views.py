@@ -1,12 +1,22 @@
 from rest_framework import viewsets, permissions
 
-from .models import Ville, Marque, Categorie, Unite, Emplacement
+from .models import (
+    Ville,
+    Marque,
+    Categorie,
+    Unite,
+    Emplacement,
+    ModePaiement,
+    ModeReglement,
+)
 from .serializers import (
     VilleSerializer,
     MarqueSerializer,
     CategorieSerializer,
     UniteSerializer,
     EmplacementSerializer,
+    ModePaiementSerializer,
+    ModeRegelementSerializer,
 )
 
 
@@ -47,3 +57,13 @@ class UniteViewSet(BaseModelViewSet):
 class EmplacementViewSet(BaseModelViewSet):
     queryset = Emplacement.objects.all()
     serializer_class = EmplacementSerializer
+
+
+class ModePaiementViewSet(BaseModelViewSet):
+    queryset = ModePaiement.objects.all()
+    serializer_class = ModePaiementSerializer
+
+
+class ModeRegelementViewSet(BaseModelViewSet):
+    queryset = ModeReglement.objects.all()
+    serializer_class = ModeRegelementSerializer
