@@ -11,12 +11,13 @@ from rest_framework.views import APIView
 from account.models import Membership
 from client.models import Client
 from facturation_backend.utils import CustomPagination
-from .filters import DeviFilter
-from .models import Devi
+from .filters import DeviFilter, DeviLineFilter
+from .models import Devi, DeviLine
 from .serializers import (
     DeviSerializer,
     DeviDetailSerializer,
     DeviListSerializer,
+    DeviLineSerializer,
 )
 
 
@@ -131,6 +132,122 @@ class DeviDetailEditDeleteView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+class DeviLineListCreateView(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    @staticmethod
+    def _get_bool_param(request, param: str, default: bool = False) -> bool:
+        val = request.query_params.get(param, str(default).lower())
+        return val.lower() == "true"
+
+    @staticmethod
+    def _check_membership(user, company_id: int) -> None:
+        if not Membership.objects.filter(user=user, company_id=company_id).exists():
+            raise PermissionDenied(
+                "Seuls les membres de cette société peuvent accéder à ces lignes."
+            )
+
+    def get(self, request, *args, **kwargs):
+        pagination = self._get_bool_param(request, "pagination")
+        devis_id = request.query_params.get("devis_id")
+        if not devis_id:
+            raise Http404("Aucun devis n'a été spécifié.")
+        try:
+            devis = Devi.objects.get(pk=int(devis_id))
+        except Devi.DoesNotExist:
+            raise Http404("Devis introuvable.")
+        self._check_membership(request.user, devis.client.company_id)
+        base_queryset = DeviLine.objects.filter(devis=devis)
+        filterset = DeviLineFilter(request.GET, queryset=base_queryset)
+        ordered_qs = filterset.qs.order_by("-id")
+        if pagination:
+            paginator = CustomPagination()
+            page = paginator.paginate_queryset(ordered_qs, request)
+            serializer = DeviLineSerializer(
+                page, many=True, context={"request": request}
+            )
+            return paginator.get_paginated_response(serializer.data)
+        serializer = DeviLineSerializer(
+            ordered_qs, many=True, context={"request": request}
+        )
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request, *args, **kwargs):
+        devis_id = request.data.get("devis")
+        if not devis_id:
+            raise ValidationError({"devis": "Un devis doit être spécifié."})
+        try:
+            devis = Devi.objects.get(pk=devis_id)
+        except Devi.DoesNotExist:
+            raise Http404("Devis introuvable.")
+        self._check_membership(request.user, devis.client.company_id)
+        serializer = DeviLineSerializer(data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class DeviLineDetailEditDeleteView(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    @staticmethod
+    def get_object(pk):
+        try:
+            return DeviLine.objects.get(pk=pk)
+        except DeviLine.DoesNotExist:
+            raise Http404("Ligne de devis introuvable.")
+
+    @staticmethod
+    def _has_membership(user, line):
+        return Membership.objects.filter(
+            user=user, company_id=line.devis.client.company_id
+        ).exists()
+
+    def get(self, request, pk, *args, **kwargs):
+        line = self.get_object(pk)
+        if not self._has_membership(request.user, line):
+            raise PermissionDenied(
+                "Vous n'êtes pas autorisé à consulter cette ligne de devis."
+            )
+        serializer = DeviLineSerializer(line, context={"request": request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def put(self, request, pk, *args, **kwargs):
+        line = self.get_object(pk)
+        if not self._has_membership(request.user, line):
+            raise PermissionDenied(
+                "Vous n'êtes pas autorisé à modifier cette ligne de devis."
+            )
+        serializer = DeviLineSerializer(
+            line, data=request.data, context={"request": request}
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def patch(self, request, pk, *args, **kwargs):
+        line = self.get_object(pk)
+        if not self._has_membership(request.user, line):
+            raise PermissionDenied(
+                "Vous n'êtes pas autorisé à modifier cette ligne de devis."
+            )
+        serializer = DeviLineSerializer(
+            line, data=request.data, partial=True, context={"request": request}
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def delete(self, request, pk, *args, **kwargs):
+        line = self.get_object(pk)
+        if not self._has_membership(request.user, line):
+            raise PermissionDenied(
+                "Vous n'êtes pas autorisé à supprimer ce ligne de devis."
+            )
+        line.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
 class GenerateNumeroDevisView(APIView):
     """Return the next available ``numero_devis`` (e.g. ``0001/25``)."""
 
@@ -138,30 +255,31 @@ class GenerateNumeroDevisView(APIView):
 
     @staticmethod
     def get(request, *args, **kwargs):
-        # use two-digit year suffix, zero-padded
         year_suffix = f"{datetime.now().year % 100:02d}"
 
-        # only scan entries for the current year to reset numbering each year
+        # Get all numbers for this year
         qs = Devi.objects.filter(
             numero_devis__isnull=False, numero_devis__endswith=f"/{year_suffix}"
-        )
+        ).values_list("numero_devis", flat=True)
 
-        max_num = 0
-        for raw in qs.values_list("numero_devis", flat=True):
-            if not raw:
-                continue
-            m = search(r"^(\d{4})/\d{2}$", raw)
-            if not m:
-                # skip malformed entries
-                continue
-            try:
-                value = int(m.group(1))
-            except ValueError:
-                continue
-            if value > max_num:
-                max_num = value
+        used_numbers = []
+        for raw in qs:
+            m = search(r"^(\d{4})/\d{2}$", raw or "")
+            if m:
+                try:
+                    used_numbers.append(int(m.group(1)))
+                except ValueError:
+                    continue
 
-        next_number = max_num + 1
+        used_numbers = sorted(set(used_numbers))
+
+        # Find first gap
+        next_number = None
+        for i in range(1, (max(used_numbers) if used_numbers else 0) + 2):
+            if i not in used_numbers:
+                next_number = i
+                break
+
         new_num = f"{next_number:04d}/{year_suffix}"
         return Response({"numero_devis": new_num}, status=status.HTTP_200_OK)
 

@@ -7,11 +7,13 @@ from .models import Devi, DeviLine
 
 
 class DeviListSerializer(serializers.ModelSerializer):
-    client_name = serializers.StringRelatedField(read_only=True)
-    mode_paiement_name = serializers.ReadOnlyField(source="mode_paiement.nom")
-    created_by_user_name = serializers.StringRelatedField(
-        source="created_by_user", read_only=True
+    """Lightweight serializer for list views."""
+
+    client_name = serializers.CharField(source="client.nom", read_only=True)
+    mode_paiement_name = serializers.CharField(
+        source="mode_paiement.nom", read_only=True
     )
+    created_by_user_name = serializers.SerializerMethodField()
     lignes_count = serializers.SerializerMethodField()
 
     class Meta:
@@ -33,14 +35,23 @@ class DeviListSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
     @staticmethod
+    def get_created_by_user_name(obj):
+        if obj.created_by_user:
+            return (
+                f"{obj.created_by_user.first_name} {obj.created_by_user.last_name}".strip()
+                or obj.created_by_user.username
+            )
+        return None
+
+    @staticmethod
     def get_lignes_count(obj):
         return obj.lignes.count()
 
 
 class DeviLineWriteSerializer(serializers.ModelSerializer):
     """
-    Write serializer used when creating/updating Devi with nested lines.
-    Accepts optional `id` for upsert on update; does NOT accept `devis` FK.
+    Write serializer for nested lines in Devi create/update.
+    Accepts optional `id` for upsert; does NOT accept `devis` FK.
     """
 
     id = serializers.IntegerField(required=False)
@@ -59,13 +70,13 @@ class DeviLineWriteSerializer(serializers.ModelSerializer):
 
 class DeviLineSerializer(serializers.ModelSerializer):
     """
-    Read / standalone serializer for DeviLine endpoints.
-    Keeps `devis` as a PK field for the lines API.
+    Standalone serializer for DeviLine CRUD endpoints.
+    Includes `devis` as PK field for independent line operations.
     """
 
     devis = serializers.PrimaryKeyRelatedField(queryset=Devi.objects.all())
-    designation = serializers.ReadOnlyField(source="article.designation")
-    reference = serializers.ReadOnlyField(source="article.reference")
+    designation = serializers.CharField(source="article.designation", read_only=True)
+    reference = serializers.CharField(source="article.reference", read_only=True)
 
     class Meta:
         model = DeviLine
@@ -81,35 +92,24 @@ class DeviLineSerializer(serializers.ModelSerializer):
             "pourcentage_remise",
         ]
 
-    def create(self, validated_data):
-        devis = validated_data.pop("devis")
-        return DeviLine.objects.create(devis=devis, **validated_data)
-
 
 class DeviSerializer(serializers.ModelSerializer):
     """
-    Serializer used for create (and lightweight responses).
-    Accepts a write-only `lignes` array to create associated DeviLine rows.
-    Returns `lignes` in representation (detailed) so POST responses include lines.
+    Base serializer for Devi create operations.
+    Accepts write-only `lignes` array for creating associated lines.
     """
 
-    client_name = serializers.StringRelatedField(read_only=True)
-    created_by_user_name = serializers.StringRelatedField(read_only=True)
-    created_by_user = serializers.HiddenField(default=serializers.CurrentUserDefault())
-    created_by_user_id = serializers.ReadOnlyField(source="created_by_user.id")
-    mode_paiement_name = serializers.ReadOnlyField(source="mode_paiement.nom")
+    client_name = serializers.CharField(source="client.nom", read_only=True)
+    created_by_user_name = serializers.SerializerMethodField()
+    created_by_user_id = serializers.IntegerField(
+        source="created_by_user.id", read_only=True
+    )
+    mode_paiement_name = serializers.CharField(
+        source="mode_paiement.nom", read_only=True
+    )
 
-    # nested write-only input (uses write serializer which now accepts optional id)
+    # Nested write-only input for creating lines
     lignes = DeviLineWriteSerializer(many=True, write_only=True, required=False)
-
-    @staticmethod
-    def validate_numero_devis(value):
-        # e.g. 0001/25
-        if not match(r"^\d{4}/\d{2}$", value):
-            raise serializers.ValidationError(
-                "Invalid numero_devis format. Expected `0001/25`."
-            )
-        return value
 
     class Meta:
         model = Devi
@@ -122,26 +122,47 @@ class DeviSerializer(serializers.ModelSerializer):
             "numero_demande_prix_client",
             "mode_paiement",
             "mode_paiement_name",
+            "statut",
             "remarque",
             "created_by_user",
             "created_by_user_id",
             "created_by_user_name",
             "lignes",
         ]
+        read_only_fields = ["id", "created_by_user", "statut"]
+
+    @staticmethod
+    def get_created_by_user_name(obj):
+        if obj.created_by_user:
+            return (
+                f"{obj.created_by_user.first_name} {obj.created_by_user.last_name}".strip()
+                or obj.created_by_user.username
+            )
+        return None
+
+    @staticmethod
+    def validate_numero_devis(value):
+        """Validate format: 0001/25"""
+        if not match(r"^\d{4}/\d{2}$", value):
+            raise serializers.ValidationError(
+                "Format de numéro de devis invalide. Format attendu: 0001/25"
+            )
+        return value
 
     def create(self, validated_data):
-        lines_data = validated_data.pop("lignes", None)
+        lines_data = validated_data.pop("lignes", [])
         instance = super().create(validated_data)
-        if lines_data:
-            for line in lines_data:
-                # ignore provided id on create
-                line.pop("id", None)
-                DeviLine.objects.create(devis=instance, **line)
+
+        # Create associated lines
+        for line_data in lines_data:
+            line_data.pop("id", None)  # Ignore any id on create
+            DeviLine.objects.create(devis=instance, **line_data)
+
         return instance
 
     def to_representation(self, instance):
+        """Include detailed lignes in response."""
         representation = super().to_representation(instance)
-        # attach detailed lignes for read responses
         representation["lignes"] = DeviLineSerializer(
             instance.lignes.all(), many=True, context=self.context
         ).data
@@ -150,57 +171,51 @@ class DeviSerializer(serializers.ModelSerializer):
 
 class DeviDetailSerializer(DeviSerializer):
     """
-    Detailed serializer used for retrieve/update/delete.
-    On update: performs upsert semantics for `lignes`:
-      - If an incoming line has `id` matching an existing line -> update that line.
-      - If an incoming line has no `id` -> create a new line.
-      - Any existing DB lines not present in incoming payload are deleted.
+    Detailed serializer for retrieve/update operations.
+
+    Update performs upsert semantics:
+    - Lines with matching `id` are updated
+    - Lines without `id` are created
+    - Existing lines not in payload are deleted
     """
 
     lignes = DeviLineWriteSerializer(many=True, write_only=True, required=False)
 
     class Meta(DeviSerializer.Meta):
-        pass
+        read_only_fields = ["id", "created_by_user"]
 
     def update(self, instance, validated_data):
         lines_data = validated_data.pop("lignes", None)
-        instance = super().update(instance, validated_data)
 
+        # Update Devi fields
+        instance = super(DeviSerializer, self).update(instance, validated_data)
+
+        # Handle nested lines update
         if lines_data is not None:
             # atomic to avoid partial modifications
             with transaction.atomic():
-                existing = {ligne.id: ligne for ligne in instance.lignes.all()}
+                existing_lines = {line.id: line for line in instance.lignes.all()}
                 incoming_ids = set()
 
-                for line in lines_data:
-                    line_id = line.get("id")
-                    # update existing
-                    if line_id and line_id in existing:
-                        obj = existing[line_id]
-                        # update allowed fields
-                        for attr, val in line.items():
-                            if attr == "id":
-                                continue
-                            setattr(obj, attr, val)
-                        obj.save()
+                for line_data in lines_data:
+                    line_id = line_data.get("id")
+
+                    if line_id and line_id in existing_lines:
+                        # Update existing line
+                        line_obj = existing_lines[line_id]
+                        for field, value in line_data.items():
+                            if field != "id":
+                                setattr(line_obj, field, value)
+                        line_obj.save()
                         incoming_ids.add(line_id)
                     else:
-                        # create new line (ignore any id passed)
-                        data_for_create = {k: v for k, v in line.items() if k != "id"}
-                        DeviLine.objects.create(devis=instance, **data_for_create)
+                        # Create new line (ignore any provided id)
+                        create_data = {k: v for k, v in line_data.items() if k != "id"}
+                        DeviLine.objects.create(devis=instance, **create_data)
 
-                # delete lines that exist in DB but were not included in incoming payload
-                ids_to_keep = incoming_ids
-                ids_existing = set(existing.keys())
-                ids_to_delete = list(ids_existing - ids_to_keep)
+                # Delete lines not included in payload
+                ids_to_delete = set(existing_lines.keys()) - incoming_ids
                 if ids_to_delete:
                     DeviLine.objects.filter(id__in=ids_to_delete).delete()
 
         return instance
-
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        representation["lignes"] = DeviLineSerializer(
-            instance.lignes.all(), many=True, context=self.context
-        ).data
-        return representation

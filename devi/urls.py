@@ -5,6 +5,8 @@ from .views import (
     DeviDetailEditDeleteView,
     GenerateNumeroDevisView,
     DeviStatusUpdateView,
+    DeviLineDetailEditDeleteView,
+    DeviLineListCreateView,
 )
 
 app_name = "devi"
@@ -25,5 +27,13 @@ urlpatterns = [
         "switch_status/<int:pk>/",
         DeviStatusUpdateView.as_view(),
         name="devi-status-update",
+    ),
+    # GET Devi line list (paginated) & POST create
+    path("lines/", DeviLineListCreateView.as_view(), name="devi-line-list-create"),
+    # GET Devi line detail, PUT update, DELETE
+    path(
+        "lines/<int:pk>/",
+        DeviLineDetailEditDeleteView.as_view(),
+        name="devi-line-detail-edit-delete",
     ),
 ]
