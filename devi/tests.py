@@ -56,7 +56,7 @@ class TestDeviAPI:
             type_article="Produit",
         )
 
-        # Devi with unique numero_devis
+        # Devi with unique numero_devis, include devi-level remise fields
         self.devi = Devi.objects.create(
             numero_devis="0002/25",
             client=self.client_obj,
@@ -64,17 +64,20 @@ class TestDeviAPI:
             numero_demande_prix_client="REQ-001",
             mode_paiement=self.mode_paiement,
             remarque="Test remark",
+            remise=0,
+            remise_type="pourcentage",
             created_by_user=self.user,
         )
 
-        # Create a DeviLine
+        # Create a DeviLine (updated fields: remise + remise_type)
         self.devi_line = DeviLine.objects.create(
             devis=self.devi,
             article=self.article,
             prix_achat=100,
             prix_vente=120,
             quantity=2,
-            pourcentage_remise=5,
+            remise=5,
+            remise_type="pourcentage",
         )
 
     def test_list_devis_requires_client_id(self):
@@ -97,6 +100,9 @@ class TestDeviAPI:
         assert "created_by_user_name" in devi_data
         assert "lignes_count" in devi_data
         assert devi_data["lignes_count"] == 1
+        # Ensure devi-level remise fields are present
+        assert "remise" in devi_data
+        assert "remise_type" in devi_data
 
     def test_list_devis_with_pagination(self):
         """List devis with pagination enabled."""
@@ -120,6 +126,8 @@ class TestDeviAPI:
             "numero_demande_prix_client": "REQ-002",
             "mode_paiement": self.mode_paiement.id,
             "remarque": "New remark",
+            "remise": 0,
+            "remise_type": "pourcentage",
         }
         response = self.client_api.post(url, payload, format="json")
         assert response.status_code == status.HTTP_201_CREATED
@@ -128,6 +136,9 @@ class TestDeviAPI:
         assert "lignes" in response.data
         assert response.data["numero_devis"] == "0003/25"
         assert response.data["created_by_user"] == self.user.id
+        # Newly created devi includes remise fields
+        assert response.data.get("remise") == 0
+        assert response.data.get("remise_type") == "pourcentage"
 
         # Verify DB
         devi = Devi.objects.get(numero_devis=payload["numero_devis"])
@@ -140,6 +151,8 @@ class TestDeviAPI:
         payload = {
             "numero_devis": "0010/25",
             "date_devis": "2024-06-02",
+            "remise": 0,
+            "remise_type": "pourcentage",
         }
         response = self.client_api.post(url, payload, format="json")
         assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -154,13 +167,16 @@ class TestDeviAPI:
             "numero_demande_prix_client": "REQ-010",
             "mode_paiement": self.mode_paiement.id,
             "remarque": "With lines",
+            "remise": 0,
+            "remise_type": "pourcentage",
             "lignes": [
                 {
                     "article": self.article.id,
                     "prix_achat": 150,
                     "prix_vente": 180,
                     "quantity": 1,
-                    "pourcentage_remise": 0,
+                    "remise": 0,
+                    "remise_type": "pourcentage",
                 }
             ],
         }
@@ -189,6 +205,8 @@ class TestDeviAPI:
             "client": self.client_obj.id,
             "date_devis": "2024-06-02",
             "numero_demande_prix_client": "REQ-002",
+            "remise": 0,
+            "remise_type": "pourcentage",
         }
         response = self.client_api.post(url, payload, format="json")
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -212,6 +230,9 @@ class TestDeviAPI:
         assert ligne.get("article") == self.article.id
         assert ligne.get("designation") == self.article.designation
         assert ligne.get("reference") == self.article.reference
+        # Ensure devi-level remise fields are present
+        assert response.data.get("remise") == 0
+        assert response.data.get("remise_type") == "pourcentage"
 
     def test_get_devi_detail_unauthorized(self):
         """User without membership cannot access devi."""
@@ -235,6 +256,8 @@ class TestDeviAPI:
             "numero_demande_prix_client": "REQ-003",
             "mode_paiement": self.mode_paiement.id,
             "remarque": "Updated remark",
+            "remise": 0,
+            "remise_type": "pourcentage",
         }
         response = self.client_api.put(url, payload, format="json")
         assert response.status_code == status.HTTP_200_OK
@@ -255,6 +278,8 @@ class TestDeviAPI:
             "numero_demande_prix_client": "REQ-004",
             "mode_paiement": self.mode_paiement.id,
             "remarque": "Upsert lines",
+            "remise": 0,
+            "remise_type": "pourcentage",
             "lignes": [
                 {
                     # Update existing line
@@ -263,7 +288,8 @@ class TestDeviAPI:
                     "prix_achat": 110,
                     "prix_vente": 130,
                     "quantity": 5,
-                    "pourcentage_remise": 2,
+                    "remise": 2,
+                    "remise_type": "pourcentage",
                 },
                 {
                     # Add new line (no id)
@@ -271,7 +297,8 @@ class TestDeviAPI:
                     "prix_achat": 200,
                     "prix_vente": 250,
                     "quantity": 3,
-                    "pourcentage_remise": 10,
+                    "remise": 10,
+                    "remise_type": "pourcentage",
                 },
             ],
         }
@@ -299,7 +326,8 @@ class TestDeviAPI:
             prix_achat=50,
             prix_vente=60,
             quantity=1,
-            pourcentage_remise=0,
+            remise=0,
+            remise_type="pourcentage",
         )
 
         url = reverse("devi:devi-detail", args=[self.devi.id])
@@ -310,6 +338,8 @@ class TestDeviAPI:
             "numero_demande_prix_client": "REQ-005",
             "mode_paiement": self.mode_paiement.id,
             "remarque": "Delete line2",
+            "remise": 0,
+            "remise_type": "pourcentage",
             "lignes": [
                 {
                     # Only include line1
@@ -318,7 +348,8 @@ class TestDeviAPI:
                     "prix_achat": 100,
                     "prix_vente": 120,
                     "quantity": 2,
-                    "pourcentage_remise": 5,
+                    "remise": 5,
+                    "remise_type": "pourcentage",
                 }
             ],
         }
@@ -348,6 +379,8 @@ class TestDeviAPI:
             numero_demande_prix_client="REQ-006",
             mode_paiement=self.mode_paiement,
             statut="Accepté",
+            remise=0,
+            remise_type="pourcentage",
             created_by_user=self.user,
         )
 
@@ -383,6 +416,8 @@ class TestDeviAPI:
             client=self.client_obj,
             date_devis="2024-06-01",
             mode_paiement=self.mode_paiement,
+            remise=0,
+            remise_type="pourcentage",
             created_by_user=self.user,
         )
         Devi.objects.create(
@@ -390,6 +425,8 @@ class TestDeviAPI:
             client=self.client_obj,
             date_devis="2024-06-02",
             mode_paiement=self.mode_paiement,
+            remise=0,
+            remise_type="pourcentage",
             created_by_user=self.user,
         )
         Devi.objects.create(
@@ -397,6 +434,8 @@ class TestDeviAPI:
             client=self.client_obj,
             date_devis="2024-06-03",
             mode_paiement=self.mode_paiement,
+            remise=0,
+            remise_type="pourcentage",
             created_by_user=self.user,
         )
 
@@ -452,7 +491,8 @@ class TestDeviAPI:
             "prix_achat": 150,
             "prix_vente": 180,
             "quantity": 3,
-            "pourcentage_remise": 5,
+            "remise": 5,
+            "remise_type": "pourcentage",
         }
         response = self.client_api.post(url, payload, format="json")
         assert response.status_code == status.HTTP_201_CREATED
@@ -478,7 +518,8 @@ class TestDeviAPI:
             "prix_achat": 200,
             "prix_vente": 250,
             "quantity": 10,
-            "pourcentage_remise": 15,
+            "remise": 15,
+            "remise_type": "pourcentage",
         }
         response = self.client_api.put(url, payload, format="json")
         assert response.status_code == status.HTTP_200_OK

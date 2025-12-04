@@ -24,7 +24,10 @@ class Devi(models.Model):
     client = models.ForeignKey(Client, on_delete=models.CASCADE, verbose_name="Client")
     date_devis = models.DateField(verbose_name="Date du devis", db_index=True)
     numero_demande_prix_client = models.CharField(
-        max_length=50, verbose_name="Numéro de la demande de prix du client"
+        max_length=50,
+        verbose_name="Numéro de la demande de prix du client",
+        blank=True,
+        null=True,
     )
     mode_paiement = models.ForeignKey(
         ModePaiement,
@@ -39,6 +42,54 @@ class Devi(models.Model):
         default="Brouillon",
         verbose_name="Statut",
     )
+
+    REMISE_TYPE_CHOICES = [
+        ("pourcentage", "Pourcentage"),
+        ("fixe", "Fixe"),
+    ]
+
+    total_ht = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Total HT",
+        help_text="Somme des totaux des lignes avant TVA",
+        editable=False,
+    )
+
+    total_tva = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Total TVA",
+        help_text="Montant total de la TVA",
+        editable=False,
+    )
+
+    total_ttc = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Total TTC",
+        help_text="Total toutes taxes comprises (TTC)",
+        editable=False,
+    )
+
+    remise_type = models.CharField(
+        max_length=12,
+        choices=REMISE_TYPE_CHOICES,
+        default="pourcentage",
+        verbose_name="Type de remise",
+        help_text="Type de remise appliquée : 'pourcentage' ou 'fixe'",
+    )
+
+    remise = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Valeur remise",
+        help_text="Valeur de la remise appliquée",
+    )
+
+    total_ttc_apres_remise = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Total TTC après remise",
+        help_text="Total TTC après application de la remise",
+        editable=False,
+    )
+
     date_created = models.DateTimeField(
         auto_now_add=True, verbose_name="Date de création"
     )
@@ -69,11 +120,35 @@ class DeviLine(models.Model):
     article = models.ForeignKey(
         Article, on_delete=models.CASCADE, verbose_name="Article"
     )
-    prix_achat = models.PositiveIntegerField(verbose_name="Prix d'achat")
-    prix_vente = models.PositiveIntegerField(verbose_name="Prix de vente")
-    quantity = models.PositiveIntegerField(default=1, verbose_name="Quantité")
-    pourcentage_remise = models.PositiveIntegerField(
-        default=0, verbose_name="Pourcentage de remise"
+    prix_achat = models.PositiveIntegerField(
+        verbose_name="Prix d'achat",
+        help_text="Prix d'achat unitaire (entier positif, ex: en MAD)",
+    )
+    prix_vente = models.PositiveIntegerField(
+        verbose_name="Prix de vente",
+        help_text="Prix de vente unitaire (entier positif, ex: en MAD)",
+    )
+    quantity = models.PositiveIntegerField(
+        default=1, verbose_name="Quantité", help_text="Quantité (entier positif)"
+    )
+
+    REMISE_TYPE_CHOICES = [
+        ("pourcentage", "Pourcentage"),
+        ("fixe", "Fixe"),
+    ]
+
+    remise_type = models.CharField(
+        max_length=12,
+        choices=REMISE_TYPE_CHOICES,
+        default="pourcentage",
+        verbose_name="Type de remise",
+        help_text="Type de remise appliquée : 'Pourcentage' ou 'Fixe'",
+    )
+
+    remise = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Valeur remise",
+        help_text="Valeur après application de la remise",
     )
 
     class Meta:

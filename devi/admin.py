@@ -15,7 +15,8 @@ class DeviLineInline(admin.TabularInline):
         "prix_achat",
         "prix_vente",
         "quantity",
-        "pourcentage_remise",
+        "remise_type",
+        "remise",
     )
 
     def get_readonly_fields(self, request, obj=None):
@@ -25,6 +26,7 @@ class DeviLineInline(admin.TabularInline):
         return ()
 
 
+# python
 class DeviAdmin(admin.ModelAdmin):
     """Admin configuration for the Devi model."""
 
@@ -34,7 +36,12 @@ class DeviAdmin(admin.ModelAdmin):
         "date_devis",
         "statut_badge",
         "mode_paiement",
+        "display_remise",
         "display_lignes_count",
+        "display_total_ht",
+        "display_total_tva",
+        "display_total_ttc",
+        "display_total_ttc_apres_remise",
         "date_created",
         "created_by_user",
     )
@@ -71,13 +78,26 @@ class DeviAdmin(admin.ModelAdmin):
                     "numero_demande_prix_client",
                     "mode_paiement",
                     "remarque",
+                    "remise_type",
+                    "remise",
                 )
+            },
+        ),
+        (
+            "Totaux (calculés)",
+            {
+                "fields": (
+                    "total_ht",
+                    "total_tva",
+                    "total_ttc",
+                    "total_ttc_apres_remise",
+                ),
+                "classes": ("collapse",),
             },
         ),
         (
             "Métadonnées",
             {
-                # include computed field in fieldsets only if it's readonly
                 "fields": (
                     "created_by_user",
                     "date_created",
@@ -97,6 +117,10 @@ class DeviAdmin(admin.ModelAdmin):
         "date_updated",
         "created_by_user",
         "display_lignes_count",
+        "total_ht",
+        "total_tva",
+        "total_ttc",
+        "total_ttc_apres_remise",
     )
 
     def get_readonly_fields(self, request, obj=None):
@@ -134,6 +158,18 @@ class DeviAdmin(admin.ModelAdmin):
             status=obj.statut,
         )
 
+    @admin.display(description="Remise", ordering="remise")
+    def display_remise(self, obj):
+        """Show remise as percent or formatted amount depending on remise_type."""
+        if not obj:
+            return "-"
+        if getattr(obj, "remise_type", None) == "pourcentage":
+            try:
+                return f"{int(obj.remise)} %"
+            except (TypeError, ValueError):
+                return "-"
+        return self._fmt_cents(obj.remise)
+
     @admin.display(description="Nombre de lignes")
     def display_lignes_count(self, obj):
         """Display the number of lines."""
@@ -141,7 +177,42 @@ class DeviAdmin(admin.ModelAdmin):
             return obj.lignes.count()
         return 0
 
+    @staticmethod
+    def _fmt_cents(value):
+        try:
+            value = int(value or 0)
+        except (TypeError, ValueError):
+            value = 0
+        return f"{value/100:.2f}"
 
+    @admin.display(description="Total HT", ordering="total_ht")
+    def display_total_ht(self, obj):
+        if not obj:
+            return "-"
+        return self._fmt_cents(obj.total_ht)
+
+    @admin.display(description="Total TVA", ordering="total_tva")
+    def display_total_tva(self, obj):
+        if not obj:
+            return "-"
+        return self._fmt_cents(obj.total_tva)
+
+    @admin.display(description="Total TTC", ordering="total_ttc")
+    def display_total_ttc(self, obj):
+        if not obj:
+            return "-"
+        return self._fmt_cents(obj.total_ttc)
+
+    @admin.display(
+        description="Total TTC après remise", ordering="total_ttc_apres_remise"
+    )
+    def display_total_ttc_apres_remise(self, obj):
+        if not obj:
+            return "-"
+        return self._fmt_cents(obj.total_ttc_apres_remise)
+
+
+# python
 class DeviLineAdmin(admin.ModelAdmin):
     """Admin configuration for the DeviLine model."""
 
@@ -152,7 +223,8 @@ class DeviLineAdmin(admin.ModelAdmin):
         "prix_achat",
         "prix_vente",
         "quantity",
-        "pourcentage_remise",
+        "remise_type",
+        "remise",
     )
     list_filter = ("devis__statut", "article")
     search_fields = (
@@ -173,12 +245,13 @@ class DeviLineAdmin(admin.ModelAdmin):
             {"fields": ("article", "quantity")},
         ),
         (
-            "Prix",
+            "Prix & Remise",
             {
                 "fields": (
                     "prix_achat",
                     "prix_vente",
-                    "pourcentage_remise",
+                    "remise_type",
+                    "remise",
                 )
             },
         ),

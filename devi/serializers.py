@@ -16,6 +16,19 @@ class DeviListSerializer(serializers.ModelSerializer):
     created_by_user_name = serializers.SerializerMethodField()
     lignes_count = serializers.SerializerMethodField()
 
+    @staticmethod
+    def get_created_by_user_name(obj):
+        if obj.created_by_user:
+            return (
+                f"{obj.created_by_user.first_name} {obj.created_by_user.last_name}".strip()
+                or obj.created_by_user.username
+            )
+        return None
+
+    @staticmethod
+    def get_lignes_count(obj):
+        return obj.lignes.count()
+
     class Meta:
         model = Devi
         fields = [
@@ -31,21 +44,10 @@ class DeviListSerializer(serializers.ModelSerializer):
             "created_by_user",
             "created_by_user_name",
             "lignes_count",
+            "remise_type",
+            "remise",
         ]
         read_only_fields = fields
-
-    @staticmethod
-    def get_created_by_user_name(obj):
-        if obj.created_by_user:
-            return (
-                f"{obj.created_by_user.first_name} {obj.created_by_user.last_name}".strip()
-                or obj.created_by_user.username
-            )
-        return None
-
-    @staticmethod
-    def get_lignes_count(obj):
-        return obj.lignes.count()
 
 
 class DeviLineWriteSerializer(serializers.ModelSerializer):
@@ -56,6 +58,36 @@ class DeviLineWriteSerializer(serializers.ModelSerializer):
 
     id = serializers.IntegerField(required=False)
 
+    def validate(self, data):
+        # prix_vente must be >= prix_achat
+        if data["prix_vente"] < data["prix_achat"]:
+            raise serializers.ValidationError(
+                "Le prix de vente doit être supérieur ou égal au prix d'achat."
+            )
+
+        remise = data.get("remise", 0)
+        remise_type = data.get("remise_type", "pourcentage")
+        quantity = data.get("quantity", 1)
+        line_total = data["prix_vente"] * quantity
+
+        if remise < 0:
+            raise serializers.ValidationError("La remise doit être positive ou nulle.")
+
+        if remise_type == "pourcentage":
+            if not 0 <= remise <= 100:
+                raise serializers.ValidationError(
+                    "La remise en pourcentage doit être entre 0 et 100."
+                )
+        elif remise_type == "fixe":
+            if remise > line_total:
+                raise serializers.ValidationError(
+                    "La remise fixe ne peut pas dépasser le total de la ligne."
+                )
+        else:
+            raise serializers.ValidationError("Type de remise invalide.")
+
+        return data
+
     class Meta:
         model = DeviLine
         fields = [
@@ -64,7 +96,8 @@ class DeviLineWriteSerializer(serializers.ModelSerializer):
             "prix_achat",
             "prix_vente",
             "quantity",
-            "pourcentage_remise",
+            "remise_type",
+            "remise",
         ]
 
 
@@ -89,7 +122,8 @@ class DeviLineSerializer(serializers.ModelSerializer):
             "prix_achat",
             "prix_vente",
             "quantity",
-            "pourcentage_remise",
+            "remise_type",
+            "remise",
         ]
 
 
@@ -108,7 +142,7 @@ class DeviSerializer(serializers.ModelSerializer):
         source="mode_paiement.nom", read_only=True
     )
 
-    # Nested write-only input for creating lines
+    # Nested write-only input for creating lines (updated serializer)
     lignes = DeviLineWriteSerializer(many=True, write_only=True, required=False)
 
     class Meta:
@@ -128,6 +162,8 @@ class DeviSerializer(serializers.ModelSerializer):
             "created_by_user_id",
             "created_by_user_name",
             "lignes",
+            "remise_type",
+            "remise",
         ]
         read_only_fields = ["id", "created_by_user", "statut"]
 
@@ -148,6 +184,51 @@ class DeviSerializer(serializers.ModelSerializer):
                 "Format de numéro de devis invalide. Format attendu: 0001/25"
             )
         return value
+
+    def validate(self, data):
+        """
+        Validate Devi-level remise fields:
+        - remise must be >= 0
+        - if remise_type == 'pourcentage' then 0 <= remise <= 100
+        """
+        remise = data.get("remise")
+        remise_type = data.get(
+            "remise_type",
+            (
+                getattr(self.instance, "remise_type", "pourcentage")
+                if getattr(self, "instance", None)
+                else "pourcentage"
+            ),
+        )
+
+        if remise is None:
+            return data
+
+        try:
+            remise_val = int(remise)
+        except (TypeError, ValueError):
+            raise serializers.ValidationError({"remise": "Valeur de remise invalide."})
+
+        if remise_val < 0:
+            raise serializers.ValidationError(
+                {"remise": "La remise doit être positive ou nulle."}
+            )
+
+        if remise_type == "pourcentage":
+            if not 0 <= remise_val <= 100:
+                raise serializers.ValidationError(
+                    {"remise": "La remise en pourcentage doit être entre 0 et 100."}
+                )
+        elif remise_type == "fixe":
+            # For fixe we only ensure non-negative here. Full validation against totals
+            # can be performed elsewhere where totals are available.
+            pass
+        else:
+            raise serializers.ValidationError(
+                {"remise_type": "Type de remise invalide."}
+            )
+
+        return data
 
     def create(self, validated_data):
         lines_data = validated_data.pop("lignes", [])
@@ -187,7 +268,7 @@ class DeviDetailSerializer(DeviSerializer):
     def update(self, instance, validated_data):
         lines_data = validated_data.pop("lignes", None)
 
-        # Update Devi fields
+        # Update Devi fields (including remise/remise_type)
         instance = super(DeviSerializer, self).update(instance, validated_data)
 
         # Handle nested lines update
