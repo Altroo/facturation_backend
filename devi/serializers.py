@@ -16,6 +16,11 @@ class DeviListSerializer(serializers.ModelSerializer):
     created_by_user_name = serializers.SerializerMethodField()
     lignes_count = serializers.SerializerMethodField()
 
+    # Read-only totals for frontend (values returned as float, e.g. 12.34)
+    total_tva = serializers.SerializerMethodField()
+    total_ttc = serializers.SerializerMethodField()
+    total_ttc_apres_remise = serializers.SerializerMethodField()
+
     @staticmethod
     def get_created_by_user_name(obj):
         if obj.created_by_user:
@@ -28,6 +33,22 @@ class DeviListSerializer(serializers.ModelSerializer):
     @staticmethod
     def get_lignes_count(obj):
         return obj.lignes.count()
+
+    @staticmethod
+    def _fmt_cents(val):
+        try:
+            return round(int(val) / 100.0, 2)
+        except (TypeError, ValueError):
+            return None
+
+    def get_total_tva(self, obj):
+        return self._fmt_cents(getattr(obj, "total_tva", None))
+
+    def get_total_ttc(self, obj):
+        return self._fmt_cents(getattr(obj, "total_ttc", None))
+
+    def get_total_ttc_apres_remise(self, obj):
+        return self._fmt_cents(getattr(obj, "total_ttc_apres_remise", None))
 
     class Meta:
         model = Devi
@@ -46,6 +67,10 @@ class DeviListSerializer(serializers.ModelSerializer):
             "lignes_count",
             "remise_type",
             "remise",
+            # totals (read-only)
+            "total_tva",
+            "total_ttc",
+            "total_ttc_apres_remise",
         ]
         read_only_fields = fields
 
@@ -141,31 +166,12 @@ class DeviSerializer(serializers.ModelSerializer):
     mode_paiement_name = serializers.CharField(
         source="mode_paiement.nom", read_only=True
     )
+    total_tva = serializers.SerializerMethodField()
+    total_ttc = serializers.SerializerMethodField()
+    total_ttc_apres_remise = serializers.SerializerMethodField()
 
     # Nested write-only input for creating lines (updated serializer)
     lignes = DeviLineWriteSerializer(many=True, write_only=True, required=False)
-
-    class Meta:
-        model = Devi
-        fields = [
-            "id",
-            "numero_devis",
-            "client",
-            "client_name",
-            "date_devis",
-            "numero_demande_prix_client",
-            "mode_paiement",
-            "mode_paiement_name",
-            "statut",
-            "remarque",
-            "created_by_user",
-            "created_by_user_id",
-            "created_by_user_name",
-            "lignes",
-            "remise_type",
-            "remise",
-        ]
-        read_only_fields = ["id", "created_by_user", "statut"]
 
     @staticmethod
     def get_created_by_user_name(obj):
@@ -184,6 +190,22 @@ class DeviSerializer(serializers.ModelSerializer):
                 "Format de numéro de devis invalide. Format attendu: 0001/25"
             )
         return value
+
+    @staticmethod
+    def _fmt_cents(val):
+        try:
+            return round(int(val) / 100.0, 2)
+        except (TypeError, ValueError):
+            return None
+
+    def get_total_tva(self, obj):
+        return self._fmt_cents(getattr(obj, "total_tva", None))
+
+    def get_total_ttc(self, obj):
+        return self._fmt_cents(getattr(obj, "total_ttc", None))
+
+    def get_total_ttc_apres_remise(self, obj):
+        return self._fmt_cents(getattr(obj, "total_ttc_apres_remise", None))
 
     def validate(self, data):
         """
@@ -249,6 +271,39 @@ class DeviSerializer(serializers.ModelSerializer):
         ).data
         return representation
 
+    class Meta:
+        model = Devi
+        fields = [
+            "id",
+            "numero_devis",
+            "client",
+            "client_name",
+            "date_devis",
+            "numero_demande_prix_client",
+            "mode_paiement",
+            "mode_paiement_name",
+            "statut",
+            "remarque",
+            "created_by_user",
+            "created_by_user_id",
+            "created_by_user_name",
+            "lignes",
+            "remise_type",
+            "remise",
+            # totals (read-only)
+            "total_tva",
+            "total_ttc",
+            "total_ttc_apres_remise",
+        ]
+        read_only_fields = [
+            "id",
+            "created_by_user",
+            "statut",
+            "total_tva",
+            "total_ttc",
+            "total_ttc_apres_remise",
+        ]
+
 
 class DeviDetailSerializer(DeviSerializer):
     """
@@ -261,9 +316,6 @@ class DeviDetailSerializer(DeviSerializer):
     """
 
     lignes = DeviLineWriteSerializer(many=True, write_only=True, required=False)
-
-    class Meta(DeviSerializer.Meta):
-        read_only_fields = ["id", "created_by_user"]
 
     def update(self, instance, validated_data):
         lines_data = validated_data.pop("lignes", None)
@@ -300,3 +352,6 @@ class DeviDetailSerializer(DeviSerializer):
                     DeviLine.objects.filter(id__in=ids_to_delete).delete()
 
         return instance
+
+    class Meta(DeviSerializer.Meta):
+        read_only_fields = ["id", "created_by_user"]
