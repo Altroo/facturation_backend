@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.db import transaction
 from django.utils.html import format_html
 
 from .models import Devi, DeviLine
@@ -38,10 +39,10 @@ class DeviAdmin(admin.ModelAdmin):
         "mode_paiement",
         "display_remise",
         "display_lignes_count",
-        "display_total_ht",
-        "display_total_tva",
-        "display_total_ttc",
-        "display_total_ttc_apres_remise",
+        "total_ht",
+        "total_tva",
+        "total_ttc",
+        "total_ttc_apres_remise",
         "date_created",
         "created_by_user",
     )
@@ -139,6 +140,25 @@ class DeviAdmin(admin.ModelAdmin):
             obj.created_by_user = request.user
         super().save_model(request, obj, form, change)
 
+    def save_related(self, request, form, formsets, change):
+        """
+        Let admin save inlines, then recalc totals once and persist only total fields.
+        This avoids multiple writes from per-line signals and ensures final consistency.
+        """
+        super().save_related(request, form, formsets, change)
+        devi = form.instance
+        if devi and devi.pk:
+            with transaction.atomic():
+                devi.recalc_totals()
+                devi.save(
+                    update_fields=[
+                        "total_ht",
+                        "total_tva",
+                        "total_ttc",
+                        "total_ttc_apres_remise",
+                    ]
+                )
+
     @admin.display(description="Statut", ordering="statut")
     def statut_badge(self, obj):
         colors = {
@@ -185,34 +205,7 @@ class DeviAdmin(admin.ModelAdmin):
             value = 0
         return f"{value/100:.2f}"
 
-    @admin.display(description="Total HT", ordering="total_ht")
-    def display_total_ht(self, obj):
-        if not obj:
-            return "-"
-        return self._fmt_cents(obj.total_ht)
 
-    @admin.display(description="Total TVA", ordering="total_tva")
-    def display_total_tva(self, obj):
-        if not obj:
-            return "-"
-        return self._fmt_cents(obj.total_tva)
-
-    @admin.display(description="Total TTC", ordering="total_ttc")
-    def display_total_ttc(self, obj):
-        if not obj:
-            return "-"
-        return self._fmt_cents(obj.total_ttc)
-
-    @admin.display(
-        description="Total TTC après remise", ordering="total_ttc_apres_remise"
-    )
-    def display_total_ttc_apres_remise(self, obj):
-        if not obj:
-            return "-"
-        return self._fmt_cents(obj.total_ttc_apres_remise)
-
-
-# python
 class DeviLineAdmin(admin.ModelAdmin):
     """Admin configuration for the DeviLine model."""
 

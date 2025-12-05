@@ -8,7 +8,7 @@ from .views import (
     UniteViewSet,
     EmplacementViewSet,
     ModePaiementViewSet,
-    ModeRegelementViewSet,
+    ModeReglementViewSet,
 )
 
 app_name = "parameter"
@@ -21,7 +21,7 @@ router.register(r"categorie", CategorieViewSet, basename="categorie")
 router.register(r"unite", UniteViewSet, basename="unite")
 router.register(r"emplacement", EmplacementViewSet, basename="emplacement")
 router.register(r"mode_paiement", ModePaiementViewSet, basename="mode_paiement")
-router.register(r"mode_regelement", ModeRegelementViewSet, basename="mode_regelement")
+router.register(r"mode_reglement", ModeReglementViewSet, basename="mode_reglement")
 
 urlpatterns = [
     path("", include(router.urls)),

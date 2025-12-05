@@ -24,9 +24,9 @@ urlpatterns = [
     ),
     # PATCH : switch status of devi
     path(
-        "switch_status/<int:pk>/",
+        "switch_statut/<int:pk>/",
         DeviStatusUpdateView.as_view(),
-        name="devi-status-update",
+        name="devi-statut-update",
     ),
     # GET Devi line list (paginated) & POST create
     path("lines/", DeviLineListCreateView.as_view(), name="devi-line-list-create"),

@@ -1,4 +1,9 @@
+from decimal import Decimal
+
 from django.db import models
+from django.db import transaction
+from django.db.models.signals import post_save, post_delete
+from django.dispatch import receiver
 
 from account.models import CustomUser
 from article.models import Article
@@ -112,6 +117,68 @@ class Devi(models.Model):
     def __str__(self):
         return self.numero_devis
 
+    def recalc_totals(self):
+        """
+        Compute totals in cents based on related lines and remise.
+        Uses Decimal for percentage math to avoid rounding surprises.
+        """
+        total_ht = Decimal(0)
+        total_tva = Decimal(0)
+
+        for line in self.lignes.all():
+            prix_vente = Decimal(getattr(line, "prix_vente", 0) or 0)
+            qty = Decimal(getattr(line, "quantity", 0) or 0)
+            line_gross = prix_vente * qty
+
+            # line discount
+            remise = Decimal(getattr(line, "remise", 0) or 0)
+            if getattr(line, "remise_type", "pourcentage") == "pourcentage":
+                line_discount = (line_gross * remise) / Decimal(100)
+            else:
+                line_discount = remise
+
+            line_net_ht = max(Decimal(0), line_gross - line_discount)
+            total_ht += line_net_ht
+
+            # VAT rate from article (percentage), fallback to 0
+            tva_pct = Decimal(getattr(getattr(line, "article", None), "tva", 0) or 0)
+            total_tva += (line_net_ht * tva_pct) / Decimal(100)
+
+        # document-level remise
+        doc_remise = Decimal(getattr(self, "remise", 0) or 0)
+        if getattr(self, "remise_type", "pourcentage") == "pourcentage":
+            doc_remise_amount = (total_ht * doc_remise) / Decimal(100)
+        else:
+            doc_remise_amount = doc_remise
+
+        total_ttc = total_ht + total_tva
+        total_ttc_apres_remise = max(Decimal(0), total_ttc - doc_remise_amount)
+
+        # set integer-cent fields
+        self.total_ht = int(total_ht)
+        self.total_tva = int(total_tva)
+        self.total_ttc = int(total_ttc)
+        self.total_ttc_apres_remise = int(total_ttc_apres_remise)
+
+    def save(self, *args, **kwargs):
+        if self.pk is None:
+            # First save to get PK
+            super().save(*args, **kwargs)
+            # Now recalc and persist totals
+            self.recalc_totals()
+            super().save(
+                update_fields=[
+                    "total_ht",
+                    "total_tva",
+                    "total_ttc",
+                    "total_ttc_apres_remise",
+                ]
+            )
+        else:
+            # For updates, recalc then save normally
+            self.recalc_totals()
+            super().save(*args, **kwargs)
+
 
 class DeviLine(models.Model):
     devis = models.ForeignKey(
@@ -157,3 +224,20 @@ class DeviLine(models.Model):
 
     def __str__(self):
         return f"{self.devis} - {self.article}"
+
+
+@receiver([post_save, post_delete], sender=DeviLine)
+def _recalc_devi_on_line_change(sender, instance, **kwargs):
+    """Recalculate parent devi totals when a line is created/updated/deleted."""
+    devi = instance.devis
+    if devi.pk:
+        with transaction.atomic():
+            devi.recalc_totals()
+            devi.save(
+                update_fields=[
+                    "total_ht",
+                    "total_tva",
+                    "total_ttc",
+                    "total_ttc_apres_remise",
+                ]
+            )

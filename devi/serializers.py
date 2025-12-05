@@ -9,17 +9,12 @@ from .models import Devi, DeviLine
 class DeviListSerializer(serializers.ModelSerializer):
     """Lightweight serializer for list views."""
 
-    client_name = serializers.CharField(source="client.nom", read_only=True)
+    client_name = serializers.StringRelatedField(source="client", read_only=True)
     mode_paiement_name = serializers.CharField(
         source="mode_paiement.nom", read_only=True
     )
     created_by_user_name = serializers.SerializerMethodField()
     lignes_count = serializers.SerializerMethodField()
-
-    # Read-only totals for frontend (values returned as float, e.g. 12.34)
-    total_tva = serializers.SerializerMethodField()
-    total_ttc = serializers.SerializerMethodField()
-    total_ttc_apres_remise = serializers.SerializerMethodField()
 
     @staticmethod
     def get_created_by_user_name(obj):
@@ -34,22 +29,6 @@ class DeviListSerializer(serializers.ModelSerializer):
     def get_lignes_count(obj):
         return obj.lignes.count()
 
-    @staticmethod
-    def _fmt_cents(val):
-        try:
-            return round(int(val) / 100.0, 2)
-        except (TypeError, ValueError):
-            return None
-
-    def get_total_tva(self, obj):
-        return self._fmt_cents(getattr(obj, "total_tva", None))
-
-    def get_total_ttc(self, obj):
-        return self._fmt_cents(getattr(obj, "total_ttc", None))
-
-    def get_total_ttc_apres_remise(self, obj):
-        return self._fmt_cents(getattr(obj, "total_ttc_apres_remise", None))
-
     class Meta:
         model = Devi
         fields = [
@@ -60,6 +39,7 @@ class DeviListSerializer(serializers.ModelSerializer):
             "date_devis",
             "mode_paiement",
             "mode_paiement_name",
+            "numero_demande_prix_client",
             "statut",
             "remarque",
             "created_by_user",
@@ -166,10 +146,6 @@ class DeviSerializer(serializers.ModelSerializer):
     mode_paiement_name = serializers.CharField(
         source="mode_paiement.nom", read_only=True
     )
-    total_tva = serializers.SerializerMethodField()
-    total_ttc = serializers.SerializerMethodField()
-    total_ttc_apres_remise = serializers.SerializerMethodField()
-
     # Nested write-only input for creating lines (updated serializer)
     lignes = DeviLineWriteSerializer(many=True, write_only=True, required=False)
 
@@ -190,22 +166,6 @@ class DeviSerializer(serializers.ModelSerializer):
                 "Format de numéro de devis invalide. Format attendu: 0001/25"
             )
         return value
-
-    @staticmethod
-    def _fmt_cents(val):
-        try:
-            return round(int(val) / 100.0, 2)
-        except (TypeError, ValueError):
-            return None
-
-    def get_total_tva(self, obj):
-        return self._fmt_cents(getattr(obj, "total_tva", None))
-
-    def get_total_ttc(self, obj):
-        return self._fmt_cents(getattr(obj, "total_ttc", None))
-
-    def get_total_ttc_apres_remise(self, obj):
-        return self._fmt_cents(getattr(obj, "total_ttc_apres_remise", None))
 
     def validate(self, data):
         """

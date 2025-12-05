@@ -64,6 +64,6 @@ class ModePaiementViewSet(BaseModelViewSet):
     serializer_class = ModePaiementSerializer
 
 
-class ModeRegelementViewSet(BaseModelViewSet):
+class ModeReglementViewSet(BaseModelViewSet):
     queryset = ModeReglement.objects.all()
     serializer_class = ModeRegelementSerializer

@@ -150,6 +150,6 @@ class TestModePaiementAPI(BaseAPITest):
     basename = "mode_paiement"
 
 
-class TestModeRegelementAPI(BaseAPITest):
+class TestModeReglementAPI(BaseAPITest):
     model = ModeReglement
-    basename = "mode_regelement"
+    basename = "mode_reglement"

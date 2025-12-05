@@ -122,4 +122,4 @@ class Client(models.Model):
             name = f"{self.nom or ''} {self.prenom or ''}".strip()
         else:
             name = self.code_client
-        return f"{self.code_client} - {self.get_client_type_display()} - {name}"
+        return f"{name}"

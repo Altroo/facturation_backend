@@ -81,14 +81,14 @@ class TestDeviAPI:
         )
 
     def test_list_devis_requires_client_id(self):
-        """List endpoint requires client_id parameter."""
+        """List endpoint requires company_id parameter."""
         url = reverse("devi:devi-list-create")
         response = self.client_api.get(url)
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
     def test_list_devis(self):
-        """List devis for a specific client."""
-        url = reverse("devi:devi-list-create") + f"?client_id={self.client_obj.id}"
+        """List devis for a specific company."""
+        url = reverse("devi:devi-list-create") + f"?company_id={self.company.id}"
         response = self.client_api.get(url)
         assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.data, list)
@@ -103,18 +103,30 @@ class TestDeviAPI:
         # Ensure devi-level remise fields are present
         assert "remise" in devi_data
         assert "remise_type" in devi_data
+        # Ensure totals are present and numeric or None
+        for key in ("total_tva", "total_ttc", "total_ttc_apres_remise"):
+            assert key in devi_data
+            assert devi_data.get(key) is None or isinstance(
+                devi_data.get(key), (int, float)
+            )
 
     def test_list_devis_with_pagination(self):
         """List devis with pagination enabled."""
         url = (
             reverse("devi:devi-list-create")
-            + f"?client_id={self.client_obj.id}&pagination=true"
+            + f"?company_id={self.company.id}&pagination=true"
         )
         response = self.client_api.get(url)
         assert response.status_code == status.HTTP_200_OK
         # Paginated response has results array
         assert "results" in response.data
         assert "count" in response.data
+        # Ensure totals exist on items
+        if response.data["results"]:
+            item = response.data["results"][0]
+            for key in ("total_tva", "total_ttc", "total_ttc_apres_remise"):
+                assert key in item
+                assert item.get(key) is None or isinstance(item.get(key), (int, float))
 
     def test_create_devi_basic(self):
         """Create a basic devi without lines."""
@@ -139,23 +151,17 @@ class TestDeviAPI:
         # Newly created devi includes remise fields
         assert response.data.get("remise") == 0
         assert response.data.get("remise_type") == "pourcentage"
+        # Totals present (may be None if no lines) and numeric when present
+        for key in ("total_tva", "total_ttc", "total_ttc_apres_remise"):
+            assert key in response.data
+            assert response.data.get(key) is None or isinstance(
+                response.data.get(key), (int, float)
+            )
 
         # Verify DB
         devi = Devi.objects.get(numero_devis=payload["numero_devis"])
         assert devi.created_by_user == self.user
         assert devi.statut == "Brouillon"  # default status
-
-    def test_create_devi_without_client_fails(self):
-        """Creating devi without client should fail."""
-        url = reverse("devi:devi-list-create")
-        payload = {
-            "numero_devis": "0010/25",
-            "date_devis": "2024-06-02",
-            "remise": 0,
-            "remise_type": "pourcentage",
-        }
-        response = self.client_api.post(url, payload, format="json")
-        assert response.status_code == status.HTTP_403_FORBIDDEN
 
     def test_create_devi_with_lignes(self):
         """Create devi with nested lines."""
@@ -192,10 +198,52 @@ class TestDeviAPI:
         assert "id" in line
         assert "designation" in line  # from DeviLineSerializer
         assert "reference" in line
+        # Totals present and numeric
+        for key in ("total_tva", "total_ttc", "total_ttc_apres_remise"):
+            assert key in response.data
+            assert response.data.get(key) is None or isinstance(
+                response.data.get(key), (int, float)
+            )
 
         # Verify DB
         devi = Devi.objects.get(pk=response.data["id"])
         assert DeviLine.objects.filter(devis=devi, article=self.article).exists()
+
+    def test_get_devi_detail(self):
+        """Get detailed devi with nested lines."""
+        url = reverse("devi:devi-detail", args=[self.devi.id])
+        response = self.client_api.get(url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["numero_devis"] == self.devi.numero_devis
+
+        # Detail includes lignes
+        assert isinstance(response.data.get("lignes"), list)
+        assert len(response.data["lignes"]) == 1
+        ligne = response.data["lignes"][0]
+        assert ligne.get("article") == self.article.id
+        assert ligne.get("designation") == self.article.designation
+        assert ligne.get("reference") == self.article.reference
+        # Ensure devi-level remise fields are present
+        assert response.data.get("remise") == 0
+        assert response.data.get("remise_type") == "pourcentage"
+        # Totals present and numeric
+        for key in ("total_tva", "total_ttc", "total_ttc_apres_remise"):
+            assert key in response.data
+            assert response.data.get(key) is None or isinstance(
+                response.data.get(key), (int, float)
+            )
+
+    def test_create_devi_without_client_fails(self):
+        """Creating devi without client should fail."""
+        url = reverse("devi:devi-list-create")
+        payload = {
+            "numero_devis": "0010/25",
+            "date_devis": "2024-06-02",
+            "remise": 0,
+            "remise_type": "pourcentage",
+        }
+        response = self.client_api.post(url, payload, format="json")
+        assert response.status_code == status.HTTP_403_FORBIDDEN
 
     def test_create_devi_invalid_numero_format(self):
         """Creating devi with invalid numero format should fail."""
@@ -215,24 +263,6 @@ class TestDeviAPI:
             assert "numero_devis" in response.data["details"]
         else:
             assert "numero_devis" in response.data
-
-    def test_get_devi_detail(self):
-        """Get detailed devi with nested lines."""
-        url = reverse("devi:devi-detail", args=[self.devi.id])
-        response = self.client_api.get(url)
-        assert response.status_code == status.HTTP_200_OK
-        assert response.data["numero_devis"] == self.devi.numero_devis
-
-        # Detail includes lignes
-        assert isinstance(response.data.get("lignes"), list)
-        assert len(response.data["lignes"]) == 1
-        ligne = response.data["lignes"][0]
-        assert ligne.get("article") == self.article.id
-        assert ligne.get("designation") == self.article.designation
-        assert ligne.get("reference") == self.article.reference
-        # Ensure devi-level remise fields are present
-        assert response.data.get("remise") == 0
-        assert response.data.get("remise_type") == "pourcentage"
 
     def test_get_devi_detail_unauthorized(self):
         """User without membership cannot access devi."""
@@ -386,7 +416,7 @@ class TestDeviAPI:
 
         url = (
             reverse("devi:devi-list-create")
-            + f"?client_id={self.client_obj.id}&statut=Brouillon"
+            + f"?company_id={self.company.id}&statut=Brouillon"
         )
         response = self.client_api.get(url)
         assert response.status_code == status.HTTP_200_OK
@@ -397,7 +427,7 @@ class TestDeviAPI:
         numero = self.devi.numero_devis
         url = (
             reverse("devi:devi-list-create")
-            + f"?client_id={self.client_obj.id}&search={quote(numero, safe='')}"
+            + f"?company_id={self.company.id}&search={quote(numero, safe='')}"
         )
         response = self.client_api.get(url)
         assert response.status_code == status.HTTP_200_OK
@@ -449,7 +479,7 @@ class TestDeviAPI:
 
     def test_update_devi_status(self):
         """Update devi status via dedicated endpoint."""
-        url = reverse("devi:devi-status-update", args=[self.devi.id])
+        url = reverse("devi:devi-statut-update", args=[self.devi.id])
         payload = {"statut": "Accepté"}
         response = self.client_api.patch(url, payload, format="json")
         assert response.status_code == status.HTTP_200_OK
@@ -461,7 +491,7 @@ class TestDeviAPI:
 
     def test_update_devi_status_invalid(self):
         """Invalid status should fail."""
-        url = reverse("devi:devi-status-update", args=[self.devi.id])
+        url = reverse("devi:devi-statut-update", args=[self.devi.id])
         payload = {"statut": "InvalidStatus"}
         response = self.client_api.patch(url, payload, format="json")
         assert response.status_code == status.HTTP_400_BAD_REQUEST

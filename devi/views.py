@@ -40,16 +40,12 @@ class DeviListCreateView(APIView):
 
     def get(self, request, *args, **kwargs):
         pagination = self._get_bool_param(request, "pagination")
-        client_id_str = request.query_params.get("client_id")
-        if not client_id_str:
-            raise Http404(_("Aucun client n'a été spécifié."))
-        try:
-            client = Client.objects.get(pk=int(client_id_str))
-        except Client.DoesNotExist:
-            raise Http404(_("Client introuvable."))
-        company_id = client.company_id
+        company_id_str = request.query_params.get("company_id")
+        if not company_id_str:
+            raise Http404(_("Aucune clients ne correspond à la requête."))
+        company_id = int(company_id_str)
         self._check_company_access(request, company_id)
-        base_queryset = Devi.objects.filter(client=client)
+        base_queryset = Devi.objects.filter(client__company_id=company_id)
         filterset = DeviFilter(request.GET, queryset=base_queryset)
         ordered_qs = filterset.qs.order_by("-id")
         if pagination:
