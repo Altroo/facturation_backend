@@ -2,10 +2,19 @@ import binascii
 from base64 import b64decode
 from http import HTTPStatus
 from io import BytesIO
+from typing import Any
 from uuid import uuid4
 
+import cv2
 from PIL import Image, UnidentifiedImageError
-from cv2 import imdecode, resize, INTER_AREA, cvtColor, COLOR_BGR2RGB, GaussianBlur
+
+imdecode: Any = cv2.imdecode
+resize: Any = cv2.resize
+INTER_AREA: Any = cv2.INTER_AREA
+cvtColor: Any = cv2.cvtColor
+COLOR_BGR2RGB: Any = cv2.COLOR_BGR2RGB
+GaussianBlur: Any = cv2.GaussianBlur
+
 from django.core.files.base import ContentFile
 from django.utils.translation import gettext_lazy as _
 from numpy import uint8, frombuffer

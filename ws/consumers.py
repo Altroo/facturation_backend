@@ -43,7 +43,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def recieve_group_message(self, event):
         """
-        Method used to broadcast the message the the group
+        Method used to broadcast the message the group
         """
         message = event["message"]
         await self.send(text_data=dumps({"message": message}))
