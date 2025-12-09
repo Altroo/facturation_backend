@@ -71,7 +71,8 @@ class DeviLineWriteSerializer(serializers.ModelSerializer):
             )
 
         remise = data.get("remise", 0)
-        remise_type = data.get("remise_type", "Pourcentage")
+        # Treat empty/null remise_type as default "Pourcentage"
+        remise_type = data.get("remise_type") or "Pourcentage"
         quantity = data.get("quantity", 1)
         line_total = data["prix_vente"] * quantity
 
@@ -138,7 +139,7 @@ class DeviSerializer(serializers.ModelSerializer):
     Accepts write-only `lignes` array for creating associated lines.
     """
 
-    client_name = serializers.CharField(source="client.nom", read_only=True)
+    client_name = serializers.StringRelatedField(source="client", read_only=True)
     created_by_user_name = serializers.SerializerMethodField()
     created_by_user_id = serializers.IntegerField(
         source="created_by_user.id", read_only=True
@@ -177,9 +178,9 @@ class DeviSerializer(serializers.ModelSerializer):
         remise_type = data.get(
             "remise_type",
             (
-                getattr(self.instance, "remise_type", "Pourcentage")
+                getattr(self.instance, "remise_type", "")
                 if getattr(self, "instance", None)
-                else "Pourcentage"
+                else ""
             ),
         )
 
@@ -195,6 +196,9 @@ class DeviSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 {"remise": "La remise doit être positive ou nulle."}
             )
+        # if remise_type is not provided, skip further validation
+        if remise_type == "":
+            return data
 
         if remise_type == "Pourcentage":
             if not 0 <= remise_val <= 100:
@@ -254,6 +258,8 @@ class DeviSerializer(serializers.ModelSerializer):
             "total_tva",
             "total_ttc",
             "total_ttc_apres_remise",
+            "date_created",
+            "date_updated",
         ]
         read_only_fields = [
             "id",
@@ -262,6 +268,8 @@ class DeviSerializer(serializers.ModelSerializer):
             "total_tva",
             "total_ttc",
             "total_ttc_apres_remise",
+            "date_created",
+            "date_updated",
         ]
 
 
@@ -314,4 +322,4 @@ class DeviDetailSerializer(DeviSerializer):
         return instance
 
     class Meta(DeviSerializer.Meta):
-        read_only_fields = ["id", "created_by_user"]
+        read_only_fields = ["id", "created_by_user", "date_created", "date_updated"]
