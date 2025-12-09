@@ -37,14 +37,14 @@ class SimpleJwtTokenAuthMiddleware(BaseMiddleware):
         token = parse_qs(scope["query_string"].decode("utf8"))["token"][0]
         try:
             # This will automatically validate the token and raise an error if token is invalid
-            UntypedToken(token)
+            UntypedToken(token)  # type: ignore[arg-type]
         except (InvalidToken, TokenError):
-            scope["user"] = AnonymousUser()
+            scope["user"] = AnonymousUser()  # type: ignore[arg-type]
         else:
             #  Then token is valid, decode it
             decoded_data = jwt_decode(token, settings.SECRET_KEY, algorithms=["HS256"])
-            user = self.get_user_from_token(decoded_data["user_id"])
-            scope["user"] = user
+            user = self.get_user_from_token(decoded_data["user_id"])  # type: ignore[arg-type]
+            scope["user"] = user  # type: ignore[arg-type]
         return await super().__call__(scope, receive, send)
 
 

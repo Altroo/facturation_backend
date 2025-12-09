@@ -22,7 +22,7 @@ class DeviLineInline(admin.TabularInline):
 
     def get_readonly_fields(self, request, obj=None):
         # If devi is in certain statuses, make lines readonly
-        if obj and obj.statut in ("Accepté", "Refusé", "Annulé"):
+        if obj and obj.statut in ("Accepté", "Refusé", "Annulé"):  # type: ignore[arg-type]
             return self.fields
         return ()
 
@@ -128,8 +128,8 @@ class DeviAdmin(admin.ModelAdmin):
         """Make certain fields readonly based on status."""
         readonly = list(self.readonly_fields)
 
-        # If devi is accepted/refused/cancelled, make key fields readonly
-        if obj and obj.statut in ("Accepté", "Refusé", "Annulé"):
+        # If devi is accepted/refused/canceled, make key fields readonly
+        if obj and obj.statut in ("Accepté", "Refusé", "Annulé"):  # type: ignore[arg-type]
             readonly.extend(["numero_devis", "client", "date_devis"])
 
         return readonly
