@@ -48,11 +48,6 @@ class Devi(models.Model):
         verbose_name="Statut",
     )
 
-    REMISE_TYPE_CHOICES = [
-        ("pourcentage", "Pourcentage"),
-        ("fixe", "Fixe"),
-    ]
-
     total_ht = models.PositiveIntegerField(
         default=0,
         verbose_name="Total HT",
@@ -74,12 +69,20 @@ class Devi(models.Model):
         editable=False,
     )
 
+    REMISE_TYPE_CHOICES = [
+        ("", ""),
+        ("Pourcentage", "Pourcentage"),
+        ("Fixe", "Fixe"),
+    ]
+
     remise_type = models.CharField(
+        null=True,
+        blank=True,
         max_length=12,
         choices=REMISE_TYPE_CHOICES,
-        default="pourcentage",
+        default="",
         verbose_name="Type de remise",
-        help_text="Type de remise appliquée : 'pourcentage' ou 'fixe'",
+        help_text="Type de remise appliquée : 'Pourcentage' ou 'Fixe'",
     )
 
     remise = models.PositiveIntegerField(
@@ -132,7 +135,7 @@ class Devi(models.Model):
 
             # line discount
             remise = Decimal(getattr(line, "remise", 0) or 0)
-            if getattr(line, "remise_type", "pourcentage") == "pourcentage":
+            if getattr(line, "remise_type", "Pourcentage") == "Pourcentage":
                 line_discount = (line_gross * remise) / Decimal(100)
             else:
                 line_discount = remise
@@ -146,7 +149,7 @@ class Devi(models.Model):
 
         # document-level remise
         doc_remise = Decimal(getattr(self, "remise", 0) or 0)
-        if getattr(self, "remise_type", "pourcentage") == "pourcentage":
+        if getattr(self, "remise_type", "Pourcentage") == "Pourcentage":
             doc_remise_amount = (total_ht * doc_remise) / Decimal(100)
         else:
             doc_remise_amount = doc_remise
@@ -200,14 +203,17 @@ class DeviLine(models.Model):
     )
 
     REMISE_TYPE_CHOICES = [
-        ("pourcentage", "Pourcentage"),
-        ("fixe", "Fixe"),
+        ("", ""),
+        ("Pourcentage", "Pourcentage"),
+        ("Fixe", "Fixe"),
     ]
 
     remise_type = models.CharField(
+        null=True,
+        blank=True,
         max_length=12,
         choices=REMISE_TYPE_CHOICES,
-        default="pourcentage",
+        default="",
         verbose_name="Type de remise",
         help_text="Type de remise appliquée : 'Pourcentage' ou 'Fixe'",
     )

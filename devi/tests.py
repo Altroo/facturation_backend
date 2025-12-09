@@ -65,7 +65,7 @@ class TestDeviAPI:
             mode_paiement=self.mode_paiement,
             remarque="Test remark",
             remise=0,
-            remise_type="pourcentage",
+            remise_type="Pourcentage",
             created_by_user=self.user,
         )
 
@@ -77,7 +77,7 @@ class TestDeviAPI:
             prix_vente=120,
             quantity=2,
             remise=5,
-            remise_type="pourcentage",
+            remise_type="Pourcentage",
         )
 
     def test_list_devis_requires_client_id(self):
@@ -139,7 +139,7 @@ class TestDeviAPI:
             "mode_paiement": self.mode_paiement.id,
             "remarque": "New remark",
             "remise": 0,
-            "remise_type": "pourcentage",
+            "remise_type": "Pourcentage",
         }
         response = self.client_api.post(url, payload, format="json")
         assert response.status_code == status.HTTP_201_CREATED
@@ -150,7 +150,7 @@ class TestDeviAPI:
         assert response.data["created_by_user"] == self.user.id
         # Newly created devi includes remise fields
         assert response.data.get("remise") == 0
-        assert response.data.get("remise_type") == "pourcentage"
+        assert response.data.get("remise_type") == "Pourcentage"
         # Totals present (may be None if no lines) and numeric when present
         for key in ("total_tva", "total_ttc", "total_ttc_apres_remise"):
             assert key in response.data
@@ -174,7 +174,7 @@ class TestDeviAPI:
             "mode_paiement": self.mode_paiement.id,
             "remarque": "With lines",
             "remise": 0,
-            "remise_type": "pourcentage",
+            "remise_type": "Pourcentage",
             "lignes": [
                 {
                     "article": self.article.id,
@@ -182,7 +182,7 @@ class TestDeviAPI:
                     "prix_vente": 180,
                     "quantity": 1,
                     "remise": 0,
-                    "remise_type": "pourcentage",
+                    "remise_type": "Pourcentage",
                 }
             ],
         }
@@ -225,7 +225,7 @@ class TestDeviAPI:
         assert ligne.get("reference") == self.article.reference
         # Ensure devi-level remise fields are present
         assert response.data.get("remise") == 0
-        assert response.data.get("remise_type") == "pourcentage"
+        assert response.data.get("remise_type") == "Pourcentage"
         # Totals present and numeric
         for key in ("total_tva", "total_ttc", "total_ttc_apres_remise"):
             assert key in response.data
@@ -240,7 +240,7 @@ class TestDeviAPI:
             "numero_devis": "0010/25",
             "date_devis": "2024-06-02",
             "remise": 0,
-            "remise_type": "pourcentage",
+            "remise_type": "Pourcentage",
         }
         response = self.client_api.post(url, payload, format="json")
         assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -254,7 +254,7 @@ class TestDeviAPI:
             "date_devis": "2024-06-02",
             "numero_demande_prix_client": "REQ-002",
             "remise": 0,
-            "remise_type": "pourcentage",
+            "remise_type": "Pourcentage",
         }
         response = self.client_api.post(url, payload, format="json")
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -287,7 +287,7 @@ class TestDeviAPI:
             "mode_paiement": self.mode_paiement.id,
             "remarque": "Updated remark",
             "remise": 0,
-            "remise_type": "pourcentage",
+            "remise_type": "Pourcentage",
         }
         response = self.client_api.put(url, payload, format="json")
         assert response.status_code == status.HTTP_200_OK
@@ -309,7 +309,7 @@ class TestDeviAPI:
             "mode_paiement": self.mode_paiement.id,
             "remarque": "Upsert lines",
             "remise": 0,
-            "remise_type": "pourcentage",
+            "remise_type": "Pourcentage",
             "lignes": [
                 {
                     # Update existing line
@@ -319,7 +319,7 @@ class TestDeviAPI:
                     "prix_vente": 130,
                     "quantity": 5,
                     "remise": 2,
-                    "remise_type": "pourcentage",
+                    "remise_type": "Pourcentage",
                 },
                 {
                     # Add new line (no id)
@@ -328,7 +328,7 @@ class TestDeviAPI:
                     "prix_vente": 250,
                     "quantity": 3,
                     "remise": 10,
-                    "remise_type": "pourcentage",
+                    "remise_type": "Pourcentage",
                 },
             ],
         }
@@ -357,7 +357,7 @@ class TestDeviAPI:
             prix_vente=60,
             quantity=1,
             remise=0,
-            remise_type="pourcentage",
+            remise_type="Pourcentage",
         )
 
         url = reverse("devi:devi-detail", args=[self.devi.id])
@@ -369,7 +369,7 @@ class TestDeviAPI:
             "mode_paiement": self.mode_paiement.id,
             "remarque": "Delete line2",
             "remise": 0,
-            "remise_type": "pourcentage",
+            "remise_type": "Pourcentage",
             "lignes": [
                 {
                     # Only include line1
@@ -379,7 +379,7 @@ class TestDeviAPI:
                     "prix_vente": 120,
                     "quantity": 2,
                     "remise": 5,
-                    "remise_type": "pourcentage",
+                    "remise_type": "Pourcentage",
                 }
             ],
         }
@@ -410,7 +410,7 @@ class TestDeviAPI:
             mode_paiement=self.mode_paiement,
             statut="Accepté",
             remise=0,
-            remise_type="pourcentage",
+            remise_type="Pourcentage",
             created_by_user=self.user,
         )
 
@@ -447,7 +447,7 @@ class TestDeviAPI:
             date_devis="2024-06-01",
             mode_paiement=self.mode_paiement,
             remise=0,
-            remise_type="pourcentage",
+            remise_type="Pourcentage",
             created_by_user=self.user,
         )
         Devi.objects.create(
@@ -456,7 +456,7 @@ class TestDeviAPI:
             date_devis="2024-06-02",
             mode_paiement=self.mode_paiement,
             remise=0,
-            remise_type="pourcentage",
+            remise_type="Pourcentage",
             created_by_user=self.user,
         )
         Devi.objects.create(
@@ -465,7 +465,7 @@ class TestDeviAPI:
             date_devis="2024-06-03",
             mode_paiement=self.mode_paiement,
             remise=0,
-            remise_type="pourcentage",
+            remise_type="Pourcentage",
             created_by_user=self.user,
         )
 
@@ -522,7 +522,7 @@ class TestDeviAPI:
             "prix_vente": 180,
             "quantity": 3,
             "remise": 5,
-            "remise_type": "pourcentage",
+            "remise_type": "Pourcentage",
         }
         response = self.client_api.post(url, payload, format="json")
         assert response.status_code == status.HTTP_201_CREATED
@@ -549,7 +549,7 @@ class TestDeviAPI:
             "prix_vente": 250,
             "quantity": 10,
             "remise": 15,
-            "remise_type": "pourcentage",
+            "remise_type": "Pourcentage",
         }
         response = self.client_api.put(url, payload, format="json")
         assert response.status_code == status.HTTP_200_OK

@@ -183,7 +183,7 @@ class DeviAdmin(admin.ModelAdmin):
         """Show remise as percent or formatted amount depending on remise_type."""
         if not obj:
             return "-"
-        if getattr(obj, "remise_type", None) == "pourcentage":
+        if getattr(obj, "remise_type", None) == "Pourcentage":
             try:
                 return f"{int(obj.remise)} %"
             except (TypeError, ValueError):

@@ -71,19 +71,19 @@ class DeviLineWriteSerializer(serializers.ModelSerializer):
             )
 
         remise = data.get("remise", 0)
-        remise_type = data.get("remise_type", "pourcentage")
+        remise_type = data.get("remise_type", "Pourcentage")
         quantity = data.get("quantity", 1)
         line_total = data["prix_vente"] * quantity
 
         if remise < 0:
             raise serializers.ValidationError("La remise doit être positive ou nulle.")
 
-        if remise_type == "pourcentage":
+        if remise_type == "Pourcentage":
             if not 0 <= remise <= 100:
                 raise serializers.ValidationError(
                     "La remise en pourcentage doit être entre 0 et 100."
                 )
-        elif remise_type == "fixe":
+        elif remise_type == "Fixe":
             if remise > line_total:
                 raise serializers.ValidationError(
                     "La remise fixe ne peut pas dépasser le total de la ligne."
@@ -177,9 +177,9 @@ class DeviSerializer(serializers.ModelSerializer):
         remise_type = data.get(
             "remise_type",
             (
-                getattr(self.instance, "remise_type", "pourcentage")
+                getattr(self.instance, "remise_type", "Pourcentage")
                 if getattr(self, "instance", None)
-                else "pourcentage"
+                else "Pourcentage"
             ),
         )
 
@@ -196,12 +196,12 @@ class DeviSerializer(serializers.ModelSerializer):
                 {"remise": "La remise doit être positive ou nulle."}
             )
 
-        if remise_type == "pourcentage":
+        if remise_type == "Pourcentage":
             if not 0 <= remise_val <= 100:
                 raise serializers.ValidationError(
                     {"remise": "La remise en pourcentage doit être entre 0 et 100."}
                 )
-        elif remise_type == "fixe":
+        elif remise_type == "Fixe":
             # For fixe we only ensure non-negative here. Full validation against totals
             # can be performed elsewhere where totals are available.
             pass
