@@ -1,7 +1,7 @@
 import django_filters
 from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
-from django.db.models import Q, Value
-from django.db.models.functions import Coalesce
+from django.db.models import Q, Value, F, FloatField
+from django.db.utils import DatabaseError
 
 from .models import Devi, DeviLine
 
@@ -26,12 +26,34 @@ class DeviFilter(django_filters.FilterSet):
         if not value or not value.strip():
             return queryset
 
+        value = value.strip()
+
+        # detect tsquery metacharacters in lowercase and skip FTS if present
+        ts_meta = set(":*?&|!()<>")
+        skip_fts = any(ch in ts_meta for ch in value.lower())
+
         search_vector = (
             SearchVector("numero_devis", weight="A")
             + SearchVector("client__raison_sociale", weight="A")
             + SearchVector("numero_demande_prix_client", weight="B")
         )
-        search_query = SearchQuery(value.strip(), search_type="plain")
+
+        queryset_with_vector = queryset.annotate(_search=search_vector)
+
+        if not skip_fts:
+            try:
+                search_query = SearchQuery(value, search_type="plain")
+                fts_results = queryset_with_vector.filter(
+                    _search=search_query
+                ).annotate(_rank=SearchRank(F("_search"), search_query))
+            except DatabaseError:
+                fts_results = queryset.none().annotate(
+                    _rank=Value(0.0, output_field=FloatField())
+                )
+        else:
+            fts_results = queryset.none().annotate(
+                _rank=Value(0.0, output_field=FloatField())
+            )
 
         fallback_q = (
             Q(numero_devis__icontains=value)
@@ -39,16 +61,11 @@ class DeviFilter(django_filters.FilterSet):
             | Q(numero_demande_prix_client__icontains=value)
         )
 
-        combined_results = (
-            queryset.annotate(
-                _rank=Coalesce(SearchRank(search_vector, search_query), Value(0.0))
-            )
-            .filter(Q(_rank__gte=0.001) | fallback_q)
-            .distinct()
-            .order_by("-_rank")
+        fallback_results = queryset.filter(fallback_q).annotate(
+            _rank=Value(0.0, output_field=FloatField())
         )
 
-        return combined_results
+        return (fts_results | fallback_results).distinct().order_by("-_rank")
 
 
 class DeviLineFilter(django_filters.FilterSet):
@@ -64,23 +81,39 @@ class DeviLineFilter(django_filters.FilterSet):
         if not value or not value.strip():
             return queryset
 
-        # search on article fields (designation / reference) which exist
+        value = value.strip()
+
+        # detect tsquery metacharacters in lowercase and skip FTS if present
+        ts_meta = set(":*?&|!()<>")
+        skip_fts = any(ch in ts_meta for ch in value.lower())
+
         search_vector = SearchVector("article__designation", weight="A") + SearchVector(
             "article__reference", weight="A"
         )
-        search_query = SearchQuery(value.strip(), search_type="plain")
+
+        queryset_with_vector = queryset.annotate(_search=search_vector)
+
+        if not skip_fts:
+            try:
+                search_query = SearchQuery(value, search_type="plain")
+                fts_results = queryset_with_vector.filter(
+                    _search=search_query
+                ).annotate(_rank=SearchRank(F("_search"), search_query))
+            except DatabaseError:
+                fts_results = queryset.none().annotate(
+                    _rank=Value(0.0, output_field=FloatField())
+                )
+        else:
+            fts_results = queryset.none().annotate(
+                _rank=Value(0.0, output_field=FloatField())
+            )
 
         fallback_q = Q(article__designation__icontains=value) | Q(
             article__reference__icontains=value
         )
 
-        combined_results = (
-            queryset.annotate(
-                _rank=Coalesce(SearchRank(search_vector, search_query), Value(0.0))
-            )
-            .filter(Q(_rank__gte=0.001) | fallback_q)
-            .distinct()
-            .order_by("-_rank")
+        fallback_results = queryset.filter(fallback_q).annotate(
+            _rank=Value(0.0, output_field=FloatField())
         )
 
-        return combined_results
+        return (fts_results | fallback_results).distinct().order_by("-_rank")

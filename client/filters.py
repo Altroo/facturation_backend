@@ -1,6 +1,7 @@
 import django_filters
 from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
-from django.db.models import Case, When, Value, CharField, Q
+from django.db.models import Case, When, Value, CharField, Q, F, FloatField
+from django.db.utils import DatabaseError
 
 from .models import Client
 
@@ -16,12 +17,10 @@ class ClientFilter(django_filters.FilterSet):
 
     @staticmethod
     def global_search(queryset, _name, value):
-        """
-        Hybrid search: PostgreSQL full‑text search + icontains fallback.
-        Covers all searchable fields of the `Client` model.
-        """
         if not value or not value.strip():
             return queryset
+
+        value = value.strip()
 
         # Annotate readable client_type label
         queryset = queryset.annotate(
@@ -33,7 +32,7 @@ class ClientFilter(django_filters.FilterSet):
             )
         )
 
-        # Weighted search vector for relevant fields
+        # build a single weighted SearchVector and annotate it once
         search_vector = (
             SearchVector("code_client", weight="A")
             + SearchVector("raison_sociale", weight="A")
@@ -53,8 +52,28 @@ class ClientFilter(django_filters.FilterSet):
             + SearchVector("fax", weight="D")
         )
 
-        # Prefix matching for full‑text search
-        search_query = SearchQuery(value.strip(), search_type="plain")
+        # detect tsquery metacharacters and skip FTS if present
+        ts_meta = set(":*?&|!()<>")
+        skip_fts = any(ch in ts_meta for ch in value)
+
+        queryset_with_vector = queryset.annotate(_search=search_vector)
+
+        if not skip_fts:
+            try:
+                search_query = SearchQuery(value, search_type="plain")
+                fts_results = queryset_with_vector.filter(
+                    _search=search_query
+                ).annotate(  # uses @@ under the hood
+                    rank=SearchRank(F("_search"), search_query)
+                )
+            except DatabaseError:
+                fts_results = queryset.none().annotate(
+                    rank=Value(0.0, output_field=FloatField())
+                )
+        else:
+            fts_results = queryset.none().annotate(
+                rank=Value(0.0, output_field=FloatField())
+            )
 
         # Fallback icontains queries
         fallback_q = (
@@ -75,16 +94,8 @@ class ClientFilter(django_filters.FilterSet):
             | Q(ville__nom__icontains=value)
         )
 
-        # Annotate rank for all results (0.0 for fallback-only matches)
-        from django.db.models.functions import Coalesce
-
-        combined_results = (
-            queryset.annotate(
-                _rank=Coalesce(SearchRank(search_vector, search_query), Value(0.0))
-            )
-            .filter(Q(_rank__gte=0.001) | fallback_q)
-            .distinct()
-            .order_by("-_rank")
+        fallback_results = queryset.filter(fallback_q).annotate(
+            rank=Value(0.0, output_field=FloatField())
         )
 
-        return combined_results
+        return (fts_results | fallback_results).distinct().order_by("-rank")
