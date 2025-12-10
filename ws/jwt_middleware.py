@@ -16,12 +16,7 @@ from account.models import CustomUser
 
 
 class _AwaitableUser:
-    """
-    Small wrapper that is awaitable (so consumers can `await scope["user"]`)
-    and, if constructed with an immediate user instance, exposes attributes
-    synchronously (so tests can read `scope["user"].is_anonymous`).
-    If constructed with a coroutine, attribute access before awaiting will raise.
-    """
+    """Wraps a user or coroutine to be awaitable and expose attributes synchronously."""
 
     def __init__(self, coro_or_user: Any):
         if asyncio.iscoroutine(coro_or_user):
@@ -43,19 +38,18 @@ class _AwaitableUser:
                 return self._user
 
             return _ret().__await__()
-        else:
 
-            async def _wrap():
-                self._user = await self._coro
-                return self._user
+        async def _wrap():
+            self._user = await self._coro
+            return self._user
 
-            return _wrap().__await__()
+        return _wrap().__await__()
 
 
 class SimpleJwtTokenAuthMiddleware(BaseMiddleware):
     """
     Simple JWT Token authorization middleware for Django Channels 3,
-    ?token=<Token> querystring is required with the endpoint using this authentication
+    ?token=<Token> querystring is reuired with the endpoint using this authentication
     middleware to work in synergy with Simple JWT
     """
 
@@ -63,36 +57,54 @@ class SimpleJwtTokenAuthMiddleware(BaseMiddleware):
         super().__init__(inner)
         self.inner = inner
 
-    @staticmethod
-    def get_user_from_token(user_id):
+    @database_sync_to_async
+    def get_user_from_token(self, user_id):
         return CustomUser.objects.get(pk=user_id)
-
-    @staticmethod
-    def get_anonymous_user():
-        return AnonymousUser()
 
     async def __call__(self, scope, receive, send):
         # Close old database connections to prevent
         # usage of timed out connections
         close_old_connections()
 
-        # Get the token
-        token = parse_qs(scope["query_string"].decode("utf8"))["token"][0]
         try:
-            # This will automatically validate the token and raise an error if token is invalid
+            token = parse_qs(scope["query_string"].decode("utf8")).get("token", [None])[
+                0
+            ]
+        except (UnicodeDecodeError, KeyError, IndexError, TypeError):
+            token = None
+
+        if not token:
+            scope["user"] = _AwaitableUser(AnonymousUser())  # type: ignore[arg-type]
+            await self._reject_connection(send)
+            return None
+
+        try:
             UntypedToken(token)  # type: ignore[arg-type]
         except (InvalidToken, TokenError):
-            # immediate AnonymousUser but awaitable for consumers
-            anon = self.get_anonymous_user()
-            scope["user"] = _AwaitableUser(anon)  # type: ignore[arg-type]
-        else:
-            # Then token is valid, decode it and keep DB call as coroutine, wrapped to be awaitable
+            scope["user"] = _AwaitableUser(AnonymousUser())  # type: ignore[arg-type]
+            await self._reject_connection(send)
+            return None
+
+        try:
             decoded_data = jwt_decode(token, settings.SECRET_KEY, algorithms=["HS256"])
-            user_coro = database_sync_to_async(self.get_user_from_token)(
-                decoded_data["user_id"]
-            )
-            scope["user"] = _AwaitableUser(user_coro)  # type: ignore[arg-type]
+            user = self.get_user_from_token(decoded_data["user_id"])  # type: ignore[arg-type]
+            scope["user"] = _AwaitableUser(user)  # type: ignore[arg-type]
+        except (KeyError, CustomUser.DoesNotExist, jwt_decode.DecodeError):
+            scope["user"] = _AwaitableUser(AnonymousUser())  # type: ignore[arg-type]
+            await self._reject_connection(send)
+            return None
+
         return await super().__call__(scope, receive, send)
+
+    @staticmethod
+    async def _reject_connection(send):
+        """Reject WebSocket connection by closing it immediately."""
+        await send(
+            {
+                "type": "websocket.close",
+                "code": 4001,
+            }
+        )
 
 
 def simplejwttokenauthmiddlewarestack(inner):
