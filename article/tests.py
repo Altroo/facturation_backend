@@ -10,6 +10,7 @@ from account.models import Membership
 from article.models import Article
 from company.models import Company
 from parameter.models import Marque, Categorie, Unite, Emplacement
+from .filters import ArticleFilter
 
 # Minimal valid base64 PNG (1x1 transparent)
 BASE64_PNG = (
@@ -670,3 +671,105 @@ class TestArticleImagesAndPhotos:
         assert article_data is not None
         assert "photo" in article_data
         assert article_data["photo"] is None or article_data["photo"].startswith("http")
+
+
+@pytest.mark.django_db
+class TestArticleFilters:
+    def setup_method(self):
+        self.user_model = get_user_model()
+        self.user = self.user_model.objects.create_user(
+            email="filter@example.com", password="p"
+        )
+
+        self.company = Company.objects.create(
+            raison_sociale="FilterCorp",
+            ICE="ICEFILT",
+            registre_de_commerce="RCFILT",
+            nbr_employe="1 à 5",
+        )
+        Membership.objects.create(user=self.user, company=self.company)
+
+        self.marque = Marque.objects.create(nom="BrandX")
+        self.categorie = Categorie.objects.create(nom="CatX")
+        self.unite = Unite.objects.create(nom="UnitX")
+        self.emplacement = Emplacement.objects.create(nom="PlaceX")
+
+        self.a1 = Article.objects.create(
+            reference="REF1",
+            designation="FindMe",
+            type_article="produit",
+            company=self.company,
+            marque=self.marque,
+            categorie=self.categorie,
+            unite=self.unite,
+            emplacement=self.emplacement,
+            prix_vente=10,
+            tva=0,
+        )
+
+        self.a2 = Article.objects.create(
+            reference="REF2",
+            designation="Other",
+            type_article="produit",
+            company=self.company,
+            prix_vente=10,
+            tva=0,
+        )
+
+        self.a3 = Article.objects.create(
+            reference="REF3",
+            designation="Archived",
+            type_article="produit",
+            company=self.company,
+            prix_vente=10,
+            tva=0,
+            archived=True,
+        )
+
+    def test_global_search_matches_reference_and_designation(self):
+        filt = ArticleFilter(
+            {"search": "FindMe", "company_id": self.company.id},
+            queryset=Article.objects.all(),
+        )
+        qs = filt.qs
+        assert self.a1 in qs
+        assert self.a2 not in qs
+
+        filt_ref = ArticleFilter(
+            {"search": "REF1", "company_id": self.company.id},
+            queryset=Article.objects.all(),
+        )
+        assert self.a1 in filt_ref.qs
+
+    def test_global_search_matches_related_fields_fallback(self):
+        # search should match on related `marque__nom` via fallback icontains
+        filt = ArticleFilter(
+            {"search": "brandx", "company_id": self.company.id},
+            queryset=Article.objects.all(),
+        )
+        qs = filt.qs
+        assert self.a1 in qs
+
+    def test_archived_filter_true_and_false(self):
+        filt_true = ArticleFilter(
+            {"archived": "true", "company_id": self.company.id},
+            queryset=Article.objects.all(),
+        )
+        qs_true = list(filt_true.qs)
+        assert self.a3 in qs_true
+        assert self.a1 not in qs_true
+
+        filt_false = ArticleFilter(
+            {"archived": "false", "company_id": self.company.id},
+            queryset=Article.objects.all(),
+        )
+        qs_false = list(filt_false.qs)
+        assert self.a3 not in qs_false
+        assert self.a1 in qs_false
+
+    def test_empty_search_returns_queryset_unchanged(self):
+        base_qs = Article.objects.filter(company=self.company)
+        filt = ArticleFilter(
+            {"search": "   ", "company_id": self.company.id}, queryset=base_qs
+        )
+        assert set(filt.qs) == set(base_qs)

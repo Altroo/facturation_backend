@@ -8,6 +8,7 @@ from account.models import Membership
 from client.models import Client
 from company.models import Company
 from parameter.models import Ville
+from .filters import ClientFilter
 
 
 @pytest.mark.django_db
@@ -512,3 +513,134 @@ class TestClientAPI:
         response = self.client.get(url)
         assert response.status_code == status.HTTP_200_OK
         assert response.data["code_client"] == "CLT0001"
+
+
+@pytest.mark.django_db
+class TestClientFilters:
+    def setup_method(self):
+        self.user_model = get_user_model()
+        self.user = self.user_model.objects.create_user(
+            email="filter@example.com", password="p"
+        )
+
+        self.ville1 = Ville.objects.create(nom="Casablanca")
+        self.ville2 = Ville.objects.create(nom="Rabat")
+
+        self.company1 = Company.objects.create(
+            raison_sociale="FilterCorp",
+            ICE="ICEFILT",
+            registre_de_commerce="RCFILT",
+            nbr_employe=10,
+        )
+        self.company2 = Company.objects.create(
+            raison_sociale="OtherCorp",
+            ICE="ICEOTHER",
+            registre_de_commerce="RCOther",
+            nbr_employe=5,
+        )
+
+        Membership.objects.create(user=self.user, company=self.company1)
+
+        # Personne morale
+        self.c1 = Client.objects.create(
+            code_client="CLT1001",
+            client_type=Client.PERSONNE_MORALE,
+            raison_sociale="Société Filter",
+            ICE="111",
+            registre_de_commerce="RC111",
+            delai_de_paiement=30,
+            ville=self.ville1,
+            company=self.company1,
+        )
+
+        # Personne physique
+        self.c2 = Client.objects.create(
+            code_client="CLT1002",
+            client_type=Client.PERSONNE_PHYSIQUE,
+            nom="Mohamed",
+            prenom="Alaoui",
+            adresse="Rue 1",
+            tel="+212600123456",
+            delai_de_paiement=45,
+            ville=self.ville1,
+            company=self.company1,
+        )
+
+        # Different company
+        self.c3 = Client.objects.create(
+            code_client="CLT2001",
+            client_type=Client.PERSONNE_PHYSIQUE,
+            nom="Other",
+            prenom="User",
+            adresse="Other Addr",
+            tel="+212600000000",
+            delai_de_paiement=10,
+            ville=self.ville2,
+            company=self.company2,
+        )
+
+    def test_search_matches_code_and_raison_sociale(self):
+        filt = ClientFilter(
+            {"search": "CLT1001", "company_id": self.company1.id},
+            queryset=Client.objects.all(),
+        )
+        qs = filt.qs
+        assert self.c1 in qs
+        assert self.c2 not in qs
+
+        filt2 = ClientFilter(
+            {"search": "Société Filter", "company_id": self.company1.id},
+            queryset=Client.objects.all(),
+        )
+        assert self.c1 in filt2.qs
+
+    def test_search_fallback_matches_related_ville_and_tel(self):
+        # search by ville name (related field) should be matched via fallback_q
+        filt = ClientFilter(
+            {"search": "casablanca", "company_id": self.company1.id},
+            queryset=Client.objects.all(),
+        )
+        qs = filt.qs
+        assert self.c1 in qs and self.c2 in qs
+
+        # search by phone substring
+        filt_tel = ClientFilter(
+            {"search": "123456", "company_id": self.company1.id},
+            queryset=Client.objects.all(),
+        )
+        assert self.c2 in filt_tel.qs
+        assert self.c1 not in filt_tel.qs
+
+    def test_company_id_filters_results(self):
+        filt = ClientFilter(
+            {"company_id": self.company2.id}, queryset=Client.objects.all()
+        )
+        qs = filt.qs
+        assert list(qs) == [self.c3]
+
+    def test_archived_filter_true_and_false(self):
+        self.c2.archived = True
+        self.c2.save()
+
+        filt_true = ClientFilter(
+            {"archived": "true", "company_id": self.company1.id},
+            queryset=Client.objects.all(),
+        )
+        qs_true = list(filt_true.qs)
+        assert self.c2 in qs_true
+        assert self.c1 not in qs_true
+
+        filt_false = ClientFilter(
+            {"archived": "false", "company_id": self.company1.id},
+            queryset=Client.objects.all(),
+        )
+        qs_false = list(filt_false.qs)
+        assert self.c1 in qs_false
+        assert self.c2 not in qs_false
+
+    def test_empty_search_returns_queryset_unchanged(self):
+        base_qs = Client.objects.filter(company=self.company1)
+        filt = ClientFilter(
+            {"search": "   ", "company_id": self.company1.id}, queryset=base_qs
+        )
+        assert set(filt.qs) == set(base_qs)

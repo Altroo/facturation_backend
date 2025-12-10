@@ -3,6 +3,7 @@ from re import match
 from urllib.parse import quote
 
 import pytest
+from django.contrib.auth import get_user_model
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
@@ -13,6 +14,7 @@ from client.models import Client
 from company.models import Company
 from devi.models import Devi, DeviLine
 from parameter.models import ModePaiement, Ville
+from .filters import DeviLineFilter, DeviFilter
 
 
 @pytest.mark.django_db
@@ -578,3 +580,152 @@ class TestDeviAPI:
         response = self.client_api.delete(url)
         assert response.status_code == status.HTTP_204_NO_CONTENT
         assert not DeviLine.objects.filter(id=self.devi_line.id).exists()
+
+
+@pytest.mark.django_db
+class TestDeviFilters:
+    def setup_method(self):
+        user_object = get_user_model()
+        self.user = user_object.objects.create_user(
+            email="filter@dev.com", password="p"
+        )
+
+        self.ville = Ville.objects.create(nom="SearchVille")
+        self.company = Company.objects.create(raison_sociale="FilterCo", ICE="ICEFILT")
+        Membership.objects.create(user=self.user, company=self.company)
+
+        self.client_a = Client.objects.create(
+            code_client="C001",
+            client_type="PM",
+            raison_sociale="Client Alpha",
+            company=self.company,
+            ville=self.ville,
+        )
+        self.client_b = Client.objects.create(
+            code_client="C002",
+            client_type="PM",
+            raison_sociale="Other Client",
+            company=self.company,
+            ville=self.ville,
+        )
+
+        self.mode = ModePaiement.objects.create(nom="Cash")
+
+        self.devi1 = Devi.objects.create(
+            numero_devis="NUM-001",
+            client=self.client_a,
+            date_devis="2024-06-01",
+            numero_demande_prix_client="REQ-ALPHA",
+            mode_paiement=self.mode,
+            remise=0,
+            remise_type="Pourcentage",
+            created_by_user=self.user,
+        )
+        self.devi2 = Devi.objects.create(
+            numero_devis="NUM-002",
+            client=self.client_b,
+            date_devis="2024-06-02",
+            numero_demande_prix_client="REQ-BETA",
+            mode_paiement=self.mode,
+            remise=0,
+            remise_type="Pourcentage",
+            created_by_user=self.user,
+            statut="Accepté",
+        )
+
+    def test_global_search_matches_numero_and_client_and_req(self):
+        filt = DeviFilter({"search": "NUM-001"}, queryset=Devi.objects.all())
+        assert self.devi1 in filt.qs
+        assert self.devi2 not in filt.qs
+
+        filt_client = DeviFilter(
+            {"search": "client alpha"}, queryset=Devi.objects.all()
+        )
+        assert self.devi1 in filt_client.qs
+
+        filt_req = DeviFilter({"search": "REQ-BETA"}, queryset=Devi.objects.all())
+        assert self.devi2 in filt_req.qs
+
+    def test_filter_statut_case_insensitive_and_trim(self):
+        filt = DeviFilter({"statut": "brouillon"}, queryset=Devi.objects.all())
+        # devi1 default statut should be Brouillon
+        assert self.devi1 in filt.qs
+        filt_accept = DeviFilter(
+            {"statut": " accept\u00e9 "}, queryset=Devi.objects.all()
+        )  # trimmed + case-insensitive
+        assert self.devi2 in filt_accept.qs
+
+    def test_client_id_filter(self):
+        filt = DeviFilter({"client_id": self.client_a.id}, queryset=Devi.objects.all())
+        qs = list(filt.qs)
+        assert qs == [self.devi1]
+
+    def test_empty_search_returns_queryset_unchanged(self):
+        base_qs = Devi.objects.all()
+        filt = DeviFilter({"search": "   "}, queryset=base_qs)
+        assert set(filt.qs) == set(base_qs)
+
+
+@pytest.mark.django_db
+class TestDeviLineFilters:
+    def setup_method(self):
+        self.ville = Ville.objects.create(nom="LineVille")
+        self.company = Company.objects.create(raison_sociale="LineCo", ICE="ICELINE")
+        self.client = Client.objects.create(
+            code_client="CLN1",
+            client_type="PM",
+            raison_sociale="LineClient",
+            company=self.company,
+            ville=self.ville,
+        )
+        self.mode = ModePaiement.objects.create(nom="Card")
+        self.devi = Devi.objects.create(
+            numero_devis="DL-001",
+            client=self.client,
+            date_devis="2024-06-01",
+            mode_paiement=self.mode,
+            remise=0,
+            remise_type="Pourcentage",
+            created_by_user=None,
+        )
+
+        self.article_a = Article.objects.create(
+            company=self.company,
+            reference="REF-A",
+            designation="FindThisArticle",
+            prix_achat=10,
+            prix_vente=15,
+            type_article="Produit",
+        )
+        self.article_b = Article.objects.create(
+            company=self.company,
+            reference="REF-B",
+            designation="OtherArticle",
+            prix_achat=5,
+            prix_vente=8,
+            type_article="Produit",
+        )
+
+        self.line = DeviLine.objects.create(
+            devis=self.devi,
+            article=self.article_a,
+            prix_achat=10,
+            prix_vente=15,
+            quantity=1,
+            remise=0,
+            remise_type="Pourcentage",
+        )
+
+    def test_global_search_matches_article_designation_and_reference(self):
+        filt = DeviLineFilter(
+            {"search": "FindThisArticle"}, queryset=DeviLine.objects.all()
+        )
+        assert self.line in filt.qs
+
+        filt_ref = DeviLineFilter({"search": "REF-A"}, queryset=DeviLine.objects.all())
+        assert self.line in filt_ref.qs
+
+    def test_empty_search_returns_queryset_unchanged(self):
+        base_qs = DeviLine.objects.filter(devis=self.devi)
+        filt = DeviLineFilter({"search": ""}, queryset=base_qs)
+        assert set(filt.qs) == set(base_qs)

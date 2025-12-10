@@ -9,6 +9,7 @@ from rest_framework.test import APIClient
 
 from account.models import Membership
 from company.models import Company
+from .filters import CompanyFilter
 
 # Minimal valid base64 PNG (1x1 transparent)
 BASE64_PNG = (
@@ -378,3 +379,63 @@ class TestCompanyImagesAndMemberships:
         else:
             # If forbidden, assert that memberships were still updated correctly
             assert detail.status_code == status.HTTP_403_FORBIDDEN
+
+
+@pytest.mark.django_db
+class TestCompanyFilters:
+    def setup_method(self):
+        self.c1 = Company.objects.create(
+            raison_sociale="FilterCorp",
+            ICE="ICEFILT",
+            registre_de_commerce="RCFILT",
+            nom_responsable="Alice BrandX",
+            email="alice@example.com",
+            adresse="123 Filter Street",
+            telephone="0123456789",
+        )
+        self.c2 = Company.objects.create(
+            raison_sociale="OtherCorp",
+            ICE="ICEOTHER",
+            registre_de_commerce="RCOther",
+            nom_responsable="Bob",
+            email="bob@example.com",
+            adresse="456 Other Ave",
+            telephone="0987654321",
+        )
+        self.c3 = Company.objects.create(
+            raison_sociale="Special&Chars Ltd",
+            ICE="ICESP",
+            registre_de_commerce="RCSP",
+            nom_responsable="Carol",
+            email="carol@example.com",
+            adresse="789 Special Blvd",
+            telephone="000111222",
+        )
+
+    def test_global_search_matches_raison_and_ice(self):
+        filt = CompanyFilter({"search": "FilterCorp"}, queryset=Company.objects.all())
+        assert self.c1 in filt.qs
+        filt_ice = CompanyFilter({"search": "ICEFILT"}, queryset=Company.objects.all())
+        assert self.c1 in filt_ice.qs
+
+    def test_search_fallback_matches_nom_responsable_and_adresse(self):
+        # fallback should match on nom_responsable (case-insensitive)
+        filt = CompanyFilter({"search": "brandx"}, queryset=Company.objects.all())
+        assert self.c1 in filt.qs
+        # fallback should match partial address
+        filt_addr = CompanyFilter(
+            {"search": "Other Ave"}, queryset=Company.objects.all()
+        )
+        assert self.c2 in filt_addr.qs
+
+    def test_search_handles_special_characters_via_fallback(self):
+        # search containing special characters should still match via icontains fallback
+        filt = CompanyFilter(
+            {"search": "Special&Chars"}, queryset=Company.objects.all()
+        )
+        assert self.c3 in filt.qs
+
+    def test_empty_search_returns_queryset_unchanged(self):
+        base_qs = Company.objects.all()
+        filt = CompanyFilter({"search": ""}, queryset=base_qs)
+        assert set(filt.qs) == set(base_qs)
