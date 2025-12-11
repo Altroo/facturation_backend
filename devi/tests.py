@@ -14,7 +14,7 @@ from client.models import Client
 from company.models import Company
 from devi.models import Devi, DeviLine
 from parameter.models import ModePaiement, Ville
-from .filters import DeviLineFilter, DeviFilter
+from .filters import DeviFilter
 
 
 @pytest.mark.django_db
@@ -498,89 +498,6 @@ class TestDeviAPI:
         response = self.client_api.patch(url, payload, format="json")
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
-    # DeviLine endpoints tests
-    def test_list_devi_lines_requires_devis_id(self):
-        """List lines endpoint requires devis_id parameter."""
-        url = reverse("devi:devi-line-list-create")
-        response = self.client_api.get(url)
-        assert response.status_code == status.HTTP_404_NOT_FOUND
-
-    def test_list_devi_lines(self):
-        """List lines for a specific devi."""
-        url = reverse("devi:devi-line-list-create") + f"?devis_id={self.devi.id}"
-        response = self.client_api.get(url)
-        assert response.status_code == status.HTTP_200_OK
-        assert isinstance(response.data, list)
-        assert len(response.data) == 1
-        assert response.data[0]["article"] == self.article.id
-
-    def test_create_devi_line(self):
-        """Create a new devi line."""
-        url = reverse("devi:devi-line-list-create")
-        payload = {
-            "devis": self.devi.id,
-            "article": self.article.id,
-            "prix_achat": 150,
-            "prix_vente": 180,
-            "quantity": 3,
-            "remise": 5,
-            "remise_type": "Pourcentage",
-        }
-        response = self.client_api.post(url, payload, format="json")
-        assert response.status_code == status.HTTP_201_CREATED
-        assert response.data["prix_achat"] == 150
-
-        # Verify DB
-        assert DeviLine.objects.filter(devis=self.devi, prix_achat=150).exists()
-
-    def test_get_devi_line_detail(self):
-        """Get a specific devi line."""
-        url = reverse("devi:devi-line-detail-edit-delete", args=[self.devi_line.id])
-        response = self.client_api.get(url)
-        assert response.status_code == status.HTTP_200_OK
-        assert response.data["id"] == self.devi_line.id
-        assert response.data["designation"] == self.article.designation
-
-    def test_update_devi_line(self):
-        """Update a devi line via PUT."""
-        url = reverse("devi:devi-line-detail-edit-delete", args=[self.devi_line.id])
-        payload = {
-            "devis": self.devi.id,
-            "article": self.article.id,
-            "prix_achat": 200,
-            "prix_vente": 250,
-            "quantity": 10,
-            "remise": 15,
-            "remise_type": "Pourcentage",
-        }
-        response = self.client_api.put(url, payload, format="json")
-        assert response.status_code == status.HTTP_200_OK
-
-        # Verify DB
-        self.devi_line.refresh_from_db()
-        assert self.devi_line.prix_achat == 200
-        assert self.devi_line.quantity == 10
-
-    def test_partial_update_devi_line(self):
-        """Partial update a devi line via PATCH."""
-        url = reverse("devi:devi-line-detail-edit-delete", args=[self.devi_line.id])
-        payload = {"quantity": 15}
-        response = self.client_api.patch(url, payload, format="json")
-        assert response.status_code == status.HTTP_200_OK
-
-        # Verify DB
-        self.devi_line.refresh_from_db()
-        assert self.devi_line.quantity == 15
-        # Other fields unchanged
-        assert self.devi_line.prix_achat == 100
-
-    def test_delete_devi_line(self):
-        """Delete a devi line."""
-        url = reverse("devi:devi-line-detail-edit-delete", args=[self.devi_line.id])
-        response = self.client_api.delete(url)
-        assert response.status_code == status.HTTP_204_NO_CONTENT
-        assert not DeviLine.objects.filter(id=self.devi_line.id).exists()
-
 
 @pytest.mark.django_db
 class TestDeviFilters:
@@ -663,69 +580,4 @@ class TestDeviFilters:
     def test_empty_search_returns_queryset_unchanged(self):
         base_qs = Devi.objects.all()
         filt = DeviFilter({"search": "   "}, queryset=base_qs)
-        assert set(filt.qs) == set(base_qs)
-
-
-@pytest.mark.django_db
-class TestDeviLineFilters:
-    def setup_method(self):
-        self.ville = Ville.objects.create(nom="LineVille")
-        self.company = Company.objects.create(raison_sociale="LineCo", ICE="ICELINE")
-        self.client = Client.objects.create(
-            code_client="CLN1",
-            client_type="PM",
-            raison_sociale="LineClient",
-            company=self.company,
-            ville=self.ville,
-        )
-        self.mode = ModePaiement.objects.create(nom="Card")
-        self.devi = Devi.objects.create(
-            numero_devis="DL-001",
-            client=self.client,
-            date_devis="2024-06-01",
-            mode_paiement=self.mode,
-            remise=0,
-            remise_type="Pourcentage",
-            created_by_user=None,
-        )
-
-        self.article_a = Article.objects.create(
-            company=self.company,
-            reference="REF-A",
-            designation="FindThisArticle",
-            prix_achat=10,
-            prix_vente=15,
-            type_article="Produit",
-        )
-        self.article_b = Article.objects.create(
-            company=self.company,
-            reference="REF-B",
-            designation="OtherArticle",
-            prix_achat=5,
-            prix_vente=8,
-            type_article="Produit",
-        )
-
-        self.line = DeviLine.objects.create(
-            devis=self.devi,
-            article=self.article_a,
-            prix_achat=10,
-            prix_vente=15,
-            quantity=1,
-            remise=0,
-            remise_type="Pourcentage",
-        )
-
-    def test_global_search_matches_article_designation_and_reference(self):
-        filt = DeviLineFilter(
-            {"search": "FindThisArticle"}, queryset=DeviLine.objects.all()
-        )
-        assert self.line in filt.qs
-
-        filt_ref = DeviLineFilter({"search": "REF-A"}, queryset=DeviLine.objects.all())
-        assert self.line in filt_ref.qs
-
-    def test_empty_search_returns_queryset_unchanged(self):
-        base_qs = DeviLine.objects.filter(devis=self.devi)
-        filt = DeviLineFilter({"search": ""}, queryset=base_qs)
         assert set(filt.qs) == set(base_qs)
