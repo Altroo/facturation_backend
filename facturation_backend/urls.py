@@ -32,6 +32,8 @@ urlpatterns = [
     path("api/article/", include("article.urls")),
     # Devi
     path("api/devi/", include("devi.urls")),
+    # Facture Proforma
+    path("api/facture_proforma/", include("facture_proforma.urls")),
     # Parameter
     path("api/parameter/", include("parameter.urls")),
     # Admin panel

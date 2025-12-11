@@ -11,7 +11,7 @@ from client.models import Client
 from parameter.models import ModePaiement
 
 
-class Devi(models.Model):
+class FactureProForma(models.Model):
     STATUT_CHOICES = [
         ("Brouillon", "Brouillon"),
         ("Envoyé", "Envoyé"),
@@ -20,17 +20,17 @@ class Devi(models.Model):
         ("Annulé", "Annulé"),
         ("Expiré", "Expiré"),
     ]
-    numero_devis = models.CharField(
+    numero_facture = models.CharField(
         max_length=20,
-        verbose_name="Numéro du devis",
+        verbose_name="Numéro de la facture pro forma",
         unique=True,
         help_text="Format ex: 0001/25",
     )
     client = models.ForeignKey(Client, on_delete=models.CASCADE, verbose_name="Client")
-    date_devis = models.DateField(verbose_name="Date du devis", db_index=True)
-    numero_demande_prix_client = models.CharField(
+    date_facture = models.DateField(verbose_name="Date de facture", db_index=True)
+    numero_bon_commande_client = models.CharField(
         max_length=50,
-        verbose_name="Numéro de la demande de prix du client",
+        verbose_name="Numéro de bon de commande client",
         blank=True,
         null=True,
     )
@@ -113,12 +113,12 @@ class Devi(models.Model):
     )
 
     class Meta:
-        verbose_name = "Devis"
-        verbose_name_plural = "Devis"
+        verbose_name = "Facture Pro-Forma"
+        verbose_name_plural = "Factures Pro-Forma"
         ordering = ("-date_created",)
 
     def __str__(self):
-        return self.numero_devis
+        return self.numero_facture
 
     def recalc_totals(self):
         """
@@ -209,9 +209,12 @@ class Devi(models.Model):
             super().save(*args, **kwargs)
 
 
-class DeviLine(models.Model):
-    devis = models.ForeignKey(
-        Devi, on_delete=models.CASCADE, related_name="lignes", verbose_name="Devis"
+class FactureProFormaLine(models.Model):
+    facture_pro_forma = models.ForeignKey(
+        FactureProForma,
+        on_delete=models.CASCADE,
+        related_name="lignes",
+        verbose_name="Facture Pro Forma",
     )
     article = models.ForeignKey(
         Article, on_delete=models.CASCADE, verbose_name="Article"
@@ -251,21 +254,21 @@ class DeviLine(models.Model):
     )
 
     class Meta:
-        verbose_name = "Ligne de devis"
-        verbose_name_plural = "Lignes de devis"
+        verbose_name = "Ligne de facture pro forma"
+        verbose_name_plural = "Lignes de factures pro forma"
 
     def __str__(self):
-        return f"{self.devis} - {self.article}"
+        return f"{self.facture_pro_forma} - {self.article}"
 
 
-@receiver([post_save, post_delete], sender=DeviLine)
-def _recalc_devi_on_line_change(sender, instance, **kwargs):
-    """Recalculate parent devi totals when a line is created/updated/deleted."""
-    devi = instance.devis
-    if devi.pk:
+@receiver([post_save, post_delete], sender=FactureProFormaLine)
+def _recalc_facture_pro_forma_on_line_change(sender, instance, **kwargs):
+    """Recalculate parent totals when a line is created/updated/deleted."""
+    facture_pro_forma = instance.facture_pro_forma
+    if facture_pro_forma.pk:
         with transaction.atomic():
-            devi.recalc_totals()
-            devi.save(
+            facture_pro_forma.recalc_totals()
+            facture_pro_forma.save(
                 update_fields=[
                     "total_ht",
                     "total_tva",

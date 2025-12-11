@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     "client.apps.ClientConfig",
     "article.apps.ArticleConfig",
     "devi.apps.DeviConfig",
+    "facture_proforma.apps.FactureProformaConfig",
 ]
 
 MIDDLEWARE = [
