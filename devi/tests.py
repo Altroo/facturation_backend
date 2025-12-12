@@ -106,7 +106,7 @@ class TestDeviAPI:
         assert "remise" in devi_data
         assert "remise_type" in devi_data
         # Ensure totals are present and numeric or None
-        for key in ("total_tva", "total_ttc", "total_ttc_apres_remise"):
+        for key in ("total_ht", "total_tva", "total_ttc", "total_ttc_apres_remise"):
             assert key in devi_data
             assert devi_data.get(key) is None or isinstance(
                 devi_data.get(key), (int, float)
@@ -126,7 +126,7 @@ class TestDeviAPI:
         # Ensure totals exist on items
         if response.data["results"]:
             item = response.data["results"][0]
-            for key in ("total_tva", "total_ttc", "total_ttc_apres_remise"):
+            for key in ("total_ht", "total_tva", "total_ttc", "total_ttc_apres_remise"):
                 assert key in item
                 assert item.get(key) is None or isinstance(item.get(key), (int, float))
 
@@ -154,7 +154,7 @@ class TestDeviAPI:
         assert response.data.get("remise") == 0
         assert response.data.get("remise_type") == "Pourcentage"
         # Totals present (may be None if no lines) and numeric when present
-        for key in ("total_tva", "total_ttc", "total_ttc_apres_remise"):
+        for key in ("total_ht", "total_tva", "total_ttc", "total_ttc_apres_remise"):
             assert key in response.data
             assert response.data.get(key) is None or isinstance(
                 response.data.get(key), (int, float)
@@ -201,7 +201,7 @@ class TestDeviAPI:
         assert "designation" in line  # from DeviLineSerializer
         assert "reference" in line
         # Totals present and numeric
-        for key in ("total_tva", "total_ttc", "total_ttc_apres_remise"):
+        for key in ("total_ht", "total_tva", "total_ttc", "total_ttc_apres_remise"):
             assert key in response.data
             assert response.data.get(key) is None or isinstance(
                 response.data.get(key), (int, float)
@@ -229,7 +229,7 @@ class TestDeviAPI:
         assert response.data.get("remise") == 0
         assert response.data.get("remise_type") == "Pourcentage"
         # Totals present and numeric
-        for key in ("total_tva", "total_ttc", "total_ttc_apres_remise"):
+        for key in ("total_ht", "total_tva", "total_ttc", "total_ttc_apres_remise"):
             assert key in response.data
             assert response.data.get(key) is None or isinstance(
                 response.data.get(key), (int, float)
