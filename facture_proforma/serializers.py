@@ -48,6 +48,7 @@ class FactureProformaListSerializer(serializers.ModelSerializer):
             "remise_type",
             "remise",
             # totals (read-only)
+            "total_ht",
             "total_tva",
             "total_ttc",
             "total_ttc_apres_remise",
@@ -244,6 +245,7 @@ class FactureProformaSerializer(serializers.ModelSerializer):
             "remise_type",
             "remise",
             # totals (read-only)
+            "total_ht",
             "total_tva",
             "total_ttc",
             "total_ttc_apres_remise",
@@ -254,6 +256,7 @@ class FactureProformaSerializer(serializers.ModelSerializer):
             "id",
             "created_by_user",
             "statut",
+            "total_ht",
             "total_tva",
             "total_ttc",
             "total_ttc_apres_remise",
