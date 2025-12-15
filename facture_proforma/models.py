@@ -125,68 +125,78 @@ class FactureProForma(models.Model):
         Compute totals based on related lines and remise.
         - Line remise applies on HT before TVA.
         - Document remise applies on aggregated HT, then TVA is scaled proportionally.
-        Stores raw (pre-remise) totals in total_ht/total_tva/total_ttc and
-        the post-remise TTC in total_ttc_apres_remise.
-        Uses Decimal and ROUND_HALF_UP for consistent rounding when storing integer totals.
+        - Store integer centimes (MAD * 100) in integer fields to preserve two decimals.
         """
-        raw_total_ht = Decimal(0)
-        raw_total_tva = Decimal(0)
+        from decimal import Decimal, ROUND_HALF_UP
+
+        raw_total_ht = Decimal("0")
+        raw_total_tva = Decimal("0")
 
         for line in self.lignes.all():
-            prix_vente = Decimal(getattr(line, "prix_vente", 0) or 0)
-            qty = Decimal(getattr(line, "quantity", 0) or 0)
+            # use string constructor to avoid float imprecision
+            prix_vente = Decimal(str(getattr(line, "prix_vente", 0) or 0))
+            qty = Decimal(str(getattr(line, "quantity", 0) or 0))
             line_gross = prix_vente * qty
 
-            # line discount only when a type is set and value > 0
-            remise = Decimal(getattr(line, "remise", 0) or 0)
+            remise = Decimal(str(getattr(line, "remise", 0) or 0))
             line_remise_type = getattr(line, "remise_type", "") or ""
             if remise > 0 and line_remise_type == "Pourcentage":
-                line_discount = (line_gross * remise) / Decimal(100)
+                line_discount = (line_gross * remise) / Decimal("100")
             elif remise > 0 and line_remise_type == "Fixe":
                 line_discount = remise
             else:
-                line_discount = Decimal(0)
+                line_discount = Decimal("0")
 
-            line_net_ht = max(Decimal(0), line_gross - line_discount)
+            line_net_ht = max(Decimal("0"), line_gross - line_discount)
             raw_total_ht += line_net_ht
 
-            # VAT rate from article (percentage), fallback to 0
-            tva_pct = Decimal(getattr(getattr(line, "article", None), "tva", 0) or 0)
-            raw_total_tva += (line_net_ht * tva_pct) / Decimal(100)
+            tva_pct = Decimal(
+                str(getattr(getattr(line, "article", None), "tva", 0) or 0)
+            )
+            raw_total_tva += (line_net_ht * tva_pct) / Decimal("100")
 
         # raw totals (before document-level remise)
         raw_total_ttc = raw_total_ht + raw_total_tva
 
         # document-level remise (applied on HT)
-        doc_remise = Decimal(getattr(self, "remise", 0) or 0)
+        doc_remise = Decimal(str(getattr(self, "remise", 0) or 0))
         doc_remise_type = getattr(self, "remise_type", "") or ""
         if doc_remise > 0 and doc_remise_type == "Pourcentage":
-            final_total_ht = raw_total_ht * (Decimal(1) - doc_remise / Decimal(100))
+            final_total_ht = raw_total_ht * (Decimal("1") - doc_remise / Decimal("100"))
         elif doc_remise > 0 and doc_remise_type == "Fixe":
-            final_total_ht = max(Decimal(0), raw_total_ht - doc_remise)
+            final_total_ht = max(Decimal("0"), raw_total_ht - doc_remise)
         else:
             final_total_ht = raw_total_ht
 
-        # scale TVA proportionally to the HT change (preserves per-line tax distribution)
-        if raw_total_ht > 0:
-            ratio = final_total_ht / raw_total_ht
-        else:
-            ratio = Decimal(0)
+        # scale TVA proportionally to the HT change
+        ratio = (final_total_ht / raw_total_ht) if raw_total_ht > 0 else Decimal("0")
         final_total_tva = raw_total_tva * ratio
         final_total_ttc = final_total_ht + final_total_tva
 
-        # Round to nearest integer (MAD) before storing in PositiveIntegerField
-        self.total_ht = int(raw_total_ht.quantize(Decimal("1"), rounding=ROUND_HALF_UP))
-        self.total_tva = int(
-            raw_total_tva.quantize(Decimal("1"), rounding=ROUND_HALF_UP)
+        # Quantize to cents and store as integer centimes (MAD * 100)
+        raw_total_ht_q = raw_total_ht.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        raw_total_tva_q = raw_total_tva.quantize(
+            Decimal("0.01"), rounding=ROUND_HALF_UP
         )
-        self.total_ttc = int(
-            raw_total_ttc.quantize(Decimal("1"), rounding=ROUND_HALF_UP)
+        raw_total_ttc_q = raw_total_ttc.quantize(
+            Decimal("0.01"), rounding=ROUND_HALF_UP
+        )
+        final_total_ttc_q = final_total_ttc.quantize(
+            Decimal("0.01"), rounding=ROUND_HALF_UP
         )
 
-        # store post-remise TTC separately
+        # store integer centimes
+        self.total_ht = int(
+            (raw_total_ht_q * 100).quantize(Decimal("1"), rounding=ROUND_HALF_UP)
+        )
+        self.total_tva = int(
+            (raw_total_tva_q * 100).quantize(Decimal("1"), rounding=ROUND_HALF_UP)
+        )
+        self.total_ttc = int(
+            (raw_total_ttc_q * 100).quantize(Decimal("1"), rounding=ROUND_HALF_UP)
+        )
         self.total_ttc_apres_remise = int(
-            final_total_ttc.quantize(Decimal("1"), rounding=ROUND_HALF_UP)
+            (final_total_ttc_q * 100).quantize(Decimal("1"), rounding=ROUND_HALF_UP)
         )
 
     def save(self, *args, **kwargs) -> None:

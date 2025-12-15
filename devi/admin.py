@@ -27,7 +27,6 @@ class DeviLineInline(admin.TabularInline):
         return ()
 
 
-# python
 class DeviAdmin(admin.ModelAdmin):
     """Admin configuration for the Devi model."""
 
@@ -39,10 +38,10 @@ class DeviAdmin(admin.ModelAdmin):
         "mode_paiement",
         "display_remise",
         "display_lignes_count",
-        "total_ht",
-        "total_tva",
-        "total_ttc",
-        "total_ttc_apres_remise",
+        "display_total_ht",
+        "display_total_tva",
+        "display_total_ttc",
+        "display_total_ttc_apres_remise",
         "date_created",
         "created_by_user",
     )
@@ -88,10 +87,10 @@ class DeviAdmin(admin.ModelAdmin):
             "Totaux (calculés)",
             {
                 "fields": (
-                    "total_ht",
-                    "total_tva",
-                    "total_ttc",
-                    "total_ttc_apres_remise",
+                    "display_total_ht",
+                    "display_total_tva",
+                    "display_total_ttc",
+                    "display_total_ttc_apres_remise",
                 ),
                 "classes": ("collapse",),
             },
@@ -112,16 +111,16 @@ class DeviAdmin(admin.ModelAdmin):
     autocomplete_fields = ("client", "mode_paiement")
     date_hierarchy = "date_devis"
 
-    # Make computed and system fields readonly at class-level so Django can resolve them in fieldsets
+    # Use display methods as readonly so they render formatted values
     readonly_fields = (
         "date_created",
         "date_updated",
         "created_by_user",
         "display_lignes_count",
-        "total_ht",
-        "total_tva",
-        "total_ttc",
-        "total_ttc_apres_remise",
+        "display_total_ht",
+        "display_total_tva",
+        "display_total_ttc",
+        "display_total_ttc_apres_remise",
     )
 
     def get_readonly_fields(self, request, obj=None):
@@ -188,7 +187,7 @@ class DeviAdmin(admin.ModelAdmin):
                 return f"{int(obj.remise)} %"
             except (TypeError, ValueError):
                 return "-"
-        return self._fmt_cents(obj.remise)
+        return self._fmt_cents(obj.remise) + " MAD"
 
     @admin.display(description="Nombre de lignes")
     def display_lignes_count(self, obj):
@@ -203,7 +202,35 @@ class DeviAdmin(admin.ModelAdmin):
             value = int(value or 0)
         except (TypeError, ValueError):
             value = 0
-        return f"{value/100:.2f}"
+        # returns string with two decimals (value is stored in centimes)
+        return f"{value / 100:.2f}"
+
+    # Formatted total fields for list and readonly views
+    @admin.display(description="Total HT", ordering="total_ht")
+    def display_total_ht(self, obj):
+        if obj is None:
+            return "-"
+        return f"{self._fmt_cents(obj.total_ht)} MAD"
+
+    @admin.display(description="Total TVA", ordering="total_tva")
+    def display_total_tva(self, obj):
+        if obj is None:
+            return "-"
+        return f"{self._fmt_cents(obj.total_tva)} MAD"
+
+    @admin.display(description="Total TTC", ordering="total_ttc")
+    def display_total_ttc(self, obj):
+        if obj is None:
+            return "-"
+        return f"{self._fmt_cents(obj.total_ttc)} MAD"
+
+    @admin.display(
+        description="Total TTC après remise", ordering="total_ttc_apres_remise"
+    )
+    def display_total_ttc_apres_remise(self, obj):
+        if obj is None:
+            return "-"
+        return f"{self._fmt_cents(obj.total_ttc_apres_remise)} MAD"
 
 
 class DeviLineAdmin(admin.ModelAdmin):
