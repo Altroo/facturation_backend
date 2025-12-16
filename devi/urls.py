@@ -5,6 +5,7 @@ from .views import (
     DeviDetailEditDeleteView,
     GenerateNumeroDevisView,
     DeviStatusUpdateView,
+    DeviConvertToFactureProformaView,
 )
 
 app_name = "devi"
@@ -25,5 +26,11 @@ urlpatterns = [
         "switch_statut/<int:pk>/",
         DeviStatusUpdateView.as_view(),
         name="devi-statut-update",
+    ),
+    # POST : convert devi to facture pro-forma
+    path(
+        "convert_to_facture_proforma/<int:pk>/",
+        DeviConvertToFactureProformaView.as_view(),
+        name="convert-to-factture-proforma",
     ),
 ]
