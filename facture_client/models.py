@@ -8,11 +8,10 @@ from django.dispatch import receiver
 from account.models import CustomUser
 from article.models import Article
 from client.models import Client
-from facture_proforma.models import FactureProForma, FactureProFormaLine
 from parameter.models import ModePaiement
 
 
-class Devi(models.Model):
+class FactureClient(models.Model):
     STATUT_CHOICES = [
         ("Brouillon", "Brouillon"),
         ("Envoyé", "Envoyé"),
@@ -21,17 +20,17 @@ class Devi(models.Model):
         ("Annulé", "Annulé"),
         ("Expiré", "Expiré"),
     ]
-    numero_devis = models.CharField(
+    numero_facture = models.CharField(
         max_length=20,
-        verbose_name="Numéro du devis",
+        verbose_name="Numéro de la facture client",
         unique=True,
         help_text="Format ex: 0001/25",
     )
     client = models.ForeignKey(Client, on_delete=models.CASCADE, verbose_name="Client")
-    date_devis = models.DateField(verbose_name="Date du devis", db_index=True)
-    numero_demande_prix_client = models.CharField(
+    date_facture = models.DateField(verbose_name="Date de facture", db_index=True)
+    numero_bon_commande_client = models.CharField(
         max_length=50,
-        verbose_name="Numéro de la demande de prix du client",
+        verbose_name="Numéro de bon de commande client",
         blank=True,
         null=True,
     )
@@ -114,12 +113,12 @@ class Devi(models.Model):
     )
 
     class Meta:
-        verbose_name = "Devis"
-        verbose_name_plural = "Devis"
+        verbose_name = "Facture Client"
+        verbose_name_plural = "Factures Client"
         ordering = ("-date_created",)
 
     def __str__(self):
-        return self.numero_devis
+        return self.numero_facture
 
     def recalc_totals(self):
         """
@@ -218,41 +217,13 @@ class Devi(models.Model):
             self.recalc_totals()
             super().save(*args, **kwargs)
 
-    def convert_to_facture_proforma(self, numero_facture, created_by_user: CustomUser):
-        facture_pro_forma = FactureProForma.objects.create(
-            numero_facture=numero_facture,
-            client=self.client,
-            date_facture=self.date_devis,
-            numero_bon_commande_client=self.numero_demande_prix_client,
-            mode_paiement=self.mode_paiement,
-            remarque=self.remarque,
-            statut="Brouillon",
-            total_ht=self.total_ht,
-            total_tva=self.total_tva,
-            total_ttc=self.total_ttc,
-            remise_type=self.remise_type,
-            remise=self.remise,
-            total_ttc_apres_remise=self.total_ttc_apres_remise,
-            created_by_user=created_by_user,
-        )
 
-        for line in self.lignes.all():
-            FactureProFormaLine.objects.create(
-                facture_pro_forma=facture_pro_forma,
-                article=line.article,
-                prix_achat=line.prix_achat,
-                prix_vente=line.prix_vente,
-                quantity=line.quantity,
-                remise_type=line.remise_type,
-                remise=line.remise,
-            )
-
-        return facture_pro_forma
-
-
-class DeviLine(models.Model):
-    devis = models.ForeignKey(
-        Devi, on_delete=models.CASCADE, related_name="lignes", verbose_name="Devis"
+class FactureClientLine(models.Model):
+    facture_client = models.ForeignKey(
+        FactureClient,
+        on_delete=models.CASCADE,
+        related_name="lignes",
+        verbose_name="Facture Client",
     )
     article = models.ForeignKey(
         Article, on_delete=models.CASCADE, verbose_name="Article"
@@ -292,21 +263,21 @@ class DeviLine(models.Model):
     )
 
     class Meta:
-        verbose_name = "Ligne de devis"
-        verbose_name_plural = "Lignes de devis"
+        verbose_name = "Ligne de facture Client"
+        verbose_name_plural = "Lignes de factures Client"
 
     def __str__(self):
-        return f"{self.devis} - {self.article}"
+        return f"{self.facture_client} - {self.article}"
 
 
-@receiver([post_save, post_delete], sender=DeviLine)
-def _recalc_devi_on_line_change(sender, instance, **kwargs):
-    """Recalculate parent devi totals when a line is created/updated/deleted."""
-    devi = instance.devis
-    if devi.pk:
+@receiver([post_save, post_delete], sender=FactureClientLine)
+def _recalc_facture_client_on_line_change(sender, instance, **kwargs):
+    """Recalculate parent totals when a line is created/updated/deleted."""
+    facture_client = instance.facture_client
+    if facture_client.pk:
         with transaction.atomic():
-            devi.recalc_totals()
-            devi.save(
+            facture_client.recalc_totals()
+            facture_client.save(
                 update_fields=[
                     "total_ht",
                     "total_tva",

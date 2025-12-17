@@ -127,7 +127,6 @@ class FactureProForma(models.Model):
         - Document remise applies on aggregated HT, then TVA is scaled proportionally.
         - Store integer centimes (MAD * 100) in integer fields to preserve two decimals.
         """
-        from decimal import Decimal, ROUND_HALF_UP
 
         raw_total_ht = Decimal("0")
         raw_total_tva = Decimal("0")
@@ -264,8 +263,8 @@ class FactureProFormaLine(models.Model):
     )
 
     class Meta:
-        verbose_name = "Ligne de facture pro forma"
-        verbose_name_plural = "Lignes de factures pro forma"
+        verbose_name = "Ligne de facture Pro-forma"
+        verbose_name_plural = "Lignes de factures Pro-forma"
 
     def __str__(self):
         return f"{self.facture_pro_forma} - {self.article}"

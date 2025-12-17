@@ -2,13 +2,13 @@ from django.contrib import admin
 from django.db import transaction
 from django.utils.html import format_html
 
-from .models import FactureProForma, FactureProFormaLine
+from .models import FactureClient, FactureClientLine
 
 
-class FactureProFormaLineInline(admin.TabularInline):
-    """Inline admin for FactureProFormaLine within Devi."""
+class FactureClientLineInline(admin.TabularInline):
+    """Inline admin for FactureClientLine within Devi."""
 
-    model = FactureProFormaLine
+    model = FactureClientLine
     extra = 1
     autocomplete_fields = ("article",)
     fields = (
@@ -27,7 +27,7 @@ class FactureProFormaLineInline(admin.TabularInline):
         return ()
 
 
-class FactureProFormaAdmin(admin.ModelAdmin):
+class FactureClientAdmin(admin.ModelAdmin):
     """Admin configuration for the Devi model."""
 
     list_display = (
@@ -58,7 +58,7 @@ class FactureProFormaAdmin(admin.ModelAdmin):
         "numero_bon_commande_client",
         "remarque",
     )
-    inlines = [FactureProFormaLineInline]
+    inlines = [FactureClientLineInline]
     fieldsets = (
         (
             "Informations principales",
@@ -233,7 +233,7 @@ class FactureProFormaAdmin(admin.ModelAdmin):
         return f"{self._fmt_cents(obj.total_ttc_apres_remise)} MAD"
 
 
-class FactureProFormaLineAdmin(admin.ModelAdmin):
+class FactureClientLineAdmin(admin.ModelAdmin):
     """Admin configuration for the DeviLine model."""
 
     list_display = (
@@ -246,19 +246,19 @@ class FactureProFormaLineAdmin(admin.ModelAdmin):
         "remise_type",
         "remise",
     )
-    list_filter = ("facture_pro_forma__statut", "article")
+    list_filter = ("facture_client__statut", "article")
     search_fields = (
-        "facture_pro_forma__numero_facture",
+        "facture_client__numero_facture",
         "article__reference",
         "article__designation",
     )
-    list_select_related = ("facture_pro_forma", "facture_pro_forma__client", "article")
-    autocomplete_fields = ("article", "facture_pro_forma")
+    list_select_related = ("facture_client", "facture_client__client", "article")
+    autocomplete_fields = ("article", "facture_client")
 
     fieldsets = (
         (
             "FactureProForma",
-            {"fields": ("facture_pro_forma",)},
+            {"fields": ("facture_client",)},
         ),
         (
             "Article",
@@ -278,11 +278,11 @@ class FactureProFormaLineAdmin(admin.ModelAdmin):
     )
 
     @admin.display(
-        description="Numéro facture", ordering="facture_pro_forma__numero_facture"
+        description="Numéro facture", ordering="facture_client__numero_facture"
     )
     def numero_facture(self, obj):
         """Display facture numero."""
-        return obj.facture_pro_forma.numero_facture
+        return obj.facture_client.numero_facture
 
     @admin.display(description="Référence", ordering="article__reference")
     def article_reference(self, obj):
@@ -295,5 +295,5 @@ class FactureProFormaLineAdmin(admin.ModelAdmin):
         return obj.article.designation
 
 
-admin.site.register(FactureProForma, FactureProFormaAdmin)
-admin.site.register(FactureProFormaLine, FactureProFormaLineAdmin)
+admin.site.register(FactureClient, FactureClientAdmin)
+admin.site.register(FactureClientLine, FactureClientLineAdmin)
