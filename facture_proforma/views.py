@@ -176,3 +176,34 @@ class FactureProFormaStatusUpdateView(APIView):
         object_.statut = new_status
         object_.save()
         return Response({"statut": object_.statut}, status=status.HTTP_200_OK)
+
+
+class FactureProFormaConvertToFactureClientView(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    @staticmethod
+    def _has_membership(user, company_id):
+        return Membership.objects.filter(user=user, company_id=company_id).exists()
+
+    @staticmethod
+    def get_object(pk):
+        try:
+            return FactureProForma.objects.get(pk=pk)
+        except FactureProForma.DoesNotExist:
+            raise Http404(_("Aucun facture pro-forma ne correspond à la requête."))
+
+    def post(self, request, pk, *args, **kwargs):
+        object_ = self.get_object(pk)
+        if not self._has_membership(request.user, object_.client.company_id):
+            raise PermissionDenied(
+                _("Vous n'êtes pas autorisé à convertir cette facture pro-forma.")
+            )
+        numero_facture = get_next_numero_facture_pro_forma()
+        facture = object_.convert_to_facture_client(
+            numero_facture=numero_facture,
+            created_by_user=request.user,
+        )
+        return Response(
+            {"facture_client_id": facture.id},
+            status=status.HTTP_201_CREATED,
+        )

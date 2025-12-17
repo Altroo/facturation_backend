@@ -31,6 +31,6 @@ urlpatterns = [
     path(
         "convert_to_facture_proforma/<int:pk>/",
         DeviConvertToFactureProformaView.as_view(),
-        name="convert-to-factture-proforma",
+        name="convert-to-facture-proforma",
     ),
 ]

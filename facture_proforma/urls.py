@@ -5,6 +5,7 @@ from .views import (
     FactureProFormaDetailEditDeleteView,
     GenerateNumeroFactureView,
     FactureProFormaStatusUpdateView,
+    FactureProFormaConvertToFactureClientView,
 )
 
 app_name = "facture_proforma"
@@ -33,5 +34,11 @@ urlpatterns = [
         "switch_statut/<int:pk>/",
         FactureProFormaStatusUpdateView.as_view(),
         name="facture-proforma-statut-update",
+    ),
+    # POST : convert facture-porforma to facture client
+    path(
+        "convert_to_facture_client/<int:pk>/",
+        FactureProFormaConvertToFactureClientView.as_view(),
+        name="convert-to-facture-client",
     ),
 ]

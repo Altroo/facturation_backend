@@ -8,6 +8,7 @@ from django.dispatch import receiver
 from account.models import CustomUser
 from article.models import Article
 from client.models import Client
+from facture_client.models import FactureClient, FactureClientLine
 from parameter.models import ModePaiement
 
 
@@ -197,6 +198,37 @@ class FactureProForma(models.Model):
         self.total_ttc_apres_remise = int(
             (final_total_ttc_q * 100).quantize(Decimal("1"), rounding=ROUND_HALF_UP)
         )
+
+    def convert_to_facture_client(self, numero_facture, created_by_user: CustomUser):
+        facture_client = FactureClient.objects.create(
+            numero_facture=numero_facture,
+            client=self.client,
+            date_facture=self.date_facture,
+            numero_bon_commande_client=self.numero_bon_commande_client,
+            mode_paiement=self.mode_paiement,
+            remarque=self.remarque,
+            statut="Brouillon",
+            total_ht=self.total_ht,
+            total_tva=self.total_tva,
+            total_ttc=self.total_ttc,
+            remise_type=self.remise_type,
+            remise=self.remise,
+            total_ttc_apres_remise=self.total_ttc_apres_remise,
+            created_by_user=created_by_user,
+        )
+
+        for line in self.lignes.all():
+            FactureClientLine.objects.create(
+                facture_client=facture_client,
+                article=line.article,
+                prix_achat=line.prix_achat,
+                prix_vente=line.prix_vente,
+                quantity=line.quantity,
+                remise_type=line.remise_type,
+                remise=line.remise,
+            )
+
+        return facture_client
 
     def save(self, *args, **kwargs) -> None:
         if self.pk is None:

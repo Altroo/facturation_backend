@@ -206,15 +206,15 @@ class DeviConvertToFactureProformaView(APIView):
             raise Http404(_("Aucun devis ne correspond à la requête."))
 
     def post(self, request, pk, *args, **kwargs):
-        devi = self.get_object(pk)
-        if not self._has_membership(request.user, devi.client.company_id):
+        object_ = self.get_object(pk)
+        if not self._has_membership(request.user, object_.client.company_id):
             raise PermissionDenied(_("Vous n'êtes pas autorisé à convertir ce devis."))
         numero_facture = get_next_numero_facture_pro_forma()
-        facture_proforma = devi.convert_to_facture_proforma(
+        facture = object_.convert_to_facture_proforma(
             numero_facture=numero_facture,
             created_by_user=request.user,
         )
         return Response(
-            {"facture_proforma_id": facture_proforma.id},
+            {"facture_proforma_id": facture.id},
             status=status.HTTP_201_CREATED,
         )
