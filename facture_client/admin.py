@@ -257,7 +257,7 @@ class FactureClientLineAdmin(admin.ModelAdmin):
 
     fieldsets = (
         (
-            "FactureProForma",
+            "FactureClient",
             {"fields": ("facture_client",)},
         ),
         (
