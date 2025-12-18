@@ -6,6 +6,7 @@ from .views import (
     GenerateNumeroDevisView,
     DeviStatusUpdateView,
     DeviConvertToFactureProformaView,
+    DeviConvertToFactureClientView,
 )
 
 app_name = "devi"
@@ -32,5 +33,11 @@ urlpatterns = [
         "convert_to_facture_proforma/<int:pk>/",
         DeviConvertToFactureProformaView.as_view(),
         name="convert-to-facture-proforma",
+    ),
+    # POST : convert devi to facture client
+    path(
+        "convert_to_facture_client/<int:pk>/",
+        DeviConvertToFactureClientView.as_view(),
+        name="convert-to-facture-client",
     ),
 ]

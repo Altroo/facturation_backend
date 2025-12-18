@@ -8,6 +8,7 @@ from django.dispatch import receiver
 from account.models import CustomUser
 from article.models import Article
 from client.models import Client
+from facture_client.models import FactureClient, FactureClientLine
 from facture_proforma.models import FactureProForma, FactureProFormaLine
 from parameter.models import ModePaiement
 
@@ -248,6 +249,37 @@ class Devi(models.Model):
             )
 
         return facture_pro_forma
+
+    def convert_to_facture_client(self, numero_facture, created_by_user: CustomUser):
+        facture_client = FactureClient.objects.create(
+            numero_facture=numero_facture,
+            client=self.client,
+            date_facture=self.date_devis,
+            numero_bon_commande_client=self.numero_demande_prix_client,
+            mode_paiement=self.mode_paiement,
+            remarque=self.remarque,
+            statut="Brouillon",
+            total_ht=self.total_ht,
+            total_tva=self.total_tva,
+            total_ttc=self.total_ttc,
+            remise_type=self.remise_type,
+            remise=self.remise,
+            total_ttc_apres_remise=self.total_ttc_apres_remise,
+            created_by_user=created_by_user,
+        )
+
+        for line in self.lignes.all():
+            FactureClientLine.objects.create(
+                facture_client=facture_client,
+                article=line.article,
+                prix_achat=line.prix_achat,
+                prix_vente=line.prix_vente,
+                quantity=line.quantity,
+                remise_type=line.remise_type,
+                remise=line.remise,
+            )
+
+        return facture_client
 
 
 class DeviLine(models.Model):

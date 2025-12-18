@@ -11,6 +11,7 @@ from rest_framework.views import APIView
 from account.models import Membership
 from client.models import Client
 from facturation_backend.utils import CustomPagination
+from facture_client.utils import get_next_numero_facture_client
 from facture_proforma.utils import get_next_numero_facture_pro_forma
 from .filters import DeviFilter
 from .models import Devi
@@ -215,6 +216,35 @@ class DeviConvertToFactureProformaView(APIView):
             created_by_user=request.user,
         )
         return Response(
-            {"facture_proforma_id": facture.id},
+            {"id": facture.id},
+            status=status.HTTP_201_CREATED,
+        )
+
+
+class DeviConvertToFactureClientView(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    @staticmethod
+    def _has_membership(user, company_id):
+        return Membership.objects.filter(user=user, company_id=company_id).exists()
+
+    @staticmethod
+    def get_object(pk):
+        try:
+            return Devi.objects.get(pk=pk)
+        except Devi.DoesNotExist:
+            raise Http404(_("Aucun devis ne correspond à la requête."))
+
+    def post(self, request, pk, *args, **kwargs):
+        object_ = self.get_object(pk)
+        if not self._has_membership(request.user, object_.client.company_id):
+            raise PermissionDenied(_("Vous n'êtes pas autorisé à convertir ce devis."))
+        numero_facture = get_next_numero_facture_client()
+        facture = object_.convert_to_facture_client(
+            numero_facture=numero_facture,
+            created_by_user=request.user,
+        )
+        return Response(
+            {"id": facture.id},
             status=status.HTTP_201_CREATED,
         )

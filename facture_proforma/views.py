@@ -204,6 +204,6 @@ class FactureProFormaConvertToFactureClientView(APIView):
             created_by_user=request.user,
         )
         return Response(
-            {"facture_client_id": facture.id},
+            {"id": facture.id},
             status=status.HTTP_201_CREATED,
         )
