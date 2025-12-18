@@ -1,5 +1,6 @@
 from datetime import datetime
 from re import match
+from types import SimpleNamespace
 from urllib.parse import quote
 
 import pytest
@@ -537,6 +538,22 @@ class TestFactureProFormaAPI:
         payload = {"statut": "InvalidStatus"}
         response = self.client_api.patch(url, payload, format="json")
         assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_convert_to_facture_client(self, monkeypatch):
+        """POST convert facture pro forma to facture client returns created id (201)."""
+        url = reverse(
+            "facture_proforma:convert-to-facture-client",
+            args=[self.facture_pro_forma.id],
+        )
+        # Replace the model method to avoid depending on external apps
+        monkeypatch.setattr(
+            FactureProForma,
+            "convert_to_facture_client",
+            lambda self_obj, numero_facture, created_by_user: SimpleNamespace(id=999),
+        )
+        response = self.client_api.post(url, format="json")
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.data.get("id") == 999
 
 
 @pytest.mark.django_db

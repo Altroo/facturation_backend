@@ -1,5 +1,6 @@
 from datetime import datetime
 from re import match
+from types import SimpleNamespace
 from urllib.parse import quote
 
 import pytest
@@ -497,6 +498,32 @@ class TestDeviAPI:
         payload = {"statut": "InvalidStatus"}
         response = self.client_api.patch(url, payload, format="json")
         assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_convert_to_facture_client(self, monkeypatch):
+        """POST convert devi to facture client returns created id (201)."""
+        url = reverse("devi:convert-to-facture-client", args=[self.devi.id])
+        # Replace the model method to avoid depending on external apps
+        monkeypatch.setattr(
+            Devi,
+            "convert_to_facture_client",
+            lambda self_obj, numero_facture, created_by_user: SimpleNamespace(id=999),
+        )
+        response = self.client_api.post(url, format="json")
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.data.get("id") == 999
+
+    def test_convert_to_facture_proforma(self, monkeypatch):
+        """POST convert devi to facture pro forma returns created id (201)."""
+        url = reverse("devi:convert-to-facture-proforma", args=[self.devi.id])
+        # Replace the model method to avoid depending on external apps
+        monkeypatch.setattr(
+            Devi,
+            "convert_to_facture_proforma",
+            lambda self_obj, numero_facture, created_by_user: SimpleNamespace(id=999),
+        )
+        response = self.client_api.post(url, format="json")
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.data.get("id") == 999
 
 
 @pytest.mark.django_db
