@@ -116,7 +116,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 class Membership(models.Model):
     company = models.ForeignKey(
         "company.Company",
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         null=True,
         blank=True,
         related_name="memberships",
