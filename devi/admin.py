@@ -87,10 +87,10 @@ class DeviAdmin(admin.ModelAdmin):
             "Totaux (calculés)",
             {
                 "fields": (
-                    "display_total_ht",
-                    "display_total_tva",
-                    "display_total_ttc",
-                    "display_total_ttc_apres_remise",
+                    "display_total_ht",  # type: ignore[attr-defined]
+                    "display_total_tva",  # type: ignore[attr-defined]
+                    "display_total_ttc",  # type: ignore[attr-defined]
+                    "display_total_ttc_apres_remise",  # type: ignore[attr-defined]
                 ),
                 "classes": ("collapse",),
             },

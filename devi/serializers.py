@@ -1,3 +1,4 @@
+from decimal import Decimal, ROUND_HALF_UP
 from re import match
 
 from django.db import transaction
@@ -7,14 +8,36 @@ from .models import Devi, DeviLine
 
 
 class DeviListSerializer(serializers.ModelSerializer):
-    """Lightweight serializer for list views."""
-
     client_name = serializers.StringRelatedField(source="client", read_only=True)
     mode_paiement_name = serializers.CharField(
         source="mode_paiement.nom", read_only=True
     )
     created_by_user_name = serializers.SerializerMethodField()
     lignes_count = serializers.SerializerMethodField()
+
+    # Present totals as decimals (instead of raw centimes)
+    total_ht = serializers.SerializerMethodField()
+    total_tva = serializers.SerializerMethodField()
+    total_ttc = serializers.SerializerMethodField()
+    total_ttc_apres_remise = serializers.SerializerMethodField()
+
+    @staticmethod
+    def _cents_to_decimal(cents):
+        return (Decimal(cents or 0) / Decimal("100")).quantize(
+            Decimal("0.01"), rounding=ROUND_HALF_UP
+        )
+
+    def get_total_ht(self, obj):
+        return self._cents_to_decimal(getattr(obj, "total_ht", 0))
+
+    def get_total_tva(self, obj):
+        return self._cents_to_decimal(getattr(obj, "total_tva", 0))
+
+    def get_total_ttc(self, obj):
+        return self._cents_to_decimal(getattr(obj, "total_ttc", 0))
+
+    def get_total_ttc_apres_remise(self, obj):
+        return self._cents_to_decimal(getattr(obj, "total_ttc_apres_remise", 0))
 
     @staticmethod
     def get_created_by_user_name(obj):
@@ -148,8 +171,31 @@ class DeviSerializer(serializers.ModelSerializer):
     mode_paiement_name = serializers.CharField(
         source="mode_paiement.nom", read_only=True
     )
-    # Nested write-only input for creating lines (updated serializer)
     lignes = DeviLineWriteSerializer(many=True, write_only=True, required=False)
+
+    # Present totals as decimals
+    total_ht = serializers.SerializerMethodField()
+    total_tva = serializers.SerializerMethodField()
+    total_ttc = serializers.SerializerMethodField()
+    total_ttc_apres_remise = serializers.SerializerMethodField()
+
+    @staticmethod
+    def _cents_to_decimal(cents):
+        return (Decimal(cents or 0) / Decimal("100")).quantize(
+            Decimal("0.01"), rounding=ROUND_HALF_UP
+        )
+
+    def get_total_ht(self, obj):
+        return self._cents_to_decimal(getattr(obj, "total_ht", 0))
+
+    def get_total_tva(self, obj):
+        return self._cents_to_decimal(getattr(obj, "total_tva", 0))
+
+    def get_total_ttc(self, obj):
+        return self._cents_to_decimal(getattr(obj, "total_ttc", 0))
+
+    def get_total_ttc_apres_remise(self, obj):
+        return self._cents_to_decimal(getattr(obj, "total_ttc_apres_remise", 0))
 
     @staticmethod
     def get_created_by_user_name(obj):

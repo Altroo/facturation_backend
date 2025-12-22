@@ -213,6 +213,29 @@ class BaseDeviFactureDocument(models.Model):
             self.recalc_totals()
             super().save(*args, **kwargs)
 
+    @staticmethod
+    def _cents_to_decimal(cents: int) -> Decimal:
+        """Convert stored integer centimes to Decimal MAD with 2 decimals."""
+        return (Decimal(cents) / Decimal("100")).quantize(
+            Decimal("0.01"), rounding=ROUND_HALF_UP
+        )
+
+    @property
+    def total_ht_display(self) -> Decimal:
+        return self._cents_to_decimal(getattr(self, "total_ht", 0) or 0)
+
+    @property
+    def total_tva_display(self) -> Decimal:
+        return self._cents_to_decimal(getattr(self, "total_tva", 0) or 0)
+
+    @property
+    def total_ttc_display(self) -> Decimal:
+        return self._cents_to_decimal(getattr(self, "total_ttc", 0) or 0)
+
+    @property
+    def total_ttc_apres_remise_display(self) -> Decimal:
+        return self._cents_to_decimal(getattr(self, "total_ttc_apres_remise", 0) or 0)
+
 
 class BaseDeviFactureLine(models.Model):
     """Abstract base for invoice line items."""
