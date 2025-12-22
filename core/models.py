@@ -75,7 +75,9 @@ class BaseDeviFactureDocument(models.Model):
         help_text="Type de remise appliquée : 'Pourcentage' ou 'Fixe'",
     )
 
-    remise = models.PositiveIntegerField(
+    remise = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
         default=0,
         verbose_name="Valeur remise",
         help_text="Valeur de la remise appliquée",
@@ -243,14 +245,18 @@ class BaseDeviFactureLine(models.Model):
     # Note: article ForeignKey must be defined in concrete classes
     # to avoid app loading order issues
 
-    prix_achat = models.PositiveIntegerField(
+    prix_achat = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
         verbose_name="Prix d'achat",
-        help_text="Prix d'achat unitaire (entier positif, ex: en MAD)",
+        help_text="Prix d'achat unitaire (ex: en MAD)",
     )
 
-    prix_vente = models.PositiveIntegerField(
+    prix_vente = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
         verbose_name="Prix de vente",
-        help_text="Prix de vente unitaire (entier positif, ex: en MAD)",
+        help_text="Prix de vente unitaire (ex: en MAD)",
     )
 
     quantity = models.PositiveIntegerField(
@@ -267,10 +273,12 @@ class BaseDeviFactureLine(models.Model):
         help_text="Type de remise appliquée : 'Pourcentage' ou 'Fixe'",
     )
 
-    remise = models.PositiveIntegerField(
+    remise = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
         default=0,
         verbose_name="Valeur remise",
-        help_text="Valeur après application de la remise",
+        help_text="Valeur de la remise appliquée",
     )
 
     class Meta:

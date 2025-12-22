@@ -1,15 +1,6 @@
-from decimal import Decimal, ROUND_HALF_UP
-
 from django.contrib import admin
 from django.db import transaction
 from django.utils.html import format_html
-
-
-def cents_to_decimal(cents):
-    """Convert integer centimes to Decimal MAD with 2 decimals."""
-    return (Decimal(cents or 0) / Decimal("100")).quantize(
-        Decimal("0.01"), rounding=ROUND_HALF_UP
-    )
 
 
 class BaseDocumentLineInline(admin.TabularInline):
@@ -125,7 +116,8 @@ class BaseDocumentAdmin(admin.ModelAdmin):
                 return f"{int(obj.remise)} %"
             except (TypeError, ValueError):
                 return "-"
-        return self._fmt_cents(obj.remise) + " MAD"
+        # remise is already a Decimal with 2 decimals, don't divide by 100
+        return f"{obj.remise:.2f} MAD"
 
     @admin.display(description="Nombre de lignes")
     def display_lignes_count(self, obj):

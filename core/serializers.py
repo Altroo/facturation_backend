@@ -122,7 +122,7 @@ class BaseDetailSerializer(serializers.ModelSerializer):
             return data
 
         try:
-            remise_val = int(remise)
+            remise_val = float(remise)
         except (TypeError, ValueError):
             raise serializers.ValidationError({"remise": "Valeur de remise invalide."})
 
