@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     "company.apps.CompanyConfig",
     "client.apps.ClientConfig",
     "article.apps.ArticleConfig",
+    "core.apps.CoreConfig",
     "devi.apps.DeviConfig",
     "facture_proforma.apps.FactureProformaConfig",
     "facture_client.apps.FactureClientConfig",
