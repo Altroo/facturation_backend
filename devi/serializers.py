@@ -149,5 +149,8 @@ class DeviDetailSerializer(BaseDetailUpdateSerializer):
     def get_line_relation_field(self):
         return "devis"
 
+    def get_line_serializer_class(self):
+        return DeviLineSerializer
+
     class Meta(DeviSerializer.Meta):
         read_only_fields = ["id", "created_by_user", "date_created", "date_updated"]

@@ -155,5 +155,8 @@ class FactureProformaDetailSerializer(BaseDetailUpdateSerializer):
     def get_line_relation_field(self):
         return "facture_pro_forma"
 
+    def get_line_serializer_class(self):
+        return FactureProFormaLineSerializer
+
     class Meta(FactureProformaSerializer.Meta):
         read_only_fields = ["id", "created_by_user", "date_created", "date_updated"]

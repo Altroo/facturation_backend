@@ -155,5 +155,8 @@ class FactureClientDetailSerializer(BaseDetailUpdateSerializer):
     def get_line_relation_field(self):
         return "facture_client"
 
+    def get_line_serializer_class(self):
+        return FactureClientLineSerializer
+
     class Meta(FactureClientSerializer.Meta):
         read_only_fields = ["id", "created_by_user", "date_created", "date_updated"]
