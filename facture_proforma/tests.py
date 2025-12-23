@@ -13,6 +13,7 @@ from account.models import CustomUser, Membership
 from article.models import Article
 from client.models import Client
 from company.models import Company
+from core.tests import is_numeric_or_none, assert_numeric_equal
 from parameter.models import ModePaiement, Ville
 from .filters import FactureProFormaFilter
 from .models import FactureProForma, FactureProFormaLine
@@ -54,8 +55,8 @@ class TestFactureProFormaAPI:
             company=self.company,
             reference="ART-001",
             designation="Test Article",
-            prix_achat=100,
-            prix_vente=120,
+            prix_achat=100.00,
+            prix_vente=120.00,
             type_article="Produit",
         )
 
@@ -66,7 +67,7 @@ class TestFactureProFormaAPI:
             numero_bon_commande_client="REQ-001",
             mode_paiement=self.mode_paiement,
             remarque="Test remark",
-            remise=0,
+            remise=0.00,
             remise_type="Pourcentage",
             created_by_user=self.user,
         )
@@ -74,10 +75,10 @@ class TestFactureProFormaAPI:
         self.facture_pro_forma_line = FactureProFormaLine.objects.create(
             facture_pro_forma=self.facture_pro_forma,
             article=self.article,
-            prix_achat=100,
-            prix_vente=120,
+            prix_achat=100.00,
+            prix_vente=120.00,
             quantity=2,
-            remise=5,
+            remise=5.00,
             remise_type="Pourcentage",
         )
 
@@ -112,9 +113,7 @@ class TestFactureProFormaAPI:
         # Ensure totals are present and numeric or None
         for key in ("total_ht", "total_tva", "total_ttc", "total_ttc_apres_remise"):
             assert key in proforma_data
-            assert proforma_data.get(key) is None or isinstance(
-                proforma_data.get(key), (int, float)
-            )
+            assert is_numeric_or_none(proforma_data.get(key))
 
     def test_list_proforma_with_pagination(self):
         """List pro forma with pagination enabled."""
@@ -132,7 +131,7 @@ class TestFactureProFormaAPI:
             item = response.data["results"][0]
             for key in ("total_ht", "total_tva", "total_ttc", "total_ttc_apres_remise"):
                 assert key in item
-                assert item.get(key) is None or isinstance(item.get(key), (int, float))
+                assert is_numeric_or_none(item.get(key))
 
     def test_create_proforma_basic(self):
         """Create a basic pro forma without lines."""
@@ -144,7 +143,7 @@ class TestFactureProFormaAPI:
             "numero_bon_commande_client": "REQ-002",
             "mode_paiement": self.mode_paiement.id,
             "remarque": "New remark",
-            "remise": 0,
+            "remise": 0.00,
             "remise_type": "Pourcentage",
         }
         response = self.client_api.post(url, payload, format="json")
@@ -155,14 +154,12 @@ class TestFactureProFormaAPI:
         assert response.data["numero_facture"] == "0003/25"
         assert response.data["created_by_user"] == self.user.id
         # Newly created pro forma includes remise fields
-        assert response.data.get("remise") == 0
+        assert_numeric_equal(response.data.get("remise"), 0.00)
         assert response.data.get("remise_type") == "Pourcentage"
         # Totals present (may be None if no lines) and numeric when present
         for key in ("total_ht", "total_tva", "total_ttc", "total_ttc_apres_remise"):
             assert key in response.data
-            assert response.data.get(key) is None or isinstance(
-                response.data.get(key), (int, float)
-            )
+            assert is_numeric_or_none(response.data.get(key))
 
         # Verify DB
         proforma = FactureProForma.objects.get(numero_facture=payload["numero_facture"])
@@ -179,15 +176,15 @@ class TestFactureProFormaAPI:
             "numero_bon_commande_client": "REQ-010",
             "mode_paiement": self.mode_paiement.id,
             "remarque": "With lines",
-            "remise": 0,
+            "remise": 0.00,
             "remise_type": "Pourcentage",
             "lignes": [
                 {
                     "article": self.article.id,
-                    "prix_achat": 150,
-                    "prix_vente": 180,
+                    "prix_achat": 150.00,
+                    "prix_vente": 180.00,
                     "quantity": 1,
-                    "remise": 0,
+                    "remise": 0.00,
                     "remise_type": "Pourcentage",
                 }
             ],
@@ -200,16 +197,14 @@ class TestFactureProFormaAPI:
         assert len(response.data["lignes"]) == 1
         line = response.data["lignes"][0]
         assert line.get("article") == self.article.id
-        assert line.get("prix_achat") == 150
+        assert_numeric_equal(line.get("prix_achat"), 150.00)
         assert "id" in line
         assert "designation" in line  # from proformaLineSerializer
         assert "reference" in line
         # Totals present and numeric
         for key in ("total_ht", "total_tva", "total_ttc", "total_ttc_apres_remise"):
             assert key in response.data
-            assert response.data.get(key) is None or isinstance(
-                response.data.get(key), (int, float)
-            )
+            assert is_numeric_or_none(response.data.get(key))
 
         # Verify DB
         facture_pro_forma = FactureProForma.objects.get(pk=response.data["id"])
@@ -235,14 +230,12 @@ class TestFactureProFormaAPI:
         assert ligne.get("designation") == self.article.designation
         assert ligne.get("reference") == self.article.reference
         # Ensure pro forma-level remise fields are present
-        assert response.data.get("remise") == 0
+        assert_numeric_equal(response.data.get("remise"), 0.00)
         assert response.data.get("remise_type") == "Pourcentage"
         # Totals present and numeric
         for key in ("total_ht", "total_tva", "total_ttc", "total_ttc_apres_remise"):
             assert key in response.data
-            assert response.data.get(key) is None or isinstance(
-                response.data.get(key), (int, float)
-            )
+            assert is_numeric_or_none(response.data.get(key))
 
     def test_create_proforma_without_client_fails(self):
         """Creating pro forma without client should fail."""
@@ -250,7 +243,7 @@ class TestFactureProFormaAPI:
         payload = {
             "numero_facture": "0010/25",
             "date_facture": "2024-06-02",
-            "remise": 0,
+            "remise": 0.00,
             "remise_type": "Pourcentage",
         }
         response = self.client_api.post(url, payload, format="json")
@@ -264,7 +257,7 @@ class TestFactureProFormaAPI:
             "client": self.client_obj.id,
             "date_facture": "2024-06-02",
             "numero_bon_commande_client": "REQ-002",
-            "remise": 0,
+            "remise": 0.00,
             "remise_type": "Pourcentage",
         }
         response = self.client_api.post(url, payload, format="json")
@@ -303,7 +296,7 @@ class TestFactureProFormaAPI:
             "numero_bon_commande_client": "REQ-003",
             "mode_paiement": self.mode_paiement.id,
             "remarque": "Updated remark",
-            "remise": 0,
+            "remise": 0.00,
             "remise_type": "Pourcentage",
         }
         response = self.client_api.put(url, payload, format="json")
@@ -328,26 +321,26 @@ class TestFactureProFormaAPI:
             "numero_bon_commande_client": "REQ-004",
             "mode_paiement": self.mode_paiement.id,
             "remarque": "Upsert lines",
-            "remise": 0,
+            "remise": 0.00,
             "remise_type": "Pourcentage",
             "lignes": [
                 {
                     # Update existing line
                     "id": self.facture_pro_forma_line.id,
                     "article": self.article.id,
-                    "prix_achat": 110,
-                    "prix_vente": 130,
+                    "prix_achat": 110.00,
+                    "prix_vente": 130.00,
                     "quantity": 5,
-                    "remise": 2,
+                    "remise": 2.00,
                     "remise_type": "Pourcentage",
                 },
                 {
                     # Add new line (no id)
                     "article": self.article.id,
-                    "prix_achat": 200,
-                    "prix_vente": 250,
+                    "prix_achat": 200.00,
+                    "prix_vente": 250.00,
                     "quantity": 3,
-                    "remise": 10,
+                    "remise": 10.00,
                     "remise_type": "Pourcentage",
                 },
             ],
@@ -357,7 +350,7 @@ class TestFactureProFormaAPI:
 
         # Existing line updated
         self.facture_pro_forma_line.refresh_from_db()
-        assert self.facture_pro_forma_line.prix_achat == 110
+        assert_numeric_equal(self.facture_pro_forma_line.prix_achat, 110.00)
         assert self.facture_pro_forma_line.quantity == 5
 
         # New line created
@@ -375,10 +368,10 @@ class TestFactureProFormaAPI:
         line2 = FactureProFormaLine.objects.create(
             facture_pro_forma=self.facture_pro_forma,
             article=self.article,
-            prix_achat=50,
-            prix_vente=60,
+            prix_achat=50.00,
+            prix_vente=60.00,
             quantity=1,
-            remise=0,
+            remise=0.00,
             remise_type="Pourcentage",
         )
 
@@ -393,17 +386,17 @@ class TestFactureProFormaAPI:
             "numero_bon_commande_client": "REQ-005",
             "mode_paiement": self.mode_paiement.id,
             "remarque": "Delete line2",
-            "remise": 0,
+            "remise": 0.00,
             "remise_type": "Pourcentage",
             "lignes": [
                 {
                     # Only include line1
                     "id": self.facture_pro_forma_line.id,
                     "article": self.article.id,
-                    "prix_achat": 100,
-                    "prix_vente": 120,
+                    "prix_achat": 100.00,
+                    "prix_vente": 120.00,
                     "quantity": 2,
-                    "remise": 5,
+                    "remise": 5.00,
                     "remise_type": "Pourcentage",
                 }
             ],
@@ -444,7 +437,7 @@ class TestFactureProFormaAPI:
             numero_bon_commande_client="REQ-006",
             mode_paiement=self.mode_paiement,
             statut="Accepté",
-            remise=0,
+            remise=0.00,
             remise_type="Pourcentage",
             created_by_user=self.user,
         )
@@ -483,7 +476,7 @@ class TestFactureProFormaAPI:
             client=self.client_obj,
             date_facture="2024-06-01",
             mode_paiement=self.mode_paiement,
-            remise=0,
+            remise=0.00,
             remise_type="Pourcentage",
             created_by_user=self.user,
         )
@@ -492,7 +485,7 @@ class TestFactureProFormaAPI:
             client=self.client_obj,
             date_facture="2024-06-02",
             mode_paiement=self.mode_paiement,
-            remise=0,
+            remise=0.00,
             remise_type="Pourcentage",
             created_by_user=self.user,
         )
@@ -501,7 +494,7 @@ class TestFactureProFormaAPI:
             client=self.client_obj,
             date_facture="2024-06-03",
             mode_paiement=self.mode_paiement,
-            remise=0,
+            remise=0.00,
             remise_type="Pourcentage",
             created_by_user=self.user,
         )
@@ -591,7 +584,7 @@ class TestFactureProFormaFilters:
             date_facture="2024-06-01",
             numero_bon_commande_client="REQ-ALPHA",
             mode_paiement=self.mode,
-            remise=0,
+            remise=0.00,
             remise_type="Pourcentage",
             created_by_user=self.user,
         )
@@ -601,7 +594,7 @@ class TestFactureProFormaFilters:
             date_facture="2024-06-02",
             numero_bon_commande_client="REQ-BETA",
             mode_paiement=self.mode,
-            remise=0,
+            remise=0.00,
             remise_type="Pourcentage",
             created_by_user=self.user,
             statut="Accepté",
