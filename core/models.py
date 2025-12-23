@@ -106,10 +106,6 @@ class BaseDeviFactureDocument(models.Model):
         verbose_name="Créé par l'utilisateur",
     )
 
-    class Meta:
-        abstract = True
-        ordering = ("-date_created",)
-
     def get_lines(self) -> QuerySet:
         """Default: return related `lignes` queryset or an empty queryset when missing."""
         related = getattr(self, "lignes", None)
@@ -237,6 +233,10 @@ class BaseDeviFactureDocument(models.Model):
     @property
     def total_ttc_apres_remise_display(self) -> Decimal:
         return self._cents_to_decimal(getattr(self, "total_ttc_apres_remise", 0) or 0)
+
+    class Meta:
+        abstract = True
+        ordering = ("-date_created",)
 
 
 class BaseDeviFactureLine(models.Model):
