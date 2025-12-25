@@ -149,20 +149,6 @@ class FactureClientDetailSerializer(BaseDetailUpdateSerializer):
         many=True, write_only=True, required=False
     )
 
-    remise = serializers.FloatField(required=False, default=0)
-
-    def to_internal_value(self, data):
-        """Convert remise from float (MAD) to integer (cents)."""
-        result = super().to_internal_value(data)
-        if "remise" in result:
-            try:
-                result["remise"] = int(float(result["remise"]) * 100)
-            except (TypeError, ValueError):
-                raise serializers.ValidationError(
-                    {"remise": "Un nombre valide est requis."}
-                )
-        return result
-
     def get_line_model_class(self):
         return FactureClientLine
 
