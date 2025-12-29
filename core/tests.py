@@ -434,6 +434,127 @@ class SharedDocumentFilterTestsMixin:
         filt = self.FilterClass({"search": "   "}, queryset=base_qs)
         assert set(filt.qs) == set(base_qs)
 
+    def shared_test_filter_statut_empty_returns_all(self) -> None:
+        """Test filter_statut with empty value returns all results."""
+        qs = type(self.doc1).objects.all()
+        count_before = qs.count()
+        filterset = self.FilterClass(data={"statut": ""}, queryset=qs)
+        assert filterset.qs.count() == count_before
+
+    def shared_test_search_with_tsquery_metacharacters(self) -> None:
+        """Test search skips FTS when tsquery metacharacters are present."""
+        qs = type(self.doc1).objects.all()
+        # Search with metacharacters like :*?&|!()<>
+        filterset = self.FilterClass(data={"search": "test:*"}, queryset=qs)
+        # Should not raise and should use fallback
+        assert filterset.qs is not None
+
+    def shared_test_search_with_special_chars_fallback(self) -> None:
+        """Test search uses fallback with special characters."""
+        qs = type(self.doc1).objects.all()
+        filterset = self.FilterClass(data={"search": "test&value"}, queryset=qs)
+        assert filterset.qs is not None
+
+    def shared_test_search_with_pipe_metachar(self) -> None:
+        """Test search with pipe metacharacter uses fallback."""
+        qs = type(self.doc1).objects.all()
+        filterset = self.FilterClass(data={"search": "A|B"}, queryset=qs)
+        assert filterset.qs is not None
+
+    def shared_test_search_with_parentheses_metachar(self) -> None:
+        """Test search with parentheses metacharacter uses fallback."""
+        qs = type(self.doc1).objects.all()
+        filterset = self.FilterClass(data={"search": "(test)"}, queryset=qs)
+        assert filterset.qs is not None
+
+
+class SharedDocumentModelTestsMixin:
+    """Shared tests for document model methods.
+
+    Subclasses must define:
+    - doc_with_lines: fixture or property returning a document with lines
+    - doc_obj: fixture or property returning a document without lines
+    - numero_field: str name of the numero field (e.g., 'numero_devis', 'numero_facture')
+    """
+
+    doc_with_lines: Any
+    doc_obj: Any
+    numero_field: str = "numero_facture"
+
+    def shared_test_recalc_totals(self, doc_with_lines: Any) -> None:
+        """Test recalc_totals computes correct totals."""
+        doc_with_lines.recalc_totals()
+        assert doc_with_lines.total_ht > 0
+
+    def shared_test_lignes_count(self, doc_with_lines: Any) -> None:
+        """Test lignes relationship."""
+        assert doc_with_lines.lignes.count() == 1
+
+    def shared_test_str_representation(self, doc_obj: Any) -> None:
+        """Test string representation."""
+        assert str(doc_obj) == getattr(doc_obj, self.numero_field)
+
+
+class SharedDocumentAdminTestsMixin:
+    """Shared tests for document admin methods.
+
+    Subclasses must define:
+    - AdminClass: the admin class to test
+    - LineAdminClass: the line admin class to test
+    - Model: the document model
+    - LineModel: the document line model
+    - numero_field: str name of the numero field
+    - date_field: str name of the date field
+    - line_numero_method: str name of the line admin's numero display method
+    """
+
+    AdminClass: Any
+    LineAdminClass: Any
+    Model: Any
+    LineModel: Any
+    numero_field: str = "numero_facture"
+    date_field: str = "date_facture"
+    line_numero_method: str = "numero_facture"
+
+    def shared_test_admin_get_numero_field_name(self) -> None:
+        """Test admin get_numero_field_name method."""
+        from django.contrib.admin.sites import AdminSite
+
+        admin = self.AdminClass(self.Model, AdminSite())
+        assert admin.get_numero_field_name() == self.numero_field
+
+    def shared_test_admin_get_date_field_name(self) -> None:
+        """Test admin get_date_field_name method."""
+        from django.contrib.admin.sites import AdminSite
+
+        admin = self.AdminClass(self.Model, AdminSite())
+        assert admin.get_date_field_name() == self.date_field
+
+    def shared_test_line_admin_numero(self, doc_with_lines: Any) -> None:
+        """Test line admin numero display method."""
+        from django.contrib.admin.sites import AdminSite
+
+        admin = self.LineAdminClass(self.LineModel, AdminSite())
+        line = doc_with_lines.lignes.first()
+        method = getattr(admin, self.line_numero_method)
+        assert method(line) == getattr(doc_with_lines, self.numero_field)
+
+    def shared_test_line_admin_article_reference(self, doc_with_lines: Any) -> None:
+        """Test line admin article_reference display method."""
+        from django.contrib.admin.sites import AdminSite
+
+        admin = self.LineAdminClass(self.LineModel, AdminSite())
+        line = doc_with_lines.lignes.first()
+        assert admin.article_reference(line) == line.article.reference
+
+    def shared_test_line_admin_article_designation(self, doc_with_lines: Any) -> None:
+        """Test line admin article_designation display method."""
+        from django.contrib.admin.sites import AdminSite
+
+        admin = self.LineAdminClass(self.LineModel, AdminSite())
+        line = doc_with_lines.lignes.first()
+        assert admin.article_designation(line) == line.article.designation
+
 
 pytestmark = pytest.mark.django_db
 

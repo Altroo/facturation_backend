@@ -12,6 +12,8 @@ from core.tests import (
     DocConfig,
     SharedDocumentAPITestsMixin,
     SharedDocumentFilterTestsMixin,
+    SharedDocumentModelTestsMixin,
+    SharedDocumentAdminTestsMixin,
 )
 from parameter.models import ModePaiement, Ville
 from .filters import DeviFilter
@@ -242,6 +244,9 @@ class TestDeviAPI(SharedDocumentAPITestsMixin):
     def test_smoke_totals_present_on_detail(self):
         self.shared_test_get_detail()
 
+    def test_smoke_totals_present_on_list(self):
+        self.shared_test_list()
+
     def test_smoke_upsert_lines(self):
         self.shared_test_update_with_lignes_upsert()
 
@@ -315,37 +320,19 @@ class TestDeviFilters(SharedDocumentFilterTestsMixin):
         self.shared_test_empty_search_returns_queryset_unchanged()
 
     def test_filter_statut_empty_returns_all(self):
-        """Test filter_statut with empty value returns all results."""
-        qs = Devi.objects.all()
-        count_before = qs.count()
-        filterset = DeviFilter(data={"statut": ""}, queryset=qs)
-        assert filterset.qs.count() == count_before
+        self.shared_test_filter_statut_empty_returns_all()
 
     def test_search_with_tsquery_metacharacters(self):
-        """Test search skips FTS when tsquery metacharacters are present."""
-        qs = Devi.objects.all()
-        # Search with metacharacters like :*?&|!()<>
-        filterset = DeviFilter(data={"search": "test:*"}, queryset=qs)
-        # Should not raise and should use fallback
-        assert filterset.qs is not None
+        self.shared_test_search_with_tsquery_metacharacters()
 
     def test_search_with_special_chars_fallback(self):
-        """Test search uses fallback with special characters."""
-        qs = Devi.objects.all()
-        filterset = DeviFilter(data={"search": "test&value"}, queryset=qs)
-        assert filterset.qs is not None
+        self.shared_test_search_with_special_chars_fallback()
 
     def test_search_with_pipe_metachar(self):
-        """Test search with pipe metacharacter uses fallback."""
-        qs = Devi.objects.all()
-        filterset = DeviFilter(data={"search": "A|B"}, queryset=qs)
-        assert filterset.qs is not None
+        self.shared_test_search_with_pipe_metachar()
 
     def test_search_with_parentheses_metachar(self):
-        """Test search with parentheses metacharacter uses fallback."""
-        qs = Devi.objects.all()
-        filterset = DeviFilter(data={"search": "(test)"}, queryset=qs)
-        assert filterset.qs is not None
+        self.shared_test_search_with_parentheses_metachar()
 
 
 @pytest.mark.django_db
@@ -562,3 +549,49 @@ class TestDeviUtilsExtra:
 
         next_num = get_next_numero_devis()
         assert next_num == f"0003/{year_suffix}"
+
+
+@pytest.mark.django_db
+class TestDeviModelExtra(SharedDocumentModelTestsMixin):
+    """Extra tests for Devi model methods."""
+
+    numero_field = "numero_devis"
+
+    def test_recalc_totals(self, devi_conv_with_lines):
+        self.shared_test_recalc_totals(devi_conv_with_lines)
+
+    def test_lignes_count(self, devi_conv_with_lines):
+        self.shared_test_lignes_count(devi_conv_with_lines)
+
+    def test_str_representation(self, devi_conv_obj):
+        self.shared_test_str_representation(devi_conv_obj)
+
+
+@pytest.mark.django_db
+class TestDeviAdminExtra(SharedDocumentAdminTestsMixin):
+    """Extra tests for Devi admin."""
+
+    from devi.admin import DeviAdmin, DeviLineAdmin
+
+    AdminClass = DeviAdmin
+    LineAdminClass = DeviLineAdmin
+    Model = Devi
+    LineModel = DeviLine
+    numero_field = "numero_devis"
+    date_field = "date_devis"
+    line_numero_method = "devis_numero"
+
+    def test_admin_get_numero_field_name(self):
+        self.shared_test_admin_get_numero_field_name()
+
+    def test_admin_get_date_field_name(self):
+        self.shared_test_admin_get_date_field_name()
+
+    def test_line_admin_devis_numero(self, devi_conv_with_lines):
+        self.shared_test_line_admin_numero(devi_conv_with_lines)
+
+    def test_line_admin_article_reference(self, devi_conv_with_lines):
+        self.shared_test_line_admin_article_reference(devi_conv_with_lines)
+
+    def test_line_admin_article_designation(self, devi_conv_with_lines):
+        self.shared_test_line_admin_article_designation(devi_conv_with_lines)

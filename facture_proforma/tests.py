@@ -12,6 +12,8 @@ from core.tests import (
     DocConfig,
     SharedDocumentAPITestsMixin,
     SharedDocumentFilterTestsMixin,
+    SharedDocumentModelTestsMixin,
+    SharedDocumentAdminTestsMixin,
 )
 from parameter.models import ModePaiement, Ville
 from .filters import FactureProFormaFilter
@@ -313,37 +315,19 @@ class TestFactureProFormaFilters(SharedDocumentFilterTestsMixin):
         self.shared_test_empty_search_returns_queryset_unchanged()
 
     def test_filter_statut_empty_returns_all(self):
-        """Test filter_statut with empty value returns all results."""
-        qs = FactureProForma.objects.all()
-        count_before = qs.count()
-        filterset = FactureProFormaFilter(data={"statut": ""}, queryset=qs)
-        assert filterset.qs.count() == count_before
+        self.shared_test_filter_statut_empty_returns_all()
 
     def test_search_with_tsquery_metacharacters(self):
-        """Test search skips FTS when tsquery metacharacters are present."""
-        qs = FactureProForma.objects.all()
-        # Search with metacharacters like :*?&|!()<>
-        filterset = FactureProFormaFilter(data={"search": "test:*"}, queryset=qs)
-        # Should not raise and should use fallback
-        assert filterset.qs is not None
+        self.shared_test_search_with_tsquery_metacharacters()
 
     def test_search_with_special_chars_fallback(self):
-        """Test search uses fallback with special characters."""
-        qs = FactureProForma.objects.all()
-        filterset = FactureProFormaFilter(data={"search": "test&value"}, queryset=qs)
-        assert filterset.qs is not None
+        self.shared_test_search_with_special_chars_fallback()
 
     def test_search_with_pipe_metachar(self):
-        """Test search with pipe metacharacter uses fallback."""
-        qs = FactureProForma.objects.all()
-        filterset = FactureProFormaFilter(data={"search": "A|B"}, queryset=qs)
-        assert filterset.qs is not None
+        self.shared_test_search_with_pipe_metachar()
 
     def test_search_with_parentheses_metachar(self):
-        """Test search with parentheses metacharacter uses fallback."""
-        qs = FactureProForma.objects.all()
-        filterset = FactureProFormaFilter(data={"search": "(test)"}, queryset=qs)
-        assert filterset.qs is not None
+        self.shared_test_search_with_parentheses_metachar()
 
 
 @pytest.mark.django_db
@@ -483,21 +467,19 @@ class TestFactureProFormaUtilsExtra:
 
 
 @pytest.mark.django_db
-class TestFactureProFormaModelExtra:
+class TestFactureProFormaModelExtra(SharedDocumentModelTestsMixin):
     """Extra tests for FactureProForma model methods."""
 
+    numero_field = "numero_facture"
+
     def test_recalc_totals(self, pf_conv_with_lines):
-        """Test recalc_totals computes correct totals."""
-        pf_conv_with_lines.recalc_totals()
-        assert pf_conv_with_lines.total_ht > 0
+        self.shared_test_recalc_totals(pf_conv_with_lines)
 
     def test_lignes_count(self, pf_conv_with_lines):
-        """Test lignes relationship."""
-        assert pf_conv_with_lines.lignes.count() == 1
+        self.shared_test_lignes_count(pf_conv_with_lines)
 
     def test_str_representation(self, pf_conv_obj):
-        """Test string representation."""
-        assert str(pf_conv_obj) == pf_conv_obj.numero_facture
+        self.shared_test_str_representation(pf_conv_obj)
 
     def test_convert_to_facture_client(self, pf_conv_with_lines, pf_conv_user):
         """Test converting FactureProForma to FactureClient."""
@@ -535,48 +517,30 @@ class TestFactureProFormaModelExtra:
 
 
 @pytest.mark.django_db
-class TestFactureProFormaAdminExtra:
+class TestFactureProFormaAdminExtra(SharedDocumentAdminTestsMixin):
     """Extra tests for FactureProForma admin."""
 
-    def test_admin_get_numero_field_name(self):
-        """Test admin get_numero_field_name method."""
-        from django.contrib.admin.sites import AdminSite
-        from facture_proforma.admin import FactureProFormaAdmin
+    from facture_proforma.admin import FactureProFormaAdmin, FactureProFormaLineAdmin
 
-        admin = FactureProFormaAdmin(FactureProForma, AdminSite())
-        assert admin.get_numero_field_name() == "numero_facture"
+    AdminClass = FactureProFormaAdmin
+    LineAdminClass = FactureProFormaLineAdmin
+    Model = FactureProForma
+    LineModel = FactureProFormaLine
+    numero_field = "numero_facture"
+    date_field = "date_facture"
+    line_numero_method = "numero_facture"
+
+    def test_admin_get_numero_field_name(self):
+        self.shared_test_admin_get_numero_field_name()
 
     def test_admin_get_date_field_name(self):
-        """Test admin get_date_field_name method."""
-        from django.contrib.admin.sites import AdminSite
-        from facture_proforma.admin import FactureProFormaAdmin
-
-        admin = FactureProFormaAdmin(FactureProForma, AdminSite())
-        assert admin.get_date_field_name() == "date_facture"
+        self.shared_test_admin_get_date_field_name()
 
     def test_line_admin_numero_facture(self, pf_conv_with_lines):
-        """Test line admin numero_facture display method."""
-        from django.contrib.admin.sites import AdminSite
-        from facture_proforma.admin import FactureProFormaLineAdmin
-
-        admin = FactureProFormaLineAdmin(FactureProFormaLine, AdminSite())
-        line = pf_conv_with_lines.lignes.first()
-        assert admin.numero_facture(line) == pf_conv_with_lines.numero_facture
+        self.shared_test_line_admin_numero(pf_conv_with_lines)
 
     def test_line_admin_article_reference(self, pf_conv_with_lines):
-        """Test line admin article_reference display method."""
-        from django.contrib.admin.sites import AdminSite
-        from facture_proforma.admin import FactureProFormaLineAdmin
-
-        admin = FactureProFormaLineAdmin(FactureProFormaLine, AdminSite())
-        line = pf_conv_with_lines.lignes.first()
-        assert admin.article_reference(line) == line.article.reference
+        self.shared_test_line_admin_article_reference(pf_conv_with_lines)
 
     def test_line_admin_article_designation(self, pf_conv_with_lines):
-        """Test line admin article_designation display method."""
-        from django.contrib.admin.sites import AdminSite
-        from facture_proforma.admin import FactureProFormaLineAdmin
-
-        admin = FactureProFormaLineAdmin(FactureProFormaLine, AdminSite())
-        line = pf_conv_with_lines.lignes.first()
-        assert admin.article_designation(line) == line.article.designation
+        self.shared_test_line_admin_article_designation(pf_conv_with_lines)
