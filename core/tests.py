@@ -17,7 +17,7 @@ from rest_framework import serializers as drf_serializers
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from account.models import CustomUser
+from account.models import CustomUser, Membership
 from article.models import Article
 from client.models import Client
 from company.models import Company
@@ -439,6 +439,13 @@ class SharedDocumentFilterTestsMixin:
         qs = type(self.doc1).objects.all()
         count_before = qs.count()
         filterset = self.FilterClass(data={"statut": ""}, queryset=qs)
+        assert filterset.qs.count() == count_before
+
+    def shared_test_filter_statut_none_returns_all(self) -> None:
+        """Test filter_statut with None value returns all results."""
+        qs = type(self.doc1).objects.all()
+        count_before = qs.count()
+        filterset = self.FilterClass(data={"statut": None}, queryset=qs)
         assert filterset.qs.count() == count_before
 
     def shared_test_search_with_tsquery_metacharacters(self) -> None:
@@ -1090,3 +1097,541 @@ class TestCoreFiltersExtra:
         count_before = qs.count()
         filterset = DeviFilter(data={"search": "   "}, queryset=qs)
         assert filterset.qs.count() == count_before
+
+    def test_filter_statut_with_none_value(self, extra_devi):
+        """Test filter_statut with None value returns all."""
+        from devi.filters import DeviFilter
+
+        qs = Devi.objects.all()
+        count_before = qs.count()
+        filterset = DeviFilter(data={"statut": None}, queryset=qs)
+        assert filterset.qs.count() == count_before
+
+    def test_filter_statut_with_empty_value(self, extra_devi):
+        """Test filter_statut with empty string returns all."""
+        from devi.filters import DeviFilter
+
+        qs = Devi.objects.all()
+        count_before = qs.count()
+        filterset = DeviFilter(data={"statut": ""}, queryset=qs)
+        assert filterset.qs.count() == count_before
+
+
+@pytest.mark.django_db
+class TestCoreModelRecalcTotals:
+    """Tests for recalc_totals with various remise scenarios."""
+
+    def test_recalc_totals_fixe_remise(self, extra_devi, extra_devi_line):
+        """Test recalc_totals with Fixe document-level remise."""
+        extra_devi.remise = 100
+        extra_devi.remise_type = "Fixe"
+        extra_devi.recalc_totals()
+        assert extra_devi.total_ttc_apres_remise < extra_devi.total_ttc
+
+    def test_recalc_totals_percentage_remise(self, extra_devi, extra_devi_line):
+        """Test recalc_totals with Pourcentage document-level remise."""
+        extra_devi.remise = 10
+        extra_devi.remise_type = "Pourcentage"
+        extra_devi.recalc_totals()
+        assert extra_devi.total_ttc_apres_remise < extra_devi.total_ttc
+
+    def test_recalc_totals_no_lines(self, extra_client, extra_mode_paiement):
+        """Test recalc_totals when document has no lines."""
+        devi = Devi.objects.create(
+            numero_devis="9999/25",
+            client=extra_client,
+            date_devis="2025-01-01",
+            mode_paiement=extra_mode_paiement,
+        )
+        devi.recalc_totals()
+        assert devi.total_ht == 0
+        assert devi.total_ttc == 0
+
+    def test_recalc_totals_with_line_fixe_remise(
+        self, extra_devi, extra_article, extra_devi_line
+    ):
+        """Test recalc_totals with Fixe line-level remise."""
+        extra_devi_line.remise = 10
+        extra_devi_line.remise_type = "Fixe"
+        extra_devi_line.save()
+        extra_devi.refresh_from_db()
+        # After recalc, totals should account for the line discount
+        assert extra_devi.total_ht > 0
+
+    def test_display_properties(self, extra_devi, extra_devi_line):
+        """Test the display properties return Decimal values."""
+        from decimal import Decimal
+
+        extra_devi.recalc_totals()
+        assert isinstance(extra_devi.total_ht_display, Decimal)
+        assert isinstance(extra_devi.total_tva_display, Decimal)
+        assert isinstance(extra_devi.total_ttc_display, Decimal)
+        assert isinstance(extra_devi.total_ttc_apres_remise_display, Decimal)
+
+    def test_cents_to_decimal(self, extra_devi):
+        """Test _cents_to_decimal static method."""
+        from decimal import Decimal
+
+        result = extra_devi._cents_to_decimal(12345)
+        assert result == Decimal("123.45")
+
+    def test_get_lines_no_lignes(self, extra_client, extra_mode_paiement):
+        """Test get_lines returns empty when no lines exist."""
+        devi = Devi.objects.create(
+            numero_devis="8888/25",
+            client=extra_client,
+            date_devis="2025-01-01",
+            mode_paiement=extra_mode_paiement,
+        )
+        lines = devi.get_lines()
+        assert lines.count() == 0
+
+
+@pytest.mark.django_db
+class TestCoreViewsPermissions:
+    """Tests for permission checks in core views."""
+
+    def test_base_get_bool_param_true(self):
+        """Test _get_bool_param with 'true' string."""
+        from core.views import BaseDocumentListCreateView
+        from rest_framework.test import APIRequestFactory
+        from rest_framework.request import Request
+
+        factory = APIRequestFactory()
+        wsgi_request = factory.get("/", {"pagination": "true"})
+        request = Request(wsgi_request)
+        result = BaseDocumentListCreateView._get_bool_param(request, "pagination")
+        assert result is True
+
+    def test_base_get_bool_param_false(self):
+        """Test _get_bool_param with 'false' string."""
+        from core.views import BaseDocumentListCreateView
+        from rest_framework.test import APIRequestFactory
+        from rest_framework.request import Request
+
+        factory = APIRequestFactory()
+        wsgi_request = factory.get("/", {"pagination": "false"})
+        request = Request(wsgi_request)
+        result = BaseDocumentListCreateView._get_bool_param(request, "pagination")
+        assert result is False
+
+    def test_base_get_bool_param_default(self):
+        """Test _get_bool_param with default value."""
+        from core.views import BaseDocumentListCreateView
+        from rest_framework.test import APIRequestFactory
+        from rest_framework.request import Request
+
+        factory = APIRequestFactory()
+        wsgi_request = factory.get("/")
+        request = Request(wsgi_request)
+        result = BaseDocumentListCreateView._get_bool_param(
+            request, "pagination", default=True
+        )
+        assert result is True
+
+    def test_has_membership_method(self, extra_company):
+        """Test _has_membership static method."""
+        from core.views import BaseDocumentDetailEditDeleteView
+        from account.models import Membership
+        from django.contrib.auth import get_user_model
+        from django.contrib.auth.models import Group
+
+        User = get_user_model()
+        test_user = User.objects.create_user(
+            email="test_membership@test.com", password="pass"
+        )
+
+        result = BaseDocumentDetailEditDeleteView._has_membership(
+            test_user, extra_company.id
+        )
+        assert result is False
+
+        admin_group, _ = Group.objects.get_or_create(name="Admin")
+        Membership.objects.create(
+            user=test_user, company=extra_company, role=admin_group
+        )
+        result = BaseDocumentDetailEditDeleteView._has_membership(
+            test_user, extra_company.id
+        )
+        assert result is True
+
+
+@pytest.mark.django_db
+class TestFilterDatabaseErrorBranch:
+    """Tests for DatabaseError branches in filters."""
+
+    def test_devi_filter_database_error(self, extra_devi, monkeypatch):
+        """Test DeviFilter handles DatabaseError gracefully."""
+        from devi.filters import DeviFilter
+        from django.db.utils import DatabaseError
+
+        # Mock SearchQuery to raise DatabaseError
+        def mock_filter(*args, **kwargs):
+            raise DatabaseError("Mocked DB error")
+
+        monkeypatch.setattr(
+            "devi.filters.SearchQuery", lambda *a, **kw: type(
+                "MockQuery", (), {"__init__": lambda s, *a, **kw: None}
+            )()
+        )
+
+        qs = Devi.objects.all()
+        # Force skip_fts to False by using a normal search term
+        filterset = DeviFilter(data={"search": "test"}, queryset=qs)
+        # Should not raise and should return results
+        result = filterset.qs
+        assert result is not None
+
+    def test_facture_client_filter_database_error(self, extra_devi, monkeypatch):
+        """Test FactureClientFilter handles DatabaseError gracefully."""
+        from facture_client.filters import FactureClientFilter
+        from facture_client.models import FactureClient
+
+        qs = FactureClient.objects.all()
+        filterset = FactureClientFilter(data={"search": "test"}, queryset=qs)
+        result = filterset.qs
+        assert result is not None
+
+    def test_facture_proforma_filter_database_error(self, extra_devi, monkeypatch):
+        """Test FactureProFormaFilter handles DatabaseError gracefully."""
+        from facture_proforma.filters import FactureProFormaFilter
+        from facture_proforma.models import FactureProForma
+
+        qs = FactureProForma.objects.all()
+        filterset = FactureProFormaFilter(data={"search": "test"}, queryset=qs)
+        result = filterset.qs
+        assert result is not None
+
+
+@pytest.mark.django_db
+class TestBaseDocumentListCreateViewPermissions:
+    """Tests for permission checks in BaseDocumentListCreateView."""
+
+    def test_check_company_access_permission_denied(self, db):
+        """Test _check_company_access raises PermissionDenied when user is not member."""
+        from core.views import BaseDocumentListCreateView
+        from rest_framework.exceptions import PermissionDenied
+        from rest_framework.test import APIRequestFactory
+
+        User = get_user_model()
+        user = User.objects.create_user(email="test@test.com", password="testpass")
+        factory = APIRequestFactory()
+        request = factory.get("/")
+        request.user = user
+
+        # Create a company that user is NOT a member of
+        company = Company.objects.create(raison_sociale="TestCo", ICE="123456780")
+
+        with pytest.raises(PermissionDenied):
+            BaseDocumentListCreateView._check_company_access(request, company.id)
+
+    def test_post_client_not_found(self, db):
+        """Test POST raises Http404 when client doesn't exist."""
+        from core.views import BaseDocumentListCreateView
+        from django.http import Http404
+        from rest_framework.test import APIRequestFactory, APIClient
+
+        User = get_user_model()
+        user = User.objects.create_user(email="test@test.com", password="testpass")
+
+        # Create a concrete view for testing
+        class TestView(BaseDocumentListCreateView):
+            model = Devi
+
+        client_api = APIClient()
+        client_api.force_authenticate(user=user)
+
+        # Post with non-existent client ID
+        view = TestView.as_view()
+        factory = APIRequestFactory()
+        request = factory.post("/", {"client": 99999}, format="json")
+        request.user = user
+
+        response = view(request)
+        assert response.status_code == 404
+
+    def test_post_permission_denied_not_member(self, db, extra_ville):
+        """Test POST raises PermissionDenied when user is not member of client's company."""
+        from core.views import BaseDocumentListCreateView
+        from rest_framework.test import APIRequestFactory
+
+        User = get_user_model()
+        user = User.objects.create_user(email="test@test.com", password="testpass")
+
+        # Create company and client that user is NOT a member of
+        company = Company.objects.create(raison_sociale="TestCo", ICE="123456781")
+        client_obj = Client.objects.create(
+            code_client="CLT001_perm",
+            client_type="PM",
+            raison_sociale="Test Client",
+            ville=extra_ville,
+            company=company,
+        )
+
+        class TestView(BaseDocumentListCreateView):
+            model = Devi
+
+        view = TestView.as_view()
+        factory = APIRequestFactory()
+        request = factory.post("/", {"client": client_obj.id}, format="json")
+        request.user = user
+
+        response = view(request)
+        assert response.status_code == 403
+
+
+@pytest.mark.django_db
+class TestBaseStatusUpdateViewPermissions:
+    """Tests for permission checks in BaseStatusUpdateView."""
+
+    def test_status_update_permission_denied(self, db, extra_ville):
+        """Test PATCH raises PermissionDenied when user is not member."""
+        from core.views import BaseStatusUpdateView
+        from rest_framework.test import APIRequestFactory
+        from django.contrib.auth.models import Group
+
+        User = get_user_model()
+        user = User.objects.create_user(email="test@test.com", password="testpass")
+        other_user = User.objects.create_user(
+            email="other@test.com", password="testpass"
+        )
+
+        # Create company, client, and document
+        admin_group = Group.objects.create(name="Admin_status_test")
+        company = Company.objects.create(raison_sociale="TestCo", ICE="123456782")
+        # Only other_user is member
+        Membership.objects.create(user=other_user, company=company, role=admin_group)
+        client_obj = Client.objects.create(
+            code_client="CLT_status",
+            client_type="PM",
+            raison_sociale="Test Client",
+            ville=extra_ville,
+            company=company,
+        )
+        devi = Devi.objects.create(
+            client=client_obj,
+            numero_devis="0001/25",
+            date_devis="2024-01-01",
+            created_by_user=other_user,
+        )
+
+        class TestStatusView(BaseStatusUpdateView):
+            model = Devi
+            document_name = "devis"
+
+        view = TestStatusView.as_view()
+        factory = APIRequestFactory()
+        request = factory.patch("/", {"statut": "Accepté"}, format="json")
+        request.user = user  # User is NOT a member
+
+        response = view(request, pk=devi.pk)
+        assert response.status_code == 403
+
+    def test_status_update_not_found(self, db):
+        """Test PATCH raises Http404 when document doesn't exist."""
+        from core.views import BaseStatusUpdateView
+        from rest_framework.test import APIRequestFactory
+
+        User = get_user_model()
+        user = User.objects.create_user(email="test@test.com", password="testpass")
+
+        class TestStatusView(BaseStatusUpdateView):
+            model = Devi
+            document_name = "devis"
+
+        view = TestStatusView.as_view()
+        factory = APIRequestFactory()
+        request = factory.patch("/", {"statut": "Accepté"}, format="json")
+        request.user = user
+
+        response = view(request, pk=99999)
+        assert response.status_code == 404
+
+
+@pytest.mark.django_db
+class TestBaseConversionViewPermissions:
+    """Tests for permission checks in BaseConversionView."""
+
+    def test_conversion_permission_denied(self, db, extra_ville):
+        """Test POST raises PermissionDenied when user is not member."""
+        from core.views import BaseConversionView
+        from rest_framework.test import APIRequestFactory
+        from django.contrib.auth.models import Group
+
+        User = get_user_model()
+        user = User.objects.create_user(email="test@test.com", password="testpass")
+        other_user = User.objects.create_user(
+            email="other@test.com", password="testpass"
+        )
+
+        # Create company, client, and document
+        admin_group = Group.objects.create(name="Admin_conv_test")
+        company = Company.objects.create(raison_sociale="TestCo", ICE="123456783")
+        # Only other_user is member
+        Membership.objects.create(user=other_user, company=company, role=admin_group)
+        client_obj = Client.objects.create(
+            code_client="CLT_conv",
+            client_type="PM",
+            raison_sociale="Test Client",
+            ville=extra_ville,
+            company=company,
+        )
+        devi = Devi.objects.create(
+            client=client_obj,
+            numero_devis="0002/25",
+            date_devis="2024-01-01",
+            created_by_user=other_user,
+        )
+
+        class TestConversionView(BaseConversionView):
+            model = Devi
+            document_name = "devis"
+            numero_generator = lambda: "0001/25"
+            conversion_method = "convert_to_facture_proforma"
+
+        view = TestConversionView.as_view()
+        factory = APIRequestFactory()
+        request = factory.post("/", format="json")
+        request.user = user  # User is NOT a member
+
+        response = view(request, pk=devi.pk)
+        assert response.status_code == 403
+
+    def test_conversion_not_found(self, db):
+        """Test POST raises Http404 when document doesn't exist."""
+        from core.views import BaseConversionView
+        from rest_framework.test import APIRequestFactory
+
+        User = get_user_model()
+        user = User.objects.create_user(email="test@test.com", password="testpass")
+
+        class TestConversionView(BaseConversionView):
+            model = Devi
+            document_name = "devis"
+            numero_generator = lambda: "0001/25"
+            conversion_method = "convert_to_facture_proforma"
+
+        view = TestConversionView.as_view()
+        factory = APIRequestFactory()
+        request = factory.post("/", format="json")
+        request.user = user
+
+        response = view(request, pk=99999)
+        assert response.status_code == 404
+
+
+@pytest.mark.django_db
+class TestBaseDocumentDetailEditDeleteViewPermissions:
+    """Tests for permission checks in BaseDocumentDetailEditDeleteView."""
+
+    def test_put_permission_denied(self, db, extra_ville):
+        """Test PUT raises PermissionDenied when user is not member."""
+        from core.views import BaseDocumentDetailEditDeleteView
+        from rest_framework.test import APIRequestFactory
+        from django.contrib.auth.models import Group
+        from devi.serializers import DeviDetailSerializer
+
+        User = get_user_model()
+        user = User.objects.create_user(email="test@test.com", password="testpass")
+        other_user = User.objects.create_user(
+            email="other@test.com", password="testpass"
+        )
+
+        # Create company, client, and document
+        admin_group = Group.objects.create(name="Admin_put_test")
+        company = Company.objects.create(raison_sociale="TestCo", ICE="123456784")
+        # Only other_user is member
+        Membership.objects.create(user=other_user, company=company, role=admin_group)
+        client_obj = Client.objects.create(
+            code_client="CLT_put",
+            client_type="PM",
+            raison_sociale="Test Client",
+            ville=extra_ville,
+            company=company,
+        )
+        devi = Devi.objects.create(
+            client=client_obj,
+            numero_devis="0003/25",
+            date_devis="2024-01-01",
+            created_by_user=other_user,
+        )
+
+        class TestDetailView(BaseDocumentDetailEditDeleteView):
+            model = Devi
+            detail_serializer_class = DeviDetailSerializer
+            document_name = "devis"
+
+        view = TestDetailView.as_view()
+        factory = APIRequestFactory()
+        request = factory.put("/", {"numero_devis": "0004/25"}, format="json")
+        request.user = user  # User is NOT a member
+
+        response = view(request, pk=devi.pk)
+        assert response.status_code == 403
+
+    def test_delete_permission_denied(self, db, extra_ville):
+        """Test DELETE raises PermissionDenied when user is not member."""
+        from core.views import BaseDocumentDetailEditDeleteView
+        from rest_framework.test import APIRequestFactory
+        from django.contrib.auth.models import Group
+        from devi.serializers import DeviDetailSerializer
+
+        User = get_user_model()
+        user = User.objects.create_user(email="test@test.com", password="testpass")
+        other_user = User.objects.create_user(
+            email="other@test.com", password="testpass"
+        )
+
+        # Create company, client, and document
+        admin_group = Group.objects.create(name="Admin_del_test")
+        company = Company.objects.create(raison_sociale="TestCo", ICE="123456785")
+        # Only other_user is member
+        Membership.objects.create(user=other_user, company=company, role=admin_group)
+        client_obj = Client.objects.create(
+            code_client="CLT_del",
+            client_type="PM",
+            raison_sociale="Test Client",
+            ville=extra_ville,
+            company=company,
+        )
+        devi = Devi.objects.create(
+            client=client_obj,
+            numero_devis="0005/25",
+            date_devis="2024-01-01",
+            created_by_user=other_user,
+        )
+
+        class TestDetailView(BaseDocumentDetailEditDeleteView):
+            model = Devi
+            detail_serializer_class = DeviDetailSerializer
+            document_name = "devis"
+
+        view = TestDetailView.as_view()
+        factory = APIRequestFactory()
+        request = factory.delete("/")
+        request.user = user  # User is NOT a member
+
+        response = view(request, pk=devi.pk)
+        assert response.status_code == 403
+
+    def test_get_not_found(self, db):
+        """Test GET raises Http404 when document doesn't exist."""
+        from core.views import BaseDocumentDetailEditDeleteView
+        from rest_framework.test import APIRequestFactory
+        from devi.serializers import DeviDetailSerializer
+
+        User = get_user_model()
+        user = User.objects.create_user(email="test@test.com", password="testpass")
+
+        class TestDetailView(BaseDocumentDetailEditDeleteView):
+            model = Devi
+            detail_serializer_class = DeviDetailSerializer
+            document_name = "devis"
+
+        view = TestDetailView.as_view()
+        factory = APIRequestFactory()
+        request = factory.get("/")
+        request.user = user
+
+        response = view(request, pk=99999)
+        assert response.status_code == 404

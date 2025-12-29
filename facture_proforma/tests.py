@@ -317,6 +317,9 @@ class TestFactureProFormaFilters(SharedDocumentFilterTestsMixin):
     def test_filter_statut_empty_returns_all(self):
         self.shared_test_filter_statut_empty_returns_all()
 
+    def test_filter_statut_none_returns_all(self):
+        self.shared_test_filter_statut_none_returns_all()
+
     def test_search_with_tsquery_metacharacters(self):
         self.shared_test_search_with_tsquery_metacharacters()
 
@@ -328,6 +331,43 @@ class TestFactureProFormaFilters(SharedDocumentFilterTestsMixin):
 
     def test_search_with_parentheses_metachar(self):
         self.shared_test_search_with_parentheses_metachar()
+
+    def test_search_with_empty_string(self):
+        """Test search with empty string returns queryset unchanged (line 27 coverage)."""
+        base_qs = FactureProForma.objects.all()
+        filt = FactureProFormaFilter({"search": ""}, queryset=base_qs)
+        assert filt.qs.count() == base_qs.count()
+
+    def test_filter_statut_with_empty_string(self):
+        """Test filter_statut with empty string returns all (line 21 coverage)."""
+        base_qs = FactureProForma.objects.all()
+        count_before = base_qs.count()
+        filt = FactureProFormaFilter({"statut": ""}, queryset=base_qs)
+        assert filt.qs.count() == count_before
+
+    def test_filter_statut_direct_call_empty(self):
+        """Test filter_statut method directly with empty value (line 21 coverage)."""
+        base_qs = FactureProForma.objects.all()
+        result = FactureProFormaFilter.filter_statut(base_qs, "statut", "")
+        assert result.count() == base_qs.count()
+
+    def test_filter_statut_direct_call_none(self):
+        """Test filter_statut method directly with None value (line 21 coverage)."""
+        base_qs = FactureProForma.objects.all()
+        result = FactureProFormaFilter.filter_statut(base_qs, "statut", None)
+        assert result.count() == base_qs.count()
+
+    def test_global_search_direct_call_empty(self):
+        """Test global_search method directly with empty value (line 27 coverage)."""
+        base_qs = FactureProForma.objects.all()
+        result = FactureProFormaFilter.global_search(base_qs, "search", "")
+        assert result.count() == base_qs.count()
+
+    def test_global_search_direct_call_whitespace(self):
+        """Test global_search method directly with whitespace (line 27 coverage)."""
+        base_qs = FactureProForma.objects.all()
+        result = FactureProFormaFilter.global_search(base_qs, "search", "   ")
+        assert result.count() == base_qs.count()
 
 
 @pytest.mark.django_db
@@ -544,3 +584,14 @@ class TestFactureProFormaAdminExtra(SharedDocumentAdminTestsMixin):
 
     def test_line_admin_article_designation(self, pf_conv_with_lines):
         self.shared_test_line_admin_article_designation(pf_conv_with_lines)
+
+
+@pytest.mark.django_db
+class TestFactureProFormaLineModelExtra:
+    """Extra tests for FactureProFormaLine model."""
+
+    def test_line_str_representation(self, pf_conv_with_lines):
+        """Test FactureProFormaLine string representation."""
+        line = pf_conv_with_lines.lignes.first()
+        expected = f"{pf_conv_with_lines} - {line.article}"
+        assert str(line) == expected
