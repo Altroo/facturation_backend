@@ -8,6 +8,12 @@ import pytest
 from PIL import Image
 from django.core.files.base import ContentFile
 from rest_framework import serializers
+from rest_framework.exceptions import (
+    AuthenticationFailed,
+    PermissionDenied,
+    NotFound,
+    MethodNotAllowed,
+)
 from rest_framework.exceptions import ValidationError
 from rest_framework.request import Request
 from rest_framework.test import APIRequestFactory
@@ -319,3 +325,39 @@ class TestCustomPagination:
         assert p.max_page_size == 100
 
         # This means even if client requests ?page_size=1000, it will be capped at 100
+
+
+class TestApiExceptionHandlerExtra:
+    """Extra tests for api_exception_handler function."""
+
+    def test_401_error(self):
+        """Test handling 401 error."""
+        factory = APIRequestFactory()
+        request = factory.get("/")
+        exc = AuthenticationFailed("Invalid")
+        response = api_exception_handler(exc, {"request": request, "view": None})
+        assert response.status_code == 401
+
+    def test_403_error(self):
+        """Test handling 403 error."""
+        factory = APIRequestFactory()
+        request = factory.get("/")
+        exc = PermissionDenied("Denied")
+        response = api_exception_handler(exc, {"request": request, "view": None})
+        assert response.status_code == 403
+
+    def test_404_error(self):
+        """Test handling 404 error."""
+        factory = APIRequestFactory()
+        request = factory.get("/")
+        exc = NotFound("Not found")
+        response = api_exception_handler(exc, {"request": request, "view": None})
+        assert response.status_code == 404
+
+    def test_405_error(self):
+        """Test handling 405 error."""
+        factory = APIRequestFactory()
+        request = factory.get("/")
+        exc = MethodNotAllowed("GET")
+        response = api_exception_handler(exc, {"request": request, "view": None})
+        assert response.status_code == 405

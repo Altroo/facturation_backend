@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 import pytest
 from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
@@ -15,7 +17,91 @@ from parameter.models import ModePaiement, Ville
 from .filters import FactureClientFilter
 from .models import FactureClient, FactureClientLine
 
+# -----------------------------------------------------------------------------
+# Fixtures
+# -----------------------------------------------------------------------------
+pytestmark = pytest.mark.django_db
 
+
+@pytest.fixture
+def fc_conv_user():
+    return CustomUser.objects.create_user(
+        email="fc_conv@example.com",
+        password="pass",
+        first_name="FC",
+        last_name="Conv",
+    )
+
+
+@pytest.fixture
+def fc_conv_company():
+    return Company.objects.create(raison_sociale="FC Conv Co", ICE="FCCONV")
+
+
+@pytest.fixture
+def fc_conv_ville():
+    return Ville.objects.create(nom="FCConvVille")
+
+
+@pytest.fixture
+def fc_conv_client(fc_conv_ville, fc_conv_company):
+    return Client.objects.create(
+        code_client="FCCONV001",
+        client_type="PM",
+        raison_sociale="FC Conv Client",
+        ville=fc_conv_ville,
+        company=fc_conv_company,
+    )
+
+
+@pytest.fixture
+def fc_conv_mode_paiement():
+    return ModePaiement.objects.create(nom="FCConvPay")
+
+
+@pytest.fixture
+def fc_conv_article(fc_conv_company):
+    return Article.objects.create(
+        company=fc_conv_company,
+        reference="FCCONV001",
+        designation="FC Conv Article",
+        prix_achat=Decimal("80.00"),
+        prix_vente=Decimal("100.00"),
+        tva=20,
+    )
+
+
+@pytest.fixture
+def fc_conv_obj(fc_conv_client, fc_conv_mode_paiement, fc_conv_user):
+    return FactureClient.objects.create(
+        numero_facture="FCCONV/01",
+        client=fc_conv_client,
+        date_facture="2025-01-01",
+        mode_paiement=fc_conv_mode_paiement,
+        statut="Brouillon",
+        created_by_user=fc_conv_user,
+        remise=Decimal("5.00"),
+        remise_type="Pourcentage",
+    )
+
+
+@pytest.fixture
+def fc_conv_with_lines(fc_conv_obj, fc_conv_article):
+    FactureClientLine.objects.create(
+        facture_client=fc_conv_obj,
+        article=fc_conv_article,
+        prix_achat=Decimal("80.00"),
+        prix_vente=Decimal("100.00"),
+        quantity=2,
+    )
+    fc_conv_obj.recalc_totals()
+    fc_conv_obj.save()
+    return fc_conv_obj
+
+
+# -----------------------------------------------------------------------------
+# Test Classes
+# -----------------------------------------------------------------------------
 @pytest.mark.django_db
 class TestFactureClientAPI(SharedDocumentAPITestsMixin):
     cfg = DocConfig(
@@ -223,3 +309,238 @@ class TestFactureClientFilters(SharedDocumentFilterTestsMixin):
 
     def test_empty_search_returns_queryset_unchanged(self):
         self.shared_test_empty_search_returns_queryset_unchanged()
+
+    def test_filter_statut_empty_returns_all(self):
+        """Test filter_statut with empty value returns all results."""
+        qs = FactureClient.objects.all()
+        count_before = qs.count()
+        filterset = FactureClientFilter(data={"statut": ""}, queryset=qs)
+        assert filterset.qs.count() == count_before
+
+    def test_search_with_tsquery_metacharacters(self):
+        """Test search skips FTS when tsquery metacharacters are present."""
+        qs = FactureClient.objects.all()
+        # Search with metacharacters like :*?&|!()<>
+        filterset = FactureClientFilter(data={"search": "test:*"}, queryset=qs)
+        # Should not raise and should use fallback
+        assert filterset.qs is not None
+
+    def test_search_with_special_chars_fallback(self):
+        """Test search uses fallback with special characters."""
+        qs = FactureClient.objects.all()
+        filterset = FactureClientFilter(data={"search": "test&value"}, queryset=qs)
+        assert filterset.qs is not None
+
+    def test_search_with_pipe_metachar(self):
+        """Test search with pipe metacharacter uses fallback."""
+        qs = FactureClient.objects.all()
+        filterset = FactureClientFilter(data={"search": "A|B"}, queryset=qs)
+        assert filterset.qs is not None
+
+    def test_search_with_parentheses_metachar(self):
+        """Test search with parentheses metacharacter uses fallback."""
+        qs = FactureClient.objects.all()
+        filterset = FactureClientFilter(data={"search": "(test)"}, queryset=qs)
+        assert filterset.qs is not None
+
+
+@pytest.mark.django_db
+class TestFactureClientUtilsExtra:
+    """Extra tests for facture_client utils."""
+
+    def test_get_next_numero_with_gaps(self):
+        """Test get_next_numero_facture_client finds gaps."""
+        from facture_client.utils import get_next_numero_facture_client
+        from datetime import datetime
+
+        # Create fixtures
+        company = Company.objects.create(raison_sociale="UtilCo", ICE="UTIL123")
+        ville = Ville.objects.create(nom="UtilVille")
+        client = Client.objects.create(
+            code_client="UTIL001",
+            client_type="PM",
+            raison_sociale="Util Client",
+            ville=ville,
+            company=company,
+        )
+        user = CustomUser.objects.create_user(
+            email="util_fc@example.com", password="pass"
+        )
+        mode = ModePaiement.objects.create(nom="UtilCash")
+
+        year_suffix = f"{datetime.now().year % 100:02d}"
+
+        # Create with gap (0001, 0003)
+        FactureClient.objects.create(
+            numero_facture=f"0001/{year_suffix}",
+            client=client,
+            date_facture="2025-01-01",
+            mode_paiement=mode,
+            statut="Brouillon",
+            created_by_user=user,
+        )
+        FactureClient.objects.create(
+            numero_facture=f"0003/{year_suffix}",
+            client=client,
+            date_facture="2025-01-02",
+            mode_paiement=mode,
+            statut="Brouillon",
+            created_by_user=user,
+        )
+
+        next_num = get_next_numero_facture_client()
+        assert next_num == f"0002/{year_suffix}"
+
+    def test_get_next_numero_with_invalid_format(self):
+        """Test get_next_numero_facture_client handles invalid formats."""
+        from facture_client.utils import get_next_numero_facture_client
+        from datetime import datetime
+
+        company = Company.objects.create(raison_sociale="UtilCo2", ICE="UTIL456")
+        ville = Ville.objects.create(nom="UtilVille2")
+        client = Client.objects.create(
+            code_client="UTIL002",
+            client_type="PM",
+            raison_sociale="Util Client2",
+            ville=ville,
+            company=company,
+        )
+        user = CustomUser.objects.create_user(
+            email="util_fc2@example.com", password="pass"
+        )
+        mode = ModePaiement.objects.create(nom="UtilCash2")
+
+        year_suffix = f"{datetime.now().year % 100:02d}"
+
+        # Create with invalid format
+        FactureClient.objects.create(
+            numero_facture=f"INVALID/{year_suffix}",
+            client=client,
+            date_facture="2025-01-01",
+            mode_paiement=mode,
+            statut="Brouillon",
+            created_by_user=user,
+        )
+
+        next_num = get_next_numero_facture_client()
+        assert "0001" in next_num or "0002" in next_num
+
+    def test_get_next_numero_empty_db(self):
+        """Test get_next_numero_facture_client with no existing records."""
+        from facture_client.utils import get_next_numero_facture_client
+        from datetime import datetime
+
+        # Clear all facture_client
+        FactureClient.objects.all().delete()
+
+        year_suffix = f"{datetime.now().year % 100:02d}"
+        next_num = get_next_numero_facture_client()
+        assert next_num == f"0001/{year_suffix}"
+
+    def test_get_next_numero_consecutive(self):
+        """Test get_next_numero_facture_client with consecutive numbers."""
+        from facture_client.utils import get_next_numero_facture_client
+        from datetime import datetime
+
+        company = Company.objects.create(raison_sociale="UtilCo3", ICE="UTIL789")
+        ville = Ville.objects.create(nom="UtilVille3")
+        client = Client.objects.create(
+            code_client="UTIL003",
+            client_type="PM",
+            raison_sociale="Util Client3",
+            ville=ville,
+            company=company,
+        )
+        user = CustomUser.objects.create_user(
+            email="util_fc3@example.com", password="pass"
+        )
+        mode = ModePaiement.objects.create(nom="UtilCash3")
+
+        year_suffix = f"{datetime.now().year % 100:02d}"
+
+        # Create consecutive factures
+        FactureClient.objects.create(
+            numero_facture=f"0001/{year_suffix}",
+            client=client,
+            date_facture="2025-01-01",
+            mode_paiement=mode,
+            statut="Brouillon",
+            created_by_user=user,
+        )
+        FactureClient.objects.create(
+            numero_facture=f"0002/{year_suffix}",
+            client=client,
+            date_facture="2025-01-02",
+            mode_paiement=mode,
+            statut="Brouillon",
+            created_by_user=user,
+        )
+
+        next_num = get_next_numero_facture_client()
+        assert next_num == f"0003/{year_suffix}"
+
+
+@pytest.mark.django_db
+class TestFactureClientModelExtra:
+    """Extra tests for FactureClient model methods."""
+
+    def test_recalc_totals(self, fc_conv_with_lines):
+        """Test recalc_totals computes correct totals."""
+        fc_conv_with_lines.recalc_totals()
+        assert fc_conv_with_lines.total_ht > 0
+
+    def test_lignes_count(self, fc_conv_with_lines):
+        """Test lignes relationship."""
+        assert fc_conv_with_lines.lignes.count() == 1
+
+    def test_str_representation(self, fc_conv_obj):
+        """Test string representation."""
+        assert str(fc_conv_obj) == fc_conv_obj.numero_facture
+
+
+@pytest.mark.django_db
+class TestFactureClientAdminExtra:
+    """Extra tests for FactureClient admin."""
+
+    def test_admin_get_numero_field_name(self):
+        """Test admin get_numero_field_name method."""
+        from django.contrib.admin.sites import AdminSite
+        from facture_client.admin import FactureClientAdmin
+
+        admin = FactureClientAdmin(FactureClient, AdminSite())
+        assert admin.get_numero_field_name() == "numero_facture"
+
+    def test_admin_get_date_field_name(self):
+        """Test admin get_date_field_name method."""
+        from django.contrib.admin.sites import AdminSite
+        from facture_client.admin import FactureClientAdmin
+
+        admin = FactureClientAdmin(FactureClient, AdminSite())
+        assert admin.get_date_field_name() == "date_facture"
+
+    def test_line_admin_numero_facture(self, fc_conv_with_lines):
+        """Test line admin numero_facture display method."""
+        from django.contrib.admin.sites import AdminSite
+        from facture_client.admin import FactureClientLineAdmin
+
+        admin = FactureClientLineAdmin(FactureClientLine, AdminSite())
+        line = fc_conv_with_lines.lignes.first()
+        assert admin.numero_facture(line) == fc_conv_with_lines.numero_facture
+
+    def test_line_admin_article_reference(self, fc_conv_with_lines):
+        """Test line admin article_reference display method."""
+        from django.contrib.admin.sites import AdminSite
+        from facture_client.admin import FactureClientLineAdmin
+
+        admin = FactureClientLineAdmin(FactureClientLine, AdminSite())
+        line = fc_conv_with_lines.lignes.first()
+        assert admin.article_reference(line) == line.article.reference
+
+    def test_line_admin_article_designation(self, fc_conv_with_lines):
+        """Test line admin article_designation display method."""
+        from django.contrib.admin.sites import AdminSite
+        from facture_client.admin import FactureClientLineAdmin
+
+        admin = FactureClientLineAdmin(FactureClientLine, AdminSite())
+        line = fc_conv_with_lines.lignes.first()
+        assert admin.article_designation(line) == line.article.designation

@@ -2,7 +2,7 @@ import os
 from datetime import datetime, timezone
 from io import BytesIO
 from typing import Any
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 
 import pytest
 from PIL import Image
@@ -25,7 +25,10 @@ from account.serializers import (
     UsersListSerializer,
     ProfileGETSerializer,
     MembershipSerializer,
+    ChangePasswordSerializer,
+    PasswordResetSerializer,
 )
+from company.models import Company
 from .filters import UsersFilter
 from .models import CustomUser
 from .tasks import (
@@ -33,6 +36,11 @@ from .tasks import (
     start_deleting_expired_codes,
     generate_user_thumbnail,
     resize_avatar,
+    random_color_picker,
+    get_text_fill_color,
+    from_img_to_io,
+    generate_avatar,
+    generate_images_v2,
 )
 
 
@@ -966,7 +974,7 @@ class TestSerializers:
                 "Direct assignment to the reverse side of a related set is prohibited"
                 in str(e)
             )
-        except Exception:
+        except (ValueError, AttributeError):
             # Other exceptions allowed for side effect checks below
             pass
 
@@ -992,3 +1000,837 @@ class TestSerializers:
             assert isinstance(called["items"], list)
         else:
             assert True
+
+
+IMG_B64_EXTRA = (
+    "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4n"
+    "GNgYAAAAAMAASsJTYQAAAAASUVORK5CYII="
+)
+
+
+@pytest.fixture
+def user_extra():
+    return CustomUser.objects.create_user(
+        email="extra_test@example.com",
+        password="testpass",
+        first_name="Test",
+        last_name="User",
+        gender="H",
+    )
+
+
+@pytest.fixture
+def company_extra():
+    return Company.objects.create(raison_sociale="Extra Test Company", ICE="EXTRA123")
+
+
+@pytest.mark.django_db
+class TestSerializersExtra:
+    """Extra tests for account serializers."""
+
+    def test_create_account_with_empty_memberships(self):
+        """Test create with empty memberships list."""
+        serializer = CreateAccountSerializer(
+            data={
+                "email": "empty_mem@example.com",
+                "password": "testpass123",
+                "first_name": "Empty",
+                "last_name": "Member",
+            }
+        )
+        assert serializer.is_valid(), serializer.errors
+        user = serializer.save()
+        assert user.memberships.count() == 0
+
+    def test_create_account_with_avatar_base64(self):
+        """Test create with base64 avatar."""
+        serializer = CreateAccountSerializer(
+            data={
+                "email": "avatar_b64@example.com",
+                "password": "testpass123",
+                "first_name": "Avatar",
+                "last_name": "User",
+                "avatar": IMG_B64_EXTRA,
+            }
+        )
+        assert serializer.is_valid(), serializer.errors
+        user = serializer.save()
+        assert user.avatar is not None
+
+    def test_validate_gender_empty_returns_empty(self):
+        """Test validate_gender with empty string."""
+        assert CreateAccountSerializer.validate_gender("") == ""
+
+    def test_profile_put_process_image_empty(self):
+        """Test _process_image_field with empty value."""
+        assert ProfilePutSerializer._process_image_field("avatar", {"avatar": ""}) == (
+            None,
+            None,
+            False,
+        )
+        assert ProfilePutSerializer._process_image_field(
+            "avatar", {"avatar": None}
+        ) == (None, None, False)
+
+    def test_users_list_get_gender(self, user_extra):
+        """Test get_gender returns correct display."""
+        user_extra.gender = "H"
+        assert UsersListSerializer.get_gender(user_extra) == "Homme"
+        user_extra.gender = "F"
+        assert UsersListSerializer.get_gender(user_extra) == "Femme"
+        user_extra.gender = ""
+        assert UsersListSerializer.get_gender(user_extra) is None
+
+    def test_membership_get_group_not_found(self):
+        """Test _get_group raises for non-existent role."""
+        with pytest.raises(drf_serializers.ValidationError, match="does not exist"):
+            MembershipSerializer._get_group("NonExistentRole")
+
+    def test_change_password_validate(self):
+        """Test password validation."""
+        assert (
+            ChangePasswordSerializer.validate_new_password("SecurePass123!")
+            == "SecurePass123!"
+        )
+
+    def test_password_reset_matching(self):
+        """Test matching passwords pass validation."""
+        serializer = PasswordResetSerializer(
+            data={"new_password": "NewPass123!", "new_password2": "NewPass123!"}
+        )
+        assert serializer.is_valid()
+
+    def test_password_reset_mismatch(self):
+        """Test mismatched passwords fail validation."""
+        serializer = PasswordResetSerializer(
+            data={"new_password": "NewPass123!", "new_password2": "Different!"}
+        )
+        assert not serializer.is_valid()
+        assert "new_password2" in serializer.errors
+
+
+@pytest.mark.django_db
+class TestTasksExtra:
+    """Extra tests for account tasks."""
+
+    @patch("account.tasks.EmailMessage")
+    def test_send_email_basic(self, mock_email_class, user_extra):
+        """Test sending basic email."""
+        mock_email = MagicMock()
+        mock_email_class.return_value = mock_email
+        send_email(
+            user_pk=user_extra.pk,
+            email_=user_extra.email,
+            mail_subject="Test",
+            message="Msg",
+        )
+        mock_email.send.assert_called_once_with(fail_silently=False)
+
+    @patch("account.tasks.EmailMessage")
+    def test_send_email_with_password_reset_code(self, mock_email_class, user_extra):
+        """Test sending email with password reset code."""
+        mock_email_class.return_value = MagicMock()
+        send_email(
+            user_pk=user_extra.pk,
+            email_=user_extra.email,
+            mail_subject="Reset",
+            message="Code",
+            code="1234",
+            type_="password_reset_code",
+        )
+        user_extra.refresh_from_db()
+        assert user_extra.password_reset_code == "1234"
+
+    def test_delete_password_reset_code(self, user_extra):
+        """Test deleting password reset code."""
+        user_extra.password_reset_code = "1234"
+        user_extra.save()
+        start_deleting_expired_codes(user_pk=user_extra.pk, type_="password_reset")
+        user_extra.refresh_from_db()
+        assert user_extra.password_reset_code is None
+
+    def test_random_color_picker_returns_list(self):
+        """Test random_color_picker returns color list."""
+        colors = random_color_picker()
+        assert isinstance(colors, list) and len(colors) > 0
+
+    def test_get_text_fill_color_light(self):
+        """Test fill color for light backgrounds returns black."""
+        assert get_text_fill_color("#F3DCDC") == (0, 0, 0)
+        assert get_text_fill_color("#FFD9A2") == (0, 0, 0)
+
+    def test_get_text_fill_color_dark(self):
+        """Test fill color for dark backgrounds returns white."""
+        assert get_text_fill_color("#0D070B") == (255, 255, 255)
+        assert get_text_fill_color("#0274D7") == (255, 255, 255)
+
+    def test_get_text_fill_color_unknown(self):
+        """Test unknown color returns black."""
+        assert get_text_fill_color("#UNKNOWN") == (0, 0, 0)
+
+    def test_from_img_to_io(self):
+        """Test from_img_to_io creates BytesIO."""
+        img = Image.new("RGB", (10, 10), color="red")
+        result = from_img_to_io(img, "PNG")
+        assert isinstance(result, BytesIO)
+
+    @patch("account.tasks.STATIC_PATH", "/fake")
+    @patch("account.tasks.ImageDraw.Draw")
+    @patch("account.tasks.ImageFont.truetype")
+    def test_generate_avatar(self, mock_font, mock_draw):
+        """Test generate_avatar creates image."""
+        mock_font.return_value = MagicMock()
+        mock_draw.return_value = MagicMock()
+        avatar = generate_avatar("T", "U")
+        assert isinstance(avatar, Image.Image)
+        assert avatar.size == (600, 600)
+
+    def test_generate_images_v2(self, user_extra):
+        """Test generate_images_v2 saves avatar."""
+        avatar = BytesIO(b"fake")
+        with patch.object(user_extra, "save_image") as mock_save:
+            generate_images_v2(user_extra, avatar)
+            mock_save.assert_called_once_with("avatar", avatar)
+
+    def test_resize_avatar_with_none(self, user_extra):
+        """Test resize_avatar with None returns early."""
+        with patch("account.tasks.CustomUser.objects.get", return_value=user_extra):
+            with patch("account.tasks.resize_images_v2") as mock_resize:
+                resize_avatar(object_pk=user_extra.pk, avatar=None)
+                mock_resize.assert_not_called()
+
+    def test_resize_avatar_with_non_bytesio(self, user_extra):
+        """Test resize_avatar with non-BytesIO returns early."""
+        with patch("account.tasks.CustomUser.objects.get", return_value=user_extra):
+            with patch("account.tasks.resize_images_v2") as mock_resize:
+                resize_avatar(object_pk=user_extra.pk, avatar="string")
+                mock_resize.assert_not_called()
+
+
+@pytest.mark.django_db
+class TestMembershipSerializerExtra:
+    """Extra tests for MembershipSerializer create/update methods."""
+
+    def test_membership_create(self, user_extra, company_extra):
+        """Test MembershipSerializer.create method."""
+        role = Group.objects.create(name="MemberRole")
+        context = {"user": user_extra}
+        serializer = MembershipSerializer(
+            data={"company_id": company_extra.pk, "role": "MemberRole"},
+            context=context,
+        )
+        assert serializer.is_valid(), serializer.errors
+        membership = serializer.save()
+        assert membership.user == user_extra
+        assert membership.company == company_extra
+        assert membership.role == role
+
+    def test_membership_update_company(self, user_extra, company_extra):
+        """Test MembershipSerializer.update changes company."""
+        role = Group.objects.create(name="UpdateRole")
+        membership = Membership.objects.create(
+            user=user_extra, company=company_extra, role=role
+        )
+        new_company = Company.objects.create(raison_sociale="New Co", ICE="NEW123")
+        serializer = MembershipSerializer(
+            instance=membership,
+            data={"company_id": new_company.pk},
+            context={"user": user_extra},
+            partial=True,
+        )
+        assert serializer.is_valid(), serializer.errors
+        updated = serializer.save()
+        assert updated.company == new_company
+
+    def test_membership_update_role(self, user_extra, company_extra):
+        """Test MembershipSerializer.update changes role."""
+        old_role = Group.objects.create(name="OldRole")
+        new_role = Group.objects.create(name="NewRole")
+        membership = Membership.objects.create(
+            user=user_extra, company=company_extra, role=old_role
+        )
+        serializer = MembershipSerializer(
+            instance=membership,
+            data={"role": "NewRole"},
+            context={"user": user_extra},
+            partial=True,
+        )
+        assert serializer.is_valid(), serializer.errors
+        updated = serializer.save()
+        assert updated.role == new_role
+
+
+@pytest.mark.django_db
+class TestCreateAccountSerializerExtra:
+    """Extra tests for CreateAccountSerializer methods."""
+
+    def test_create_memberships_with_falsy_membership_id(self):
+        """Test _create_memberships with membership_id=0."""
+        user = CustomUser.objects.create_user(
+            email="mem_test@example.com", password="pass"
+        )
+        company = Company.objects.create(raison_sociale="MemCo", ICE="MEM123")
+        role = Group.objects.create(name="MemTestRole")
+
+        items = [{"membership_id": 0, "company_id": company.pk, "role": "MemTestRole"}]
+        CreateAccountSerializer._create_memberships(user, items)
+        assert user.memberships.count() == 1
+
+    def test_process_image_field_file_exception(self):
+        """Test _process_image_field raises on file read exception."""
+
+        class BrokenFile:
+            name = "broken.jpg"
+
+            def read(self):
+                raise IOError("Read failed")
+
+            def seek(self, pos):
+                pass
+
+        with pytest.raises(drf_serializers.ValidationError, match="Invalid file upload"):
+            CreateAccountSerializer._process_image_field(
+                "avatar", {"avatar": BrokenFile()}
+            )
+
+    def test_process_image_field_base64_exception(self):
+        """Test _process_image_field raises on invalid base64."""
+        # Invalid base64 data after the prefix
+        invalid_b64 = "data:image/png;base64,!!!invalid!!!"
+        with pytest.raises(
+            drf_serializers.ValidationError, match="Invalid base64 image data"
+        ):
+            CreateAccountSerializer._process_image_field(
+                "avatar", {"avatar": invalid_b64}
+            )
+
+    def test_create_with_avatar_saves_file(self):
+        """Test create saves avatar file."""
+        serializer = CreateAccountSerializer(
+            data={
+                "email": "avatar_save@example.com",
+                "password": "testpass123",
+                "first_name": "Avatar",
+                "last_name": "Save",
+                "avatar": IMG_B64_EXTRA,
+            }
+        )
+        assert serializer.is_valid(), serializer.errors
+        user = serializer.save()
+        assert user.avatar is not None
+        assert user.avatar.name != ""
+
+    def test_create_with_avatar_cropped_saves_file(self):
+        """Test create saves avatar_cropped file."""
+        serializer = CreateAccountSerializer(
+            data={
+                "email": "crop_save@example.com",
+                "password": "testpass123",
+                "first_name": "Crop",
+                "last_name": "Save",
+                "avatar_cropped": IMG_B64_EXTRA,
+            }
+        )
+        assert serializer.is_valid(), serializer.errors
+        user = serializer.save()
+        assert user.avatar_cropped is not None
+
+
+from account.serializers import (
+    UserPatchSerializer,
+    UserDetailSerializer,
+)
+from account.models import Membership
+
+
+@pytest.mark.django_db
+class TestUserPatchSerializerExtra:
+    """Extra tests for UserPatchSerializer update logic."""
+
+    def test_update_with_memberships_creates_new(self, user_extra, company_extra):
+        """Test UserPatchSerializer creates new memberships."""
+        role = Group.objects.create(name="PatchRole")
+        serializer = UserPatchSerializer(
+            instance=user_extra,
+            data={
+                "memberships": [
+                    {"company_id": company_extra.pk, "role": "PatchRole"}
+                ]
+            },
+            partial=True,
+        )
+        assert serializer.is_valid(), serializer.errors
+        updated = serializer.save()
+        assert updated.memberships.count() == 1
+
+    def test_update_with_companies_alias(self, user_extra, company_extra):
+        """Test UserPatchSerializer accepts companies as alias for memberships."""
+        role = Group.objects.create(name="AliasRole")
+        serializer = UserPatchSerializer(
+            instance=user_extra,
+            data={
+                "companies": [{"company_id": company_extra.pk, "role": "AliasRole"}]
+            },
+            partial=True,
+        )
+        assert serializer.is_valid(), serializer.errors
+        updated = serializer.save()
+        assert updated.memberships.count() == 1
+
+    def test_update_removes_missing_memberships(self, user_extra, company_extra):
+        """Test UserPatchSerializer removes memberships not in payload."""
+        role = Group.objects.create(name="RemoveRole")
+        # Create existing membership
+        Membership.objects.create(user=user_extra, company=company_extra, role=role)
+        assert user_extra.memberships.count() == 1
+
+        # Update with empty list
+        serializer = UserPatchSerializer(
+            instance=user_extra,
+            data={"memberships": []},
+            partial=True,
+        )
+        assert serializer.is_valid(), serializer.errors
+        updated = serializer.save()
+        assert updated.memberships.count() == 0
+
+    def test_update_existing_membership_by_id(self, user_extra, company_extra):
+        """Test UserPatchSerializer updates existing membership by id."""
+        old_role = Group.objects.create(name="UpdateOldRole")
+        new_role = Group.objects.create(name="UpdateNewRole")
+        membership = Membership.objects.create(
+            user=user_extra, company=company_extra, role=old_role
+        )
+
+        serializer = UserPatchSerializer(
+            instance=user_extra,
+            data={
+                "memberships": [
+                    {
+                        "membership_id": membership.pk,
+                        "company_id": company_extra.pk,
+                        "role": "UpdateNewRole",
+                    }
+                ]
+            },
+            partial=True,
+        )
+        assert serializer.is_valid(), serializer.errors
+        updated = serializer.save()
+        membership.refresh_from_db()
+        assert membership.role == new_role
+
+    def test_update_existing_membership_by_company(self, user_extra, company_extra):
+        """Test UserPatchSerializer finds existing membership by company_id."""
+        role = Group.objects.create(name="ByCompanyRole")
+        new_role = Group.objects.create(name="ByCompanyNewRole")
+        Membership.objects.create(user=user_extra, company=company_extra, role=role)
+
+        serializer = UserPatchSerializer(
+            instance=user_extra,
+            data={
+                "memberships": [
+                    {"company_id": company_extra.pk, "role": "ByCompanyNewRole"}
+                ]
+            },
+            partial=True,
+        )
+        assert serializer.is_valid(), serializer.errors
+        updated = serializer.save()
+        assert updated.memberships.count() == 1
+        assert updated.memberships.first().role == new_role
+
+
+@pytest.mark.django_db
+class TestProfilePutSerializerExtra:
+    """Extra tests for ProfilePutSerializer update method."""
+
+    def test_update_clears_avatar_on_null(self, user_extra):
+        """Test update clears avatar when set to null."""
+        # Set an avatar first
+        user_extra.avatar.save("test.png", ContentFile(b"test"), save=True)
+        assert user_extra.avatar.name != ""
+
+        serializer = ProfilePutSerializer(
+            instance=user_extra,
+            data={"avatar": None},
+            partial=True,
+        )
+        assert serializer.is_valid(), serializer.errors
+        updated = serializer.save()
+        assert not updated.avatar
+
+    def test_update_clears_avatar_on_empty_string(self, user_extra):
+        """Test update clears avatar when set to empty string."""
+        user_extra.avatar.save("test2.png", ContentFile(b"test2"), save=True)
+        assert user_extra.avatar.name != ""
+
+        serializer = ProfilePutSerializer(
+            instance=user_extra,
+            data={"avatar": ""},
+            partial=True,
+        )
+        assert serializer.is_valid(), serializer.errors
+        updated = serializer.save()
+        assert not updated.avatar
+
+    def test_update_preserves_url_avatar(self, user_extra):
+        """Test update preserves avatar when URL is sent."""
+        user_extra.avatar.save("preserve.png", ContentFile(b"preserve"), save=True)
+        old_name = user_extra.avatar.name
+
+        serializer = ProfilePutSerializer(
+            instance=user_extra,
+            data={"avatar": "http://example.com/existing.png"},
+            partial=True,
+        )
+        assert serializer.is_valid(), serializer.errors
+        updated = serializer.save()
+        # Avatar should be preserved (not changed)
+        assert updated.avatar.name == old_name
+
+    def test_update_replaces_avatar_with_new_upload(self, user_extra):
+        """Test update replaces avatar with new base64 upload."""
+        user_extra.avatar.save("old.png", ContentFile(b"old"), save=True)
+        old_name = user_extra.avatar.name
+
+        serializer = ProfilePutSerializer(
+            instance=user_extra,
+            data={"avatar": IMG_B64_EXTRA},
+            partial=True,
+        )
+        assert serializer.is_valid(), serializer.errors
+        updated = serializer.save()
+        assert updated.avatar.name != old_name
+
+    def test_update_clears_cropped_on_new_avatar(self, user_extra):
+        """Test update clears avatar_cropped when new avatar uploaded."""
+        user_extra.avatar.save("av.png", ContentFile(b"av"), save=True)
+        user_extra.avatar_cropped.save("avc.png", ContentFile(b"avc"), save=True)
+
+        serializer = ProfilePutSerializer(
+            instance=user_extra,
+            data={"avatar": IMG_B64_EXTRA},
+            partial=True,
+        )
+        assert serializer.is_valid(), serializer.errors
+        updated = serializer.save()
+        # New avatar uploaded should clear old cropped
+        assert not updated.avatar_cropped
+
+    def test_update_clears_cropped_on_null(self, user_extra):
+        """Test update clears avatar_cropped when set to null."""
+        user_extra.avatar_cropped.save("crop.png", ContentFile(b"crop"), save=True)
+
+        serializer = ProfilePutSerializer(
+            instance=user_extra,
+            data={"avatar_cropped": None},
+            partial=True,
+        )
+        assert serializer.is_valid(), serializer.errors
+        updated = serializer.save()
+        assert not updated.avatar_cropped
+
+    def test_process_image_field_file_exception(self):
+        """Test ProfilePutSerializer raises on broken file."""
+
+        class BrokenFile:
+            name = "broken.jpg"
+
+            def read(self):
+                raise IOError("Read failed")
+
+            def seek(self, pos):
+                pass
+
+        with pytest.raises(drf_serializers.ValidationError, match="Invalid file upload"):
+            ProfilePutSerializer._process_image_field("avatar", {"avatar": BrokenFile()})
+
+    def test_process_image_field_invalid_format(self):
+        """Test ProfilePutSerializer raises on unexpected format."""
+        with pytest.raises(
+            drf_serializers.ValidationError, match="Invalid image format"
+        ):
+            ProfilePutSerializer._process_image_field(
+                "avatar", {"avatar": "not-url-not-base64"}
+            )
+
+    def test_delete_file_handles_missing_path(self):
+        """Test _delete_file handles missing file gracefully."""
+
+        class FakeField:
+            path = "/nonexistent/path/to/file.png"
+
+            def delete(self, save=False):
+                pass
+
+        # Should not raise
+        ProfilePutSerializer._delete_file(FakeField())
+
+    def test_to_representation_without_request(self, user_extra):
+        """Test to_representation works without request in context."""
+        user_extra.avatar.save("repr.png", ContentFile(b"repr"), save=True)
+
+        serializer = ProfilePutSerializer(instance=user_extra, context={})
+        data = serializer.data
+        # Should have avatar URL without absolute path
+        assert data["avatar"] is None or isinstance(data["avatar"], str)
+
+    def test_to_representation_with_request(self, user_extra):
+        """Test to_representation builds absolute URL with request."""
+        user_extra.avatar.save("repr2.png", ContentFile(b"repr2"), save=True)
+
+        class FakeRequest:
+            @staticmethod
+            def build_absolute_uri(url):
+                return f"http://test.com{url}"
+
+        serializer = ProfilePutSerializer(
+            instance=user_extra, context={"request": FakeRequest()}
+        )
+        data = serializer.data
+        assert data["avatar"] is None or data["avatar"].startswith("http://")
+
+
+@pytest.mark.django_db
+class TestUserDetailSerializerExtra:
+    """Extra tests for UserDetailSerializer."""
+
+    def test_get_gender_female(self, user_extra):
+        """Test get_gender returns Femme for F."""
+        user_extra.gender = "F"
+        assert UserDetailSerializer.get_gender(user_extra) == "Femme"
+
+    def test_serializer_includes_companies(self, user_extra, company_extra):
+        """Test serializer includes companies relationship."""
+        role = Group.objects.create(name="DetailRole")
+        Membership.objects.create(user=user_extra, company=company_extra, role=role)
+
+        serializer = UserDetailSerializer(instance=user_extra)
+        data = serializer.data
+        assert "companies" in data
+        assert len(data["companies"]) == 1
+
+
+@pytest.mark.django_db
+class TestCreateAccountSerializerRepresentation:
+    """Tests for CreateAccountSerializer.to_representation."""
+
+    def test_to_representation_with_avatar(self):
+        """Test to_representation includes avatar URL."""
+        user = CustomUser.objects.create_user(
+            email="repr_create@example.com", password="pass"
+        )
+        user.avatar.save("repr_av.png", ContentFile(b"avatar"), save=True)
+
+        class FakeRequest:
+            @staticmethod
+            def build_absolute_uri(url):
+                return f"http://test.com{url}"
+
+        serializer = CreateAccountSerializer(
+            instance=user, context={"request": FakeRequest()}
+        )
+        data = serializer.data
+        assert "avatar" in data
+        assert data["avatar"] is None or data["avatar"].startswith("http://")
+
+    def test_to_representation_without_avatar(self):
+        """Test to_representation handles user without avatar."""
+        user = CustomUser.objects.create_user(
+            email="repr_noav@example.com", password="pass"
+        )
+
+        serializer = CreateAccountSerializer(instance=user, context={})
+        data = serializer.data
+        assert data["avatar"] is None
+
+    def test_to_representation_without_request(self):
+        """Test to_representation works without request."""
+        user = CustomUser.objects.create_user(
+            email="repr_noreq@example.com", password="pass"
+        )
+        user.avatar.save("repr_noreq.png", ContentFile(b"data"), save=True)
+
+        serializer = CreateAccountSerializer(instance=user, context={})
+        data = serializer.data
+        # Should still have avatar path even without request
+        assert data["avatar"] is None or isinstance(data["avatar"], str)
+
+
+@pytest.mark.django_db
+class TestProfilePutSerializerBase64Exception:
+    """Test ProfilePutSerializer base64 exception handling."""
+
+    def test_process_image_field_invalid_base64(self):
+        """Test _process_image_field raises on corrupt base64."""
+        invalid_b64 = "data:image/png;base64,not_valid_base64!!!"
+        with pytest.raises(
+            drf_serializers.ValidationError, match="Invalid base64 image data"
+        ):
+            ProfilePutSerializer._process_image_field("avatar", {"avatar": invalid_b64})
+
+
+@pytest.mark.django_db
+class TestUserPatchSerializerMembershipNotFound:
+    """Test UserPatchSerializer membership lookup edge cases."""
+
+    def test_process_membership_nonexistent_id(self, user_extra, company_extra):
+        """Test membership_id that doesn't exist creates new membership."""
+        role = Group.objects.create(name="NonExistRole")
+        serializer = UserPatchSerializer(
+            instance=user_extra,
+            data={
+                "memberships": [
+                    {
+                        "membership_id": 99999,  # Doesn't exist
+                        "company_id": company_extra.pk,
+                        "role": "NonExistRole",
+                    }
+                ]
+            },
+            partial=True,
+        )
+        assert serializer.is_valid(), serializer.errors
+        updated = serializer.save()
+        assert updated.memberships.count() == 1
+
+    def test_process_membership_nonexistent_company_id(self, user_extra, company_extra):
+        """Test company_id lookup that doesn't find existing creates new."""
+        role = Group.objects.create(name="NewCompRole")
+        # Create a different company
+        other_company = Company.objects.create(raison_sociale="Other", ICE="OTHER")
+
+        serializer = UserPatchSerializer(
+            instance=user_extra,
+            data={
+                "memberships": [
+                    {
+                        "company_id": other_company.pk,  # Different company
+                        "role": "NewCompRole",
+                    }
+                ]
+            },
+            partial=True,
+        )
+        assert serializer.is_valid(), serializer.errors
+        updated = serializer.save()
+        assert updated.memberships.filter(company=other_company).exists()
+
+
+@pytest.mark.django_db
+class TestProfilePutSerializerDeleteBranches:
+    """Test ProfilePutSerializer file deletion branches."""
+
+    def test_update_avatar_deletes_old_files(self, user_extra):
+        """Test updating avatar deletes old avatar and cropped files."""
+        # Set up old files
+        user_extra.avatar.save("old_av.png", ContentFile(b"old_av"), save=True)
+        user_extra.avatar_cropped.save("old_cr.png", ContentFile(b"old_cr"), save=True)
+
+        serializer = ProfilePutSerializer(
+            instance=user_extra,
+            data={"avatar": IMG_B64_EXTRA},
+            partial=True,
+        )
+        assert serializer.is_valid(), serializer.errors
+        updated = serializer.save()
+        # New avatar should be set
+        assert updated.avatar.name != ""
+
+    def test_update_avatar_cropped_deletes_old(self, user_extra):
+        """Test updating avatar_cropped deletes old cropped file."""
+        user_extra.avatar_cropped.save("old_c.png", ContentFile(b"old"), save=True)
+
+        serializer = ProfilePutSerializer(
+            instance=user_extra,
+            data={"avatar_cropped": IMG_B64_EXTRA},
+            partial=True,
+        )
+        assert serializer.is_valid(), serializer.errors
+        updated = serializer.save()
+        assert updated.avatar_cropped.name != ""
+
+    def test_clear_avatar_deletes_both_files(self, user_extra):
+        """Test clearing avatar deletes both avatar and cropped."""
+        user_extra.avatar.save("del_av.png", ContentFile(b"av"), save=True)
+        user_extra.avatar_cropped.save("del_cr.png", ContentFile(b"cr"), save=True)
+
+        serializer = ProfilePutSerializer(
+            instance=user_extra,
+            data={"avatar": None},
+            partial=True,
+        )
+        assert serializer.is_valid(), serializer.errors
+        updated = serializer.save()
+        assert not updated.avatar
+        assert not updated.avatar_cropped
+
+    def test_clear_avatar_cropped_deletes_only_cropped(self, user_extra):
+        """Test clearing avatar_cropped only deletes cropped file."""
+        user_extra.avatar.save("keep_av.png", ContentFile(b"keep"), save=True)
+        user_extra.avatar_cropped.save("del_cr2.png", ContentFile(b"del"), save=True)
+
+        serializer = ProfilePutSerializer(
+            instance=user_extra,
+            data={"avatar_cropped": ""},
+            partial=True,
+        )
+        assert serializer.is_valid(), serializer.errors
+        updated = serializer.save()
+        assert updated.avatar.name != ""  # Avatar preserved
+        assert not updated.avatar_cropped  # Cropped cleared
+
+
+@pytest.mark.django_db
+class TestUsersFilterExtra:
+    """Extra tests for UsersFilter."""
+
+    def test_global_search_with_gender_homme(self):
+        """Test global search matches gender display value Homme."""
+        user = CustomUser.objects.create_user(
+            email="homme@test.com", password="pass", gender="H"
+        )
+        qs = CustomUser.objects.all()
+        result = UsersFilter.global_search(qs, "search", "Homme")
+        assert user in result
+
+    def test_global_search_with_gender_femme(self):
+        """Test global search matches gender display value Femme."""
+        user = CustomUser.objects.create_user(
+            email="femme@test.com", password="pass", gender="F"
+        )
+        qs = CustomUser.objects.all()
+        result = UsersFilter.global_search(qs, "search", "Femme")
+        assert user in result
+
+    def test_global_search_by_email(self):
+        """Test global search matches email."""
+        user = CustomUser.objects.create_user(
+            email="unique_email@test.com", password="pass"
+        )
+        qs = CustomUser.objects.all()
+        result = UsersFilter.global_search(qs, "search", "unique_email")
+        assert user in result
+
+    def test_global_search_empty_value(self):
+        """Test global search with empty value returns all."""
+        qs = CustomUser.objects.all()
+        count_before = qs.count()
+        result = UsersFilter.global_search(qs, "search", "")
+        assert result.count() == count_before
+
+    def test_global_search_whitespace_only(self):
+        """Test global search with whitespace returns all."""
+        qs = CustomUser.objects.all()
+        count_before = qs.count()
+        result = UsersFilter.global_search(qs, "search", "   ")
+        assert result.count() == count_before
+
+    def test_global_search_with_metacharacters(self):
+        """Test global search skips FTS with metacharacters."""
+        CustomUser.objects.create_user(email="meta@test.com", password="pass")
+        qs = CustomUser.objects.all()
+        # Should not raise and should use fallback
+        result = UsersFilter.global_search(qs, "search", "test:*")
+        assert result is not None

@@ -153,3 +153,43 @@ class TestModePaiementAPI(BaseAPITest):
 class TestModeReglementAPI(BaseAPITest):
     model = ModeReglement
     basename = "mode_reglement"
+
+
+@pytest.mark.django_db
+class TestParameterModelsExtra:
+    """Extra tests for parameter models __str__ methods."""
+
+    def test_mode_paiement_str(self):
+        """Test ModePaiement __str__."""
+        obj = ModePaiement.objects.create(nom="Test Payment Extra")
+        assert str(obj) == "Test Payment Extra"
+
+    def test_ville_str(self):
+        """Test Ville __str__."""
+        obj = Ville.objects.create(nom="Test City Extra")
+        assert str(obj) == "Test City Extra"
+
+    def test_categorie_str(self):
+        """Test Categorie __str__."""
+        obj = Categorie.objects.create(nom="Test Cat Extra")
+        assert str(obj) == "Test Cat Extra"
+
+    def test_marque_str(self):
+        """Test Marque __str__."""
+        obj = Marque.objects.create(nom="Test Brand Extra")
+        assert str(obj) == "Test Brand Extra"
+
+    def test_unite_str(self):
+        """Test Unite __str__."""
+        obj = Unite.objects.create(nom="KG Extra")
+        assert str(obj) == "KG Extra"
+
+    def test_emplacement_str(self):
+        """Test Emplacement __str__."""
+        obj = Emplacement.objects.create(nom="Warehouse A Extra")
+        assert str(obj) == "Warehouse A Extra"
+
+    def test_mode_reglement_str(self):
+        """Test ModeReglement __str__."""
+        obj = ModeReglement.objects.create(nom="By Check Extra")
+        assert str(obj) == "By Check Extra"

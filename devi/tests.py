@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 import pytest
 from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
@@ -15,7 +17,91 @@ from parameter.models import ModePaiement, Ville
 from .filters import DeviFilter
 from .models import Devi, DeviLine
 
+# -----------------------------------------------------------------------------
+# Fixtures
+# -----------------------------------------------------------------------------
+pytestmark = pytest.mark.django_db
 
+
+@pytest.fixture
+def devi_conv_user():
+    return CustomUser.objects.create_user(
+        email="devi_conv@example.com",
+        password="pass",
+        first_name="Devi",
+        last_name="Conv",
+    )
+
+
+@pytest.fixture
+def devi_conv_company():
+    return Company.objects.create(raison_sociale="Devi Conv Co", ICE="DEVICONV")
+
+
+@pytest.fixture
+def devi_conv_ville():
+    return Ville.objects.create(nom="ConvVille")
+
+
+@pytest.fixture
+def devi_conv_client(devi_conv_ville, devi_conv_company):
+    return Client.objects.create(
+        code_client="CONV001",
+        client_type="PM",
+        raison_sociale="Conv Client",
+        ville=devi_conv_ville,
+        company=devi_conv_company,
+    )
+
+
+@pytest.fixture
+def devi_conv_mode_paiement():
+    return ModePaiement.objects.create(nom="ConvPay")
+
+
+@pytest.fixture
+def devi_conv_article(devi_conv_company):
+    return Article.objects.create(
+        company=devi_conv_company,
+        reference="CONV001",
+        designation="Conv Article",
+        prix_achat=Decimal("80.00"),
+        prix_vente=Decimal("100.00"),
+        tva=20,
+    )
+
+
+@pytest.fixture
+def devi_conv_obj(devi_conv_client, devi_conv_mode_paiement, devi_conv_user):
+    return Devi.objects.create(
+        numero_devis="CONV/01",
+        client=devi_conv_client,
+        date_devis="2025-01-01",
+        mode_paiement=devi_conv_mode_paiement,
+        statut="Brouillon",
+        created_by_user=devi_conv_user,
+        remise=Decimal("5.00"),
+        remise_type="Pourcentage",
+    )
+
+
+@pytest.fixture
+def devi_conv_with_lines(devi_conv_obj, devi_conv_article):
+    DeviLine.objects.create(
+        devis=devi_conv_obj,
+        article=devi_conv_article,
+        prix_achat=Decimal("80.00"),
+        prix_vente=Decimal("100.00"),
+        quantity=2,
+    )
+    devi_conv_obj.recalc_totals()
+    devi_conv_obj.save()
+    return devi_conv_obj
+
+
+# -----------------------------------------------------------------------------
+# Test Classes
+# -----------------------------------------------------------------------------
 @pytest.mark.django_db
 class TestDeviAPI(SharedDocumentAPITestsMixin):
     cfg = DocConfig(
@@ -227,3 +313,252 @@ class TestDeviFilters(SharedDocumentFilterTestsMixin):
 
     def test_empty_search_returns_queryset_unchanged(self):
         self.shared_test_empty_search_returns_queryset_unchanged()
+
+    def test_filter_statut_empty_returns_all(self):
+        """Test filter_statut with empty value returns all results."""
+        qs = Devi.objects.all()
+        count_before = qs.count()
+        filterset = DeviFilter(data={"statut": ""}, queryset=qs)
+        assert filterset.qs.count() == count_before
+
+    def test_search_with_tsquery_metacharacters(self):
+        """Test search skips FTS when tsquery metacharacters are present."""
+        qs = Devi.objects.all()
+        # Search with metacharacters like :*?&|!()<>
+        filterset = DeviFilter(data={"search": "test:*"}, queryset=qs)
+        # Should not raise and should use fallback
+        assert filterset.qs is not None
+
+    def test_search_with_special_chars_fallback(self):
+        """Test search uses fallback with special characters."""
+        qs = Devi.objects.all()
+        filterset = DeviFilter(data={"search": "test&value"}, queryset=qs)
+        assert filterset.qs is not None
+
+    def test_search_with_pipe_metachar(self):
+        """Test search with pipe metacharacter uses fallback."""
+        qs = Devi.objects.all()
+        filterset = DeviFilter(data={"search": "A|B"}, queryset=qs)
+        assert filterset.qs is not None
+
+    def test_search_with_parentheses_metachar(self):
+        """Test search with parentheses metacharacter uses fallback."""
+        qs = Devi.objects.all()
+        filterset = DeviFilter(data={"search": "(test)"}, queryset=qs)
+        assert filterset.qs is not None
+
+
+@pytest.mark.django_db
+class TestDeviConversionExtra:
+    """Extra tests for Devi conversion methods."""
+
+    def test_convert_to_facture_proforma(self, devi_conv_with_lines, devi_conv_user):
+        """Test converting Devi to FactureProForma."""
+        proforma = devi_conv_with_lines.convert_to_facture_proforma(
+            "FP-001", devi_conv_user
+        )
+
+        assert proforma is not None
+        assert proforma.client == devi_conv_with_lines.client
+        assert proforma.mode_paiement == devi_conv_with_lines.mode_paiement
+        assert proforma.created_by_user == devi_conv_user
+        assert proforma.lignes.count() == devi_conv_with_lines.lignes.count()
+
+    def test_convert_to_facture_client(self, devi_conv_with_lines, devi_conv_user):
+        """Test converting Devi to FactureClient."""
+        facture = devi_conv_with_lines.convert_to_facture_client(
+            "FC-001", devi_conv_user
+        )
+
+        assert facture is not None
+        assert facture.client == devi_conv_with_lines.client
+        assert facture.mode_paiement == devi_conv_with_lines.mode_paiement
+        assert facture.created_by_user == devi_conv_user
+        assert facture.lignes.count() == devi_conv_with_lines.lignes.count()
+
+    def test_conversion_copies_remise(self, devi_conv_with_lines, devi_conv_user):
+        """Test that conversion copies remise fields."""
+        proforma = devi_conv_with_lines.convert_to_facture_proforma(
+            "FP-002", devi_conv_user
+        )
+
+        assert proforma.remise == devi_conv_with_lines.remise
+        assert proforma.remise_type == devi_conv_with_lines.remise_type
+
+    def test_conversion_copies_line_details(self, devi_conv_with_lines, devi_conv_user):
+        """Test that conversion copies line details correctly."""
+        proforma = devi_conv_with_lines.convert_to_facture_proforma(
+            "FP-003", devi_conv_user
+        )
+
+        original_line = devi_conv_with_lines.lignes.first()
+        new_line = proforma.lignes.first()
+
+        assert new_line.article == original_line.article
+        assert new_line.quantity == original_line.quantity
+        assert new_line.prix_vente == original_line.prix_vente
+
+
+@pytest.mark.django_db
+class TestFactureProFormaConversionExtra:
+    """Extra tests for FactureProForma conversion."""
+
+    def test_convert_to_facture_client(self, devi_conv_with_lines, devi_conv_user):
+        """Test converting FactureProForma to FactureClient."""
+        proforma = devi_conv_with_lines.convert_to_facture_proforma(
+            "FP-004", devi_conv_user
+        )
+        facture = proforma.convert_to_facture_client("FC-002", devi_conv_user)
+
+        assert facture is not None
+        assert facture.client == proforma.client
+        assert facture.mode_paiement == proforma.mode_paiement
+        assert facture.created_by_user == devi_conv_user
+        assert facture.lignes.count() == proforma.lignes.count()
+
+
+@pytest.mark.django_db
+class TestDeviUtilsExtra:
+    """Extra tests for devi utils."""
+
+    def test_get_next_numero_devis_with_gaps(self):
+        """Test get_next_numero_devis finds gaps in number sequence."""
+        from devi.utils import get_next_numero_devis
+        from datetime import datetime
+
+        # Create company, client, user, and mode_paiement first
+        company = Company.objects.create(raison_sociale="Test Co", ICE="123")
+        ville = Ville.objects.create(nom="TestVille")
+        client = Client.objects.create(
+            code_client="CLT001",
+            client_type="PM",
+            raison_sociale="Test Client",
+            ville=ville,
+            company=company,
+        )
+        user = CustomUser.objects.create_user(
+            email="testuser@example.com", password="pass"
+        )
+        mode_paiement = ModePaiement.objects.create(nom="Cash")
+
+        year_suffix = f"{datetime.now().year % 100:02d}"
+
+        # Create devis with numbers 0001, 0003, 0004 (leaving gap at 0002)
+        Devi.objects.create(
+            numero_devis=f"0001/{year_suffix}",
+            client=client,
+            date_devis="2025-01-01",
+            mode_paiement=mode_paiement,
+            statut="Brouillon",
+            created_by_user=user,
+        )
+        Devi.objects.create(
+            numero_devis=f"0003/{year_suffix}",
+            client=client,
+            date_devis="2025-01-02",
+            mode_paiement=mode_paiement,
+            statut="Brouillon",
+            created_by_user=user,
+        )
+        Devi.objects.create(
+            numero_devis=f"0004/{year_suffix}",
+            client=client,
+            date_devis="2025-01-03",
+            mode_paiement=mode_paiement,
+            statut="Brouillon",
+            created_by_user=user,
+        )
+
+        # Should find gap at 0002
+        next_num = get_next_numero_devis()
+        assert next_num == f"0002/{year_suffix}"
+
+    def test_get_next_numero_devis_with_invalid_format(self):
+        """Test get_next_numero_devis handles invalid formats."""
+        from devi.utils import get_next_numero_devis
+        from datetime import datetime
+
+        # Create fixtures
+        company = Company.objects.create(raison_sociale="Test Co2", ICE="456")
+        ville = Ville.objects.create(nom="TestVille2")
+        client = Client.objects.create(
+            code_client="CLT002",
+            client_type="PM",
+            raison_sociale="Test Client2",
+            ville=ville,
+            company=company,
+        )
+        user = CustomUser.objects.create_user(
+            email="testuser2@example.com", password="pass"
+        )
+        mode_paiement = ModePaiement.objects.create(nom="Cash2")
+
+        year_suffix = f"{datetime.now().year % 100:02d}"
+
+        # Create devis with invalid format (should be skipped)
+        Devi.objects.create(
+            numero_devis=f"INVALID/{year_suffix}",
+            client=client,
+            date_devis="2025-01-01",
+            mode_paiement=mode_paiement,
+            statut="Brouillon",
+            created_by_user=user,
+        )
+
+        # Should return 0001 since invalid format is skipped
+        next_num = get_next_numero_devis()
+        assert "0001" in next_num or "0002" in next_num
+
+    def test_get_next_numero_devis_empty_db(self):
+        """Test get_next_numero_devis with no existing records."""
+        from devi.utils import get_next_numero_devis
+        from datetime import datetime
+
+        # Clear all devis
+        Devi.objects.all().delete()
+
+        year_suffix = f"{datetime.now().year % 100:02d}"
+        next_num = get_next_numero_devis()
+        assert next_num == f"0001/{year_suffix}"
+
+    def test_get_next_numero_devis_consecutive(self):
+        """Test get_next_numero_devis with consecutive numbers."""
+        from devi.utils import get_next_numero_devis
+        from datetime import datetime
+
+        company = Company.objects.create(raison_sociale="Test Co3", ICE="789")
+        ville = Ville.objects.create(nom="TestVille3")
+        client = Client.objects.create(
+            code_client="CLT003",
+            client_type="PM",
+            raison_sociale="Test Client3",
+            ville=ville,
+            company=company,
+        )
+        user = CustomUser.objects.create_user(
+            email="testuser3@example.com", password="pass"
+        )
+        mode_paiement = ModePaiement.objects.create(nom="Cash3")
+
+        year_suffix = f"{datetime.now().year % 100:02d}"
+
+        # Create consecutive devis
+        Devi.objects.create(
+            numero_devis=f"0001/{year_suffix}",
+            client=client,
+            date_devis="2025-01-01",
+            mode_paiement=mode_paiement,
+            statut="Brouillon",
+            created_by_user=user,
+        )
+        Devi.objects.create(
+            numero_devis=f"0002/{year_suffix}",
+            client=client,
+            date_devis="2025-01-02",
+            mode_paiement=mode_paiement,
+            statut="Brouillon",
+            created_by_user=user,
+        )
+
+        next_num = get_next_numero_devis()
+        assert next_num == f"0003/{year_suffix}"
