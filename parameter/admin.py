@@ -8,6 +8,7 @@ from .models import (
     Emplacement,
     ModePaiement,
     ModeReglement,
+    LivrePar,
 )
 
 
@@ -48,6 +49,11 @@ class ModeRegelementAdmin(admin.ModelAdmin):
     search_fields = ("nom",)
 
 
+class LivreParAdmin(admin.ModelAdmin):
+    list_display = ("id", "nom")
+    search_fields = ("nom",)
+
+
 # Register models
 admin.site.register(Ville, VilleAdmin)
 admin.site.register(Marque, MarqueAdmin)
@@ -56,3 +62,4 @@ admin.site.register(Unite, UniteAdmin)
 admin.site.register(Emplacement, EmplacementAdmin)
 admin.site.register(ModePaiement, ModePaiementAdmin)
 admin.site.register(ModeReglement, ModeRegelementAdmin)
+admin.site.register(LivrePar, LivreParAdmin)

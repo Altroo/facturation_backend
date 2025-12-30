@@ -1,0 +1,33 @@
+from django.urls import path
+
+from .views import (
+    BonDeLivraisonListCreateView,
+    BonDeLivraisonDetailEditDeleteView,
+    GenerateNumeroBonDeLivraisonView,
+    BonDeLivraisonStatusUpdateView,
+)
+
+app_name = "bon_de_livraison"
+
+urlpatterns = [
+    # GET BonDeLivraison list (paginated) & POST create
+    path("", BonDeLivraisonListCreateView.as_view(), name="bon-de-livraison-list-create"),
+    # GET BonDeLivraison detail, PUT update, DELETE
+    path(
+        "<int:pk>/",
+        BonDeLivraisonDetailEditDeleteView.as_view(),
+        name="bon-de-livraison-detail",
+    ),
+    # GET generated numero bon de livraison
+    path(
+        "generate_num_bon_livraison/",
+        GenerateNumeroBonDeLivraisonView.as_view(),
+        name="generate-numero-bon-livraison",
+    ),
+    # PATCH : switch status of bon de livraison
+    path(
+        "switch_statut/<int:pk>/",
+        BonDeLivraisonStatusUpdateView.as_view(),
+        name="bon-de-livraison-statut-update",
+    ),
+]

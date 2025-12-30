@@ -36,6 +36,8 @@ urlpatterns = [
     path("api/facture_proforma/", include("facture_proforma.urls")),
     # Facture Client
     path("api/facture_client/", include("facture_client.urls")),
+    # Bon de Livraison
+    path("api/bon_de_livraison/", include("bon_de_livraison.urls")),
     # Parameter
     path("api/parameter/", include("parameter.urls")),
     # Admin panel

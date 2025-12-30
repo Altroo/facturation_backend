@@ -84,3 +84,16 @@ class Emplacement(models.Model):
 
     def __str__(self):
         return self.nom
+
+
+class LivrePar(models.Model):
+    nom = models.CharField(
+        max_length=255, unique=True, verbose_name="Nom du livreur"
+    )
+
+    class Meta:
+        verbose_name = "Livré par"
+        verbose_name_plural = "Livré par"
+
+    def __str__(self):
+        return self.nom
