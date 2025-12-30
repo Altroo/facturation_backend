@@ -484,3 +484,206 @@ class TestBonDeLivraisonAdmin(SharedDocumentAdminTestsMixin):
         from bon_de_livraison.admin import BonDeLivraisonLineAdmin
         admin_obj = BonDeLivraisonLineAdmin(self.LineModel, self.site)
         assert len(admin_obj.list_display) > 0
+
+
+@pytest.mark.django_db
+class TestBonDeLivraisonUtilsExtra:
+    """Extra tests for bon_de_livraison utils."""
+
+    def test_get_next_numero_bon_livraison_with_gaps(self):
+        """Test get_next_numero_bon_livraison finds gaps in number sequence."""
+        from bon_de_livraison.utils import get_next_numero_bon_livraison
+        from datetime import datetime
+
+        # Create company, client, user, livre_par, and mode_paiement first
+        company = Company.objects.create(raison_sociale="Test Co", ICE="123")
+        ville = Ville.objects.create(nom="TestVille")
+        client = Client.objects.create(
+            code_client="CLT001",
+            client_type="PM",
+            raison_sociale="Test Client",
+            ville=ville,
+            company=company,
+        )
+        user = CustomUser.objects.create_user(
+            email="testuser@example.com", password="pass"
+        )
+        mode_paiement = ModePaiement.objects.create(nom="Cash")
+        livre_par = LivrePar.objects.create(nom="Test Livreur")
+
+        year_suffix = f"{datetime.now().year % 100:02d}"
+
+        # Create bons with numbers 0001, 0003, 0004 (leaving gap at 0002)
+        BonDeLivraison.objects.create(
+            numero_bon_livraison=f"0001/{year_suffix}",
+            client=client,
+            date_bon_livraison="2025-01-01",
+            numero_bon_commande_client="BC-001",
+            livre_par=livre_par,
+            mode_paiement=mode_paiement,
+            statut="Brouillon",
+            created_by_user=user,
+        )
+        BonDeLivraison.objects.create(
+            numero_bon_livraison=f"0003/{year_suffix}",
+            client=client,
+            date_bon_livraison="2025-01-02",
+            numero_bon_commande_client="BC-002",
+            livre_par=livre_par,
+            mode_paiement=mode_paiement,
+            statut="Brouillon",
+            created_by_user=user,
+        )
+        BonDeLivraison.objects.create(
+            numero_bon_livraison=f"0004/{year_suffix}",
+            client=client,
+            date_bon_livraison="2025-01-03",
+            numero_bon_commande_client="BC-003",
+            livre_par=livre_par,
+            mode_paiement=mode_paiement,
+            statut="Brouillon",
+            created_by_user=user,
+        )
+
+        # Should find gap at 0002
+        next_num = get_next_numero_bon_livraison()
+        assert next_num == f"0002/{year_suffix}"
+
+    def test_get_next_numero_bon_livraison_with_invalid_format(self):
+        """Test get_next_numero_bon_livraison handles invalid formats."""
+        from bon_de_livraison.utils import get_next_numero_bon_livraison
+        from datetime import datetime
+
+        # Create fixtures
+        company = Company.objects.create(raison_sociale="Test Co2", ICE="456")
+        ville = Ville.objects.create(nom="TestVille2")
+        client = Client.objects.create(
+            code_client="CLT002",
+            client_type="PM",
+            raison_sociale="Test Client2",
+            ville=ville,
+            company=company,
+        )
+        user = CustomUser.objects.create_user(
+            email="testuser2@example.com", password="pass"
+        )
+        mode_paiement = ModePaiement.objects.create(nom="Cash2")
+        livre_par = LivrePar.objects.create(nom="Test Livreur 2")
+
+        year_suffix = f"{datetime.now().year % 100:02d}"
+
+        # Create bon with invalid format (should be skipped)
+        BonDeLivraison.objects.create(
+            numero_bon_livraison=f"INVALID/{year_suffix}",
+            client=client,
+            date_bon_livraison="2025-01-01",
+            numero_bon_commande_client="BC-INV",
+            livre_par=livre_par,
+            mode_paiement=mode_paiement,
+            statut="Brouillon",
+            created_by_user=user,
+        )
+
+        # Should return 0001 since invalid format is skipped
+        next_num = get_next_numero_bon_livraison()
+        assert "0001" in next_num or "0002" in next_num
+
+    def test_get_next_numero_bon_livraison_empty_db(self):
+        """Test get_next_numero_bon_livraison with no existing records."""
+        from bon_de_livraison.utils import get_next_numero_bon_livraison
+        from datetime import datetime
+
+        # Clear all bons
+        BonDeLivraison.objects.all().delete()
+
+        year_suffix = f"{datetime.now().year % 100:02d}"
+        next_num = get_next_numero_bon_livraison()
+        assert next_num == f"0001/{year_suffix}"
+
+    def test_get_next_numero_bon_livraison_consecutive(self):
+        """Test get_next_numero_bon_livraison with consecutive numbers."""
+        from bon_de_livraison.utils import get_next_numero_bon_livraison
+        from datetime import datetime
+
+        company = Company.objects.create(raison_sociale="Test Co3", ICE="789")
+        ville = Ville.objects.create(nom="TestVille3")
+        client = Client.objects.create(
+            code_client="CLT003",
+            client_type="PM",
+            raison_sociale="Test Client3",
+            ville=ville,
+            company=company,
+        )
+        user = CustomUser.objects.create_user(
+            email="testuser3@example.com", password="pass"
+        )
+        mode_paiement = ModePaiement.objects.create(nom="Cash3")
+        livre_par = LivrePar.objects.create(nom="Test Livreur 3")
+
+        year_suffix = f"{datetime.now().year % 100:02d}"
+
+        # Create consecutive bons
+        BonDeLivraison.objects.create(
+            numero_bon_livraison=f"0001/{year_suffix}",
+            client=client,
+            date_bon_livraison="2025-01-01",
+            numero_bon_commande_client="BC-101",
+            livre_par=livre_par,
+            mode_paiement=mode_paiement,
+            statut="Brouillon",
+            created_by_user=user,
+        )
+        BonDeLivraison.objects.create(
+            numero_bon_livraison=f"0002/{year_suffix}",
+            client=client,
+            date_bon_livraison="2025-01-02",
+            numero_bon_commande_client="BC-102",
+            livre_par=livre_par,
+            mode_paiement=mode_paiement,
+            statut="Brouillon",
+            created_by_user=user,
+        )
+
+        next_num = get_next_numero_bon_livraison()
+        assert next_num == f"0003/{year_suffix}"
+
+
+@pytest.mark.django_db
+class TestBonDeLivraisonAdminExtra(SharedDocumentAdminTestsMixin):
+    """Extra tests for BonDeLivraison admin."""
+
+    from bon_de_livraison.admin import BonDeLivraisonAdmin, BonDeLivraisonLineAdmin
+
+    AdminClass = BonDeLivraisonAdmin
+    LineAdminClass = BonDeLivraisonLineAdmin
+    Model = BonDeLivraison
+    LineModel = BonDeLivraisonLine
+    numero_field = "numero_bon_livraison"
+    date_field = "date_bon_livraison"
+    line_numero_method = "bon_de_livraison_numero"
+
+    def test_admin_get_numero_field_name(self):
+        self.shared_test_admin_get_numero_field_name()
+
+    def test_admin_get_date_field_name(self):
+        self.shared_test_admin_get_date_field_name()
+
+    def test_line_admin_bon_de_livraison_numero(self, bon_de_livraison_with_lines):
+        self.shared_test_line_admin_numero(bon_de_livraison_with_lines)
+
+    def test_line_admin_article_reference(self, bon_de_livraison_with_lines):
+        self.shared_test_line_admin_article_reference(bon_de_livraison_with_lines)
+
+    def test_line_admin_article_designation(self, bon_de_livraison_with_lines):
+        self.shared_test_line_admin_article_designation(bon_de_livraison_with_lines)
+
+
+@pytest.mark.django_db
+class TestBonDeLivraisonLineModelExtra:
+    """Extra tests for BonDeLivraisonLine model."""
+
+    def test_line_str_representation(self, bon_de_livraison_with_lines):
+        """Test BonDeLivraisonLine string representation."""
+        line = bon_de_livraison_with_lines.lignes.first()
+        expected = f"{bon_de_livraison_with_lines} - {line.article}"
+        assert str(line) == expected

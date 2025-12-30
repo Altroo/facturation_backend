@@ -488,12 +488,14 @@ class SharedDocumentModelTestsMixin:
     doc_obj: Any
     numero_field: str = "numero_facture"
 
-    def shared_test_recalc_totals(self, doc_with_lines: Any) -> None:
+    @staticmethod
+    def shared_test_recalc_totals(doc_with_lines: Any) -> None:
         """Test recalc_totals computes correct totals."""
         doc_with_lines.recalc_totals()
         assert doc_with_lines.total_ht > 0
 
-    def shared_test_lignes_count(self, doc_with_lines: Any) -> None:
+    @staticmethod
+    def shared_test_lignes_count(doc_with_lines: Any) -> None:
         """Test lignes relationship."""
         assert doc_with_lines.lignes.count() == 1
 
@@ -791,7 +793,7 @@ class TestAdminExtra:
     def test_get_readonly_fields_change_cancelled(
         self, admin_site, admin_user, extra_devi
     ):
-        """Test readonly fields for change view with cancelled status."""
+        """Test readonly fields for change view with canceled status."""
         admin = DeviAdmin(Devi, admin_site)
         request = MagicMock(user=admin_user)
         extra_devi.statut = "Annulé"
@@ -878,15 +880,17 @@ class TestCoreSerializerValidation:
         """Test validate with invalid remise_type."""
         from devi.serializers import DeviDetailSerializer
 
-        serializer = DeviDetailSerializer(data={
-            "numero_devis": "0001/25",
-            "client": extra_client.pk,
-            "date_devis": "2025-01-01",
-            "mode_paiement": extra_mode_paiement.pk,
-            "remise": 10,
-            "remise_type": "InvalidType",
-            "lignes": [],
-        })
+        serializer = DeviDetailSerializer(
+            data={
+                "numero_devis": "0001/25",
+                "client": extra_client.pk,
+                "date_devis": "2025-01-01",
+                "mode_paiement": extra_mode_paiement.pk,
+                "remise": 10,
+                "remise_type": "InvalidType",
+                "lignes": [],
+            }
+        )
         # Validation fails (DRF choice validation handles invalid type)
         assert not serializer.is_valid()
 
@@ -894,15 +898,17 @@ class TestCoreSerializerValidation:
         """Test validate with invalid remise value."""
         from devi.serializers import DeviDetailSerializer
 
-        serializer = DeviDetailSerializer(data={
-            "numero_devis": "0001/25",
-            "client": extra_client.pk,
-            "date_devis": "2025-01-01",
-            "mode_paiement": extra_mode_paiement.pk,
-            "remise": "not_a_number",
-            "remise_type": "Pourcentage",
-            "lignes": [],
-        })
+        serializer = DeviDetailSerializer(
+            data={
+                "numero_devis": "0001/25",
+                "client": extra_client.pk,
+                "date_devis": "2025-01-01",
+                "mode_paiement": extra_mode_paiement.pk,
+                "remise": "not_a_number",
+                "remise_type": "Pourcentage",
+                "lignes": [],
+            }
+        )
         # Should fail validation
         assert not serializer.is_valid()
 
@@ -910,32 +916,38 @@ class TestCoreSerializerValidation:
         """Test validate with negative remise."""
         from devi.serializers import DeviDetailSerializer
 
-        serializer = DeviDetailSerializer(data={
-            "numero_devis": "0001/25",
-            "client": extra_client.pk,
-            "date_devis": "2025-01-01",
-            "mode_paiement": extra_mode_paiement.pk,
-            "remise": -5,
-            "remise_type": "Pourcentage",
-            "lignes": [],
-        })
+        serializer = DeviDetailSerializer(
+            data={
+                "numero_devis": "0001/25",
+                "client": extra_client.pk,
+                "date_devis": "2025-01-01",
+                "mode_paiement": extra_mode_paiement.pk,
+                "remise": -5,
+                "remise_type": "Pourcentage",
+                "lignes": [],
+            }
+        )
         # Should fail validation
         valid = serializer.is_valid()
         assert not valid or "remise" in serializer.errors
 
-    def test_validate_remise_percentage_out_of_range(self, extra_client, extra_mode_paiement):
+    def test_validate_remise_percentage_out_of_range(
+        self, extra_client, extra_mode_paiement
+    ):
         """Test validate with percentage > 100."""
         from devi.serializers import DeviDetailSerializer
 
-        serializer = DeviDetailSerializer(data={
-            "numero_devis": "0001/25",
-            "client": extra_client.pk,
-            "date_devis": "2025-01-01",
-            "mode_paiement": extra_mode_paiement.pk,
-            "remise": 150,
-            "remise_type": "Pourcentage",
-            "lignes": [],
-        })
+        serializer = DeviDetailSerializer(
+            data={
+                "numero_devis": "0001/25",
+                "client": extra_client.pk,
+                "date_devis": "2025-01-01",
+                "mode_paiement": extra_mode_paiement.pk,
+                "remise": 150,
+                "remise_type": "Pourcentage",
+                "lignes": [],
+            }
+        )
         # Should fail validation due to percentage > 100
         valid = serializer.is_valid()
         assert not valid
@@ -944,15 +956,17 @@ class TestCoreSerializerValidation:
         """Test validate with Fixe type."""
         from devi.serializers import DeviDetailSerializer
 
-        serializer = DeviDetailSerializer(data={
-            "numero_devis": "0001/25",
-            "client": extra_client.pk,
-            "date_devis": "2025-01-01",
-            "mode_paiement": extra_mode_paiement.pk,
-            "remise": 500,
-            "remise_type": "Fixe",
-            "lignes": [],
-        })
+        serializer = DeviDetailSerializer(
+            data={
+                "numero_devis": "0001/25",
+                "client": extra_client.pk,
+                "date_devis": "2025-01-01",
+                "mode_paiement": extra_mode_paiement.pk,
+                "remise": 500,
+                "remise_type": "Fixe",
+                "lignes": [],
+            }
+        )
         # Fixe type should be valid (no max limit)
         serializer.is_valid()
         assert "remise" not in serializer.errors
@@ -961,15 +975,17 @@ class TestCoreSerializerValidation:
         """Test validate with empty remise_type."""
         from devi.serializers import DeviDetailSerializer
 
-        serializer = DeviDetailSerializer(data={
-            "numero_devis": "0001/25",
-            "client": extra_client.pk,
-            "date_devis": "2025-01-01",
-            "mode_paiement": extra_mode_paiement.pk,
-            "remise": 10,
-            "remise_type": "",
-            "lignes": [],
-        })
+        serializer = DeviDetailSerializer(
+            data={
+                "numero_devis": "0001/25",
+                "client": extra_client.pk,
+                "date_devis": "2025-01-01",
+                "mode_paiement": extra_mode_paiement.pk,
+                "remise": 10,
+                "remise_type": "",
+                "lignes": [],
+            }
+        )
         # Empty type should pass validation
         serializer.is_valid()
         # Remise errors may or may not appear based on business logic
@@ -984,12 +1000,14 @@ class TestBaseLineWriteSerializerValidation:
         """Test validation fails when prix_vente < prix_achat."""
         from devi.serializers import DeviLineWriteSerializer
 
-        serializer = DeviLineWriteSerializer(data={
-            "article": extra_article.pk,
-            "prix_achat": 100,
-            "prix_vente": 50,  # Less than prix_achat
-            "quantity": 1,
-        })
+        serializer = DeviLineWriteSerializer(
+            data={
+                "article": extra_article.pk,
+                "prix_achat": 100,
+                "prix_vente": 50,  # Less than prix_achat
+                "quantity": 1,
+            }
+        )
         with pytest.raises(drf_serializers.ValidationError, match="supérieur ou égal"):
             serializer.is_valid(raise_exception=True)
 
@@ -997,13 +1015,15 @@ class TestBaseLineWriteSerializerValidation:
         """Test validation fails when remise is negative."""
         from devi.serializers import DeviLineWriteSerializer
 
-        serializer = DeviLineWriteSerializer(data={
-            "article": extra_article.pk,
-            "prix_achat": 50,
-            "prix_vente": 100,
-            "quantity": 1,
-            "remise": -5,
-        })
+        serializer = DeviLineWriteSerializer(
+            data={
+                "article": extra_article.pk,
+                "prix_achat": 50,
+                "prix_vente": 100,
+                "quantity": 1,
+                "remise": -5,
+            }
+        )
         with pytest.raises(drf_serializers.ValidationError, match="positive ou nulle"):
             serializer.is_valid(raise_exception=True)
 
@@ -1011,14 +1031,16 @@ class TestBaseLineWriteSerializerValidation:
         """Test validation fails when percentage remise > 100."""
         from devi.serializers import DeviLineWriteSerializer
 
-        serializer = DeviLineWriteSerializer(data={
-            "article": extra_article.pk,
-            "prix_achat": 50,
-            "prix_vente": 100,
-            "quantity": 1,
-            "remise": 150,
-            "remise_type": "Pourcentage",
-        })
+        serializer = DeviLineWriteSerializer(
+            data={
+                "article": extra_article.pk,
+                "prix_achat": 50,
+                "prix_vente": 100,
+                "quantity": 1,
+                "remise": 150,
+                "remise_type": "Pourcentage",
+            }
+        )
         with pytest.raises(drf_serializers.ValidationError, match="entre 0 et 100"):
             serializer.is_valid(raise_exception=True)
 
@@ -1026,14 +1048,16 @@ class TestBaseLineWriteSerializerValidation:
         """Test validation fails when fixe remise > line total."""
         from devi.serializers import DeviLineWriteSerializer
 
-        serializer = DeviLineWriteSerializer(data={
-            "article": extra_article.pk,
-            "prix_achat": 50,
-            "prix_vente": 100,
-            "quantity": 1,
-            "remise": 200,  # Greater than total (100 * 1 = 100)
-            "remise_type": "Fixe",
-        })
+        serializer = DeviLineWriteSerializer(
+            data={
+                "article": extra_article.pk,
+                "prix_achat": 50,
+                "prix_vente": 100,
+                "quantity": 1,
+                "remise": 200,  # Greater than total (100 * 1 = 100)
+                "remise_type": "Fixe",
+            }
+        )
         with pytest.raises(drf_serializers.ValidationError, match="dépasser le total"):
             serializer.is_valid(raise_exception=True)
 
@@ -1041,14 +1065,16 @@ class TestBaseLineWriteSerializerValidation:
         """Test validation fails with invalid remise_type."""
         from devi.serializers import DeviLineWriteSerializer
 
-        serializer = DeviLineWriteSerializer(data={
-            "article": extra_article.pk,
-            "prix_achat": 50,
-            "prix_vente": 100,
-            "quantity": 1,
-            "remise": 10,
-            "remise_type": "InvalidType",
-        })
+        serializer = DeviLineWriteSerializer(
+            data={
+                "article": extra_article.pk,
+                "prix_achat": 50,
+                "prix_vente": 100,
+                "quantity": 1,
+                "remise": 10,
+                "remise_type": "InvalidType",
+            }
+        )
         # Validation fails (either from DRF choice validation or custom)
         assert not serializer.is_valid()
         assert "remise_type" in serializer.errors
@@ -1236,8 +1262,8 @@ class TestCoreViewsPermissions:
         from django.contrib.auth import get_user_model
         from django.contrib.auth.models import Group
 
-        User = get_user_model()
-        test_user = User.objects.create_user(
+        user_obj = get_user_model()
+        test_user = user_obj.objects.create_user(
             email="test_membership@test.com", password="pass"
         )
 
@@ -1263,17 +1289,15 @@ class TestFilterDatabaseErrorBranch:
     def test_devi_filter_database_error(self, extra_devi, monkeypatch):
         """Test DeviFilter handles DatabaseError gracefully."""
         from devi.filters import DeviFilter
-        from django.db.utils import DatabaseError
 
-        # Mock SearchQuery to raise DatabaseError
-        def mock_filter(*args, **kwargs):
-            raise DatabaseError("Mocked DB error")
+        def mock_search_query(*_args, **_kwargs):
+            class MockQuery:
+                def __init__(self, *inner_args, **inner_kwargs):
+                    pass
 
-        monkeypatch.setattr(
-            "devi.filters.SearchQuery", lambda *a, **kw: type(
-                "MockQuery", (), {"__init__": lambda s, *a, **kw: None}
-            )()
-        )
+            return MockQuery()
+
+        monkeypatch.setattr("core.filters.SearchQuery", mock_search_query)
 
         qs = Devi.objects.all()
         # Force skip_fts to False by using a normal search term
@@ -1307,14 +1331,14 @@ class TestFilterDatabaseErrorBranch:
 class TestBaseDocumentListCreateViewPermissions:
     """Tests for permission checks in BaseDocumentListCreateView."""
 
-    def test_check_company_access_permission_denied(self, db):
+    def test_check_company_access_permission_denied(self):
         """Test _check_company_access raises PermissionDenied when user is not member."""
         from core.views import BaseDocumentListCreateView
         from rest_framework.exceptions import PermissionDenied
         from rest_framework.test import APIRequestFactory
 
-        User = get_user_model()
-        user = User.objects.create_user(email="test@test.com", password="testpass")
+        user_obj = get_user_model()
+        user = user_obj.objects.create_user(email="test@test.com", password="testpass")
         factory = APIRequestFactory()
         request = factory.get("/")
         request.user = user
@@ -1325,14 +1349,13 @@ class TestBaseDocumentListCreateViewPermissions:
         with pytest.raises(PermissionDenied):
             BaseDocumentListCreateView._check_company_access(request, company.id)
 
-    def test_post_client_not_found(self, db):
+    def test_post_client_not_found(self):
         """Test POST raises Http404 when client doesn't exist."""
         from core.views import BaseDocumentListCreateView
-        from django.http import Http404
         from rest_framework.test import APIRequestFactory, APIClient
 
-        User = get_user_model()
-        user = User.objects.create_user(email="test@test.com", password="testpass")
+        user_obj = get_user_model()
+        user = user_obj.objects.create_user(email="test@test.com", password="testpass")
 
         # Create a concrete view for testing
         class TestView(BaseDocumentListCreateView):
@@ -1350,13 +1373,13 @@ class TestBaseDocumentListCreateViewPermissions:
         response = view(request)
         assert response.status_code == 404
 
-    def test_post_permission_denied_not_member(self, db, extra_ville):
+    def test_post_permission_denied_not_member(self, extra_ville):
         """Test POST raises PermissionDenied when user is not member of client's company."""
         from core.views import BaseDocumentListCreateView
         from rest_framework.test import APIRequestFactory
 
-        User = get_user_model()
-        user = User.objects.create_user(email="test@test.com", password="testpass")
+        user_obj = get_user_model()
+        user = user_obj.objects.create_user(email="test@test.com", password="testpass")
 
         # Create company and client that user is NOT a member of
         company = Company.objects.create(raison_sociale="TestCo", ICE="123456781")
@@ -1384,15 +1407,15 @@ class TestBaseDocumentListCreateViewPermissions:
 class TestBaseStatusUpdateViewPermissions:
     """Tests for permission checks in BaseStatusUpdateView."""
 
-    def test_status_update_permission_denied(self, db, extra_ville):
+    def test_status_update_permission_denied(self, extra_ville):
         """Test PATCH raises PermissionDenied when user is not member."""
         from core.views import BaseStatusUpdateView
         from rest_framework.test import APIRequestFactory
         from django.contrib.auth.models import Group
 
-        User = get_user_model()
-        user = User.objects.create_user(email="test@test.com", password="testpass")
-        other_user = User.objects.create_user(
+        user_obj = get_user_model()
+        user = user_obj.objects.create_user(email="test@test.com", password="testpass")
+        other_user = user_obj.objects.create_user(
             email="other@test.com", password="testpass"
         )
 
@@ -1422,18 +1445,18 @@ class TestBaseStatusUpdateViewPermissions:
         view = TestStatusView.as_view()
         factory = APIRequestFactory()
         request = factory.patch("/", {"statut": "Accepté"}, format="json")
-        request.user = user  # User is NOT a member
+        request.user = user  # user_obj is NOT a member
 
         response = view(request, pk=devi.pk)
         assert response.status_code == 403
 
-    def test_status_update_not_found(self, db):
+    def test_status_update_not_found(self):
         """Test PATCH raises Http404 when document doesn't exist."""
         from core.views import BaseStatusUpdateView
         from rest_framework.test import APIRequestFactory
 
-        User = get_user_model()
-        user = User.objects.create_user(email="test@test.com", password="testpass")
+        user_obj = get_user_model()
+        user = user_obj.objects.create_user(email="test@test.com", password="testpass")
 
         class TestStatusView(BaseStatusUpdateView):
             model = Devi
@@ -1452,15 +1475,15 @@ class TestBaseStatusUpdateViewPermissions:
 class TestBaseConversionViewPermissions:
     """Tests for permission checks in BaseConversionView."""
 
-    def test_conversion_permission_denied(self, db, extra_ville):
+    def test_conversion_permission_denied(self, extra_ville):
         """Test POST raises PermissionDenied when user is not member."""
         from core.views import BaseConversionView
         from rest_framework.test import APIRequestFactory
         from django.contrib.auth.models import Group
 
-        User = get_user_model()
-        user = User.objects.create_user(email="test@test.com", password="testpass")
-        other_user = User.objects.create_user(
+        user_obj = get_user_model()
+        user = user_obj.objects.create_user(email="test@test.com", password="testpass")
+        other_user = user_obj.objects.create_user(
             email="other@test.com", password="testpass"
         )
 
@@ -1486,29 +1509,37 @@ class TestBaseConversionViewPermissions:
         class TestConversionView(BaseConversionView):
             model = Devi
             document_name = "devis"
-            numero_generator = lambda: "0001/25"
+
+            @staticmethod
+            def numero_generator():
+                return "0001/25"
+
             conversion_method = "convert_to_facture_proforma"
 
         view = TestConversionView.as_view()
         factory = APIRequestFactory()
         request = factory.post("/", format="json")
-        request.user = user  # User is NOT a member
+        request.user = user  # user_obj is NOT a member
 
         response = view(request, pk=devi.pk)
         assert response.status_code == 403
 
-    def test_conversion_not_found(self, db):
+    def test_conversion_not_found(self):
         """Test POST raises Http404 when document doesn't exist."""
         from core.views import BaseConversionView
         from rest_framework.test import APIRequestFactory
 
-        User = get_user_model()
-        user = User.objects.create_user(email="test@test.com", password="testpass")
+        user_obj = get_user_model()
+        user = user_obj.objects.create_user(email="test@test.com", password="testpass")
 
         class TestConversionView(BaseConversionView):
             model = Devi
             document_name = "devis"
-            numero_generator = lambda: "0001/25"
+
+            @staticmethod
+            def numero_generator():
+                return "0001/25"
+
             conversion_method = "convert_to_facture_proforma"
 
         view = TestConversionView.as_view()
@@ -1524,16 +1555,16 @@ class TestBaseConversionViewPermissions:
 class TestBaseDocumentDetailEditDeleteViewPermissions:
     """Tests for permission checks in BaseDocumentDetailEditDeleteView."""
 
-    def test_put_permission_denied(self, db, extra_ville):
+    def test_put_permission_denied(self, extra_ville):
         """Test PUT raises PermissionDenied when user is not member."""
         from core.views import BaseDocumentDetailEditDeleteView
         from rest_framework.test import APIRequestFactory
         from django.contrib.auth.models import Group
         from devi.serializers import DeviDetailSerializer
 
-        User = get_user_model()
-        user = User.objects.create_user(email="test@test.com", password="testpass")
-        other_user = User.objects.create_user(
+        user_obj = get_user_model()
+        user = user_obj.objects.create_user(email="test@test.com", password="testpass")
+        other_user = user_obj.objects.create_user(
             email="other@test.com", password="testpass"
         )
 
@@ -1564,21 +1595,21 @@ class TestBaseDocumentDetailEditDeleteViewPermissions:
         view = TestDetailView.as_view()
         factory = APIRequestFactory()
         request = factory.put("/", {"numero_devis": "0004/25"}, format="json")
-        request.user = user  # User is NOT a member
+        request.user = user  # user_obj is NOT a member
 
         response = view(request, pk=devi.pk)
         assert response.status_code == 403
 
-    def test_delete_permission_denied(self, db, extra_ville):
+    def test_delete_permission_denied(self, extra_ville):
         """Test DELETE raises PermissionDenied when user is not member."""
         from core.views import BaseDocumentDetailEditDeleteView
         from rest_framework.test import APIRequestFactory
         from django.contrib.auth.models import Group
         from devi.serializers import DeviDetailSerializer
 
-        User = get_user_model()
-        user = User.objects.create_user(email="test@test.com", password="testpass")
-        other_user = User.objects.create_user(
+        user_obj = get_user_model()
+        user = user_obj.objects.create_user(email="test@test.com", password="testpass")
+        other_user = user_obj.objects.create_user(
             email="other@test.com", password="testpass"
         )
 
@@ -1609,19 +1640,19 @@ class TestBaseDocumentDetailEditDeleteViewPermissions:
         view = TestDetailView.as_view()
         factory = APIRequestFactory()
         request = factory.delete("/")
-        request.user = user  # User is NOT a member
+        request.user = user  # user_obj is NOT a member
 
         response = view(request, pk=devi.pk)
         assert response.status_code == 403
 
-    def test_get_not_found(self, db):
+    def test_get_not_found(self):
         """Test GET raises Http404 when document doesn't exist."""
         from core.views import BaseDocumentDetailEditDeleteView
         from rest_framework.test import APIRequestFactory
         from devi.serializers import DeviDetailSerializer
 
-        User = get_user_model()
-        user = User.objects.create_user(email="test@test.com", password="testpass")
+        user_obj = get_user_model()
+        user = user_obj.objects.create_user(email="test@test.com", password="testpass")
 
         class TestDetailView(BaseDocumentDetailEditDeleteView):
             model = Devi

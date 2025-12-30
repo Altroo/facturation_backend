@@ -8,6 +8,7 @@ from .models import (
     Emplacement,
     ModePaiement,
     ModeReglement,
+    LivrePar,
 )
 from .serializers import (
     VilleSerializer,
@@ -17,6 +18,7 @@ from .serializers import (
     EmplacementSerializer,
     ModePaiementSerializer,
     ModeRegelementSerializer,
+    LivreParSerializer,
 )
 
 
@@ -67,3 +69,8 @@ class ModePaiementViewSet(BaseModelViewSet):
 class ModeReglementViewSet(BaseModelViewSet):
     queryset = ModeReglement.objects.all()
     serializer_class = ModeRegelementSerializer
+
+
+class LivreParViewSet(BaseModelViewSet):
+    queryset = LivrePar.objects.all()
+    serializer_class = LivreParSerializer

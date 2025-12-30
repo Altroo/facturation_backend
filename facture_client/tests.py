@@ -358,13 +358,15 @@ class TestFactureClientFilters(SharedDocumentFilterTestsMixin):
     def test_global_search_direct_call_empty(self):
         """Test global_search method directly with empty value (line 27 coverage)."""
         base_qs = FactureClient.objects.all()
-        result = FactureClientFilter.global_search(base_qs, "search", "")
+        filter_instance = FactureClientFilter()
+        result = filter_instance.global_search(base_qs, "search", "")
         assert result.count() == base_qs.count()
 
     def test_global_search_direct_call_whitespace(self):
         """Test global_search method directly with whitespace (line 27 coverage)."""
         base_qs = FactureClient.objects.all()
-        result = FactureClientFilter.global_search(base_qs, "search", "   ")
+        filter_instance = FactureClientFilter()
+        result = filter_instance.global_search(base_qs, "search", "   ")
         assert result.count() == base_qs.count()
 
 
@@ -559,3 +561,74 @@ class TestFactureClientLineModelExtra:
         line = fc_conv_with_lines.lignes.first()
         expected = f"{fc_conv_with_lines} - {line.article}"
         assert str(line) == expected
+
+
+@pytest.mark.django_db
+class TestFactureClientConversionExtra:
+    """Extra tests for FactureClient conversion to BonDeLivraison."""
+
+    def test_convert_to_bon_de_livraison(self, fc_conv_with_lines, fc_conv_user):
+        """Test converting FactureClient to BonDeLivraison."""
+        from bon_de_livraison.models import BonDeLivraison
+
+        bon_livraison = fc_conv_with_lines.convert_to_bon_de_livraison(
+            "BL-001", fc_conv_user
+        )
+
+        assert bon_livraison is not None
+        assert isinstance(bon_livraison, BonDeLivraison)
+        assert bon_livraison.client == fc_conv_with_lines.client
+        assert bon_livraison.mode_paiement == fc_conv_with_lines.mode_paiement
+        assert bon_livraison.created_by_user == fc_conv_user
+        assert bon_livraison.lignes.count() == fc_conv_with_lines.lignes.count()
+        assert bon_livraison.numero_bon_livraison == "BL-001"
+        assert bon_livraison.date_bon_livraison == fc_conv_with_lines.date_facture
+        assert (
+            bon_livraison.numero_bon_commande_client
+            == fc_conv_with_lines.numero_bon_commande_client
+        )
+
+    def test_conversion_copies_remise(self, fc_conv_with_lines, fc_conv_user):
+        """Test that conversion copies remise fields."""
+        bon_livraison = fc_conv_with_lines.convert_to_bon_de_livraison(
+            "BL-002", fc_conv_user
+        )
+
+        assert bon_livraison.remise == fc_conv_with_lines.remise
+        assert bon_livraison.remise_type == fc_conv_with_lines.remise_type
+
+    def test_conversion_copies_line_details(self, fc_conv_with_lines, fc_conv_user):
+        """Test that conversion copies line details correctly."""
+        bon_livraison = fc_conv_with_lines.convert_to_bon_de_livraison(
+            "BL-003", fc_conv_user
+        )
+
+        original_line = fc_conv_with_lines.lignes.first()
+        new_line = bon_livraison.lignes.first()
+
+        assert new_line.article == original_line.article
+        assert new_line.quantity == original_line.quantity
+        assert new_line.prix_vente == original_line.prix_vente
+        assert new_line.prix_achat == original_line.prix_achat
+
+    def test_conversion_copies_totals(self, fc_conv_with_lines, fc_conv_user):
+        """Test that conversion copies all totals correctly."""
+        bon_livraison = fc_conv_with_lines.convert_to_bon_de_livraison(
+            "BL-004", fc_conv_user
+        )
+
+        assert bon_livraison.total_ht == fc_conv_with_lines.total_ht
+        assert bon_livraison.total_tva == fc_conv_with_lines.total_tva
+        assert bon_livraison.total_ttc == fc_conv_with_lines.total_ttc
+        assert (
+            bon_livraison.total_ttc_apres_remise
+            == fc_conv_with_lines.total_ttc_apres_remise
+        )
+
+    def test_conversion_sets_brouillon_status(self, fc_conv_with_lines, fc_conv_user):
+        """Test that converted BonDeLivraison has Brouillon status."""
+        bon_livraison = fc_conv_with_lines.convert_to_bon_de_livraison(
+            "BL-005", fc_conv_user
+        )
+
+        assert bon_livraison.statut == "Brouillon"

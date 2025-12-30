@@ -12,6 +12,7 @@ from parameter.models import (
     Emplacement,
     ModePaiement,
     ModeReglement,
+    LivrePar,
 )
 
 
@@ -155,6 +156,11 @@ class TestModeReglementAPI(BaseAPITest):
     basename = "mode_reglement"
 
 
+class TestLivreParAPI(BaseAPITest):
+    model = LivrePar
+    basename = "livre_par"
+
+
 @pytest.mark.django_db
 class TestParameterModelsExtra:
     """Extra tests for parameter models __str__ methods."""
@@ -193,3 +199,8 @@ class TestParameterModelsExtra:
         """Test ModeReglement __str__."""
         obj = ModeReglement.objects.create(nom="By Check Extra")
         assert str(obj) == "By Check Extra"
+
+    def test_livre_par_str(self):
+        """Test LivrePar __str__."""
+        obj = LivrePar.objects.create(nom="Delivery Person Extra")
+        assert str(obj) == "Delivery Person Extra"

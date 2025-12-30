@@ -8,6 +8,7 @@ from .models import (
     Emplacement,
     ModePaiement,
     ModeReglement,
+    LivrePar,
 )
 
 
@@ -64,4 +65,12 @@ class ModeRegelementSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ModeReglement
+        fields = ("id", "nom")
+
+
+class LivreParSerializer(serializers.ModelSerializer):
+    """Serializer for the flat list view (id and name only)."""
+
+    class Meta:
+        model = LivrePar
         fields = ("id", "nom")

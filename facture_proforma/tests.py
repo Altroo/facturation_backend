@@ -360,13 +360,15 @@ class TestFactureProFormaFilters(SharedDocumentFilterTestsMixin):
     def test_global_search_direct_call_empty(self):
         """Test global_search method directly with empty value (line 27 coverage)."""
         base_qs = FactureProForma.objects.all()
-        result = FactureProFormaFilter.global_search(base_qs, "search", "")
+        filter_instance = FactureProFormaFilter()
+        result = filter_instance.global_search(base_qs, "search", "")
         assert result.count() == base_qs.count()
 
     def test_global_search_direct_call_whitespace(self):
         """Test global_search method directly with whitespace (line 27 coverage)."""
         base_qs = FactureProForma.objects.all()
-        result = FactureProFormaFilter.global_search(base_qs, "search", "   ")
+        filter_instance = FactureProFormaFilter()
+        result = filter_instance.global_search(base_qs, "search", "   ")
         assert result.count() == base_qs.count()
 
 

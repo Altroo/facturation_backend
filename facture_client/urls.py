@@ -5,6 +5,7 @@ from .views import (
     FactureClientDetailEditDeleteView,
     GenerateNumeroFactureView,
     FactureClientStatusUpdateView,
+    FactureClientConvertToBonDeLivraisonView,
 )
 
 app_name = "facture_client"
@@ -33,5 +34,11 @@ urlpatterns = [
         "switch_statut/<int:pk>/",
         FactureClientStatusUpdateView.as_view(),
         name="facture-client-statut-update",
+    ),
+    # POST : convert facture client to bon de livraison
+    path(
+        "convert_to_bon_de_livraison/<int:pk>/",
+        FactureClientConvertToBonDeLivraisonView.as_view(),
+        name="convert-to-bon-de-livraison",
     ),
 ]

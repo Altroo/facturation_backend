@@ -188,6 +188,7 @@ class BaseConversionView(APIView):
     document_name = "document"
     numero_generator = None
     conversion_method = None
+    numero_param_name = "numero_facture"  # Default for most conversions
 
     @staticmethod
     def _has_membership(user, company_id):
@@ -205,10 +206,10 @@ class BaseConversionView(APIView):
             raise PermissionDenied(
                 _(f"Vous n'êtes pas autorisé à convertir ce {self.document_name}.")
             )
-        numero_facture = self.numero_generator()
+        numero = self.numero_generator()
         conversion_func = getattr(object_, self.conversion_method)
-        facture = conversion_func(
-            numero_facture=numero_facture,
+        converted = conversion_func(
+            **{self.numero_param_name: numero},
             created_by_user=request.user,
         )
-        return Response({"id": facture.id}, status=status.HTTP_201_CREATED)
+        return Response({"id": converted.id}, status=status.HTTP_201_CREATED)

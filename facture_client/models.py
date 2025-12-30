@@ -38,6 +38,42 @@ class FactureClient(BaseDeviFactureDocument):
     def __str__(self):
         return self.numero_facture
 
+    def convert_to_bon_de_livraison(
+        self, numero_bon_livraison, created_by_user: CustomUser
+    ):
+        """Convert this FactureClient to a BonDeLivraison."""
+        from bon_de_livraison.models import BonDeLivraison, BonDeLivraisonLine
+
+        bon_de_livraison = BonDeLivraison.objects.create(
+            numero_bon_livraison=numero_bon_livraison,
+            client=self.client,
+            date_bon_livraison=self.date_facture,
+            numero_bon_commande_client=self.numero_bon_commande_client,
+            mode_paiement=self.mode_paiement,
+            remarque=self.remarque,
+            statut="Brouillon",
+            total_ht=self.total_ht,
+            total_tva=self.total_tva,
+            total_ttc=self.total_ttc,
+            remise_type=self.remise_type,
+            remise=self.remise,
+            total_ttc_apres_remise=self.total_ttc_apres_remise,
+            created_by_user=created_by_user,
+        )
+
+        for line in self.get_lines():
+            BonDeLivraisonLine.objects.create(
+                bon_de_livraison=bon_de_livraison,
+                article=line.article,
+                prix_achat=line.prix_achat,
+                prix_vente=line.prix_vente,
+                quantity=line.quantity,
+                remise_type=line.remise_type,
+                remise=line.remise,
+            )
+
+        return bon_de_livraison
+
 
 class FactureClientLine(BaseDeviFactureLine):
     facture_client = models.ForeignKey(

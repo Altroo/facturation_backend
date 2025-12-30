@@ -3,7 +3,9 @@ from core.views import (
     BaseDocumentDetailEditDeleteView,
     BaseGenerateNumeroView,
     BaseStatusUpdateView,
+    BaseConversionView,
 )
+from bon_de_livraison.utils import get_next_numero_bon_livraison
 from .filters import FactureClientFilter
 from .models import FactureClient
 from .serializers import (
@@ -37,3 +39,11 @@ class GenerateNumeroFactureView(BaseGenerateNumeroView):
 class FactureClientStatusUpdateView(BaseStatusUpdateView):
     model = FactureClient
     document_name = "facture client"
+
+
+class FactureClientConvertToBonDeLivraisonView(BaseConversionView):
+    model = FactureClient
+    document_name = "facture client"
+    numero_generator = staticmethod(get_next_numero_bon_livraison)
+    conversion_method = "convert_to_bon_de_livraison"
+    numero_param_name = "numero_bon_livraison"
