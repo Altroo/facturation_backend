@@ -49,6 +49,7 @@ from .tasks import (
 def temp_media_root(settings):
     import tempfile
     import shutil
+
     # Create a temp dir in the project folder to avoid Windows permission issues
     temp_dir = tempfile.mkdtemp(dir=".")
     settings.MEDIA_ROOT = temp_dir
@@ -766,15 +767,24 @@ class TestSerializers:
         cf = CreateAccountSerializer._process_image_field("avatar", {"avatar": IMG_B64})
         assert cf is not None
         assert hasattr(cf, "read") or hasattr(cf, "open") or getattr(cf, "name", None)
+        # Now all images are converted to WebP
+        assert getattr(cf, "name", "").endswith(".webp")
 
+        # Create a minimal valid 1x1 PNG image (complete, not just header)
+        minimal_png = (
+            b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01"
+            b"\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\nIDATx\x9cc\x00\x01"
+            b"\x00\x00\x05\x00\x01\r\n-\xb4\x00\x00\x00\x00IEND\xaeB`\x82"
+        )
         uploaded = SimpleUploadedFile(
-            "avatar.png", b"\x89PNG\r\n\x1a\n\x00", content_type="image/png"
+            "avatar.png", minimal_png, content_type="image/png"
         )
         cf2 = CreateAccountSerializer._process_image_field(
             "avatar", {"avatar": uploaded}
         )
         assert cf2 is not None
-        assert getattr(cf2, "name", "").endswith(".png")
+        # Now all images are converted to WebP
+        assert getattr(cf2, "name", "").endswith(".webp")
 
     def test_createaccount_process_image_field_invalid_raises(self):
         with pytest.raises(drf_serializers.ValidationError):
@@ -795,8 +805,16 @@ class TestSerializers:
         assert b is not None
         assert is_url is False
 
+        # Create a minimal valid 1x1 JPEG image (complete, not just header)
+        from PIL import Image
+        from io import BytesIO
+        img = Image.new('RGB', (1, 1), color='white')
+        buf = BytesIO()
+        img.save(buf, format='JPEG')
+        minimal_jpeg = buf.getvalue()
+        
         uploaded = SimpleUploadedFile(
-            "avatar.jpg", b"\xff\xd8\xff", content_type="image/jpeg"
+            "avatar.jpg", minimal_jpeg, content_type="image/jpeg"
         )
         cf2, b2, is_url2 = ProfilePutSerializer._process_image_field(
             "avatar", {"avatar": uploaded}
@@ -1298,7 +1316,9 @@ class TestCreateAccountSerializerExtra:
             def seek(self, pos):
                 pass
 
-        with pytest.raises(drf_serializers.ValidationError, match="Invalid file upload"):
+        with pytest.raises(
+            drf_serializers.ValidationError, match="Invalid file upload"
+        ):
             CreateAccountSerializer._process_image_field(
                 "avatar", {"avatar": BrokenFile()}
             )
@@ -1363,9 +1383,7 @@ class TestUserPatchSerializerExtra:
         serializer = UserPatchSerializer(
             instance=user_extra,
             data={
-                "memberships": [
-                    {"company_id": company_extra.pk, "role": "PatchRole"}
-                ]
+                "memberships": [{"company_id": company_extra.pk, "role": "PatchRole"}]
             },
             partial=True,
         )
@@ -1378,9 +1396,7 @@ class TestUserPatchSerializerExtra:
         role = Group.objects.create(name="AliasRole")
         serializer = UserPatchSerializer(
             instance=user_extra,
-            data={
-                "companies": [{"company_id": company_extra.pk, "role": "AliasRole"}]
-            },
+            data={"companies": [{"company_id": company_extra.pk, "role": "AliasRole"}]},
             partial=True,
         )
         assert serializer.is_valid(), serializer.errors
@@ -1553,8 +1569,12 @@ class TestProfilePutSerializerExtra:
             def seek(self, pos):
                 pass
 
-        with pytest.raises(drf_serializers.ValidationError, match="Invalid file upload"):
-            ProfilePutSerializer._process_image_field("avatar", {"avatar": BrokenFile()})
+        with pytest.raises(
+            drf_serializers.ValidationError, match="Invalid file upload"
+        ):
+            ProfilePutSerializer._process_image_field(
+                "avatar", {"avatar": BrokenFile()}
+            )
 
     def test_process_image_field_invalid_format(self):
         """Test ProfilePutSerializer raises on unexpected format."""
@@ -1993,7 +2013,10 @@ class TestAccountViewsExtra:
         from django.urls import reverse
 
         other_user = CustomUser.objects.create_user(
-            email="other@test.com", password="pass", first_name="Other", last_name="User"
+            email="other@test.com",
+            password="pass",
+            first_name="Other",
+            last_name="User",
         )
         url = reverse("account:users_detail", args=[other_user.pk])
         response = self.client.get(url)
@@ -2020,7 +2043,10 @@ class TestAccountViewsExtra:
         from django.urls import reverse
 
         other_user = CustomUser.objects.create_user(
-            email="putother@test.com", password="pass", first_name="Put", last_name="User"
+            email="putother@test.com",
+            password="pass",
+            first_name="Put",
+            last_name="User",
         )
         url = reverse("account:users_detail", args=[other_user.pk])
         response = self.client.put(url, {"first_name": "Updated"}, format="json")
@@ -2031,19 +2057,28 @@ class TestAccountViewsExtra:
         from django.urls import reverse
 
         other_user = CustomUser.objects.create_user(
-            email="putvalid@test.com", password="pass", first_name="Put", last_name="User"
+            email="putvalid@test.com",
+            password="pass",
+            first_name="Put",
+            last_name="User",
         )
         url = reverse("account:users_detail", args=[other_user.pk])
         # PUT should accept partial updates with valid data
         response = self.client.put(url, {"first_name": "ChangedName"}, format="json")
-        assert response.status_code in [200, 400]  # Depends on serializer partial support
+        assert response.status_code in [
+            200,
+            400,
+        ]  # Depends on serializer partial support
 
     def test_user_delete_other_user(self):
         """Test UserDetailEditDeleteView DELETE for other user succeeds."""
         from django.urls import reverse
 
         other_user = CustomUser.objects.create_user(
-            email="deleteother@test.com", password="pass", first_name="Del", last_name="User"
+            email="deleteother@test.com",
+            password="pass",
+            first_name="Del",
+            last_name="User",
         )
         url = reverse("account:users_detail", args=[other_user.pk])
         response = self.client.delete(url)
@@ -2055,11 +2090,16 @@ class TestAccountViewsExtra:
         from django.core.files.base import ContentFile
 
         other_user = CustomUser.objects.create_user(
-            email="delavatar@test.com", password="pass", first_name="Del", last_name="Avatar"
+            email="delavatar@test.com",
+            password="pass",
+            first_name="Del",
+            last_name="Avatar",
         )
         # Add avatar
         other_user.avatar.save("test.png", ContentFile(b"fake_image"), save=True)
-        other_user.avatar_cropped.save("test_cropped.png", ContentFile(b"fake_cropped"), save=True)
+        other_user.avatar_cropped.save(
+            "test_cropped.png", ContentFile(b"fake_cropped"), save=True
+        )
 
         url = reverse("account:users_detail", args=[other_user.pk])
         response = self.client.delete(url)
@@ -2110,6 +2150,7 @@ class TestAccountViewsExtra:
         url = reverse("account:password_reset_detail", args=[self.user.email, "1234"])
         # Use anonymous client
         from rest_framework.test import APIClient
+
         anon_client = APIClient()
         response = anon_client.get(url)
         assert response.status_code == 204
@@ -2131,7 +2172,9 @@ class TestAccountViewsExtra:
         from django.urls import reverse
         from rest_framework.test import APIClient
 
-        url = reverse("account:password_reset_detail", args=["nonexistent@test.com", "1234"])
+        url = reverse(
+            "account:password_reset_detail", args=["nonexistent@test.com", "1234"]
+        )
         anon_client = APIClient()
         response = anon_client.get(url)
         assert response.status_code == 400
@@ -2145,12 +2188,16 @@ class TestAccountViewsExtra:
         self.user.save()
         url = reverse("account:password_reset")
         anon_client = APIClient()
-        response = anon_client.put(url, {
-            "email": self.user.email,
-            "code": "1234",
-            "new_password": "newpassword123",
-            "new_password2": "newpassword123",
-        }, format="json")
+        response = anon_client.put(
+            url,
+            {
+                "email": self.user.email,
+                "code": "1234",
+                "new_password": "newpassword123",
+                "new_password2": "newpassword123",
+            },
+            format="json",
+        )
         assert response.status_code == 204
 
     def test_password_reset_put_invalid_code(self):
@@ -2162,12 +2209,16 @@ class TestAccountViewsExtra:
         self.user.save()
         url = reverse("account:password_reset")
         anon_client = APIClient()
-        response = anon_client.put(url, {
-            "email": self.user.email,
-            "code": "9999",
-            "new_password": "newpassword123",
-            "new_password2": "newpassword123",
-        }, format="json")
+        response = anon_client.put(
+            url,
+            {
+                "email": self.user.email,
+                "code": "9999",
+                "new_password": "newpassword123",
+                "new_password2": "newpassword123",
+            },
+            format="json",
+        )
         assert response.status_code == 400
 
     def test_password_reset_put_user_not_found(self):
@@ -2177,12 +2228,16 @@ class TestAccountViewsExtra:
 
         url = reverse("account:password_reset")
         anon_client = APIClient()
-        response = anon_client.put(url, {
-            "email": "nonexistent@test.com",
-            "code": "1234",
-            "new_password": "newpassword123",
-            "new_password2": "newpassword123",
-        }, format="json")
+        response = anon_client.put(
+            url,
+            {
+                "email": "nonexistent@test.com",
+                "code": "1234",
+                "new_password": "newpassword123",
+                "new_password2": "newpassword123",
+            },
+            format="json",
+        )
         assert response.status_code == 400
 
     def test_profile_patch_with_all_fields(self):
@@ -2191,11 +2246,15 @@ class TestAccountViewsExtra:
 
         url = reverse("account:profil")
         # Provide all fields that the view extracts from request
-        response = self.client.patch(url, {
-            "first_name": "Updated",
-            "last_name": "Name",
-            "gender": "Homme",
-        }, format="json")
+        response = self.client.patch(
+            url,
+            {
+                "first_name": "Updated",
+                "last_name": "Name",
+                "gender": "Homme",
+            },
+            format="json",
+        )
         # Should succeed or fail gracefully depending on avatar handling
         assert response.status_code in [200, 400]
         if response.status_code == 200:
@@ -2210,4 +2269,3 @@ class TestAccountViewsExtra:
         response = self.client.patch(url, {"gender": "InvalidGender"}, format="json")
         # Should either accept or reject gracefully
         assert response.status_code in [200, 400]
-

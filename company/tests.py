@@ -24,6 +24,7 @@ BASE64_PNG = (
 def temp_media_root(settings):
     import tempfile
     import shutil
+
     # Create a temp dir in the project folder to avoid Windows permission issues
     temp_dir = tempfile.mkdtemp(dir=".")
     settings.MEDIA_ROOT = temp_dir
@@ -605,7 +606,9 @@ class TestCompanySerializerExtra:
         from django.core.files.base import ContentFile
 
         # Add a logo to the company
-        self.company.logo.save("test_logo.png", ContentFile(b"fake_image_data"), save=True)
+        self.company.logo.save(
+            "test_logo.png", ContentFile(b"fake_image_data"), save=True
+        )
         self.company.refresh_from_db()
 
         factory = APIRequestFactory()
@@ -613,7 +616,9 @@ class TestCompanySerializerExtra:
         serializer = CompanyListSerializer(self.company, context={"request": request})
         # Should return absolute URL when logo exists and request is provided
         assert serializer.data["logo"] is not None
-        assert "test_logo" in serializer.data["logo"] or serializer.data["logo"].startswith("http")
+        assert "test_logo" in serializer.data["logo"] or serializer.data[
+            "logo"
+        ].startswith("http")
 
     def test_company_list_serializer_with_logo_no_request(self):
         """Test CompanyListSerializer get_logo with logo file but no request (line 50 else branch)."""
@@ -621,7 +626,9 @@ class TestCompanySerializerExtra:
         from django.core.files.base import ContentFile
 
         # Add a logo to the company
-        self.company.logo.save("test_logo2.png", ContentFile(b"fake_image_data"), save=True)
+        self.company.logo.save(
+            "test_logo2.png", ContentFile(b"fake_image_data"), save=True
+        )
         self.company.refresh_from_db()
 
         serializer = CompanyListSerializer(self.company, context={})
@@ -635,7 +642,9 @@ class TestCompanySerializerExtra:
         from django.core.files.base import ContentFile
 
         # Add a cachet to the company
-        self.company.cachet.save("test_cachet.png", ContentFile(b"fake_image_data"), save=True)
+        self.company.cachet.save(
+            "test_cachet.png", ContentFile(b"fake_image_data"), save=True
+        )
         self.company.refresh_from_db()
 
         factory = APIRequestFactory()
@@ -649,31 +658,45 @@ class TestCompanySerializerExtra:
         from company.serializers import CompanySerializer
         from django.core.files.uploadedfile import SimpleUploadedFile
 
-        # Create a fake uploaded file
+        # Create a minimal valid 1x1 PNG image (complete, not just header)
+        minimal_png = (
+            b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01"
+            b"\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\nIDATx\x9cc\x00\x01"
+            b"\x00\x00\x05\x00\x01\r\n-\xb4\x00\x00\x00\x00IEND\xaeB`\x82"
+        )
         file = SimpleUploadedFile(
             "test.png",
-            b"fake_image_content",
-            content_type="image/png"
+            minimal_png,
+            content_type="image/png",
         )
         validated_data = {"logo": file}
         result = CompanySerializer._process_image_field("logo", validated_data, None)
         assert result is not None
         assert hasattr(result, "read")  # It's a ContentFile
+        # Now all images are converted to WebP
+        assert result.name.endswith(".webp")
 
     def test_process_image_field_multipart_without_extension(self):
         """Test _process_image_field with multipart file without extension (line 130)."""
         from company.serializers import CompanySerializer
         from django.core.files.uploadedfile import SimpleUploadedFile
 
-        # Create a fake uploaded file without extension
+        # Create a minimal valid 1x1 PNG image (complete, not just header)
+        minimal_png = (
+            b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01"
+            b"\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\nIDATx\x9cc\x00\x01"
+            b"\x00\x00\x05\x00\x01\r\n-\xb4\x00\x00\x00\x00IEND\xaeB`\x82"
+        )
         file = SimpleUploadedFile(
             "testimage",  # No extension
-            b"fake_image_content",
-            content_type="image/png"
+            minimal_png,
+            content_type="image/png",
         )
         validated_data = {"logo": file}
         result = CompanySerializer._process_image_field("logo", validated_data, None)
         assert result is not None
+        # Now all images are converted to WebP
+        assert result.name.endswith(".webp")
 
     def test_process_image_field_base64(self):
         """Test _process_image_field with base64 data (lines 141-153)."""
@@ -699,9 +722,14 @@ class TestCompanySerializerExtra:
         request = factory.put("/")
         serializer = CompanySerializer(
             self.company,
-            data={"logo": None, "raison_sociale": self.company.raison_sociale, "ICE": self.company.ICE, "nbr_employe": self.company.nbr_employe},
+            data={
+                "logo": None,
+                "raison_sociale": self.company.raison_sociale,
+                "ICE": self.company.ICE,
+                "nbr_employe": self.company.nbr_employe,
+            },
             context={"request": request},
-            partial=True
+            partial=True,
         )
         assert serializer.is_valid(), serializer.errors
         updated = serializer.save()
@@ -766,4 +794,3 @@ class TestCompanyViewsExtra:
         response = self.client.post(url, payload)
         assert response.status_code == status.HTTP_201_CREATED
         assert Company.objects.filter(raison_sociale="NewCorp").exists()
-

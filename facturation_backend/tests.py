@@ -91,6 +91,117 @@ class TestImageProcessor:
         result = ImageProcessor.data_url_to_uploaded_file(12345)
         assert result is None
 
+    def test_convert_to_webp(self):
+        # Create a test image in PNG format
+        img = Image.new("RGB", (100, 100), color="blue")
+        bytes_io = BytesIO()
+        img.save(bytes_io, format="PNG")
+        bytes_io.seek(0)
+        png_data = bytes_io.read()
+
+        result = ImageProcessor.convert_to_webp(png_data)
+
+        assert result is not None
+        assert isinstance(result, ContentFile)
+        assert result.name.endswith(".webp")
+
+        # Verify the result is actually a WebP image
+        result.seek(0)
+        converted_img = Image.open(result)
+        assert converted_img.format == "WEBP"
+        assert converted_img.size == (100, 100)
+
+    def test_convert_to_webp_with_transparency(self):
+        # Create a test image with transparency (RGBA)
+        img = Image.new("RGBA", (100, 100), color=(255, 0, 0, 128))
+        bytes_io = BytesIO()
+        img.save(bytes_io, format="PNG")
+        bytes_io.seek(0)
+        png_data = bytes_io.read()
+
+        result = ImageProcessor.convert_to_webp(png_data)
+
+        assert result is not None
+        assert isinstance(result, ContentFile)
+        assert result.name.endswith(".webp")
+
+    def test_convert_to_webp_bytesio_input(self):
+        """Test convert_to_webp with BytesIO object as input."""
+        img = Image.new("RGB", (50, 50), color="green")
+        bytes_io = BytesIO()
+        img.save(bytes_io, format="JPEG")
+        bytes_io.seek(0)
+
+        result = ImageProcessor.convert_to_webp(bytes_io)
+
+        assert result is not None
+        assert isinstance(result, ContentFile)
+        assert result.name.endswith(".webp")
+        result.seek(0)
+        converted_img = Image.open(result)
+        assert converted_img.format == "WEBP"
+
+    def test_convert_to_webp_mode_LA(self):
+        """Test convert_to_webp with LA mode image (luminance with alpha)."""
+        img = Image.new("LA", (50, 50), color=(128, 200))
+        bytes_io = BytesIO()
+        img.save(bytes_io, format="PNG")
+        bytes_io.seek(0)
+
+        result = ImageProcessor.convert_to_webp(bytes_io)
+
+        assert result is not None
+        assert isinstance(result, ContentFile)
+        assert result.name.endswith(".webp")
+
+    def test_convert_to_webp_mode_P(self):
+        """Test convert_to_webp with P mode image (palette mode)."""
+        img = Image.new("P", (50, 50))
+        bytes_io = BytesIO()
+        img.save(bytes_io, format="PNG")
+        bytes_io.seek(0)
+
+        result = ImageProcessor.convert_to_webp(bytes_io)
+
+        assert result is not None
+        assert isinstance(result, ContentFile)
+        assert result.name.endswith(".webp")
+
+    def test_convert_to_webp_mode_L(self):
+        """Test convert_to_webp with L mode image (grayscale)."""
+        img = Image.new("L", (50, 50), color=128)
+        bytes_io = BytesIO()
+        img.save(bytes_io, format="PNG")
+        bytes_io.seek(0)
+
+        result = ImageProcessor.convert_to_webp(bytes_io)
+
+        assert result is not None
+        assert isinstance(result, ContentFile)
+        assert result.name.endswith(".webp")
+
+    def test_convert_to_webp_mode_CMYK(self):
+        """Test convert_to_webp with CMYK mode image (converts to RGB)."""
+        img = Image.new("CMYK", (50, 50), color=(100, 50, 0, 0))
+        bytes_io = BytesIO()
+        img.save(bytes_io, format="JPEG")
+        bytes_io.seek(0)
+
+        result = ImageProcessor.convert_to_webp(bytes_io)
+
+        assert result is not None
+        assert isinstance(result, ContentFile)
+        assert result.name.endswith(".webp")
+
+    def test_convert_to_webp_invalid_data(self):
+        """Test convert_to_webp with invalid data raises ValueError."""
+        invalid_data = b"not_an_image_at_all"
+
+        with pytest.raises(ValueError) as exc_info:
+            ImageProcessor.convert_to_webp(invalid_data)
+        
+        assert "Failed to convert image to WebP" in str(exc_info.value)
+
     def test_resize_with_blurred_background_landscape(self):
         # Create a landscape image (wider than tall)
         image = np.random.randint(0, 255, (100, 200, 3), dtype=np.uint8)

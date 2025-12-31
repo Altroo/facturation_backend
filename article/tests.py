@@ -26,6 +26,7 @@ BASE64_PNG = (
 def temp_media_root(settings):
     import tempfile
     import shutil
+
     # Create a temp dir in the project folder to avoid Windows permission issues
     temp_dir = tempfile.mkdtemp(dir=".")
     settings.MEDIA_ROOT = temp_dir
@@ -858,12 +859,16 @@ class TestArticleSerializerExtra:
 
     def test_process_image_field_none_returns_none(self):
         """Test _process_image_field with None returns None."""
-        result = ArticleBaseSerializer._process_image_field("photo", {"photo": None}, None)
+        result = ArticleBaseSerializer._process_image_field(
+            "photo", {"photo": None}, None
+        )
         assert result is None
 
     def test_process_image_field_empty_string_returns_none(self):
         """Test _process_image_field with empty string returns None."""
-        result = ArticleBaseSerializer._process_image_field("photo", {"photo": ""}, None)
+        result = ArticleBaseSerializer._process_image_field(
+            "photo", {"photo": ""}, None
+        )
         assert result is None
 
     def test_to_representation_without_request(self):
@@ -908,28 +913,41 @@ class TestArticleSerializerExtra:
         """Test _process_image_field with multipart file upload."""
         from django.core.files.uploadedfile import SimpleUploadedFile
 
+        # Create a minimal valid 1x1 PNG image (complete, not just header)
+        minimal_png = (
+            b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01"
+            b"\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\nIDATx\x9cc\x00\x01"
+            b"\x00\x00\x05\x00\x01\r\n-\xb4\x00\x00\x00\x00IEND\xaeB`\x82"
+        )
         uploaded_file = SimpleUploadedFile(
-            "test.png", b"\x89PNG\r\n\x1a\n\x00", content_type="image/png"
+            "test.png", minimal_png, content_type="image/png"
         )
         result = ArticleBaseSerializer._process_image_field(
             "photo", {"photo": uploaded_file}, None
         )
         assert result is not None
-        assert result.name.endswith(".png")
+        # Now all images are converted to WebP
+        assert result.name.endswith(".webp")
 
     def test_process_image_field_multipart_file_no_extension(self):
         """Test _process_image_field with multipart file without extension."""
         from django.core.files.uploadedfile import SimpleUploadedFile
 
+        # Create a minimal valid 1x1 PNG image (complete, not just header)
+        minimal_png = (
+            b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01"
+            b"\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\nIDATx\x9cc\x00\x01"
+            b"\x00\x00\x05\x00\x01\r\n-\xb4\x00\x00\x00\x00IEND\xaeB`\x82"
+        )
         uploaded_file = SimpleUploadedFile(
-            "testfile", b"\x89PNG\r\n\x1a\n\x00", content_type="image/png"
+            "testfile", minimal_png, content_type="image/png"
         )
         result = ArticleBaseSerializer._process_image_field(
             "photo", {"photo": uploaded_file}, None
         )
         assert result is not None
-        # Should default to jpg when no extension
-        assert result.name.endswith(".jpg")
+        # Now all images are converted to WebP
+        assert result.name.endswith(".webp")
 
     def test_process_image_field_base64(self):
         """Test _process_image_field with base64 data."""
@@ -942,7 +960,8 @@ class TestArticleSerializerExtra:
             "photo", {"photo": base64_png}, None
         )
         assert result is not None
-        assert result.name.endswith(".png")
+        # Now all images are converted to WebP
+        assert result.name.endswith(".webp")
 
     def test_process_image_field_invalid_base64(self):
         """Test _process_image_field with invalid base64 raises error."""
