@@ -2,15 +2,14 @@ from base64 import b64decode
 from io import BytesIO
 from os import remove
 from pathlib import Path
-from uuid import uuid4
 
 from django.contrib.auth.models import Group
 from django.contrib.auth.password_validation import validate_password
-from django.core.files.base import ContentFile
 from rest_framework import serializers
 
 from company.models import Company
 from company.serializers import MembershipCompanySerializer
+from facturation_backend.utils import ImageProcessor
 from .models import CustomUser, Membership
 
 
@@ -105,7 +104,7 @@ class CreateAccountSerializer(serializers.ModelSerializer):
     @staticmethod
     def _process_image_field(field_name, validated_data):
         """
-        Process image field - handle base64, multipart files
+        Process image field - handle base64, multipart files, and convert to WebP
         """
         field_value = validated_data.get(field_name)
         if not field_value:
@@ -117,17 +116,8 @@ class CreateAccountSerializer(serializers.ModelSerializer):
                 # Read the file content
                 field_value.seek(0)  # Reset pointer to start
                 data = field_value.read()
-                field_value.seek(0)  # Reset again for potential reuse
-                # Get extension from content_type or name
-                ext = (
-                    field_value.name.split(".")[-1]
-                    if "." in field_value.name
-                    else "jpg"
-                )
-                # Create a unique filename
-                filename = f"{uuid4()}.{ext}"
-                # Return ContentFile
-                return ContentFile(data, name=filename)
+                # Convert to WebP (pass as bytes)
+                return ImageProcessor.convert_to_webp(data)
             except Exception as e:
                 raise serializers.ValidationError(
                     f"Invalid file upload for {field_name}: {str(e)}"
@@ -137,13 +127,10 @@ class CreateAccountSerializer(serializers.ModelSerializer):
             try:
                 # Extract format and base64 data
                 format_, imgstr = field_value.split(";base64,")
-                ext = format_.split("/")[-1]  # Get extension (png, jpg, etc.)
                 # Decode base64
                 data = b64decode(imgstr)
-                # Create a unique filename
-                filename = f"{uuid4()}.{ext}"
-                # Return ContentFile
-                return ContentFile(data, name=filename)
+                # Convert to WebP (pass as bytes)
+                return ImageProcessor.convert_to_webp(data)
             except Exception as e:
                 raise serializers.ValidationError(
                     f"Invalid base64 image data for {field_name}: {str(e)}"
@@ -332,13 +319,10 @@ class ProfilePutSerializer(serializers.ModelSerializer):
                 field_value.seek(0)
                 data = field_value.read()
                 field_value.seek(0)
-                ext = (
-                    field_value.name.split(".")[-1]
-                    if "." in field_value.name
-                    else "jpg"
-                )
-                filename = f"{uuid4()}.{ext}"
-                return ContentFile(data, name=filename), BytesIO(data), False
+                # Convert to WebP
+                webp_file = ImageProcessor.convert_to_webp(data)
+                # Return WebP file and original bytes for Celery processing
+                return webp_file, BytesIO(data), False
             except Exception as e:
                 raise serializers.ValidationError(
                     f"Invalid file upload for {field_name}: {str(e)}"
@@ -348,10 +332,11 @@ class ProfilePutSerializer(serializers.ModelSerializer):
         if isinstance(field_value, str) and field_value.startswith("data:image"):
             try:
                 format_, imgstr = field_value.split(";base64,")
-                ext = format_.split("/")[-1]
                 data = b64decode(imgstr)
-                filename = f"{uuid4()}.{ext}"
-                return ContentFile(data, name=filename), BytesIO(data), False
+                # Convert to WebP
+                webp_file = ImageProcessor.convert_to_webp(data)
+                # Return WebP file and original bytes for Celery processing
+                return webp_file, BytesIO(data), False
             except Exception as e:
                 raise serializers.ValidationError(
                     f"Invalid base64 image data for {field_name}: {str(e)}"

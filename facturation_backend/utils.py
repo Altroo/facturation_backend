@@ -39,6 +39,49 @@ class ImageProcessor:
         return bytes_io
 
     @staticmethod
+    def convert_to_webp(image_data) -> ContentFile:
+        """
+        Convert image data to WebP format and return as ContentFile.
+        Args:
+            image_data: bytes or BytesIO object containing image data
+        """
+        try:
+            # Handle both bytes and BytesIO objects
+            if isinstance(image_data, BytesIO):
+                image_data.seek(0)  # Ensure we're at the beginning
+                image = Image.open(image_data)
+            else:
+                # Assume its bytes
+                image = Image.open(BytesIO(image_data))
+
+            # Convert to RGB if necessary (WebP doesn't support some modes)
+            if image.mode in ("RGBA", "LA", "P"):
+                # Keep transparency for RGBA
+                if image.mode == "RGBA":
+                    background = Image.new("RGBA", image.size, (255, 255, 255, 255))
+                    background.paste(
+                        image,
+                        mask=image.split()[-1] if len(image.split()) > 3 else None,
+                    )
+                    image = background
+                else:
+                    image = image.convert("RGB")
+            elif image.mode not in ("RGB", "L"):
+                image = image.convert("RGB")
+
+            # Save as WebP
+            output = BytesIO()
+            image.save(output, format="WEBP", quality=85)
+            output.seek(0)
+
+            # Create a unique filename with .webp extension
+            filename = f"{uuid4()}.webp"
+            return ContentFile(output.read(), name=filename)
+        except Exception as e:
+            # If conversion fails, raise an error
+            raise ValueError(f"Failed to convert image to WebP: {str(e)}")
+
+    @staticmethod
     def data_url_to_uploaded_file(data):
         if isinstance(data, string_types):
             # Check if the base64 string is in the "data:" format

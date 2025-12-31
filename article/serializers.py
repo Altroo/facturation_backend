@@ -1,12 +1,11 @@
 from base64 import b64decode
 from os import remove
 from pathlib import Path
-from uuid import uuid4
 
-from django.core.files.base import ContentFile
 from rest_framework import serializers
 
 from company.models import Company
+from facturation_backend.utils import ImageProcessor
 from parameter.models import Marque, Categorie, Unite, Emplacement
 from .models import Article
 
@@ -58,7 +57,7 @@ class ArticleBaseSerializer(serializers.ModelSerializer):
     @staticmethod
     def _process_image_field(field_name, validated_data, instance):
         """
-        Process image field - handle base64, multipart files, and existing URLs
+        Process image field - handle base64, multipart files, and existing URLs, convert to WebP
         """
         field_value = validated_data.get(field_name)
         if not field_value:
@@ -74,17 +73,8 @@ class ArticleBaseSerializer(serializers.ModelSerializer):
                 # Read the file content
                 field_value.seek(0)  # Reset pointer to start
                 data = field_value.read()
-                field_value.seek(0)  # Reset again for potential reuse
-                # Get extension from content_type or name
-                ext = (
-                    field_value.name.split(".")[-1]
-                    if "." in field_value.name
-                    else "jpg"
-                )
-                # Create a unique filename
-                filename = f"{uuid4()}.{ext}"
-                # Return ContentFile
-                return ContentFile(data, name=filename)
+                # Convert to WebP (pass as bytes)
+                return ImageProcessor.convert_to_webp(data)
             except Exception as e:
                 raise serializers.ValidationError(
                     f"Invalid file upload for {field_name}: {str(e)}"
@@ -94,13 +84,10 @@ class ArticleBaseSerializer(serializers.ModelSerializer):
             try:
                 # Extract format and base64 data
                 format_, imgstr = field_value.split(";base64,")
-                ext = format_.split("/")[-1]  # Get extension (png, jpg, etc.)
                 # Decode base64
                 data = b64decode(imgstr)
-                # Create a unique filename
-                filename = f"{uuid4()}.{ext}"
-                # Return ContentFile
-                return ContentFile(data, name=filename)
+                # Convert to WebP
+                return ImageProcessor.convert_to_webp(data)
             except Exception as e:
                 raise serializers.ValidationError(
                     f"Invalid base64 image data for {field_name}: {str(e)}"
