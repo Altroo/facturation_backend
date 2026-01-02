@@ -70,15 +70,21 @@ class Article(models.Model):
     )
 
     # Pricing
-    prix_achat = models.PositiveIntegerField(
+    prix_achat = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
         verbose_name="Prix d'achat",
-        default=0,
     )
-    prix_vente = models.PositiveIntegerField(
+    prix_vente = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
         verbose_name="Prix de vente",
-        default=0,
     )
-    tva = models.PositiveIntegerField(
+    tva = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
         default=20,
         verbose_name="TVA (%)",
     )

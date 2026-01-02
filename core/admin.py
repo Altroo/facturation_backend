@@ -126,32 +126,23 @@ class BaseDocumentAdmin(admin.ModelAdmin):
             return obj.lignes.count()
         return 0
 
-    @staticmethod
-    def _fmt_cents(value):
-        """Format cents to MAD string with 2 decimals."""
-        try:
-            value = int(value or 0)
-        except (TypeError, ValueError):
-            value = 0
-        return f"{value / 100:.2f}"
-
     @admin.display(description="Total HT", ordering="total_ht")
     def display_total_ht(self, obj):
         if obj is None:
             return "-"
-        return f"{self._fmt_cents(obj.total_ht)} MAD"
+        return f"{obj.total_ht:.2f} MAD"
 
     @admin.display(description="Total TVA", ordering="total_tva")
     def display_total_tva(self, obj):
         if obj is None:
             return "-"
-        return f"{self._fmt_cents(obj.total_tva)} MAD"
+        return f"{obj.total_tva:.2f} MAD"
 
     @admin.display(description="Total TTC", ordering="total_ttc")
     def display_total_ttc(self, obj):
         if obj is None:
             return "-"
-        return f"{self._fmt_cents(obj.total_ttc)} MAD"
+        return f"{obj.total_ttc:.2f} MAD"
 
     @admin.display(
         description="Total TTC après remise", ordering="total_ttc_apres_remise"
@@ -159,7 +150,7 @@ class BaseDocumentAdmin(admin.ModelAdmin):
     def display_total_ttc_apres_remise(self, obj):
         if obj is None:
             return "-"
-        return f"{self._fmt_cents(obj.total_ttc_apres_remise)} MAD"
+        return f"{obj.total_ttc_apres_remise:.2f} MAD"
 
     class Meta:
         abstract = True

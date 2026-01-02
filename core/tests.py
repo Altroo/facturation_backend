@@ -21,7 +21,6 @@ from account.models import CustomUser, Membership
 from article.models import Article
 from client.models import Client
 from company.models import Company
-from core.serializers import cents_to_decimal
 from devi.admin import DeviAdmin
 from devi.models import Devi, DeviLine
 from parameter.models import ModePaiement, Ville
@@ -654,14 +653,14 @@ class TestAdminExtra:
     def test_display_total_ht(self, admin_site, extra_devi):
         """Test display_total_ht formats correctly."""
         admin = DeviAdmin(Devi, admin_site)
-        extra_devi.total_ht = 100050  # cents
+        extra_devi.total_ht = Decimal("1000.50")
         result = admin.display_total_ht(extra_devi)
         assert "1000.50" in result
 
     def test_display_total_ttc(self, admin_site, extra_devi):
         """Test display_total_ttc formats correctly."""
         admin = DeviAdmin(Devi, admin_site)
-        extra_devi.total_ttc = 120060  # cents
+        extra_devi.total_ttc = Decimal("1200.60")
         result = admin.display_total_ttc(extra_devi)
         assert "1200.60" in result
 
@@ -692,14 +691,14 @@ class TestAdminExtra:
     def test_display_total_tva(self, admin_site, extra_devi):
         """Test display_total_tva formats correctly."""
         admin = DeviAdmin(Devi, admin_site)
-        extra_devi.total_tva = 20010  # cents
+        extra_devi.total_tva = Decimal("200.10")
         result = admin.display_total_tva(extra_devi)
         assert "200.10" in result
 
     def test_display_total_ttc_apres_remise(self, admin_site, extra_devi):
         """Test display_total_ttc_apres_remise formats correctly."""
         admin = DeviAdmin(Devi, admin_site)
-        extra_devi.total_ttc_apres_remise = 108000  # cents
+        extra_devi.total_ttc_apres_remise = Decimal("1080.00")
         result = admin.display_total_ttc_apres_remise(extra_devi)
         assert "1080.00" in result
 
@@ -840,36 +839,6 @@ class TestAdminExtra:
         admin.save_related(request, form, [], change=True)
         extra_devi.refresh_from_db()
         assert extra_devi.total_ht >= 0
-
-    def test_fmt_cents_none(self, admin_site):
-        """Test _fmt_cents handles None."""
-        admin = DeviAdmin(Devi, admin_site)
-        assert admin._fmt_cents(None) == "0.00"
-
-    def test_fmt_cents_invalid(self, admin_site):
-        """Test _fmt_cents handles invalid input."""
-        admin = DeviAdmin(Devi, admin_site)
-        assert admin._fmt_cents("invalid") == "0.00"
-
-
-class TestCoreSerializersExtra:
-    """Extra tests for core serializers."""
-
-    def test_cents_to_decimal_positive(self):
-        """Test cents_to_decimal with positive value."""
-        assert cents_to_decimal(15050) == Decimal("150.50")
-
-    def test_cents_to_decimal_zero(self):
-        """Test cents_to_decimal with zero."""
-        assert cents_to_decimal(0) == Decimal("0.00")
-
-    def test_cents_to_decimal_negative(self):
-        """Test cents_to_decimal with negative value."""
-        assert cents_to_decimal(-5000) == Decimal("-50.00")
-
-    def test_cents_to_decimal_none(self):
-        """Test cents_to_decimal with None returns 0.00."""
-        assert cents_to_decimal(None) == Decimal("0.00")
 
 
 @pytest.mark.django_db
@@ -1184,22 +1153,15 @@ class TestCoreModelRecalcTotals:
         # After recalc, totals should account for the line discount
         assert extra_devi.total_ht > 0
 
-    def test_display_properties(self, extra_devi, extra_devi_line):
-        """Test the display properties return Decimal values."""
+    def test_totals_are_decimal(self, extra_devi, extra_devi_line):
+        """Test that total fields store Decimal values directly."""
         from decimal import Decimal
 
         extra_devi.recalc_totals()
-        assert isinstance(extra_devi.total_ht_display, Decimal)
-        assert isinstance(extra_devi.total_tva_display, Decimal)
-        assert isinstance(extra_devi.total_ttc_display, Decimal)
-        assert isinstance(extra_devi.total_ttc_apres_remise_display, Decimal)
-
-    def test_cents_to_decimal(self, extra_devi):
-        """Test _cents_to_decimal static method."""
-        from decimal import Decimal
-
-        result = extra_devi._cents_to_decimal(12345)
-        assert result == Decimal("123.45")
+        assert isinstance(extra_devi.total_ht, Decimal)
+        assert isinstance(extra_devi.total_tva, Decimal)
+        assert isinstance(extra_devi.total_ttc, Decimal)
+        assert isinstance(extra_devi.total_ttc_apres_remise, Decimal)
 
     def test_get_lines_no_lignes(self, extra_client, extra_mode_paiement):
         """Test get_lines returns empty when no lines exist."""

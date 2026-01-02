@@ -44,21 +44,27 @@ class BaseDeviFactureDocument(models.Model):
         verbose_name="Statut",
     )
 
-    total_ht = models.PositiveIntegerField(
+    total_ht = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
         default=0,
         verbose_name="Total HT",
         help_text="Somme des totaux des lignes avant TVA",
         editable=False,
     )
 
-    total_tva = models.PositiveIntegerField(
+    total_tva = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
         default=0,
         verbose_name="Total TVA",
         help_text="Montant total de la TVA",
         editable=False,
     )
 
-    total_ttc = models.PositiveIntegerField(
+    total_ttc = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
         default=0,
         verbose_name="Total TTC",
         help_text="Total toutes taxes comprises (TTC)",
@@ -83,7 +89,9 @@ class BaseDeviFactureDocument(models.Model):
         help_text="Valeur de la remise appliquée",
     )
 
-    total_ttc_apres_remise = models.PositiveIntegerField(
+    total_ttc_apres_remise = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
         default=0,
         verbose_name="Total TTC après remise",
         help_text="Total TTC après application de la remise",
@@ -118,7 +126,6 @@ class BaseDeviFactureDocument(models.Model):
         Compute totals based on related lines and remise.
         - Line remise applies on HT before TVA.
         - Document remise applies on aggregated HT, then TVA is scaled proportionally.
-        - Store integer centimes (MAD * 100) in integer fields to preserve two decimals.
         """
         raw_total_ht = Decimal("0")
         raw_total_tva = Decimal("0")
@@ -165,30 +172,12 @@ class BaseDeviFactureDocument(models.Model):
         final_total_tva = raw_total_tva * ratio
         final_total_ttc = final_total_ht + final_total_tva
 
-        # Quantize to cents and store as integer centimes (MAD * 100)
-        raw_total_ht_q = raw_total_ht.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-        raw_total_tva_q = raw_total_tva.quantize(
+        # Quantize to 2 decimal places and store directly
+        self.total_ht = raw_total_ht.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        self.total_tva = raw_total_tva.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        self.total_ttc = raw_total_ttc.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        self.total_ttc_apres_remise = final_total_ttc.quantize(
             Decimal("0.01"), rounding=ROUND_HALF_UP
-        )
-        raw_total_ttc_q = raw_total_ttc.quantize(
-            Decimal("0.01"), rounding=ROUND_HALF_UP
-        )
-        final_total_ttc_q = final_total_ttc.quantize(
-            Decimal("0.01"), rounding=ROUND_HALF_UP
-        )
-
-        # Store integer centimes
-        self.total_ht = int(
-            (raw_total_ht_q * 100).quantize(Decimal("1"), rounding=ROUND_HALF_UP)
-        )
-        self.total_tva = int(
-            (raw_total_tva_q * 100).quantize(Decimal("1"), rounding=ROUND_HALF_UP)
-        )
-        self.total_ttc = int(
-            (raw_total_ttc_q * 100).quantize(Decimal("1"), rounding=ROUND_HALF_UP)
-        )
-        self.total_ttc_apres_remise = int(
-            (final_total_ttc_q * 100).quantize(Decimal("1"), rounding=ROUND_HALF_UP)
         )
 
     def save(self, *args, **kwargs):
@@ -210,29 +199,6 @@ class BaseDeviFactureDocument(models.Model):
             # For updates, recalc then save normally
             self.recalc_totals()
             super().save(*args, **kwargs)
-
-    @staticmethod
-    def _cents_to_decimal(cents: int) -> Decimal:
-        """Convert stored integer centimes to Decimal MAD with 2 decimals."""
-        return (Decimal(cents) / Decimal("100")).quantize(
-            Decimal("0.01"), rounding=ROUND_HALF_UP
-        )
-
-    @property
-    def total_ht_display(self) -> Decimal:
-        return self._cents_to_decimal(getattr(self, "total_ht", 0) or 0)
-
-    @property
-    def total_tva_display(self) -> Decimal:
-        return self._cents_to_decimal(getattr(self, "total_tva", 0) or 0)
-
-    @property
-    def total_ttc_display(self) -> Decimal:
-        return self._cents_to_decimal(getattr(self, "total_ttc", 0) or 0)
-
-    @property
-    def total_ttc_apres_remise_display(self) -> Decimal:
-        return self._cents_to_decimal(getattr(self, "total_ttc_apres_remise", 0) or 0)
 
     class Meta:
         abstract = True

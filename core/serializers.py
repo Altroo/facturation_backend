@@ -5,13 +5,6 @@ from django.db import transaction
 from rest_framework import serializers
 
 
-def cents_to_decimal(cents):
-    """Convert integer centimes to Decimal MAD with 2 decimals."""
-    return (Decimal(cents or 0) / Decimal("100")).quantize(
-        Decimal("0.01"), rounding=ROUND_HALF_UP
-    )
-
-
 class BaseListSerializer(serializers.ModelSerializer):
     """Abstract list serializer with common total fields and helpers."""
 
@@ -22,26 +15,10 @@ class BaseListSerializer(serializers.ModelSerializer):
     created_by_user_name = serializers.SerializerMethodField()
     lignes_count = serializers.SerializerMethodField()
 
-    total_ht = serializers.SerializerMethodField()
-    total_tva = serializers.SerializerMethodField()
-    total_ttc = serializers.SerializerMethodField()
-    total_ttc_apres_remise = serializers.SerializerMethodField()
-
-    @staticmethod
-    def get_total_ht(obj):
-        return cents_to_decimal(getattr(obj, "total_ht", 0))
-
-    @staticmethod
-    def get_total_tva(obj):
-        return cents_to_decimal(getattr(obj, "total_tva", 0))
-
-    @staticmethod
-    def get_total_ttc(obj):
-        return cents_to_decimal(getattr(obj, "total_ttc", 0))
-
-    @staticmethod
-    def get_total_ttc_apres_remise(obj):
-        return cents_to_decimal(getattr(obj, "total_ttc_apres_remise", 0))
+    total_ht = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    total_tva = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    total_ttc = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    total_ttc_apres_remise = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
 
     @staticmethod
     def get_created_by_user_name(obj):
@@ -72,26 +49,10 @@ class BaseDetailSerializer(serializers.ModelSerializer):
         source="mode_paiement.nom", read_only=True
     )
 
-    total_ht = serializers.SerializerMethodField()
-    total_tva = serializers.SerializerMethodField()
-    total_ttc = serializers.SerializerMethodField()
-    total_ttc_apres_remise = serializers.SerializerMethodField()
-
-    @staticmethod
-    def get_total_ht(obj):
-        return cents_to_decimal(getattr(obj, "total_ht", 0))
-
-    @staticmethod
-    def get_total_tva(obj):
-        return cents_to_decimal(getattr(obj, "total_tva", 0))
-
-    @staticmethod
-    def get_total_ttc(obj):
-        return cents_to_decimal(getattr(obj, "total_ttc", 0))
-
-    @staticmethod
-    def get_total_ttc_apres_remise(obj):
-        return cents_to_decimal(getattr(obj, "total_ttc_apres_remise", 0))
+    total_ht = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    total_tva = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    total_ttc = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    total_ttc_apres_remise = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
 
     @staticmethod
     def get_created_by_user_name(obj):
