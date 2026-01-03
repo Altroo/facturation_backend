@@ -667,6 +667,83 @@ class TestReglementAPI:
         response = self.client_api.post(url, payload, format="json")
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
+    def test_list_reglements_forbidden_when_not_member(self):
+        """Test listing règlements requires membership in company."""
+        other_user = get_user_model().objects.create_user(
+            email="other-list@dev.com", password="pass"
+        )
+        other_client = APIClient()
+        other_client.force_authenticate(user=other_user)
+
+        url = self._list_create_url() + f"?company_id={self.company.id}"
+        response = other_client.get(url)
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_create_reglement_forbidden_without_membership(self):
+        """Test create fails if user not member of facture's company."""
+        outsider = get_user_model().objects.create_user(
+            email="outsider@dev.com", password="pass"
+        )
+        outsider_client = APIClient()
+        outsider_client.force_authenticate(user=outsider)
+
+        url = self._list_create_url()
+        payload = {
+            "facture_client": self.facture.id,
+            "mode_reglement": self.mode_reglement.id,
+            "libelle": "No access",
+            "montant": "50.00",
+            "date_reglement": "2025-01-20",
+            "date_echeance": "2025-02-20",
+        }
+        response = outsider_client.post(url, payload, format="json")
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_create_reglement_for_missing_facture(self):
+        """Test creating for non-existent facture returns 404."""
+        url = self._list_create_url()
+        payload = {
+            "facture_client": 999999,
+            "mode_reglement": self.mode_reglement.id,
+            "libelle": "Missing facture",
+            "montant": "50.00",
+            "date_reglement": "2025-01-20",
+            "date_echeance": "2025-02-20",
+        }
+        response = self.client_api.post(url, payload, format="json")
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_get_reglement_detail_not_found(self):
+        """Test getting non-existent règlement returns 404."""
+        url = self._detail_url(999999)
+        response = self.client_api.get(url)
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_delete_reglement_forbidden_without_membership(self):
+        """Test delete is forbidden for non-members."""
+        outsider = get_user_model().objects.create_user(
+            email="outsider-del@dev.com", password="pass"
+        )
+        outsider_client = APIClient()
+        outsider_client.force_authenticate(user=outsider)
+
+        url = self._detail_url(self.reglement.id)
+        response = outsider_client.delete(url)
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert Reglement.objects.filter(id=self.reglement.id).exists()
+
+    def test_status_update_forbidden_without_membership(self):
+        """Test statut update is forbidden for non-members."""
+        outsider = get_user_model().objects.create_user(
+            email="outsider-status@dev.com", password="pass"
+        )
+        outsider_client = APIClient()
+        outsider_client.force_authenticate(user=outsider)
+
+        url = self._status_url(self.reglement.id)
+        response = outsider_client.patch(url, {"statut": "Annulé"}, format="json")
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
 
 # -----------------------------------------------------------------------------
 # Filter Tests
@@ -740,6 +817,9 @@ class TestReglementFilters:
             date_echeance="2025-03-20",
             statut="Annulé",
         )
+        # Force a libelle containing tsquery metacharacters for fallback coverage
+        self.reg1.libelle = "Payment Alpha&"
+        self.reg1.save()
 
     def test_filter_by_statut(self):
         """Test filtering by statut."""
@@ -749,7 +829,7 @@ class TestReglementFilters:
         assert filt.qs.first().statut == "Valide"
 
     def test_filter_by_statut_case_insensitive(self):
-        """Test filtering by statut is case insensitive."""
+        """Test filtering by statut is case-insensitive."""
         base_qs = Reglement.objects.all()
         filt = ReglementFilter({"statut": "valide"}, queryset=base_qs)
         assert filt.qs.count() == 1
@@ -821,6 +901,43 @@ class TestReglementFilters:
         count_before = base_qs.count()
         filt = ReglementFilter({"statut": ""}, queryset=base_qs)
         assert filt.qs.count() == count_before
+
+    def test_global_search_whitespace_returns_all(self):
+        """Test whitespace search returns all results."""
+        base_qs = Reglement.objects.all()
+        count_before = base_qs.count()
+        filt = ReglementFilter({"search": "   "}, queryset=base_qs)
+        assert filt.qs.count() == count_before
+
+    def test_filter_statut_whitespace_returns_all(self):
+        """Test whitespace statut returns all results."""
+        base_qs = Reglement.objects.all()
+        count_before = base_qs.count()
+        filt = ReglementFilter({"statut": "   "}, queryset=base_qs)
+        assert filt.qs.count() == count_before
+
+    def test_global_search_skips_fts_on_metachar(self):
+        """Search containing tsquery metacharacters should skip FTS path."""
+        base_qs = Reglement.objects.all()
+        filt = ReglementFilter({"search": "Alpha&"}, queryset=base_qs)
+        ids = list(filt.qs.values_list("id", flat=True))
+        assert self.reg1.id in ids
+
+    def test_global_search_database_error_fallback(self, monkeypatch):
+        """DatabaseError during FTS should fall back to icontains search."""
+        from reglement import filters as reg_filters
+
+        def _raise_db_error(*_args, **_kwargs):
+            from django.db.utils import DatabaseError
+
+            raise DatabaseError("forced for test")
+
+        monkeypatch.setattr(reg_filters, "SearchQuery", _raise_db_error)
+
+        base_qs = Reglement.objects.all()
+        filt = ReglementFilter({"search": "Alpha"}, queryset=base_qs)
+        ids = list(filt.qs.values_list("id", flat=True))
+        assert self.reg1.id in ids
 
 
 # -----------------------------------------------------------------------------

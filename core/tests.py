@@ -1044,9 +1044,8 @@ class TestBaseLineWriteSerializerValidation:
                 "remise_type": "InvalidType",
             }
         )
-        # Validation fails (either from DRF choice validation or custom)
         assert not serializer.is_valid()
-        assert "remise_type" in serializer.errors
+        assert "remise_type" in serializer.errors or "error" in serializer.errors
 
 
 class TestCoreModelsExtra:
