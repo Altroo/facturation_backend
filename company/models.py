@@ -186,6 +186,11 @@ class Company(models.Model):
         default=timezone.now,
         db_index=True,
     )
+    date_updated = models.DateTimeField(
+        auto_now=True,
+        verbose_name="Date de modification",
+        db_index=True,
+    )
 
     class Meta:
         verbose_name = "Company"

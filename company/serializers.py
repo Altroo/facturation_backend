@@ -58,7 +58,7 @@ class CompanyListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Company
         fields = "__all__"
-        read_only_fields = ["date_created"]
+        read_only_fields = ["date_created", "date_updated"]
 
 
 class CompanyBasicListSerializer(serializers.ModelSerializer):
@@ -100,7 +100,7 @@ class CompanySerializer(serializers.ModelSerializer):
     class Meta:
         model = Company
         fields = "__all__"
-        read_only_fields = ["date_created"]
+        read_only_fields = ["date_created", "date_updated"]
 
     @staticmethod
     def _process_image_field(field_name, validated_data, instance):

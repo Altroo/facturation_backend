@@ -20,6 +20,7 @@ class ClientBaseSerializer(serializers.ModelSerializer):
             "delai_de_paiement",
             "remarque",
             "date_created",
+            "date_updated",
             "archived",
             # personne morale
             "raison_sociale",
@@ -34,7 +35,7 @@ class ClientBaseSerializer(serializers.ModelSerializer):
             "nom",
             "prenom",
         ]
-        read_only_fields = ["id", "date_created"]
+        read_only_fields = ["id", "date_created", "date_updated"]
 
     def validate(self, attrs):
         """Enforce required fields depending on `client_type`."""
@@ -127,6 +128,7 @@ class ClientListSerializer(serializers.ModelSerializer):
             "company",
             "company_name",
             "date_created",
+            "date_updated",
             "archived",
         ]
         read_only_fields = ["company_name", "ville_name"]

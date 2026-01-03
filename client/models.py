@@ -100,6 +100,11 @@ class Client(models.Model):
         default=timezone.now,
         db_index=True,
     )
+    date_updated = models.DateTimeField(
+        auto_now=True,
+        verbose_name="Date de modification",
+        db_index=True,
+    )
     # Archive status
     archived = models.BooleanField(
         default=False,

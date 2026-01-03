@@ -471,9 +471,10 @@ class UsersListSerializer(serializers.ModelSerializer):
             "is_active",
             "is_staff",
             "date_joined",
+            "date_updated",
             "last_login",
         ]
-        read_only_fields = ("date_joined", "last_login")
+        read_only_fields = ("date_joined", "date_updated", "last_login")
 
 
 class UserDetailSerializer(serializers.ModelSerializer):
@@ -505,10 +506,11 @@ class UserDetailSerializer(serializers.ModelSerializer):
             "gender",
             "is_active",
             "date_joined",
+            "date_updated",
             "last_login",
             "companies",
         ]
-        read_only_fields = ("id", "date_joined", "last_login")
+        read_only_fields = ("id", "date_joined", "date_updated", "last_login")
 
 
 class UserPatchSerializer(ProfilePutSerializer):

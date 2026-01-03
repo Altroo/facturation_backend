@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     "facture_proforma.apps.FactureProformaConfig",
     "facture_client.apps.FactureClientConfig",
     "bon_de_livraison.apps.BonDeLivraisonConfig",
+    "reglement.apps.ReglementConfig",
 ]
 
 MIDDLEWARE = [

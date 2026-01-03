@@ -113,6 +113,11 @@ class Article(models.Model):
         verbose_name="Date de création",
         db_index=True,
     )
+    date_updated = models.DateTimeField(
+        auto_now=True,
+        verbose_name="Date de modification",
+        db_index=True,
+    )
     archived = models.BooleanField(
         default=False,
         verbose_name="Archivé",

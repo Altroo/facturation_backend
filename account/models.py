@@ -64,6 +64,11 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     date_joined = models.DateTimeField(
         _("date joined"), default=timezone.now, db_index=True
     )
+    date_updated = models.DateTimeField(
+        auto_now=True,
+        verbose_name="Date de modification",
+        db_index=True,
+    )
     # Codes
     password_reset_code = models.CharField(
         verbose_name="Password Reset Code",

@@ -35,8 +35,9 @@ class ArticleBaseSerializer(serializers.ModelSerializer):
             "photo",
             "archived",
             "date_created",
+            "date_updated",
         ]
-        read_only_fields = ["id", "date_created"]
+        read_only_fields = ["id", "date_created", "date_updated"]
 
     def validate(self, attrs):
         errors = {}

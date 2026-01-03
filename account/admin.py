@@ -13,7 +13,7 @@ class CustomUserAdmin(UserAdmin):
     add_form = CustomAuthShopCreationForm
     form = CustomAuthShopChangeForm
     model = CustomUser
-    list_display = ("id", "email", "first_name", "last_name", "is_staff", "is_active")
+    list_display = ("id", "email", "first_name", "last_name", "is_staff", "is_active", "date_joined", "date_updated")
     list_filter = ("is_staff", "is_active")
     date_hierarchy = "date_joined"
     fieldsets = (
@@ -33,7 +33,7 @@ class CustomUserAdmin(UserAdmin):
             },
         ),
         ("Permissions", {"fields": ("is_active", "is_staff", "is_superuser")}),
-        ("Date d'activité", {"fields": ("date_joined", "last_login")}),
+        ("Date d'activité", {"fields": ("date_joined", "date_updated", "last_login")}),
     )
     # add fields to the admin panel creation model
     add_fieldsets = (

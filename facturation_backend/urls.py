@@ -38,6 +38,8 @@ urlpatterns = [
     path("api/facture_client/", include("facture_client.urls")),
     # Bon de Livraison
     path("api/bon_de_livraison/", include("bon_de_livraison.urls")),
+    # Reglement
+    path("api/reglement/", include("reglement.urls")),
     # Parameter
     path("api/parameter/", include("parameter.urls")),
     # Admin panel

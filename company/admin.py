@@ -38,6 +38,7 @@ class CompanyAdmin(admin.ModelAdmin):
         "site_web",
         "ICE",
         "date_created",
+        "date_updated",
     )
     list_filter = ("civilite_responsable", "nbr_employe")
     search_fields = (
@@ -47,7 +48,7 @@ class CompanyAdmin(admin.ModelAdmin):
         "ICE",
         "registre_de_commerce",
     )
-    readonly_fields = ("date_created",)
+    readonly_fields = ("date_created", "date_updated")
     inlines = [MembershipInline]
 
 

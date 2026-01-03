@@ -17,6 +17,8 @@ class ClientAdmin(admin.ModelAdmin):
         "ville",
         "company",
         "archived",
+        "date_created",
+        "date_updated",
     )
     list_filter = ("client_type", "ville", "company", "archived")
     search_fields = (
@@ -28,7 +30,7 @@ class ClientAdmin(admin.ModelAdmin):
         "ICE",
         "registre_de_commerce",
     )
-    readonly_fields = ("date_created",)
+    readonly_fields = ("date_created", "date_updated")
 
 
 # Client
