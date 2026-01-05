@@ -1,11 +1,14 @@
 from decimal import Decimal
 
+from django.db.models import Q, F, Sum as DjangoSum, Value
 from django.db.models import Sum
+from django.db.models.functions import Coalesce
 from django.http import Http404
 from django.utils.translation import gettext_lazy as _
 from rest_framework import status
 from rest_framework.response import Response
 
+from bon_de_livraison.utils import get_next_numero_bon_livraison
 from core.views import (
     BaseDocumentListCreateView,
     BaseDocumentDetailEditDeleteView,
@@ -14,7 +17,6 @@ from core.views import (
     BaseConversionView,
 )
 from facturation_backend.utils import CustomPagination
-from bon_de_livraison.utils import get_next_numero_bon_livraison
 from reglement.models import Reglement
 from .filters import FactureClientFilter
 from .models import FactureClient
@@ -116,3 +118,91 @@ class FactureClientConvertToBonDeLivraisonView(BaseConversionView):
     numero_generator = staticmethod(get_next_numero_bon_livraison)
     conversion_method = "convert_to_bon_de_livraison"
     numero_param_name = "numero_bon_livraison"
+
+
+class FactureClientUnpaidListView(BaseDocumentListCreateView):
+    """
+    List factures with unpaid amounts (total_impayes > 0).
+    GET only - returns factures where reglements don't cover full amount.
+    Includes same extra stats as FactureClientListCreateView.
+    """
+
+    model = FactureClient
+    filter_class = FactureClientFilter
+    list_serializer_class = FactureClientListSerializer
+    document_name = "la facture client"
+
+    def get(self, request, *args, **kwargs):
+        """Get list of unpaid factures with stats."""
+        pagination = self._get_bool_param(request, "pagination")
+        company_id_str = request.query_params.get("company_id")
+        if not company_id_str:
+            raise Http404(_("Aucune clients ne correspond à la requête."))
+        company_id = int(company_id_str)
+        self._check_company_access(request, company_id)
+
+        # Get all factures for the company
+        base_queryset = self.model.objects.filter(client__company_id=company_id)
+
+        # Annotate with total paid per facture and filter for unpaid
+        queryset = base_queryset.annotate(
+            total_paid=Coalesce(
+                DjangoSum(
+                    "reglements__montant",
+                    filter=Q(reglements__statut="Valide"),
+                ),
+                Value(Decimal("0.00")),
+            )
+        ).filter(
+            # Only include factures where payment is less than total
+            total_paid__lt=F("total_ttc_apres_remise")
+        )
+
+        filterset = self.filter_class(request.GET, queryset=queryset)
+        ordered_qs = filterset.qs.order_by("-id")
+
+        # Calculate aggregated stats for the company (same as main list)
+        factures = FactureClient.objects.filter(client__company_id=company_id)
+        chiffre_affaire_total = factures.aggregate(total=Sum("total_ttc_apres_remise"))[
+            "total"
+        ] or Decimal("0.00")
+
+        total_reglements = Reglement.objects.filter(
+            facture_client__client__company_id=company_id, statut="Valide"
+        ).aggregate(total=Sum("montant"))["total"] or Decimal("0.00")
+
+        total_impayes = chiffre_affaire_total - total_reglements
+
+        extra_stats = {
+            "chiffre_affaire_total": str(chiffre_affaire_total),
+            "total_reglements": str(total_reglements),
+            "total_impayes": str(total_impayes),
+        }
+
+        if pagination:
+            paginator = CustomPagination()
+            page = paginator.paginate_queryset(ordered_qs, request)
+            serializer = self.list_serializer_class(
+                page, many=True, context={"request": request}
+            )
+            response = paginator.get_paginated_response(serializer.data)
+            response.data.update(extra_stats)
+            return response
+
+        serializer = self.list_serializer_class(
+            ordered_qs, many=True, context={"request": request}
+        )
+        return Response(
+            {
+                "results": serializer.data,
+                **extra_stats,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    def post(self, request, *args, **kwargs):
+        """Disable POST for unpaid list."""
+        return Response(
+            {"detail": _("Création non autorisée depuis cette vue.")},
+            status=status.HTTP_405_METHOD_NOT_ALLOWED,
+        )

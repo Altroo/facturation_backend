@@ -5,6 +5,7 @@ from .views import (
     BonDeLivraisonDetailEditDeleteView,
     GenerateNumeroBonDeLivraisonView,
     BonDeLivraisonStatusUpdateView,
+    BonDeLivraisonUninvoicedListView,
 )
 
 app_name = "bon_de_livraison"
@@ -12,6 +13,12 @@ app_name = "bon_de_livraison"
 urlpatterns = [
     # GET BonDeLivraison list (paginated) & POST create
     path("", BonDeLivraisonListCreateView.as_view(), name="bon-de-livraison-list-create"),
+    # GET uninvoiced BonDeLivraison list (read-only)
+    path(
+        "uninvoiced/",
+        BonDeLivraisonUninvoicedListView.as_view(),
+        name="bon-de-livraison-uninvoiced-list",
+    ),
     # GET BonDeLivraison detail, PUT update, DELETE
     path(
         "<int:pk>/",

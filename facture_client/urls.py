@@ -6,6 +6,7 @@ from .views import (
     GenerateNumeroFactureView,
     FactureClientStatusUpdateView,
     FactureClientConvertToBonDeLivraisonView,
+    FactureClientUnpaidListView,
 )
 
 app_name = "facture_client"
@@ -16,6 +17,12 @@ urlpatterns = [
         "",
         FactureClientListCreateView.as_view(),
         name="facture-client-list-create",
+    ),
+    # GET unpaid factures list (read-only)
+    path(
+        "unpaid/",
+        FactureClientUnpaidListView.as_view(),
+        name="facture-client-unpaid-list",
     ),
     # GET facture-client detail, PUT update, DELETE
     path(
