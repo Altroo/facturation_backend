@@ -12,6 +12,22 @@ from parameter.models import LivrePar
 
 
 class BonDeLivraison(BaseDeviFactureDocument):
+    STATUT_CHOICES = [
+        ("Brouillon", "Brouillon"),
+        ("Envoyé", "Envoyé"),
+        ("Accepté", "Accepté"),
+        ("Refusé", "Refusé"),
+        ("Annulé", "Annulé"),
+        ("Expiré", "Expiré"),
+        ("Facturé", "Facturé"),
+    ]
+    statut = models.CharField(
+        max_length=10,
+        choices=STATUT_CHOICES,
+        default="Brouillon",
+        verbose_name="Statut",
+    )
+
     numero_bon_livraison = models.CharField(
         max_length=20,
         verbose_name="Numéro du bon de livraison",
