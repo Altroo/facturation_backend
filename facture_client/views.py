@@ -18,6 +18,7 @@ from rest_framework.views import APIView
 from bon_de_livraison.utils import get_next_numero_bon_livraison
 from company.models import Company
 from core.pdf_utils import BasePDFGenerator, number_to_french_words
+from core.authentication import JWTQueryParamAuthentication
 from core.views import (
     BaseDocumentListCreateView,
     BaseDocumentDetailEditDeleteView,
@@ -705,6 +706,7 @@ Tout retard de paiement entraînera des pénalités de retard."""
 class FactureClientPDFView(APIView):
     """Generate PDF for FactureClient with different variations."""
 
+    authentication_classes = [JWTQueryParamAuthentication]
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request, pk: int):

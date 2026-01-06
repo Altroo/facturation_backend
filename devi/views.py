@@ -10,6 +10,7 @@ from rest_framework.views import APIView
 
 from company.models import Company
 from core.pdf_utils import BasePDFGenerator, number_to_french_words
+from core.authentication import JWTQueryParamAuthentication
 from core.views import (
     BaseDocumentListCreateView,
     BaseDocumentDetailEditDeleteView,
@@ -506,6 +507,7 @@ La commande ne sera traitée qu'après réception d'un acompte de 50% du montant
 class DeviPDFView(APIView):
     """Generate PDF for Devis with different variations."""
 
+    authentication_classes = [JWTQueryParamAuthentication]
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request, pk: int):

@@ -17,6 +17,7 @@ from rest_framework.views import APIView
 from account.models import Membership
 from company.models import Company
 from core.pdf_utils import BasePDFGenerator, number_to_french_words
+from core.authentication import JWTQueryParamAuthentication
 from facturation_backend.utils import CustomPagination
 from facture_client.models import FactureClient
 from .filters import ReglementFilter
@@ -539,9 +540,11 @@ class ReglementPDFGenerator(BasePDFGenerator):
 class ReglementPDFView(APIView):
     """Generate PDF receipt for Reglement."""
 
+    authentication_classes = [JWTQueryParamAuthentication]
     permission_classes = (permissions.IsAuthenticated,)
 
-    def get(self, request, pk: int):
+    @staticmethod
+    def get(request, pk, *args, **kwargs):
         """Generate and return PDF receipt for the reglement."""
         company_id = request.query_params.get("company_id")
 
