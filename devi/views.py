@@ -1,5 +1,6 @@
 from decimal import Decimal
-
+from rest_framework.response import Response
+from rest_framework import status
 from django.shortcuts import get_object_or_404
 from reportlab.lib import colors
 from reportlab.lib.units import cm
@@ -9,8 +10,8 @@ from rest_framework import permissions
 from rest_framework.views import APIView
 
 from company.models import Company
-from core.pdf_utils import BasePDFGenerator, number_to_french_words
 from core.authentication import JWTQueryParamAuthentication
+from core.pdf_utils import BasePDFGenerator, number_to_french_words
 from core.views import (
     BaseDocumentListCreateView,
     BaseDocumentDetailEditDeleteView,
@@ -138,14 +139,10 @@ class DeviPDFGenerator(BasePDFGenerator):
         company_lines = []
         # Raison sociale
         raison = self.company.raison_sociale if self.company.raison_sociale else "-"
-        company_lines.append(
-            Paragraph(f"<b>{raison}</b>", self.styles["CustomNormal"])
-        )
+        company_lines.append(Paragraph(f"<b>{raison}</b>", self.styles["CustomNormal"]))
         # ICE
         ice = self.company.ICE if self.company.ICE else "-"
-        company_lines.append(
-            Paragraph(f"ICE: {ice}", self.styles["CustomSmall"])
-        )
+        company_lines.append(Paragraph(f"ICE: {ice}", self.styles["CustomSmall"]))
         # Adresse
         adresse = self.company.adresse if self.company.adresse else "-"
         company_lines.append(
@@ -153,11 +150,19 @@ class DeviPDFGenerator(BasePDFGenerator):
         )
 
         # RC, IF, CNSS on one line - always show with - if empty
-        rc = self.company.registre_de_commerce if self.company.registre_de_commerce else "-"
-        if_val = self.company.identifiant_fiscal if self.company.identifiant_fiscal else "-"
+        rc = (
+            self.company.registre_de_commerce
+            if self.company.registre_de_commerce
+            else "-"
+        )
+        if_val = (
+            self.company.identifiant_fiscal if self.company.identifiant_fiscal else "-"
+        )
         cnss = self.company.CNSS if self.company.CNSS else "-"
         company_lines.append(
-            Paragraph(f"RC: {rc} - IF: {if_val} - CNSS: {cnss}", self.styles["CustomSmall"])
+            Paragraph(
+                f"RC: {rc} - IF: {if_val} - CNSS: {cnss}", self.styles["CustomSmall"]
+            )
         )
 
         # RIB Compte on separate line
@@ -182,14 +187,14 @@ class DeviPDFGenerator(BasePDFGenerator):
         else:
             name = f"{client.prenom or ''} {client.nom or ''}".strip()
             client_lines.append(
-                Paragraph(f"<b>{name if name else '-'}</b>", self.styles["CustomNormal"])
+                Paragraph(
+                    f"<b>{name if name else '-'}</b>", self.styles["CustomNormal"]
+                )
             )
 
         # ICE
         client_ice = client.ICE if client.ICE else "-"
-        client_lines.append(
-            Paragraph(f"ICE: {client_ice}", self.styles["CustomSmall"])
-        )
+        client_lines.append(Paragraph(f"ICE: {client_ice}", self.styles["CustomSmall"]))
         # Adresse
         client_adresse = client.adresse if client.adresse else "-"
         client_lines.append(
@@ -197,10 +202,10 @@ class DeviPDFGenerator(BasePDFGenerator):
         )
 
         # Build left column content
-        left_content = [[left_header]]
-        left_content.append(
-            [HRFlowable(width="100%", thickness=1, color=self.primary_color)]
-        )
+        left_content = [
+            [left_header],
+            [HRFlowable(width="100%", thickness=1, color=self.primary_color)],
+        ]
         for line in company_lines:
             left_content.append([line])
 
@@ -218,10 +223,10 @@ class DeviPDFGenerator(BasePDFGenerator):
         )
 
         # Build right column content
-        right_content = [[right_header]]
-        right_content.append(
-            [HRFlowable(width="100%", thickness=1, color=self.primary_color)]
-        )
+        right_content = [
+            [right_header],
+            [HRFlowable(width="100%", thickness=1, color=self.primary_color)],
+        ]
         for line in client_lines:
             right_content.append([line])
 
@@ -268,9 +273,7 @@ class DeviPDFGenerator(BasePDFGenerator):
                 self.styles["SectionHeader"],
             )
         )
-        elements.append(
-            HRFlowable(width="100%", thickness=1, color=self.primary_color)
-        )
+        elements.append(HRFlowable(width="100%", thickness=1, color=self.primary_color))
         elements.append(Spacer(1, 0.2 * cm))
 
         # Price in words
@@ -300,9 +303,6 @@ La commande ne sera traitée qu'après réception d'un acompte de 50% du montant
         self, show_remise: bool = True, show_unite: bool = False
     ) -> Table:
         """Create articles table with lines from document."""
-        # Full page width = 18cm (page width minus margins)
-        full_width = 18 * cm
-        
         # Define columns based on options
         if show_remise and show_unite:
             headers = [
@@ -314,7 +314,15 @@ La commande ne sera traitée qu'après réception d'un acompte de 50% du montant
                 "Remise",
                 "Total HT",
             ]
-            col_widths = [5.5 * cm, 1.5 * cm, 1.3 * cm, 2.5 * cm, 2 * cm, 2.2 * cm, 3 * cm]
+            col_widths = [
+                5.5 * cm,
+                1.5 * cm,
+                1.3 * cm,
+                2.5 * cm,
+                2 * cm,
+                2.2 * cm,
+                3 * cm,
+            ]
         elif show_remise:
             headers = [
                 "Désignation",
@@ -342,7 +350,9 @@ La commande ne sera traitée qu'après réception d'un acompte de 50% du montant
         # Create header row - Designation left, others centered
         header_cells = [Paragraph(f"<b>{headers[0]}</b>", self.styles["CustomSmall"])]
         for h in headers[1:]:
-            header_cells.append(Paragraph(f"<b>{h}</b>", self.styles["CustomSmallCenter"]))
+            header_cells.append(
+                Paragraph(f"<b>{h}</b>", self.styles["CustomSmallCenter"])
+            )
         table_data = [header_cells]
 
         # Add article lines
@@ -350,7 +360,9 @@ La commande ne sera traitée qu'après réception d'un acompte de 50% du montant
             row = []
 
             # Designation
-            designation_text = line.article.designation if line.article.designation else "-"
+            designation_text = (
+                line.article.designation if line.article.designation else "-"
+            )
             if line.article.reference:
                 designation_text = (
                     f"<b>{line.article.reference}</b><br/>{designation_text}"
@@ -358,14 +370,18 @@ La commande ne sera traitée qu'après réception d'un acompte de 50% du montant
             row.append(Paragraph(designation_text, self.styles["CustomSmall"]))
 
             # Quantity - centered
-            row.append(Paragraph(f"{line.quantity:.2f}", self.styles["CustomSmallCenter"]))
+            row.append(
+                Paragraph(f"{line.quantity:.2f}", self.styles["CustomSmallCenter"])
+            )
 
             # TVA % - centered
             tva_pct = line.article.tva if line.article.tva else Decimal("0")
             row.append(Paragraph(f"{tva_pct:.0f}%", self.styles["CustomSmallCenter"]))
 
             # Prix unitaire HT - centered
-            row.append(Paragraph(f"{line.prix_vente:.2f}", self.styles["CustomSmallCenter"]))
+            row.append(
+                Paragraph(f"{line.prix_vente:.2f}", self.styles["CustomSmallCenter"])
+            )
 
             # Unite (if showing) - centered
             if show_unite:
@@ -459,7 +475,12 @@ La commande ne sera traitée qu'après réception d'un acompte de 50% du montant
             # Header styling - soft light gray background
             ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#f5f5f5")),
             ("TEXTCOLOR", (0, 0), (-1, 0), colors.HexColor("#333333")),
-            ("ALIGN", (1, 0), (-1, 0), "CENTER"),  # Center all headers except Designation
+            (
+                "ALIGN",
+                (1, 0),
+                (-1, 0),
+                "CENTER",
+            ),  # Center all headers except Designation
             ("ALIGN", (0, 0), (0, 0), "LEFT"),  # Designation header stays left
             ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
             ("FONTSIZE", (0, 0), (-1, 0), 9),
@@ -510,15 +531,13 @@ class DeviPDFView(APIView):
     authentication_classes = [JWTQueryParamAuthentication]
     permission_classes = (permissions.IsAuthenticated,)
 
-    def get(self, request, pk: int):
+    @staticmethod
+    def get(request, pk: int):
         """Generate and return PDF for the devis."""
         company_id = request.query_params.get("company_id")
         pdf_type = request.query_params.get("type", "avec_remise")
 
         if not company_id:
-            from rest_framework.response import Response
-            from rest_framework import status
-
             return Response(
                 {"error": "company_id query parameter is required"},
                 status=status.HTTP_400_BAD_REQUEST,

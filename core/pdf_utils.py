@@ -4,7 +4,7 @@ from typing import Optional
 
 from django.http import HttpResponse
 from reportlab.lib import colors
-from reportlab.lib.enums import TA_RIGHT, TA_CENTER, TA_LEFT
+from reportlab.lib.enums import TA_RIGHT, TA_CENTER
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import cm
@@ -16,7 +16,6 @@ from reportlab.platypus import (
     Spacer,
     Image,
 )
-from reportlab.platypus.flowables import HRFlowable
 
 
 def number_to_french_words(number: Decimal) -> str:
@@ -150,6 +149,7 @@ class BasePDFGenerator:
             company: The Company model instance
             pdf_type: Type of PDF to generate (avec_remise, sans_remise, avec_unite, etc.)
         """
+        self.total_pages = 1
         self.document = document
         self.company = company
         self.pdf_type = pdf_type
@@ -161,7 +161,7 @@ class BasePDFGenerator:
         """Setup custom paragraph styles."""
         # Primary color for titles and headers
         self.primary_color = colors.HexColor("#1976d2")
-        
+
         # Title style for document number
         self.styles.add(
             ParagraphStyle(
@@ -300,9 +300,7 @@ class BasePDFGenerator:
 
     def generate_pdf(self) -> HttpResponse:
         """Generate and return PDF as HTTP response."""
-        from reportlab.platypus.doctemplate import PageTemplate, BaseDocTemplate
-        from reportlab.platypus.frames import Frame
-        
+
         # Create PDF document with page number tracking
         doc = SimpleDocTemplate(
             self.buffer,
@@ -318,6 +316,7 @@ class BasePDFGenerator:
 
         # First pass to count pages
         from io import BytesIO
+
         temp_buffer = BytesIO()
         temp_doc = SimpleDocTemplate(
             temp_buffer,
@@ -327,15 +326,16 @@ class BasePDFGenerator:
             topMargin=self.MARGIN,
             bottomMargin=2 * cm,
         )
-        
+
         # Count pages using a dummy build
         page_counter = [0]
-        def count_pages(canvas, doc):
+
+        def count_pages(canvas, pdf_doc):
             page_counter[0] = canvas.getPageNumber()
-        
+
         temp_doc.build(elements[:], onFirstPage=count_pages, onLaterPages=count_pages)
         self.total_pages = page_counter[0]
-        
+
         # Rebuild elements for final document
         elements = self._build_content()
 
@@ -357,27 +357,27 @@ class BasePDFGenerator:
     def _add_page_footer(self, canvas, doc):
         """Add footer with company info and page number at the bottom."""
         canvas.saveState()
-        
+
         # Build footer text - always show all fields with - if empty
         raison = self.company.raison_sociale if self.company.raison_sociale else "-"
         tel = self.company.telephone if self.company.telephone else "-"
         site = self.company.site_web if self.company.site_web else "-"
-        
+
         footer_text = f"{raison} - Tél: {tel} - Site web: {site}"
-        
+
         page_num = canvas.getPageNumber()
-        total = getattr(self, 'total_pages', 1)
+        total = getattr(self, "total_pages", 1)
         page_text = f"Page {page_num} sur {total}"
-        
+
         canvas.setFont("Helvetica", 8)
         canvas.setFillColor(colors.HexColor("#666666"))
-        
+
         # Draw footer text on the left side
         canvas.drawString(self.MARGIN, 1 * cm, footer_text)
-        
+
         # Draw page number on the right side
         canvas.drawRightString(self.PAGE_WIDTH - self.MARGIN, 1 * cm, page_text)
-        
+
         canvas.restoreState()
 
     def _build_content(self) -> list:
@@ -390,7 +390,6 @@ class BasePDFGenerator:
 
     def _create_header(self, title: str) -> list:
         """Create standard header with logo and title."""
-        from reportlab.platypus.flowables import HRFlowable
 
         elements = []
         logo_img = self._get_logo_image()
@@ -425,20 +424,15 @@ class BasePDFGenerator:
         elements.append(Spacer(1, 0.3 * cm))
         return elements
 
-    def _create_info_grid(
-        self, left_data: list, right_data: list
-    ) -> Table:
+    def _create_info_grid(self, left_data: list, right_data: list) -> Table:
         """Create a two-column info grid."""
         from reportlab.platypus.flowables import HRFlowable
 
         # Build left column
-        left_content = []
-        left_content.append(
-            [Paragraph("<b>ÉMIS PAR</b>", self.styles["SectionHeader"])]
-        )
-        left_content.append(
-            [HRFlowable(width="100%", thickness=1, color=colors.HexColor("#cccccc"))]
-        )
+        left_content = [
+            [Paragraph("<b>ÉMIS PAR</b>", self.styles["SectionHeader"])],
+            [HRFlowable(width="100%", thickness=1, color=colors.HexColor("#cccccc"))],
+        ]
 
         # Company info
         if self.company.raison_sociale:
@@ -506,13 +500,10 @@ class BasePDFGenerator:
         )
 
         # Build right column
-        right_content = []
-        right_content.append(
-            [Paragraph("<b>DESTINATAIRE</b>", self.styles["SectionHeader"])]
-        )
-        right_content.append(
-            [HRFlowable(width="100%", thickness=1, color=colors.HexColor("#cccccc"))]
-        )
+        right_content = [
+            [Paragraph("<b>DESTINATAIRE</b>", self.styles["SectionHeader"])],
+            [HRFlowable(width="100%", thickness=1, color=colors.HexColor("#cccccc"))],
+        ]
 
         # Add client info from right_data
         for label, value in right_data:
@@ -562,7 +553,13 @@ class BasePDFGenerator:
             ]
             col_widths = [5.5 * cm, 1.8 * cm, 1.5 * cm, 2.5 * cm, 2 * cm, 2.7 * cm]
         else:
-            headers = ["Désignation", "Quantité", "TVA (%)", "Prix Unit. HT", "Total HT"]
+            headers = [
+                "Désignation",
+                "Quantité",
+                "TVA (%)",
+                "Prix Unit. HT",
+                "Total HT",
+            ]
             col_widths = [7 * cm, 2 * cm, 1.8 * cm, 2.7 * cm, 2.5 * cm]
 
         # Header row
@@ -732,11 +729,7 @@ class BasePDFGenerator:
             ],
         ]
 
-        if (
-            show_remise
-            and self.document.remise_type
-            and self.document.remise > 0
-        ):
+        if show_remise and self.document.remise_type and self.document.remise > 0:
             if self.document.remise_type == "Pourcentage":
                 remise_text = f"{self.document.remise:.2f}%"
             else:
@@ -780,18 +773,17 @@ class BasePDFGenerator:
 
         return totals_table
 
-    def _create_price_in_words_section(self, price_label: str = "ARRÊTÉ À LA SOMME DE") -> list:
+    def _create_price_in_words_section(
+        self, price_label: str = "ARRÊTÉ À LA SOMME DE"
+    ) -> list:
         """Create price in words section."""
         from reportlab.platypus.flowables import HRFlowable
 
-        elements = []
-        elements.append(
-            Paragraph(f"<b>{price_label}</b>", self.styles["SectionHeader"])
-        )
-        elements.append(
-            HRFlowable(width="100%", thickness=1, color=colors.HexColor("#333333"))
-        )
-        elements.append(Spacer(1, 0.2 * cm))
+        elements = [
+            Paragraph(f"<b>{price_label}</b>", self.styles["SectionHeader"]),
+            HRFlowable(width="100%", thickness=1, color=colors.HexColor("#333333")),
+            Spacer(1, 0.2 * cm),
+        ]
 
         total_price = (
             self.document.total_ttc_apres_remise
@@ -806,8 +798,7 @@ class BasePDFGenerator:
 
     def _create_remarks_section(self, custom_remarks: str = "") -> list:
         """Create remarks section."""
-        elements = []
-        elements.append(Paragraph("<b>Remarques :</b>", self.styles["SectionHeader"]))
+        elements = [Paragraph("<b>Remarques :</b>", self.styles["SectionHeader"])]
 
         remarks_text = custom_remarks
         if self.document.remarque:

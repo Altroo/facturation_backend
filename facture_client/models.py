@@ -35,6 +35,10 @@ class FactureClient(BaseDeviFactureDocument):
         verbose_name_plural = "Factures Client"
         ordering = ("-date_created",)
 
+    def __init__(self, *args: Any, **kwargs: Any):
+        super().__init__(args, kwargs)
+        self.total_paid = None
+
     def __str__(self):
         return self.numero_facture
 
