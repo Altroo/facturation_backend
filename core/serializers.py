@@ -1,4 +1,3 @@
-from decimal import Decimal, ROUND_HALF_UP
 from re import match
 
 from django.db import transaction
@@ -16,9 +15,15 @@ class BaseListSerializer(serializers.ModelSerializer):
     lignes_count = serializers.SerializerMethodField()
 
     total_ht = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
-    total_tva = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
-    total_ttc = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
-    total_ttc_apres_remise = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    total_tva = serializers.DecimalField(
+        max_digits=10, decimal_places=2, read_only=True
+    )
+    total_ttc = serializers.DecimalField(
+        max_digits=10, decimal_places=2, read_only=True
+    )
+    total_ttc_apres_remise = serializers.DecimalField(
+        max_digits=10, decimal_places=2, read_only=True
+    )
 
     @staticmethod
     def get_created_by_user_name(obj):
@@ -50,9 +55,15 @@ class BaseDetailSerializer(serializers.ModelSerializer):
     )
 
     total_ht = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
-    total_tva = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
-    total_ttc = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
-    total_ttc_apres_remise = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    total_tva = serializers.DecimalField(
+        max_digits=10, decimal_places=2, read_only=True
+    )
+    total_ttc = serializers.DecimalField(
+        max_digits=10, decimal_places=2, read_only=True
+    )
+    total_ttc_apres_remise = serializers.DecimalField(
+        max_digits=10, decimal_places=2, read_only=True
+    )
 
     @staticmethod
     def get_created_by_user_name(obj):

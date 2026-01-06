@@ -6,6 +6,7 @@ from .views import (
     GenerateNumeroFactureView,
     FactureProFormaStatusUpdateView,
     FactureProFormaConvertToFactureClientView,
+    FactureProFormaPDFView,
 )
 
 app_name = "facture_proforma"
@@ -41,4 +42,6 @@ urlpatterns = [
         FactureProFormaConvertToFactureClientView.as_view(),
         name="convert-to-facture-client",
     ),
+    # GET : generate PDF
+    path("pdf/<int:pk>/", FactureProFormaPDFView.as_view(), name="facture-proforma-pdf"),
 ]

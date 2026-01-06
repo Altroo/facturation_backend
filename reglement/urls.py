@@ -4,6 +4,7 @@ from .views import (
     ReglementListCreateView,
     ReglementDetailEditDeleteView,
     ReglementStatusUpdateView,
+    ReglementPDFView,
 )
 
 app_name = "reglement"
@@ -27,4 +28,6 @@ urlpatterns = [
         ReglementStatusUpdateView.as_view(),
         name="reglement-statut-update",
     ),
+    # GET : generate PDF receipt
+    path("pdf/<int:pk>/", ReglementPDFView.as_view(), name="reglement-pdf"),
 ]

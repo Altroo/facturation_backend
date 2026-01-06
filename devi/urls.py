@@ -7,6 +7,7 @@ from .views import (
     DeviStatusUpdateView,
     DeviConvertToFactureProformaView,
     DeviConvertToFactureClientView,
+    DeviPDFView,
 )
 
 app_name = "devi"
@@ -40,4 +41,6 @@ urlpatterns = [
         DeviConvertToFactureClientView.as_view(),
         name="convert-to-facture-client",
     ),
+    # GET : generate PDF
+    path("pdf/<int:pk>/", DeviPDFView.as_view(), name="devi-pdf"),
 ]

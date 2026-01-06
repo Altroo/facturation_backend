@@ -2,13 +2,21 @@ from decimal import Decimal
 
 from django.db.models import Sum
 from django.http import Http404
+from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
+from reportlab.lib import colors
+from reportlab.lib.enums import TA_CENTER
+from reportlab.lib.styles import ParagraphStyle
+from reportlab.lib.units import cm
+from reportlab.platypus import Spacer, Paragraph, Table, TableStyle
 from rest_framework import permissions, status
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from account.models import Membership
+from company.models import Company
+from core.pdf_utils import BasePDFGenerator, number_to_french_words
 from facturation_backend.utils import CustomPagination
 from facture_client.models import FactureClient
 from .filters import ReglementFilter
@@ -286,3 +294,266 @@ class ReglementStatusUpdateView(APIView):
         reglement.save()
 
         return Response({"statut": reglement.statut}, status=status.HTTP_200_OK)
+
+
+class ReglementPDFGenerator(BasePDFGenerator):
+    """PDF generator for Reglement (payment receipt) documents."""
+
+    def _build_single_receipt(self) -> list:
+        """Build content for a single receipt."""
+        elements = []
+
+        # ===== HEADER SECTION =====
+        # Logo on the left, styled title box on the right
+        logo_img = self._get_logo_image()
+
+        # Styled title box: light gray background, thin border, one line title
+        title_style = ParagraphStyle(
+            name="TitleBox",
+            parent=self.styles["Normal"],
+            fontSize=12,
+            fontName="Helvetica-Bold",
+            textColor=colors.black,
+            alignment=TA_CENTER,
+        )
+        title_para = Paragraph("REÇU DE RÈGLEMENT", title_style)
+        title_box = Table([[title_para]], colWidths=[5.5 * cm])
+        title_box.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#f5f5f5")),
+                    ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                    ("TOPPADDING", (0, 0), (-1, -1), 10),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 12),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 10),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 10),
+                    ("BOX", (0, 0), (-1, -1), 0.5, colors.black),
+                ]
+            )
+        )
+
+        if logo_img:
+            header_data = [[logo_img, title_box]]
+            header_table = Table(header_data, colWidths=[12 * cm, 6 * cm])
+            header_table.setStyle(
+                TableStyle(
+                    [
+                        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                        ("ALIGN", (0, 0), (0, 0), "LEFT"),
+                        ("ALIGN", (1, 0), (1, 0), "RIGHT"),
+                    ]
+                )
+            )
+        else:
+            header_data = [["", title_box]]
+            header_table = Table(header_data, colWidths=[12 * cm, 6 * cm])
+            header_table.setStyle(
+                TableStyle(
+                    [
+                        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                        ("ALIGN", (1, 0), (1, 0), "RIGHT"),
+                    ]
+                )
+            )
+
+        elements.append(header_table)
+        elements.append(Spacer(1, 0.5 * cm))
+
+        # ===== INFO FIELDS SECTION =====
+        # Date
+        date_text = self.document.date_reglement.strftime("%d/%m/%Y")
+
+        # Client name
+        client = self.document.facture_client.client
+        if client.client_type == "PM" and client.raison_sociale:
+            client_name = client.raison_sociale
+        else:
+            client_name = f"{client.prenom or ''} {client.nom or ''}".strip()
+            if not client_name:
+                client_name = "Client"
+
+        # Facture reference
+        facture_ref = self.document.facture_client.numero_facture
+
+        # Amount and price in words
+        amount = self.document.montant
+        price_in_words = number_to_french_words(amount)
+
+        # Create info table
+        info_data = [
+            [
+                Paragraph("<b>Date :</b>", self.styles["CustomNormal"]),
+                Paragraph(date_text, self.styles["CustomNormal"]),
+            ],
+            [
+                Paragraph("<b>Reçu de :</b>", self.styles["CustomNormal"]),
+                Paragraph(client_name, self.styles["CustomNormal"]),
+            ],
+            [
+                Paragraph("<b>Pour :</b>", self.styles["CustomNormal"]),
+                Paragraph(
+                    f"Règlement de la facture N° {facture_ref}",
+                    self.styles["CustomNormal"],
+                ),
+            ],
+            [
+                Paragraph("<b>La somme de :</b>", self.styles["CustomNormal"]),
+                Paragraph(f"{amount:.2f} MAD", self.styles["CustomNormal"]),
+            ],
+        ]
+
+        # Mode de règlement
+        if self.document.mode_reglement:
+            info_data.append(
+                [
+                    Paragraph("<b>Mode de règlement :</b>", self.styles["CustomNormal"]),
+                    Paragraph(
+                        self.document.mode_reglement.nom, self.styles["CustomNormal"]
+                    ),
+                ]
+            )
+
+        info_table = Table(info_data, colWidths=[5 * cm, 13 * cm])
+        info_table.setStyle(
+            TableStyle(
+                [
+                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                    ("ALIGN", (0, 0), (0, -1), "RIGHT"),
+                    ("ALIGN", (1, 0), (1, -1), "LEFT"),
+                    ("TOPPADDING", (0, 0), (-1, -1), 6),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 4),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+                ]
+            )
+        )
+
+        elements.append(info_table)
+        elements.append(Spacer(1, 0.3 * cm))
+
+        # ===== PRICE IN WORDS SECTION =====
+        price_box_data = [
+            [
+                Paragraph(
+                    f"<b>Soit :</b> {price_in_words}",
+                    self.styles["PriceWords"],
+                )
+            ]
+        ]
+        price_box = Table(price_box_data, colWidths=[18 * cm])
+        price_box.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#f5f5f5")),
+                    ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                    ("TOPPADDING", (0, 0), (-1, -1), 8),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 8),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 8),
+                    ("BOX", (0, 0), (-1, -1), 1, colors.HexColor("#cccccc")),
+                ]
+            )
+        )
+
+        elements.append(price_box)
+        elements.append(Spacer(1, 0.3 * cm))
+
+        # Libellé
+        if self.document.libelle:
+            elements.append(
+                Paragraph("<b>Libellé :</b>", self.styles["CustomNormal"])
+            )
+            elements.append(
+                Paragraph(self.document.libelle, self.styles["CustomSmall"])
+            )
+            elements.append(Spacer(1, 0.3 * cm))
+
+        # ===== SIGNATURE AND CACHET SECTION =====
+        elements.append(Spacer(1, 0.5 * cm))
+
+        cachet_img = self._get_cachet_image()
+        if cachet_img:
+            signature_data = [
+                ["", Paragraph("<b>Signature et cachet</b>", self.styles["CustomRight"])],
+                ["", cachet_img],
+            ]
+            signature_table = Table(signature_data, colWidths=[11 * cm, 5.5 * cm])
+            signature_table.setStyle(
+                TableStyle(
+                    [
+                        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                        ("ALIGN", (1, 0), (1, -1), "RIGHT"),
+                        ("TOPPADDING", (0, 0), (-1, -1), 2),
+                        ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
+                    ]
+                )
+            )
+            elements.append(signature_table)
+        else:
+            # Just show signature label if no cachet
+            signature_data = [
+                ["", Paragraph("<b>Signature et cachet</b>", self.styles["CustomRight"])],
+                ["", Spacer(1, 2 * cm)],
+            ]
+            signature_table = Table(signature_data, colWidths=[11 * cm, 5.5 * cm])
+            signature_table.setStyle(
+                TableStyle(
+                    [
+                        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                        ("ALIGN", (1, 0), (1, -1), "RIGHT"),
+                        ("BOX", (1, 1), (1, 1), 0.5, colors.HexColor("#cccccc")),
+                    ]
+                )
+            )
+            elements.append(signature_table)
+
+        return elements
+
+    def _build_content(self) -> list:
+        """Build PDF content with two copies of the receipt - each on its own page."""
+        from reportlab.platypus import PageBreak
+        from reportlab.platypus.flowables import HRFlowable
+        
+        elements = []
+        
+        # First copy
+        receipt_elements_1 = self._build_single_receipt()
+        elements.extend(receipt_elements_1)
+        
+        # Dotted line separator then page break
+        elements.append(Spacer(1, 0.5 * cm))
+        elements.append(HRFlowable(width="100%", thickness=1, color=colors.HexColor("#999999"), dash=[4, 4]))
+        elements.append(PageBreak())
+        
+        # Second copy on new page
+        receipt_elements_2 = self._build_single_receipt()
+        elements.extend(receipt_elements_2)
+        
+        return elements
+
+    def _get_filename(self) -> str:
+        """Get PDF filename for reglement receipt."""
+        return f"recu_reglement_{self.document.id}.pdf"
+
+
+class ReglementPDFView(APIView):
+    """Generate PDF receipt for Reglement."""
+
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get(self, request, pk: int):
+        """Generate and return PDF receipt for the reglement."""
+        company_id = request.query_params.get("company_id")
+
+        if not company_id:
+            return Response(
+                {"error": "company_id query parameter is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        company = get_object_or_404(Company, pk=company_id)
+        reglement = get_object_or_404(Reglement, pk=pk)
+
+        # Generate PDF
+        pdf_generator = ReglementPDFGenerator(reglement, company, "normal")
+        return pdf_generator.generate_pdf()

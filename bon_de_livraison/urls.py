@@ -6,13 +6,16 @@ from .views import (
     GenerateNumeroBonDeLivraisonView,
     BonDeLivraisonStatusUpdateView,
     BonDeLivraisonUninvoicedListView,
+    BonDeLivraisonPDFView,
 )
 
 app_name = "bon_de_livraison"
 
 urlpatterns = [
     # GET BonDeLivraison list (paginated) & POST create
-    path("", BonDeLivraisonListCreateView.as_view(), name="bon-de-livraison-list-create"),
+    path(
+        "", BonDeLivraisonListCreateView.as_view(), name="bon-de-livraison-list-create"
+    ),
     # GET uninvoiced BonDeLivraison list (read-only)
     path(
         "uninvoiced/",
@@ -37,4 +40,6 @@ urlpatterns = [
         BonDeLivraisonStatusUpdateView.as_view(),
         name="bon-de-livraison-statut-update",
     ),
+    # GET : generate PDF
+    path("pdf/<int:pk>/", BonDeLivraisonPDFView.as_view(), name="bon-de-livraison-pdf"),
 ]
