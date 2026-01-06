@@ -155,6 +155,7 @@ class BasePDFGenerator:
         self.pdf_type = pdf_type
         self.buffer = BytesIO()
         self.styles = getSampleStyleSheet()
+        self.total_pages = 1  # Initialize total_pages attribute
         self._setup_custom_styles()
 
     def _setup_custom_styles(self) -> None:
@@ -170,7 +171,7 @@ class BasePDFGenerator:
                 fontSize=14,
                 fontName="Helvetica-Bold",
                 textColor=self.primary_color,
-                alignment=TA_RIGHT,
+                alignment=TA_RIGHT,  # type: ignore[arg-type]
             )
         )
         # Date style - primary color
@@ -181,7 +182,7 @@ class BasePDFGenerator:
                 fontSize=10,
                 fontName="Helvetica-Bold",
                 textColor=self.primary_color,
-                alignment=TA_RIGHT,
+                alignment=TA_RIGHT,  # type: ignore[arg-type]
             )
         )
         # Section header style - primary color
@@ -220,7 +221,7 @@ class BasePDFGenerator:
                 parent=self.styles["Normal"],
                 fontSize=8,
                 leading=10,
-                alignment=TA_CENTER,
+                alignment=TA_CENTER,  # type: ignore[arg-type]
             )
         )
         # Right aligned
@@ -229,7 +230,7 @@ class BasePDFGenerator:
                 name="CustomRight",
                 parent=self.styles["Normal"],
                 fontSize=9,
-                alignment=TA_RIGHT,
+                alignment=TA_RIGHT,  # type: ignore[arg-type]
             )
         )
         # Center aligned
@@ -238,7 +239,7 @@ class BasePDFGenerator:
                 name="CustomCenter",
                 parent=self.styles["Normal"],
                 fontSize=9,
-                alignment=TA_CENTER,
+                alignment=TA_CENTER,  # type: ignore[arg-type]
             )
         )
         # Footer style
@@ -247,7 +248,7 @@ class BasePDFGenerator:
                 name="Footer",
                 parent=self.styles["Normal"],
                 fontSize=8,
-                alignment=TA_CENTER,
+                alignment=TA_CENTER,  # type: ignore[arg-type]
                 textColor=colors.HexColor("#666666"),
             )
         )
@@ -281,7 +282,7 @@ class BasePDFGenerator:
                 logo_path = self.company.logo.path
                 img = Image(logo_path, width=width, height=height)
                 return img
-            except Exception:
+            except (FileNotFoundError, IOError, AttributeError):
                 return None
         return None
 
@@ -294,7 +295,7 @@ class BasePDFGenerator:
                 cachet_path = self.company.cachet.path
                 img = Image(cachet_path, width=width, height=height)
                 return img
-            except Exception:
+            except (FileNotFoundError, IOError, AttributeError):
                 return None
         return None
 
@@ -330,7 +331,7 @@ class BasePDFGenerator:
         # Count pages using a dummy build
         page_counter = [0]
 
-        def count_pages(canvas, pdf_doc):
+        def count_pages(canvas, _pdf_doc):
             page_counter[0] = canvas.getPageNumber()
 
         temp_doc.build(elements[:], onFirstPage=count_pages, onLaterPages=count_pages)
@@ -354,7 +355,7 @@ class BasePDFGenerator:
 
         return response
 
-    def _add_page_footer(self, canvas, doc):
+    def _add_page_footer(self, canvas, _doc):
         """Add footer with company info and page number at the bottom."""
         canvas.saveState()
 
@@ -608,24 +609,24 @@ class BasePDFGenerator:
 
         # Empty row for spacing
         num_cols = len(headers)
-        table_data.append([""] * num_cols)
+        table_data.append([Paragraph("", self.styles["CustomSmall"])] * num_cols)
 
         # Totals rows
-        total_ht_row = [""] * num_cols
+        total_ht_row = [Paragraph("", self.styles["CustomSmall"])] * num_cols
         total_ht_row[-2] = Paragraph("<b>Total HT</b>", self.styles["CustomSmall"])
         total_ht_row[-1] = Paragraph(
             f"{self.document.total_ht:.2f} MAD", self.styles["CustomSmall"]
         )
         table_data.append(total_ht_row)
 
-        tva_row = [""] * num_cols
+        tva_row = [Paragraph("", self.styles["CustomSmall"])] * num_cols
         tva_row[-2] = Paragraph("<b>TVA</b>", self.styles["CustomSmall"])
         tva_row[-1] = Paragraph(
             f"{self.document.total_tva:.2f} MAD", self.styles["CustomSmall"]
         )
         table_data.append(tva_row)
 
-        total_ttc_row = [""] * num_cols
+        total_ttc_row = [Paragraph("", self.styles["CustomSmall"])] * num_cols
         total_ttc_row[-2] = Paragraph("<b>Total TTC</b>", self.styles["CustomSmall"])
         total_ttc_row[-1] = Paragraph(
             f"{self.document.total_ttc:.2f} MAD", self.styles["CustomSmall"]
@@ -634,7 +635,7 @@ class BasePDFGenerator:
 
         # Remise and final total
         if show_remise and self.document.remise_type and self.document.remise > 0:
-            remise_row = [""] * num_cols
+            remise_row = [Paragraph("", self.styles["CustomSmall"])] * num_cols
             if self.document.remise_type == "Pourcentage":
                 remise_text = f"{self.document.remise:.2f}%"
             else:
@@ -646,7 +647,7 @@ class BasePDFGenerator:
             remise_row[-1] = Paragraph(remise_text, self.styles["CustomSmall"])
             table_data.append(remise_row)
 
-            final_row = [""] * num_cols
+            final_row = [Paragraph("", self.styles["CustomSmall"])] * num_cols
             final_row[-2] = Paragraph(
                 "<b>Total TTC après remise</b>", self.styles["CustomSmall"]
             )

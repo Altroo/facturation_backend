@@ -1,12 +1,13 @@
 from decimal import Decimal
-from rest_framework.response import Response
-from rest_framework import status
+
 from django.shortcuts import get_object_or_404
 from reportlab.lib import colors
 from reportlab.lib.units import cm
 from reportlab.platypus import Spacer, Paragraph, Table, TableStyle
 from reportlab.platypus.flowables import HRFlowable
 from rest_framework import permissions
+from rest_framework import status
+from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from company.models import Company
@@ -410,12 +411,12 @@ La commande ne sera traitée qu'après réception d'un acompte de 50% du montant
 
         # Add empty row for spacing before totals
         num_cols = len(headers)
-        empty_row = [""] * num_cols
+        empty_row = [Paragraph("", self.styles["CustomSmall"])] * num_cols
         table_data.append(empty_row)
 
         # Add totals rows (aligned to right columns) - NO MAD text
         # Total HT
-        total_ht_row = [""] * num_cols
+        total_ht_row = [Paragraph("", self.styles["CustomSmall"])] * num_cols
         total_ht_row[-2] = Paragraph("<b>Total HT</b>", self.styles["CustomSmall"])
         total_ht_row[-1] = Paragraph(
             f"{self.document.total_ht:.2f}", self.styles["CustomSmallCenter"]
@@ -423,7 +424,7 @@ La commande ne sera traitée qu'après réception d'un acompte de 50% du montant
         table_data.append(total_ht_row)
 
         # TVA
-        tva_row = [""] * num_cols
+        tva_row = [Paragraph("", self.styles["CustomSmall"])] * num_cols
         tva_row[-2] = Paragraph("<b>TVA</b>", self.styles["CustomSmall"])
         tva_row[-1] = Paragraph(
             f"{self.document.total_tva:.2f}", self.styles["CustomSmallCenter"]
@@ -431,7 +432,7 @@ La commande ne sera traitée qu'après réception d'un acompte de 50% du montant
         table_data.append(tva_row)
 
         # Total TTC
-        total_ttc_row = [""] * num_cols
+        total_ttc_row = [Paragraph("", self.styles["CustomSmall"])] * num_cols
         total_ttc_row[-2] = Paragraph("<b>Total TTC</b>", self.styles["CustomSmall"])
         total_ttc_row[-1] = Paragraph(
             f"{self.document.total_ttc:.2f}", self.styles["CustomSmallCenter"]
@@ -440,7 +441,7 @@ La commande ne sera traitée qu'après réception d'un acompte de 50% du montant
 
         # Remise globale and Total TTC après remise (if applicable)
         if self.document.remise_type and self.document.remise > 0:
-            remise_row = [""] * num_cols
+            remise_row = [Paragraph("", self.styles["CustomSmall"])] * num_cols
             if self.document.remise_type == "Pourcentage":
                 remise_text = f"{self.document.remise:.2f}%"
             else:
@@ -453,7 +454,7 @@ La commande ne sera traitée qu'après réception d'un acompte de 50% du montant
             table_data.append(remise_row)
 
             # Total TTC après remise
-            final_row = [""] * num_cols
+            final_row = [Paragraph("", self.styles["CustomSmall"])] * num_cols
             final_row[-2] = Paragraph(
                 "<b>Total TTC après remise</b>", self.styles["CustomSmall"]
             )

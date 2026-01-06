@@ -11,7 +11,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
     """
 
     def __init__(self, *args, **kwargs):
-        super().__init__(args, kwargs)
+        super().__init__(*args, **kwargs)
         self.group_name = None
 
     async def connect(self):

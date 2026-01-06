@@ -270,7 +270,7 @@ class FactureClientForPaymentView(APIView):
         # Build response data
         results = []
         for facture in factures:
-            remaining = facture.total_ttc_apres_remise - facture.total_paid
+            remaining = facture.total_ttc_apres_remise - facture.total_paid  # type: ignore[attr-defined]
             results.append(
                 {
                     "id": facture.id,
@@ -282,7 +282,7 @@ class FactureClientForPaymentView(APIView):
                     ),
                     "date_facture": facture.date_facture,
                     "total_ttc_apres_remise": str(facture.total_ttc_apres_remise),
-                    "total_paid": str(facture.total_paid),
+                    "total_paid": str(facture.total_paid),  # type: ignore[attr-defined]
                     "remaining_amount": str(remaining),
                     "statut": facture.statut,
                 }
@@ -615,25 +615,25 @@ Tout retard de paiement entraînera des pénalités de retard."""
 
         # Add empty row for spacing before totals
         num_cols = len(headers)
-        empty_row = [""] * num_cols
+        empty_row = [Paragraph("", self.styles["CustomSmall"])] * num_cols
         table_data.append(empty_row)
 
         # Add totals rows - NO MAD text
-        total_ht_row = [""] * num_cols
+        total_ht_row = [Paragraph("", self.styles["CustomSmall"])] * num_cols
         total_ht_row[-2] = Paragraph("<b>Total HT</b>", self.styles["CustomSmall"])
         total_ht_row[-1] = Paragraph(
             f"{self.document.total_ht:.2f}", self.styles["CustomSmallCenter"]
         )
         table_data.append(total_ht_row)
 
-        tva_row = [""] * num_cols
+        tva_row = [Paragraph("", self.styles["CustomSmall"])] * num_cols
         tva_row[-2] = Paragraph("<b>TVA</b>", self.styles["CustomSmall"])
         tva_row[-1] = Paragraph(
             f"{self.document.total_tva:.2f}", self.styles["CustomSmallCenter"]
         )
         table_data.append(tva_row)
 
-        total_ttc_row = [""] * num_cols
+        total_ttc_row = [Paragraph("", self.styles["CustomSmall"])] * num_cols
         total_ttc_row[-2] = Paragraph("<b>Total TTC</b>", self.styles["CustomSmall"])
         total_ttc_row[-1] = Paragraph(
             f"{self.document.total_ttc:.2f}", self.styles["CustomSmallCenter"]
@@ -642,7 +642,7 @@ Tout retard de paiement entraînera des pénalités de retard."""
 
         # Remise globale and Total TTC après remise (if applicable)
         if self.document.remise_type and self.document.remise > 0:
-            remise_row = [""] * num_cols
+            remise_row = [Paragraph("", self.styles["CustomSmall"])] * num_cols
             if self.document.remise_type == "Pourcentage":
                 remise_text = f"{self.document.remise:.2f}%"
             else:
@@ -654,7 +654,7 @@ Tout retard de paiement entraînera des pénalités de retard."""
             remise_row[-1] = Paragraph(remise_text, self.styles["CustomSmallCenter"])
             table_data.append(remise_row)
 
-            final_row = [""] * num_cols
+            final_row = [Paragraph("", self.styles["CustomSmall"])] * num_cols
             final_row[-2] = Paragraph(
                 "<b>Total TTC après remise</b>", self.styles["CustomSmall"]
             )

@@ -16,8 +16,8 @@ from rest_framework.views import APIView
 
 from account.models import Membership
 from company.models import Company
-from core.pdf_utils import BasePDFGenerator, number_to_french_words
 from core.authentication import JWTQueryParamAuthentication
+from core.pdf_utils import BasePDFGenerator, number_to_french_words
 from facturation_backend.utils import CustomPagination
 from facture_client.models import FactureClient
 from .filters import ReglementFilter
@@ -315,7 +315,7 @@ class ReglementPDFGenerator(BasePDFGenerator):
             fontSize=12,
             fontName="Helvetica-Bold",
             textColor=colors.black,
-            alignment=TA_CENTER,
+            alignment=TA_CENTER,  # type: ignore[arg-type]
         )
         title_para = Paragraph("REÇU DE RÈGLEMENT", title_style)
         title_box = Table([[title_para]], colWidths=[5.5 * cm])
@@ -407,7 +407,9 @@ class ReglementPDFGenerator(BasePDFGenerator):
         if self.document.mode_reglement:
             info_data.append(
                 [
-                    Paragraph("<b>Mode de règlement :</b>", self.styles["CustomNormal"]),
+                    Paragraph(
+                        "<b>Mode de règlement :</b>", self.styles["CustomNormal"]
+                    ),
                     Paragraph(
                         self.document.mode_reglement.nom, self.styles["CustomNormal"]
                     ),
@@ -461,9 +463,7 @@ class ReglementPDFGenerator(BasePDFGenerator):
 
         # Libellé
         if self.document.libelle:
-            elements.append(
-                Paragraph("<b>Libellé :</b>", self.styles["CustomNormal"])
-            )
+            elements.append(Paragraph("<b>Libellé :</b>", self.styles["CustomNormal"]))
             elements.append(
                 Paragraph(self.document.libelle, self.styles["CustomSmall"])
             )
@@ -475,7 +475,10 @@ class ReglementPDFGenerator(BasePDFGenerator):
         cachet_img = self._get_cachet_image()
         if cachet_img:
             signature_data = [
-                ["", Paragraph("<b>Signature et cachet</b>", self.styles["CustomRight"])],
+                [
+                    "",
+                    Paragraph("<b>Signature et cachet</b>", self.styles["CustomRight"]),
+                ],
                 ["", cachet_img],
             ]
             signature_table = Table(signature_data, colWidths=[11 * cm, 5.5 * cm])
@@ -493,7 +496,10 @@ class ReglementPDFGenerator(BasePDFGenerator):
         else:
             # Just show signature label if no cachet
             signature_data = [
-                ["", Paragraph("<b>Signature et cachet</b>", self.styles["CustomRight"])],
+                [
+                    "",
+                    Paragraph("<b>Signature et cachet</b>", self.styles["CustomRight"]),
+                ],
                 ["", Spacer(1, 2 * cm)],
             ]
             signature_table = Table(signature_data, colWidths=[11 * cm, 5.5 * cm])
@@ -514,22 +520,26 @@ class ReglementPDFGenerator(BasePDFGenerator):
         """Build PDF content with two copies of the receipt - each on its own page."""
         from reportlab.platypus import PageBreak
         from reportlab.platypus.flowables import HRFlowable
-        
+
         elements = []
-        
+
         # First copy
         receipt_elements_1 = self._build_single_receipt()
         elements.extend(receipt_elements_1)
-        
+
         # Dotted line separator then page break
         elements.append(Spacer(1, 0.5 * cm))
-        elements.append(HRFlowable(width="100%", thickness=1, color=colors.HexColor("#999999"), dash=[4, 4]))
+        elements.append(
+            HRFlowable(
+                width="100%", thickness=1, color=colors.HexColor("#999999"), dash=[4, 4]
+            )
+        )
         elements.append(PageBreak())
-        
+
         # Second copy on new page
         receipt_elements_2 = self._build_single_receipt()
         elements.extend(receipt_elements_2)
-        
+
         return elements
 
     def _get_filename(self) -> str:
