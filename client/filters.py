@@ -10,10 +10,16 @@ class ClientFilter(django_filters.FilterSet):
     search = django_filters.CharFilter(method="global_search", label="Search")
     archived = django_filters.BooleanFilter(field_name="archived", label="Archived")
     company_id = django_filters.NumberFilter(field_name="company_id", label="Company")
+    date_created_after = django_filters.DateFilter(
+        field_name="date_created", lookup_expr="gte", label="Date Created After"
+    )
+    date_created_before = django_filters.DateFilter(
+        field_name="date_created", lookup_expr="lte", label="Date Created Before"
+    )
 
     class Meta:
         model = Client
-        fields = ["archived", "company_id"]
+        fields = ["archived", "company_id", "date_created_after", "date_created_before"]
 
     @staticmethod
     def global_search(queryset, _name, value):

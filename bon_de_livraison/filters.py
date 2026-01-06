@@ -8,7 +8,8 @@ class BonDeLivraisonFilter(BaseDocumentFilter):
 
     numero_field = "numero_bon_livraison"
     req_field = "numero_bon_commande_client"
+    date_field = "date_bon_livraison"
 
     class Meta:
         model = BonDeLivraison
-        fields = ["statut", "client_id"]
+        fields = ["statut", "client_id", "date_after", "date_before"]

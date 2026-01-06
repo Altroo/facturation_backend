@@ -8,10 +8,16 @@ from .models import Company
 
 class CompanyFilter(django_filters.FilterSet):
     search = django_filters.CharFilter(method="global_search", label="Search")
+    date_created_after = django_filters.DateFilter(
+        field_name="date_created", lookup_expr="gte", label="Date Created After"
+    )
+    date_created_before = django_filters.DateFilter(
+        field_name="date_created", lookup_expr="lte", label="Date Created Before"
+    )
 
     class Meta:
         model = Company
-        fields = []
+        fields = ["date_created_after", "date_created_before"]
 
     @staticmethod
     def global_search(queryset, _name, value):

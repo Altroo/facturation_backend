@@ -8,10 +8,27 @@ from .models import CustomUser
 
 class UsersFilter(django_filters.FilterSet):
     search = django_filters.CharFilter(method="global_search", label="Search")
+    date_joined_after = django_filters.DateTimeFilter(
+        field_name="date_joined", lookup_expr="gte", label="Date Joined After"
+    )
+    date_joined_before = django_filters.DateTimeFilter(
+        field_name="date_joined", lookup_expr="lte", label="Date Joined Before"
+    )
+    last_login_after = django_filters.DateTimeFilter(
+        field_name="last_login", lookup_expr="gte", label="Last Login After"
+    )
+    last_login_before = django_filters.DateTimeFilter(
+        field_name="last_login", lookup_expr="lte", label="Last Login Before"
+    )
 
     class Meta:
         model = CustomUser
-        fields = []
+        fields = [
+            "date_joined_after",
+            "date_joined_before",
+            "last_login_after",
+            "last_login_before",
+        ]
 
     @staticmethod
     def global_search(queryset, _name, value):
