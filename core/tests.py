@@ -186,10 +186,19 @@ class SharedDocumentAPITestsMixin:
         url = self._list_create_url() + f"?company_id={self.company.id}"
         response = self.client_api.get(url)
         assert response.status_code == status.HTTP_200_OK
-        assert isinstance(response.data, list)
-        assert any(d["id"] == self.doc.id for d in response.data)
+        
+        # Handle both list response and dict with 'results' key
+        if isinstance(response.data, list):
+            data_list = response.data
+        elif isinstance(response.data, dict) and "results" in response.data:
+            data_list = response.data["results"]
+        else:
+            raise AssertionError(f"Unexpected response format: {type(response.data)}")
+        
+        assert isinstance(data_list, list)
+        assert any(d["id"] == self.doc.id for d in data_list)
 
-        item = next(d for d in response.data if d["id"] == self.doc.id)
+        item = next(d for d in data_list if d["id"] == self.doc.id)
         assert "client_name" in item
         assert "mode_paiement_name" in item
         assert "created_by_user_name" in item

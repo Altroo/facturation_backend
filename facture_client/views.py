@@ -724,6 +724,11 @@ Tout retard de paiement entraînera des pénalités de retard."""
         """Get PDF filename for facture client."""
         return f"facture_client_{self.document.numero_facture.replace('/', '_')}.pdf"
 
+    def _get_pdf_title(self) -> str:
+        """Get PDF document title for metadata."""
+        client_name = self.document.client.raison_sociale if self.document.client.raison_sociale else "Client"
+        return f"Facture {self.document.numero_facture} - {client_name}"
+
 
 class FactureClientPDFView(APIView):
     """Generate PDF for FactureClient with different variations."""

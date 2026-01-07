@@ -508,6 +508,11 @@ Elle ne constitue pas une facture définitive et n'a pas de valeur comptable."""
         """Get PDF filename for facture pro-forma."""
         return f"facture_proforma_{self.document.numero_facture.replace('/', '_')}.pdf"
 
+    def _get_pdf_title(self) -> str:
+        """Get PDF document title for metadata."""
+        client_name = self.document.client.raison_sociale if self.document.client.raison_sociale else "Client"
+        return f"Facture Pro-Forma {self.document.numero_facture} - {client_name}"
+
 
 class FactureProFormaPDFView(APIView):
     """Generate PDF for FactureProForma with different variations."""

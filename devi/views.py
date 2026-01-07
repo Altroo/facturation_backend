@@ -525,6 +525,11 @@ La commande ne sera traitée qu'après réception d'un acompte de 50% du montant
         """Get PDF filename for devis."""
         return f"devis_{self.document.numero_devis.replace('/', '_')}.pdf"
 
+    def _get_pdf_title(self) -> str:
+        """Get PDF document title for metadata."""
+        client_name = self.document.client.raison_sociale if self.document.client.raison_sociale else "Client"
+        return f"Devis {self.document.numero_devis} - {client_name}"
+
 
 class DeviPDFView(APIView):
     """Generate PDF for Devis with different variations."""

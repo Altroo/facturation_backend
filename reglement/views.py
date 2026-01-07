@@ -546,6 +546,12 @@ class ReglementPDFGenerator(BasePDFGenerator):
         """Get PDF filename for reglement receipt."""
         return f"recu_reglement_{self.document.id}.pdf"
 
+    def _get_pdf_title(self) -> str:
+        """Get PDF document title for metadata."""
+        client_name = self.document.facture_client.client.raison_sociale if self.document.facture_client.client.raison_sociale else "Client"
+        facture_numero = self.document.facture_client.numero_facture
+        return f"Reçu de Règlement - Facture {facture_numero} - {client_name}"
+
 
 class ReglementPDFView(APIView):
     """Generate PDF receipt for Reglement."""

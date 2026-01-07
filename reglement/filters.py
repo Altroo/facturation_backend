@@ -27,6 +27,12 @@ class ReglementFilter(django_filters.FilterSet):
     date_reglement = django_filters.DateFilter(
         field_name="date_reglement", label="Date de règlement"
     )
+    date_reglement_gte = django_filters.DateFilter(
+        field_name="date_reglement", lookup_expr="gte", label="Date de règlement (>=)"
+    )
+    date_reglement_lte = django_filters.DateFilter(
+        field_name="date_reglement", lookup_expr="lte", label="Date de règlement (<=)"
+    )
     date_reglement_after = django_filters.DateFilter(
         field_name="date_reglement", lookup_expr="gte", label="Date de règlement (>=)"
     )
@@ -35,6 +41,12 @@ class ReglementFilter(django_filters.FilterSet):
     )
     date_echeance = django_filters.DateFilter(
         field_name="date_echeance", label="Date d'échéance"
+    )
+    date_echeance_gte = django_filters.DateFilter(
+        field_name="date_echeance", lookup_expr="gte", label="Date d'échéance (>=)"
+    )
+    date_echeance_lte = django_filters.DateFilter(
+        field_name="date_echeance", lookup_expr="lte", label="Date d'échéance (<=)"
     )
     date_echeance_after = django_filters.DateFilter(
         field_name="date_echeance", lookup_expr="gte", label="Date d'échéance (>=)"

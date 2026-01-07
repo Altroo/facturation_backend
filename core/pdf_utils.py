@@ -302,6 +302,10 @@ class BasePDFGenerator:
     def generate_pdf(self) -> HttpResponse:
         """Generate and return PDF as HTTP response."""
 
+        # Get PDF title and filename for metadata
+        filename = self._get_filename()
+        pdf_title = self._get_pdf_title()
+
         # Create PDF document with page number tracking
         doc = SimpleDocTemplate(
             self.buffer,
@@ -310,6 +314,8 @@ class BasePDFGenerator:
             leftMargin=self.MARGIN,
             topMargin=self.MARGIN,
             bottomMargin=2 * cm,
+            title=pdf_title,
+            author=self.company.raison_sociale if self.company.raison_sociale else "Facturation",
         )
 
         # Build content
@@ -350,7 +356,6 @@ class BasePDFGenerator:
         # Prepare response
         self.buffer.seek(0)
         response = HttpResponse(self.buffer, content_type="application/pdf")
-        filename = self._get_filename()
         response["Content-Disposition"] = f'inline; filename="{filename}"'
 
         return response
@@ -388,6 +393,10 @@ class BasePDFGenerator:
     def _get_filename(self) -> str:
         """Get PDF filename. Override in subclasses."""
         raise NotImplementedError("Subclasses must implement _get_filename()")
+
+    def _get_pdf_title(self) -> str:
+        """Get PDF document title for metadata. Override in subclasses."""
+        raise NotImplementedError("Subclasses must implement _get_pdf_title()")
 
     def _create_header(self, title: str) -> list:
         """Create standard header with logo and title."""
