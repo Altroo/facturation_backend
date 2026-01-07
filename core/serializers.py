@@ -30,7 +30,7 @@ class BaseListSerializer(serializers.ModelSerializer):
         if obj.created_by_user:
             return (
                 f"{obj.created_by_user.first_name} {obj.created_by_user.last_name}".strip()
-                or obj.created_by_user.username
+                or obj.created_by_user.email
             )
         return None
 
@@ -70,7 +70,7 @@ class BaseDetailSerializer(serializers.ModelSerializer):
         if obj.created_by_user:
             return (
                 f"{obj.created_by_user.first_name} {obj.created_by_user.last_name}".strip()
-                or obj.created_by_user.username
+                or obj.created_by_user.email
             )
         return None
 
