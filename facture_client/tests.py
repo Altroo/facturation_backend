@@ -632,3 +632,222 @@ class TestFactureClientConversionExtra:
         )
 
         assert bon_livraison.statut == "Brouillon"
+
+@pytest.mark.django_db
+class TestFactureClientPDFGeneration:
+    """Test PDF generation for facture client."""
+
+    def test_generate_pdf(self, fc_conv_user, fc_conv_company, fc_conv_with_lines):
+        """Test generating PDF for facture client."""
+        from django.urls import reverse
+        from rest_framework import status
+        
+        Membership.objects.create(user=fc_conv_user, company=fc_conv_company)
+        
+        client_api = APIClient()
+        client_api.force_authenticate(user=fc_conv_user)
+
+        url = reverse("facture_client:facture-client-pdf", args=[fc_conv_with_lines.id]) + f"?company_id={fc_conv_company.id}"
+        response = client_api.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response["Content-Type"] == "application/pdf"
+        assert "filename" in response["Content-Disposition"]
+
+    def test_pdf_no_company_id(self, fc_conv_user, fc_conv_company, fc_conv_with_lines):
+        """Test PDF fails without company_id."""
+        from django.urls import reverse
+        from rest_framework import status
+        
+        Membership.objects.create(user=fc_conv_user, company=fc_conv_company)
+        
+        client_api = APIClient()
+        client_api.force_authenticate(user=fc_conv_user)
+
+        url = reverse("facture_client:facture-client-pdf", args=[fc_conv_with_lines.id])
+        response = client_api.get(url)
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_pdf_not_found(self, fc_conv_user, fc_conv_company):
+        """Test PDF fails for non-existent facture client."""
+        from django.urls import reverse
+        from rest_framework import status
+        
+        Membership.objects.create(user=fc_conv_user, company=fc_conv_company)
+        
+        client_api = APIClient()
+        client_api.force_authenticate(user=fc_conv_user)
+
+        url = reverse("facture_client:facture-client-pdf", args=[99999]) + f"?company_id={fc_conv_company.id}"
+        response = client_api.get(url)
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_pdf_sans_remise_type(self, fc_conv_user, fc_conv_company, fc_conv_with_lines):
+        """Test PDF generation with sans_remise type."""
+        from django.urls import reverse
+        from rest_framework import status
+        
+        Membership.objects.create(user=fc_conv_user, company=fc_conv_company)
+        
+        client_api = APIClient()
+        client_api.force_authenticate(user=fc_conv_user)
+
+        url = reverse("facture_client:facture-client-pdf", args=[fc_conv_with_lines.id]) + f"?company_id={fc_conv_company.id}&type=sans_remise"
+        response = client_api.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response["Content-Type"] == "application/pdf"
+
+    def test_pdf_avec_unite_type(self, fc_conv_user, fc_conv_company, fc_conv_with_lines):
+        """Test PDF generation with avec_unite type."""
+        from django.urls import reverse
+        from rest_framework import status
+        
+        Membership.objects.create(user=fc_conv_user, company=fc_conv_company)
+        
+        client_api = APIClient()
+        client_api.force_authenticate(user=fc_conv_user)
+
+        url = reverse("facture_client:facture-client-pdf", args=[fc_conv_with_lines.id]) + f"?company_id={fc_conv_company.id}&type=avec_unite"
+        response = client_api.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response["Content-Type"] == "application/pdf"
+
+
+@pytest.mark.django_db
+class TestFactureClientUnpaidListView:
+    """Test unpaid facture client list view."""
+
+    def test_unpaid_list_requires_company_id(self, fc_conv_user, fc_conv_company):
+        """Test that unpaid list requires company_id parameter."""
+        from django.urls import reverse
+        from rest_framework import status
+        
+        Membership.objects.create(user=fc_conv_user, company=fc_conv_company)
+        
+        client_api = APIClient()
+        client_api.force_authenticate(user=fc_conv_user)
+        
+        url = reverse("facture_client:facture-client-unpaid-list")
+        response = client_api.get(url)
+        
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_unpaid_list_success(self, fc_conv_user, fc_conv_company, fc_conv_client):
+        """Test successful retrieval of unpaid factures."""
+        from django.urls import reverse
+        from rest_framework import status
+        
+        Membership.objects.create(user=fc_conv_user, company=fc_conv_company)
+        
+        # Create factures
+        FactureClient.objects.create(
+            numero_facture="FC/001",
+            client=fc_conv_client,
+            date_facture="2025-01-01",
+            statut="Validé",
+            created_by_user=fc_conv_user,
+            total_ttc_apres_remise=Decimal("1000.00"),
+        )
+        
+        client_api = APIClient()
+        client_api.force_authenticate(user=fc_conv_user)
+        
+        url = reverse("facture_client:facture-client-unpaid-list") + f"?company_id={fc_conv_company.id}"
+        response = client_api.get(url)
+        
+        assert response.status_code == status.HTTP_200_OK
+        assert "results" in response.data
+        assert "chiffre_affaire_total" in response.data
+        assert "total_reglements" in response.data
+        assert "total_impayes" in response.data
+
+    def test_unpaid_list_with_pagination(self, fc_conv_user, fc_conv_company, fc_conv_client):
+        """Test unpaid list with pagination."""
+        from django.urls import reverse
+        from rest_framework import status
+        
+        Membership.objects.create(user=fc_conv_user, company=fc_conv_company)
+        
+        # Create multiple unpaid factures
+        for i in range(5):
+            FactureClient.objects.create(
+                numero_facture=f"FC/00{i}",
+                client=fc_conv_client,
+                date_facture=f"2025-01-{i+1:02d}",
+                statut="Validé",
+                created_by_user=fc_conv_user,
+                total_ttc_apres_remise=Decimal("1000.00"),
+            )
+        
+        client_api = APIClient()
+        client_api.force_authenticate(user=fc_conv_user)
+        
+        url = reverse("facture_client:facture-client-unpaid-list") + f"?company_id={fc_conv_company.id}&pagination=true"
+        response = client_api.get(url)
+        
+        assert response.status_code == status.HTTP_200_OK
+        assert "results" in response.data
+        assert "chiffre_affaire_total" in response.data
+
+    def test_unpaid_list_post_disabled(self, fc_conv_user, fc_conv_company):
+        """Test that POST is disabled for unpaid list."""
+        from django.urls import reverse
+        from rest_framework import status
+        
+        Membership.objects.create(user=fc_conv_user, company=fc_conv_company)
+        
+        client_api = APIClient()
+        client_api.force_authenticate(user=fc_conv_user)
+        
+        url = reverse("facture_client:facture-client-unpaid-list") + f"?company_id={fc_conv_company.id}"
+        response = client_api.post(url, {})
+        
+        assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
+
+
+@pytest.mark.django_db
+class TestFactureClientForPaymentView:
+    """Test facture client for payment view."""
+
+    def test_for_payment_view_requires_company_id(self, fc_conv_user):
+        """Test that for payment view requires company_id parameter."""
+        from django.urls import reverse
+        from rest_framework import status
+        
+        client_api = APIClient()
+        client_api.force_authenticate(user=fc_conv_user)
+        
+        url = reverse("facture_client:facture-client-for-payment")
+        response = client_api.get(url)
+        
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_for_payment_view_success(self, fc_conv_user, fc_conv_company, fc_conv_client):
+        """Test successful retrieval of factures for payment."""
+        from django.urls import reverse
+        from rest_framework import status
+        
+        Membership.objects.create(user=fc_conv_user, company=fc_conv_company)
+        
+        # Create facture with Accepté status
+        FactureClient.objects.create(
+            numero_facture="FC/001",
+            client=fc_conv_client,
+            date_facture="2025-01-01",
+            statut="Accepté",
+            created_by_user=fc_conv_user,
+            total_ttc_apres_remise=Decimal("1000.00"),
+        )
+        
+        client_api = APIClient()
+        client_api.force_authenticate(user=fc_conv_user)
+        
+        url = reverse("facture_client:facture-client-for-payment") + f"?company_id={fc_conv_company.id}"
+        response = client_api.get(url)
+        
+        assert response.status_code == status.HTTP_200_OK
+        assert isinstance(response.data, list)

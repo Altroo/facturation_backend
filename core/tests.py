@@ -1636,3 +1636,974 @@ class TestBaseDocumentDetailEditDeleteViewPermissions:
 
         response = view(request, pk=99999)
         assert response.status_code == 404
+
+
+# =============================================================================
+# PDF Utils Tests
+# =============================================================================
+
+
+@pytest.mark.django_db
+class TestNumberToFrenchWords:
+    """Tests for the number_to_french_words function."""
+
+    def test_zero(self):
+        """Test conversion of zero."""
+        from core.pdf_utils import number_to_french_words
+
+        assert number_to_french_words(Decimal("0")) == "ZÉRO DIRHAMS"
+
+    def test_units(self):
+        """Test conversion of units (1-19)."""
+        from core.pdf_utils import number_to_french_words
+
+        assert number_to_french_words(Decimal("1")) == "UN DIRHAMS"
+        assert number_to_french_words(Decimal("5")) == "CINQ DIRHAMS"
+        assert number_to_french_words(Decimal("10")) == "DIX DIRHAMS"
+        assert number_to_french_words(Decimal("15")) == "QUINZE DIRHAMS"
+        assert number_to_french_words(Decimal("19")) == "DIX-NEUF DIRHAMS"
+
+    def test_tens(self):
+        """Test conversion of tens (20-90)."""
+        from core.pdf_utils import number_to_french_words
+
+        assert number_to_french_words(Decimal("20")) == "VINGT DIRHAMS"
+        assert number_to_french_words(Decimal("21")) == "VINGT ET UN DIRHAMS"
+        assert number_to_french_words(Decimal("30")) == "TRENTE DIRHAMS"
+        assert number_to_french_words(Decimal("31")) == "TRENTE ET UN DIRHAMS"
+        assert number_to_french_words(Decimal("40")) == "QUARANTE DIRHAMS"
+        assert number_to_french_words(Decimal("50")) == "CINQUANTE DIRHAMS"
+        assert number_to_french_words(Decimal("60")) == "SOIXANTE DIRHAMS"
+        assert number_to_french_words(Decimal("70")) == "SOIXANTE-DIX DIRHAMS"
+        assert number_to_french_words(Decimal("71")) == "SOIXANTE ET ONZE DIRHAMS"
+        assert number_to_french_words(Decimal("75")) == "SOIXANTE-QUINZE DIRHAMS"
+        assert number_to_french_words(Decimal("80")) == "QUATRE-VINGTS DIRHAMS"
+        assert number_to_french_words(Decimal("81")) == "QUATRE-VINGT-UN DIRHAMS"
+        assert number_to_french_words(Decimal("90")) == "QUATRE-VINGT-DIX DIRHAMS"
+        assert number_to_french_words(Decimal("99")) == "QUATRE-VINGT-DIX-NEUF DIRHAMS"
+
+    def test_hundreds(self):
+        """Test conversion of hundreds."""
+        from core.pdf_utils import number_to_french_words
+
+        assert number_to_french_words(Decimal("100")) == "CENT DIRHAMS"
+        assert number_to_french_words(Decimal("101")) == "CENT UN DIRHAMS"
+        assert number_to_french_words(Decimal("200")) == "DEUX CENTS DIRHAMS"
+        assert number_to_french_words(Decimal("250")) == "DEUX CENT CINQUANTE DIRHAMS"
+        assert number_to_french_words(Decimal("999")) == "NEUF CENT QUATRE-VINGT-DIX-NEUF DIRHAMS"
+
+    def test_thousands(self):
+        """Test conversion of thousands."""
+        from core.pdf_utils import number_to_french_words
+
+        assert number_to_french_words(Decimal("1000")) == "MILLE DIRHAMS"
+        assert number_to_french_words(Decimal("1001")) == "MILLE UN DIRHAMS"
+        assert number_to_french_words(Decimal("2000")) == "DEUX MILLE DIRHAMS"
+        assert number_to_french_words(Decimal("2500")) == "DEUX MILLE CINQ CENTS DIRHAMS"
+        assert number_to_french_words(Decimal("9999")) == "NEUF MILLE NEUF CENT QUATRE-VINGT-DIX-NEUF DIRHAMS"
+
+    def test_millions(self):
+        """Test conversion of millions."""
+        from core.pdf_utils import number_to_french_words
+
+        assert number_to_french_words(Decimal("1000000")) == "UN MILLION DIRHAMS"
+        assert number_to_french_words(Decimal("2000000")) == "DEUX MILLIONS DIRHAMS"
+        assert number_to_french_words(Decimal("1234567")) == "UN MILLION DEUX CENT TRENTE-QUATRE MILLE CINQ CENT SOIXANTE-SEPT DIRHAMS"
+
+    def test_with_centimes(self):
+        """Test conversion with centimes."""
+        from core.pdf_utils import number_to_french_words
+
+        assert number_to_french_words(Decimal("1.50")) == "UN DIRHAMS ET CINQUANTE CENTIMES"
+        assert number_to_french_words(Decimal("100.25")) == "CENT DIRHAMS ET VINGT-CINQ CENTIMES"
+        assert number_to_french_words(Decimal("1234.99")) == "MILLE DEUX CENT TRENTE-QUATRE DIRHAMS ET QUATRE-VINGT-DIX-NEUF CENTIMES"
+        assert number_to_french_words(Decimal("0.01")) == "ZÉRO DIRHAMS ET UN CENTIMES"
+        assert number_to_french_words(Decimal("0.99")) == "ZÉRO DIRHAMS ET QUATRE-VINGT-DIX-NEUF CENTIMES"
+
+    def test_edge_cases(self):
+        """Test edge cases for number conversion."""
+        from core.pdf_utils import number_to_french_words
+
+        # 71 (special case for soixante et onze)
+        assert number_to_french_words(Decimal("71")) == "SOIXANTE ET ONZE DIRHAMS"
+        # 80 (quatre-vingts with s)
+        assert number_to_french_words(Decimal("80")) == "QUATRE-VINGTS DIRHAMS"
+        # 81 (quatre-vingt without s)
+        assert number_to_french_words(Decimal("81")) == "QUATRE-VINGT-UN DIRHAMS"
+
+
+@pytest.mark.django_db
+class TestBasePDFGenerator:
+    """Tests for the BasePDFGenerator class."""
+
+    @pytest.fixture
+    def pdf_company(self):
+        """Create a test company for PDF generation."""
+        return Company.objects.create(
+            raison_sociale="Test PDF Company",
+            ICE="PDF123456",
+            adresse="123 Test Street",
+            telephone="0512345678",
+            email="test@pdfcompany.com",
+        )
+
+    @pytest.fixture
+    def pdf_ville(self):
+        """Create a test ville for PDF generation."""
+        return Ville.objects.create(nom="PDF City")
+
+    @pytest.fixture
+    def pdf_client(self, pdf_ville, pdf_company):
+        """Create a test client for PDF generation."""
+        return Client.objects.create(
+            code_client="PDFCLT001",
+            client_type="PM",
+            raison_sociale="Test PDF Client",
+            ville=pdf_ville,
+            company=pdf_company,
+        )
+
+    @pytest.fixture
+    def pdf_user(self):
+        """Create a test user for PDF generation."""
+        return CustomUser.objects.create_user(
+            email="pdfuser@test.com",
+            password="testpass",
+            first_name="PDF",
+            last_name="User",
+        )
+
+    @pytest.fixture
+    def pdf_devi(self, pdf_client, pdf_user):
+        """Create a test devi for PDF generation."""
+        return Devi.objects.create(
+            client=pdf_client,
+            numero_devis="PDF001/25",
+            date_devis="2025-01-01",
+            created_by_user=pdf_user,
+        )
+
+    def test_init(self, pdf_devi, pdf_company):
+        """Test PDF generator initialization."""
+        from core.pdf_utils import BasePDFGenerator
+
+        generator = BasePDFGenerator(pdf_devi, pdf_company)
+        assert generator.document == pdf_devi
+        assert generator.company == pdf_company
+        assert generator.pdf_type == "normal"
+        assert generator.total_pages == 1
+        assert generator.buffer is not None
+        assert generator.styles is not None
+
+    def test_init_with_pdf_type(self, pdf_devi, pdf_company):
+        """Test PDF generator initialization with custom pdf_type."""
+        from core.pdf_utils import BasePDFGenerator
+
+        generator = BasePDFGenerator(pdf_devi, pdf_company, pdf_type="avec_remise")
+        assert generator.pdf_type == "avec_remise"
+
+    def test_setup_custom_styles(self, pdf_devi, pdf_company):
+        """Test custom styles are set up correctly."""
+        from core.pdf_utils import BasePDFGenerator
+
+        generator = BasePDFGenerator(pdf_devi, pdf_company)
+        # Check that custom styles are added
+        assert "DocTitle" in generator.styles.byName
+        assert "DocDate" in generator.styles.byName
+        assert "SectionHeader" in generator.styles.byName
+        assert "CustomNormal" in generator.styles.byName
+        assert "CustomSmall" in generator.styles.byName
+        assert "CustomSmallCenter" in generator.styles.byName
+        assert "CustomRight" in generator.styles.byName
+        assert "CustomCenter" in generator.styles.byName
+        assert "Footer" in generator.styles.byName
+        assert "PriceWords" in generator.styles.byName
+        assert "Remarks" in generator.styles.byName
+        # Check primary color is set
+        assert generator.primary_color is not None
+
+    def test_get_logo_image_no_logo(self, pdf_devi, pdf_company):
+        """Test getting logo when company has no logo."""
+        from core.pdf_utils import BasePDFGenerator
+
+        generator = BasePDFGenerator(pdf_devi, pdf_company)
+        logo = generator._get_logo_image()
+        assert logo is None
+
+    def test_get_cachet_image_no_cachet(self, pdf_devi, pdf_company):
+        """Test getting cachet when company has no cachet."""
+        from core.pdf_utils import BasePDFGenerator
+
+        generator = BasePDFGenerator(pdf_devi, pdf_company)
+        cachet = generator._get_cachet_image()
+        assert cachet is None
+
+    def test_get_filename(self, pdf_devi, pdf_company):
+        """Test _get_filename is abstract and raises NotImplementedError."""
+        from core.pdf_utils import BasePDFGenerator
+
+        generator = BasePDFGenerator(pdf_devi, pdf_company)
+        with pytest.raises(NotImplementedError):
+            generator._get_filename()
+
+    def test_get_pdf_title(self, pdf_devi, pdf_company):
+        """Test _get_pdf_title is abstract and raises NotImplementedError."""
+        from core.pdf_utils import BasePDFGenerator
+
+        generator = BasePDFGenerator(pdf_devi, pdf_company)
+        with pytest.raises(NotImplementedError):
+            generator._get_pdf_title()
+
+    def test_build_content(self, pdf_devi, pdf_company):
+        """Test _build_content is abstract and raises NotImplementedError."""
+        from core.pdf_utils import BasePDFGenerator
+
+        generator = BasePDFGenerator(pdf_devi, pdf_company)
+        with pytest.raises(NotImplementedError):
+            generator._build_content()
+
+    def test_create_header(self, pdf_devi, pdf_company):
+        """Test _create_header creates proper header elements."""
+        from core.pdf_utils import BasePDFGenerator
+
+        generator = BasePDFGenerator(pdf_devi, pdf_company)
+        header = generator._create_header("Test Title")
+        assert isinstance(header, list)
+        assert len(header) > 0  # Should have at least some elements
+
+    def test_create_info_grid(self, pdf_devi, pdf_company):
+        """Test _create_info_grid creates proper info table."""
+        from core.pdf_utils import BasePDFGenerator
+        from reportlab.platypus import Table
+
+        generator = BasePDFGenerator(pdf_devi, pdf_company)
+        left_data = [["Field1", "Value1"]]
+        right_data = [["Field2", "Value2"]]
+        grid = generator._create_info_grid(left_data, right_data)
+        assert isinstance(grid, Table)
+
+    def test_create_info_grid_with_company_details(self, pdf_devi, pdf_company):
+        """Test _create_info_grid with full company details."""
+        from core.pdf_utils import BasePDFGenerator
+        from reportlab.platypus import Table
+
+        # Add more company details
+        pdf_company.registre_de_commerce = "RC123456"
+        pdf_company.identifiant_fiscal = "IF789012"
+        pdf_company.CNSS = "CNSS345678"
+        pdf_company.numero_du_compte = "RIB1234567890"
+        pdf_company.save()
+
+        generator = BasePDFGenerator(pdf_devi, pdf_company)
+        left_data = [["Mode", "Cash"]]
+        right_data = [["Client", "Test Client"], ["ICE", "CLI123"]]
+        grid = generator._create_info_grid(left_data, right_data)
+        assert isinstance(grid, Table)
+
+    def test_add_page_footer(self, pdf_devi, pdf_company):
+        """Test _add_page_footer method."""
+        from core.pdf_utils import BasePDFGenerator
+        from reportlab.pdfgen import canvas
+        from io import BytesIO
+
+        generator = BasePDFGenerator(pdf_devi, pdf_company)
+        generator.total_pages = 5
+
+        # Create a mock canvas
+        buffer = BytesIO()
+        mock_canvas = canvas.Canvas(buffer)
+        
+        # Should not raise any errors
+        generator._add_page_footer(mock_canvas, None)
+
+    def test_add_page_footer_with_empty_company_fields(self, pdf_devi):
+        """Test _add_page_footer with empty company fields."""
+        from core.pdf_utils import BasePDFGenerator
+        from reportlab.pdfgen import canvas
+        from io import BytesIO
+
+        # Create company with no optional fields
+        empty_company = Company.objects.create(
+            raison_sociale="",
+            ICE="EMPTY123",
+        )
+
+        generator = BasePDFGenerator(pdf_devi, empty_company)
+        buffer = BytesIO()
+        mock_canvas = canvas.Canvas(buffer)
+        
+        # Should handle empty fields gracefully
+        generator._add_page_footer(mock_canvas, None)
+
+    def test_create_articles_table_with_lines(self, pdf_devi, pdf_company, pdf_client):
+        """Test _create_articles_table with actual document lines."""
+        from core.pdf_utils import BasePDFGenerator
+        from reportlab.platypus import Table
+        from article.models import Article
+        from parameter.models import Unite
+
+        # Create articles with lines
+        unite = Unite.objects.create(nom="Pièce")
+        article1 = Article.objects.create(
+            company=pdf_company,
+            reference="ART001",
+            designation="Test Article 1",
+            prix_achat=Decimal("100.00"),
+            prix_vente=Decimal("150.00"),
+            tva=Decimal("20"),
+            unite=unite,
+        )
+        article2 = Article.objects.create(
+            company=pdf_company,
+            reference="ART002",
+            designation="Test Article 2",
+            prix_achat=Decimal("50.00"),
+            prix_vente=Decimal("75.00"),
+            tva=Decimal("20"),
+            unite=unite,
+        )
+
+        DeviLine.objects.create(
+            devis=pdf_devi,
+            article=article1,
+            prix_achat=Decimal("100.00"),
+            prix_vente=Decimal("150.00"),
+            quantity=Decimal("2.00"),
+            remise=Decimal("0"),
+            remise_type="",
+        )
+        DeviLine.objects.create(
+            devis=pdf_devi,
+            article=article2,
+            prix_achat=Decimal("50.00"),
+            prix_vente=Decimal("75.00"),
+            quantity=Decimal("3.00"),
+            remise=Decimal("10"),
+            remise_type="Pourcentage",
+        )
+
+        # Recalculate totals
+        pdf_devi.recalc_totals()
+
+        generator = BasePDFGenerator(pdf_devi, pdf_company)
+        table = generator._create_articles_table(show_remise=True, show_unite=False)
+        assert isinstance(table, Table)
+
+    def test_create_articles_table_with_unite(self, pdf_devi, pdf_company, pdf_client):
+        """Test _create_articles_table with unite column."""
+        from core.pdf_utils import BasePDFGenerator
+        from reportlab.platypus import Table
+        from article.models import Article
+        from parameter.models import Unite
+
+        unite = Unite.objects.create(nom="Kg")
+        article = Article.objects.create(
+            company=pdf_company,
+            reference="ART003",
+            designation="Test Article 3",
+            prix_achat=Decimal("10.00"),
+            prix_vente=Decimal("15.00"),
+            tva=Decimal("20"),
+            unite=unite,
+        )
+
+        DeviLine.objects.create(
+            devis=pdf_devi,
+            article=article,
+            prix_achat=Decimal("10.00"),
+            prix_vente=Decimal("15.00"),
+            quantity=Decimal("5.00"),
+            remise=Decimal("0"),
+            remise_type="",
+        )
+
+        pdf_devi.recalc_totals()
+
+        generator = BasePDFGenerator(pdf_devi, pdf_company)
+        table = generator._create_articles_table(show_remise=True, show_unite=True)
+        assert isinstance(table, Table)
+
+    def test_create_articles_table_with_remise_fixe(self, pdf_devi, pdf_company, pdf_client):
+        """Test _create_articles_table with fixed remise."""
+        from core.pdf_utils import BasePDFGenerator
+        from reportlab.platypus import Table
+        from article.models import Article
+
+        article = Article.objects.create(
+            company=pdf_company,
+            reference="ART004",
+            designation="Test Article 4",
+            prix_achat=Decimal("100.00"),
+            prix_vente=Decimal("200.00"),
+            tva=Decimal("20"),
+        )
+
+        DeviLine.objects.create(
+            devis=pdf_devi,
+            article=article,
+            prix_achat=Decimal("100.00"),
+            prix_vente=Decimal("200.00"),
+            quantity=Decimal("1.00"),
+            remise=Decimal("50"),
+            remise_type="Fixe",
+        )
+
+        pdf_devi.remise = Decimal("20")
+        pdf_devi.remise_type = "Fixe"
+        pdf_devi.recalc_totals()
+
+        generator = BasePDFGenerator(pdf_devi, pdf_company)
+        table = generator._create_articles_table(show_remise=True, show_unite=False)
+        assert isinstance(table, Table)
+
+    def test_create_totals_section(self, pdf_devi, pdf_company):
+        """Test _create_totals_section method."""
+        from core.pdf_utils import BasePDFGenerator
+        from reportlab.platypus import Table
+
+        pdf_devi.total_ht = Decimal("1000.00")
+        pdf_devi.total_tva = Decimal("200.00")
+        pdf_devi.total_ttc = Decimal("1200.00")
+        pdf_devi.save()
+
+        generator = BasePDFGenerator(pdf_devi, pdf_company)
+        table = generator._create_totals_section(show_remise=False)
+        assert isinstance(table, Table)
+
+    def test_create_totals_section_with_remise(self, pdf_devi, pdf_company):
+        """Test _create_totals_section with remise."""
+        from core.pdf_utils import BasePDFGenerator
+        from reportlab.platypus import Table
+
+        pdf_devi.total_ht = Decimal("1000.00")
+        pdf_devi.total_tva = Decimal("200.00")
+        pdf_devi.total_ttc = Decimal("1200.00")
+        pdf_devi.remise = Decimal("10")
+        pdf_devi.remise_type = "Pourcentage"
+        pdf_devi.total_ttc_apres_remise = Decimal("1080.00")
+        pdf_devi.save()
+
+        generator = BasePDFGenerator(pdf_devi, pdf_company)
+        table = generator._create_totals_section(show_remise=True)
+        assert isinstance(table, Table)
+
+    def test_create_totals_section_with_remise_fixe(self, pdf_devi, pdf_company):
+        """Test _create_totals_section with fixed remise."""
+        from core.pdf_utils import BasePDFGenerator
+        from reportlab.platypus import Table
+
+        pdf_devi.total_ht = Decimal("1000.00")
+        pdf_devi.total_tva = Decimal("200.00")
+        pdf_devi.total_ttc = Decimal("1200.00")
+        pdf_devi.remise = Decimal("100")
+        pdf_devi.remise_type = "Fixe"
+        pdf_devi.total_ttc_apres_remise = Decimal("1100.00")
+        pdf_devi.save()
+
+        generator = BasePDFGenerator(pdf_devi, pdf_company)
+        table = generator._create_totals_section(show_remise=True)
+        assert isinstance(table, Table)
+
+    def test_create_price_in_words_section(self, pdf_devi, pdf_company):
+        """Test _create_price_in_words_section method."""
+        from core.pdf_utils import BasePDFGenerator
+
+        pdf_devi.total_ttc = Decimal("1234.56")
+        pdf_devi.save()
+
+        generator = BasePDFGenerator(pdf_devi, pdf_company)
+        elements = generator._create_price_in_words_section()
+        assert isinstance(elements, list)
+        assert len(elements) > 0
+
+    def test_create_price_in_words_section_with_remise(self, pdf_devi, pdf_company):
+        """Test _create_price_in_words_section with remise."""
+        from core.pdf_utils import BasePDFGenerator
+
+        pdf_devi.total_ttc = Decimal("1200.00")
+        pdf_devi.remise_type = "Pourcentage"
+        pdf_devi.total_ttc_apres_remise = Decimal("1080.00")
+        pdf_devi.save()
+
+        generator = BasePDFGenerator(pdf_devi, pdf_company)
+        elements = generator._create_price_in_words_section("MONTANT TOTAL")
+        assert isinstance(elements, list)
+        assert len(elements) > 0
+
+    def test_create_remarks_section(self, pdf_devi, pdf_company):
+        """Test _create_remarks_section method."""
+        from core.pdf_utils import BasePDFGenerator
+
+        pdf_devi.remarque = "This is a test remark."
+        pdf_devi.save()
+
+        generator = BasePDFGenerator(pdf_devi, pdf_company)
+        elements = generator._create_remarks_section()
+        assert isinstance(elements, list)
+        assert len(elements) > 0
+
+    def test_create_remarks_section_with_custom_remarks(self, pdf_devi, pdf_company):
+        """Test _create_remarks_section with custom remarks."""
+        from core.pdf_utils import BasePDFGenerator
+
+        pdf_devi.remarque = "Document remark"
+        pdf_devi.save()
+
+        generator = BasePDFGenerator(pdf_devi, pdf_company)
+        elements = generator._create_remarks_section("Custom additional remark")
+        assert isinstance(elements, list)
+        assert len(elements) > 0
+
+    def test_create_remarks_section_no_remarks(self, pdf_devi, pdf_company):
+        """Test _create_remarks_section with no remarks."""
+        from core.pdf_utils import BasePDFGenerator
+
+        pdf_devi.remarque = ""
+        pdf_devi.save()
+
+        generator = BasePDFGenerator(pdf_devi, pdf_company)
+        elements = generator._create_remarks_section()
+        assert isinstance(elements, list)
+
+    def test_number_to_french_words_large_numbers(self):
+        """Test conversion of very large numbers."""
+        from core.pdf_utils import number_to_french_words
+
+        # Test a large number with millions
+        assert "MILLIONS" in number_to_french_words(Decimal("5000000"))
+        # Test maximum realistic invoice amount
+        result = number_to_french_words(Decimal("999999.99"))
+        assert "MILLIONS" in result or "MILLE" in result
+
+
+# =============================================================================
+# Authentication Tests
+# =============================================================================
+
+
+@pytest.mark.django_db
+class TestJWTQueryParamAuthentication:
+    """Tests for the JWTQueryParamAuthentication class."""
+
+    @pytest.fixture
+    def auth_user(self):
+        """Create a test user for authentication."""
+        return CustomUser.objects.create_user(
+            email="authuser@test.com",
+            password="testpass",
+            first_name="Auth",
+            last_name="User",
+        )
+
+    def test_authenticate_with_header(self, auth_user):
+        """Test authentication with Authorization header."""
+        from core.authentication import JWTQueryParamAuthentication
+        from rest_framework.test import APIRequestFactory
+        from rest_framework_simplejwt.tokens import RefreshToken
+
+        factory = APIRequestFactory()
+        refresh = RefreshToken.for_user(auth_user)
+        access_token = str(refresh.access_token)
+
+        request = factory.get("/", HTTP_AUTHORIZATION=f"Bearer {access_token}")
+        auth = JWTQueryParamAuthentication()
+        result = auth.authenticate(request)
+
+        assert result is not None
+        user, token = result
+        assert user.id == auth_user.id
+
+    def test_authenticate_with_query_param(self, auth_user):
+        """Test authentication with query parameter."""
+        from core.authentication import JWTQueryParamAuthentication
+        from rest_framework.test import APIRequestFactory
+        from rest_framework_simplejwt.tokens import RefreshToken
+        from rest_framework.request import Request
+
+        factory = APIRequestFactory()
+        refresh = RefreshToken.for_user(auth_user)
+        access_token = str(refresh.access_token)
+
+        django_request = factory.get(f"/?token={access_token}")
+        request = Request(django_request)
+        auth = JWTQueryParamAuthentication()
+        result = auth.authenticate(request)
+
+        assert result is not None
+        user, token = result
+        assert user.id == auth_user.id
+
+    def test_authenticate_no_token(self):
+        """Test authentication with no token."""
+        from core.authentication import JWTQueryParamAuthentication
+        from rest_framework.test import APIRequestFactory
+        from rest_framework.request import Request
+
+        factory = APIRequestFactory()
+        django_request = factory.get("/")
+        request = Request(django_request)
+        auth = JWTQueryParamAuthentication()
+        result = auth.authenticate(request)
+
+        assert result is None
+
+    def test_authenticate_invalid_token(self):
+        """Test authentication with invalid token."""
+        from core.authentication import JWTQueryParamAuthentication
+        from rest_framework.test import APIRequestFactory
+        from rest_framework_simplejwt.exceptions import InvalidToken
+        from rest_framework.request import Request
+
+        factory = APIRequestFactory()
+        django_request = factory.get("/?token=invalid_token_here")
+        request = Request(django_request)
+        auth = JWTQueryParamAuthentication()
+
+        with pytest.raises(InvalidToken):
+            auth.authenticate(request)
+
+    def test_authenticate_header_priority(self, auth_user):
+        """Test that header authentication takes priority over query param."""
+        from core.authentication import JWTQueryParamAuthentication
+        from rest_framework.test import APIRequestFactory
+        from rest_framework_simplejwt.tokens import RefreshToken
+        from rest_framework.request import Request
+
+        factory = APIRequestFactory()
+        refresh = RefreshToken.for_user(auth_user)
+        access_token = str(refresh.access_token)
+
+        # Pass token in both header and query param
+        django_request = factory.get(
+            f"/?token={access_token}",
+            HTTP_AUTHORIZATION=f"Bearer {access_token}"
+        )
+        request = Request(django_request)
+        auth = JWTQueryParamAuthentication()
+        result = auth.authenticate(request)
+
+        assert result is not None
+        user, token = result
+        assert user.id == auth_user.id
+
+
+# =============================================================================
+# Additional Serializer Tests for Coverage
+# =============================================================================
+
+
+@pytest.mark.django_db
+class TestCoreSerializerAdditional:
+    """Additional tests for core serializers to improve coverage."""
+
+    @pytest.fixture
+    def test_client_extra(self, extra_ville, extra_company):
+        """Create a test client."""
+        return Client.objects.create(
+            code_client="SERCLI001",
+            client_type="PM",
+            raison_sociale="Serializer Test Client",
+            ville=extra_ville,
+            company=extra_company,
+        )
+
+    @pytest.fixture
+    def test_mode_paiement(self):
+        """Create a test mode paiement."""
+        return ModePaiement.objects.create(nom="Espèces")
+
+    def test_base_list_serializer_created_by_without_name(self, test_client_extra, test_mode_paiement):
+        """Test BaseListSerializer with user without first/last name."""
+        from devi.models import Devi
+        from devi.serializers import DeviListSerializer
+
+        # Create user with no first/last name
+        user_no_name = CustomUser.objects.create_user(
+            email="noname@test.com",
+            password="test"
+        )
+
+        devi = Devi.objects.create(
+            client=test_client_extra,
+            numero_devis="SER001/26",
+            date_devis="2026-01-01",
+            mode_paiement=test_mode_paiement,
+            created_by_user=user_no_name,
+        )
+
+        serializer = DeviListSerializer(devi)
+        # Should fall back to email
+        assert serializer.data["created_by_user_name"] == "noname@test.com"
+
+    def test_base_list_serializer_no_created_by(self, test_client_extra, test_mode_paiement):
+        """Test BaseListSerializer with no created_by_user."""
+        from devi.models import Devi
+        from devi.serializers import DeviListSerializer
+
+        devi = Devi.objects.create(
+            client=test_client_extra,
+            numero_devis="SER002/26",
+            date_devis="2026-01-01",
+            mode_paiement=test_mode_paiement,
+            created_by_user=None,
+        )
+
+        serializer = DeviListSerializer(devi)
+        assert serializer.data["created_by_user_name"] is None
+
+    def test_base_detail_serializer_no_created_by(self, test_client_extra, test_mode_paiement):
+        """Test BaseDetailSerializer with no created_by_user."""
+        from devi.models import Devi
+        from devi.serializers import DeviDetailSerializer
+
+        devi = Devi.objects.create(
+            client=test_client_extra,
+            numero_devis="SER003/26",
+            date_devis="2026-01-01",
+            mode_paiement=test_mode_paiement,
+            created_by_user=None,
+        )
+
+        serializer = DeviDetailSerializer(devi)
+        assert serializer.data["created_by_user_name"] is None
+
+    def test_line_serializer_validation_remise_negative(self, extra_article):
+        """Test line serializer validation with negative remise."""
+        from devi.serializers import DeviLineWriteSerializer
+
+        data = {
+            "article": extra_article.id,
+            "prix_achat": "100.00",
+            "prix_vente": "150.00",
+            "quantity": "2",
+            "remise": "-10",
+            "remise_type": "Pourcentage",
+        }
+
+        serializer = DeviLineWriteSerializer(data=data)
+        assert not serializer.is_valid()
+        assert "non_field_errors" in serializer.errors or "remise" in str(serializer.errors).lower()
+
+    def test_line_serializer_prix_vente_below_achat(self, extra_article):
+        """Test line serializer validation with prix_vente < prix_achat."""
+        from devi.serializers import DeviLineWriteSerializer
+
+        data = {
+            "article": extra_article.id,
+            "prix_achat": "150.00",
+            "prix_vente": "100.00",
+            "quantity": "2",
+            "remise": "0",
+            "remise_type": "Pourcentage",
+        }
+
+        serializer = DeviLineWriteSerializer(data=data)
+        assert not serializer.is_valid()
+
+
+# =============================================================================
+# Additional Filter Tests for Coverage
+# =============================================================================
+
+
+@pytest.mark.django_db
+class TestCoreFilterAdditional:
+    """Additional tests for core filters to improve coverage."""
+
+    @pytest.fixture
+    def test_client_filter(self, extra_ville, extra_company):
+        """Create a test client for filters."""
+        return Client.objects.create(
+            code_client="FILTCLI001",
+            client_type="PM",
+            raison_sociale="Filter Test Client",
+            ville=extra_ville,
+            company=extra_company,
+        )
+
+    def test_filter_date_after(self, test_client_filter, extra_mode_paiement):
+        """Test date_after filter."""
+        from devi.models import Devi
+        from devi.filters import DeviFilter
+
+        devi1 = Devi.objects.create(
+            client=test_client_filter,
+            numero_devis="FILT001/26",
+            date_devis="2026-01-01",
+            mode_paiement=extra_mode_paiement,
+        )
+        devi2 = Devi.objects.create(
+            client=test_client_filter,
+            numero_devis="FILT002/26",
+            date_devis="2026-01-15",
+            mode_paiement=extra_mode_paiement,
+        )
+
+        filter_data = {"date_after": "2026-01-10"}
+        filterset = DeviFilter(data=filter_data, queryset=Devi.objects.all())
+        assert devi1 not in filterset.qs
+        assert devi2 in filterset.qs
+
+    def test_filter_date_before(self, test_client_filter, extra_mode_paiement):
+        """Test date_before filter."""
+        from devi.models import Devi
+        from devi.filters import DeviFilter
+
+        devi1 = Devi.objects.create(
+            client=test_client_filter,
+            numero_devis="FILT003/26",
+            date_devis="2026-01-01",
+            mode_paiement=extra_mode_paiement,
+        )
+        devi2 = Devi.objects.create(
+            client=test_client_filter,
+            numero_devis="FILT004/26",
+            date_devis="2026-01-15",
+            mode_paiement=extra_mode_paiement,
+        )
+
+        filter_data = {"date_before": "2026-01-10"}
+        filterset = DeviFilter(data=filter_data, queryset=Devi.objects.all())
+        assert devi1 in filterset.qs
+        assert devi2 not in filterset.qs
+
+    def test_filter_date_after_with_none(self, test_client_filter, extra_mode_paiement):
+        """Test date_after filter with None value."""
+        from devi.models import Devi
+        from devi.filters import DeviFilter
+
+        devi = Devi.objects.create(
+            client=test_client_filter,
+            numero_devis="FILT005/26",
+            date_devis="2026-01-01",
+            mode_paiement=extra_mode_paiement,
+        )
+
+        filter_data = {"date_after": None}
+        filterset = DeviFilter(data=filter_data, queryset=Devi.objects.all())
+        assert devi in filterset.qs
+
+    def test_filter_date_before_with_none(self, test_client_filter, extra_mode_paiement):
+        """Test date_before filter with None value."""
+        from devi.models import Devi
+        from devi.filters import DeviFilter
+
+        devi = Devi.objects.create(
+            client=test_client_filter,
+            numero_devis="FILT006/26",
+            date_devis="2026-01-01",
+            mode_paiement=extra_mode_paiement,
+        )
+
+        filter_data = {"date_before": None}
+        filterset = DeviFilter(data=filter_data, queryset=Devi.objects.all())
+        assert devi in filterset.qs
+
+    def test_global_search_with_empty_string(self, test_client_filter, extra_mode_paiement):
+        """Test global_search with empty string."""
+        from devi.models import Devi
+        from devi.filters import DeviFilter
+
+        devi = Devi.objects.create(
+            client=test_client_filter,
+            numero_devis="FILT007/26",
+            date_devis="2026-01-01",
+            mode_paiement=extra_mode_paiement,
+        )
+
+        filter_data = {"search": ""}
+        filterset = DeviFilter(data=filter_data, queryset=Devi.objects.all())
+        assert devi in filterset.qs
+
+    def test_global_search_with_whitespace(self, test_client_filter, extra_mode_paiement):
+        """Test global_search with whitespace."""
+        from devi.models import Devi
+        from devi.filters import DeviFilter
+
+        devi = Devi.objects.create(
+            client=test_client_filter,
+            numero_devis="FILT008/26",
+            date_devis="2026-01-01",
+            mode_paiement=extra_mode_paiement,
+        )
+
+        filter_data = {"search": "   "}
+        filterset = DeviFilter(data=filter_data, queryset=Devi.objects.all())
+        assert devi in filterset.qs
+    def test_filter_date_no_date_field(self, test_client_filter, extra_mode_paiement):
+        """Test date filter when date_field is not set."""
+        from devi.models import Devi
+        from devi.filters import DeviFilter
+
+        # Create a filter with no date_field
+        class NoDateFieldFilter(DeviFilter):
+            date_field = None
+
+        devi = Devi.objects.create(
+            client=test_client_filter,
+            numero_devis="FILT009/26",
+            date_devis="2026-01-01",
+            mode_paiement=extra_mode_paiement,
+        )
+
+        # Should return queryset unchanged
+        filter_data = {"date_after": "2025-01-01"}
+        filterset = NoDateFieldFilter(data=filter_data, queryset=Devi.objects.all())
+        assert devi in filterset.qs
+
+        filter_data = {"date_before": "2027-01-01"}
+        filterset = NoDateFieldFilter(data=filter_data, queryset=Devi.objects.all())
+        assert devi in filterset.qs
+
+    def test_global_search_no_required_fields(self, test_client_filter, extra_mode_paiement):
+        """Test global_search raises NotImplementedError when required fields not set."""
+        from devi.models import Devi
+        from core.filters import BaseDocumentFilter
+
+        # Create a filter without numero_field and req_field
+        class IncompleteFilter(BaseDocumentFilter):
+            class Meta:
+                model = Devi
+                fields = []
+
+        devi = Devi.objects.create(
+            client=test_client_filter,
+            numero_devis="FILT010/26",
+            date_devis="2026-01-01",
+            mode_paiement=extra_mode_paiement,
+        )
+
+        filter_data = {"search": "test"}
+        filterset = IncompleteFilter(data=filter_data, queryset=Devi.objects.all())
+        with pytest.raises(NotImplementedError, match="Subclass must set"):
+            _ = list(filterset.qs)
+
+    def test_global_search_database_error(self, test_client_filter, extra_mode_paiement, monkeypatch):
+        """Test global_search handles DatabaseError gracefully."""
+        from devi.models import Devi
+        from devi.filters import DeviFilter
+        from django.db import DatabaseError
+
+        devi = Devi.objects.create(
+            client=test_client_filter,
+            numero_devis="FILT011/26",
+            date_devis="2026-01-01",
+            mode_paiement=extra_mode_paiement,
+        )
+
+        # Mock SearchQuery to raise DatabaseError
+        from django.contrib.postgres.search import SearchQuery
+        original_init = SearchQuery.__init__
+
+        def mock_init(*args, **kwargs):
+            original_init(*args, **kwargs)
+            
+        def mock_resolve_expression(*args, **kwargs):
+            raise DatabaseError("Mock database error")
+
+        monkeypatch.setattr(SearchQuery, "resolve_expression", mock_resolve_expression)
+
+        filter_data = {"search": "FILT011"}
+        filterset = DeviFilter(data=filter_data, queryset=Devi.objects.all())
+        # Should fall back to icontains search
+        assert devi in filterset.qs

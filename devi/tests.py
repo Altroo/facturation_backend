@@ -648,3 +648,86 @@ class TestDeviLineModelExtra:
         line = devi_conv_with_lines.lignes.first()
         expected = f"{devi_conv_with_lines} - {line.article}"
         assert str(line) == expected
+
+@pytest.mark.django_db
+class TestDeviPDFGeneration:
+    """Test PDF generation for devi."""
+
+    def test_generate_pdf(self, devi_conv_user, devi_conv_company, devi_conv_with_lines):
+        """Test generating PDF for devi."""
+        from django.urls import reverse
+        from rest_framework import status
+        
+        Membership.objects.create(user=devi_conv_user, company=devi_conv_company)
+        
+        client_api = APIClient()
+        client_api.force_authenticate(user=devi_conv_user)
+
+        url = reverse("devi:devi-pdf", args=[devi_conv_with_lines.id]) + f"?company_id={devi_conv_company.id}"
+        response = client_api.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response["Content-Type"] == "application/pdf"
+        assert "filename" in response["Content-Disposition"]
+
+    def test_pdf_no_company_id(self, devi_conv_user, devi_conv_company, devi_conv_with_lines):
+        """Test PDF fails without company_id."""
+        from django.urls import reverse
+        from rest_framework import status
+        
+        Membership.objects.create(user=devi_conv_user, company=devi_conv_company)
+        
+        client_api = APIClient()
+        client_api.force_authenticate(user=devi_conv_user)
+
+        url = reverse("devi:devi-pdf", args=[devi_conv_with_lines.id])
+        response = client_api.get(url)
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_pdf_not_found(self, devi_conv_user, devi_conv_company):
+        """Test PDF fails for non-existent devi."""
+        from django.urls import reverse
+        from rest_framework import status
+        
+        Membership.objects.create(user=devi_conv_user, company=devi_conv_company)
+        
+        client_api = APIClient()
+        client_api.force_authenticate(user=devi_conv_user)
+
+        url = reverse("devi:devi-pdf", args=[99999]) + f"?company_id={devi_conv_company.id}"
+        response = client_api.get(url)
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_pdf_sans_remise_type(self, devi_conv_user, devi_conv_company, devi_conv_with_lines):
+        """Test PDF generation with sans_remise type."""
+        from django.urls import reverse
+        from rest_framework import status
+        
+        Membership.objects.create(user=devi_conv_user, company=devi_conv_company)
+        
+        client_api = APIClient()
+        client_api.force_authenticate(user=devi_conv_user)
+
+        url = reverse("devi:devi-pdf", args=[devi_conv_with_lines.id]) + f"?company_id={devi_conv_company.id}&type=sans_remise"
+        response = client_api.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response["Content-Type"] == "application/pdf"
+
+    def test_pdf_avec_unite_type(self, devi_conv_user, devi_conv_company, devi_conv_with_lines):
+        """Test PDF generation with avec_unite type."""
+        from django.urls import reverse
+        from rest_framework import status
+        
+        Membership.objects.create(user=devi_conv_user, company=devi_conv_company)
+        
+        client_api = APIClient()
+        client_api.force_authenticate(user=devi_conv_user)
+
+        url = reverse("devi:devi-pdf", args=[devi_conv_with_lines.id]) + f"?company_id={devi_conv_company.id}&type=avec_unite"
+        response = client_api.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response["Content-Type"] == "application/pdf"

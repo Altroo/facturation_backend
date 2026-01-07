@@ -687,3 +687,202 @@ class TestBonDeLivraisonLineModelExtra:
         line = bon_de_livraison_with_lines.lignes.first()
         expected = f"{bon_de_livraison_with_lines} - {line.article}"
         assert str(line) == expected
+
+@pytest.mark.django_db
+class TestBonDeLivraisonPDFGeneration:
+    """Test PDF generation for bon de livraison."""
+
+    def test_generate_pdf(self, bon_de_livraison_user, bon_de_livraison_company, bon_de_livraison_with_lines):
+        """Test generating PDF for bon de livraison."""
+        from django.urls import reverse
+        from rest_framework import status
+        
+        Membership.objects.create(user=bon_de_livraison_user, company=bon_de_livraison_company)
+        
+        client_api = APIClient()
+        client_api.force_authenticate(user=bon_de_livraison_user)
+
+        url = reverse("bon_de_livraison:bon-de-livraison-pdf", args=[bon_de_livraison_with_lines.id]) + f"?company_id={bon_de_livraison_company.id}"
+        response = client_api.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response["Content-Type"] == "application/pdf"
+        assert "filename" in response["Content-Disposition"]
+
+    def test_pdf_no_company_id(self, bon_de_livraison_user, bon_de_livraison_company, bon_de_livraison_with_lines):
+        """Test PDF fails without company_id."""
+        from django.urls import reverse
+        from rest_framework import status
+        
+        Membership.objects.create(user=bon_de_livraison_user, company=bon_de_livraison_company)
+        
+        client_api = APIClient()
+        client_api.force_authenticate(user=bon_de_livraison_user)
+
+        url = reverse("bon_de_livraison:bon-de-livraison-pdf", args=[bon_de_livraison_with_lines.id])
+        response = client_api.get(url)
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_pdf_not_found(self, bon_de_livraison_user, bon_de_livraison_company):
+        """Test PDF fails for non-existent bon de livraison."""
+        from django.urls import reverse
+        from rest_framework import status
+        
+        Membership.objects.create(user=bon_de_livraison_user, company=bon_de_livraison_company)
+        
+        client_api = APIClient()
+        client_api.force_authenticate(user=bon_de_livraison_user)
+
+        url = reverse("bon_de_livraison:bon-de-livraison-pdf", args=[99999]) + f"?company_id={bon_de_livraison_company.id}"
+        response = client_api.get(url)
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_pdf_quantity_only_type(self, bon_de_livraison_user, bon_de_livraison_company, bon_de_livraison_with_lines):
+        """Test PDF generation with quantity_only type."""
+        from django.urls import reverse
+        from rest_framework import status
+        
+        Membership.objects.create(user=bon_de_livraison_user, company=bon_de_livraison_company)
+        
+        client_api = APIClient()
+        client_api.force_authenticate(user=bon_de_livraison_user)
+
+        url = reverse("bon_de_livraison:bon-de-livraison-pdf", args=[bon_de_livraison_with_lines.id]) + f"?company_id={bon_de_livraison_company.id}&type=quantity_only"
+        response = client_api.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response["Content-Type"] == "application/pdf"
+
+    def test_pdf_avec_remise_type(self, bon_de_livraison_user, bon_de_livraison_company, bon_de_livraison_with_lines):
+        """Test PDF generation with avec_remise type."""
+        from django.urls import reverse
+        from rest_framework import status
+        
+        Membership.objects.create(user=bon_de_livraison_user, company=bon_de_livraison_company)
+        
+        client_api = APIClient()
+        client_api.force_authenticate(user=bon_de_livraison_user)
+
+        url = reverse("bon_de_livraison:bon-de-livraison-pdf", args=[bon_de_livraison_with_lines.id]) + f"?company_id={bon_de_livraison_company.id}&type=avec_remise"
+        response = client_api.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response["Content-Type"] == "application/pdf"
+
+    def test_pdf_avec_unite_type(self, bon_de_livraison_user, bon_de_livraison_company, bon_de_livraison_with_lines):
+        """Test PDF generation with avec_unite type."""
+        from django.urls import reverse
+        from rest_framework import status
+        
+        Membership.objects.create(user=bon_de_livraison_user, company=bon_de_livraison_company)
+        
+        client_api = APIClient()
+        client_api.force_authenticate(user=bon_de_livraison_user)
+
+        url = reverse("bon_de_livraison:bon-de-livraison-pdf", args=[bon_de_livraison_with_lines.id]) + f"?company_id={bon_de_livraison_company.id}&type=avec_unite"
+        response = client_api.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response["Content-Type"] == "application/pdf"
+
+
+@pytest.mark.django_db
+class TestBonDeLivraisonUninvoicedListView:
+    """Test uninvoiced bon de livraison list view."""
+
+    def test_uninvoiced_list_requires_company_id(self, bon_de_livraison_user, bon_de_livraison_company):
+        """Test that uninvoiced list requires company_id parameter."""
+        from django.urls import reverse
+        from rest_framework import status
+        
+        Membership.objects.create(user=bon_de_livraison_user, company=bon_de_livraison_company)
+        
+        client_api = APIClient()
+        client_api.force_authenticate(user=bon_de_livraison_user)
+        
+        url = reverse("bon_de_livraison:bon-de-livraison-uninvoiced-list")
+        response = client_api.get(url)
+        
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_uninvoiced_list_success(self, bon_de_livraison_user, bon_de_livraison_company, bon_de_livraison_client):
+        """Test successful retrieval of uninvoiced bons de livraison."""
+        from django.urls import reverse
+        from rest_framework import status
+        
+        Membership.objects.create(user=bon_de_livraison_user, company=bon_de_livraison_company)
+        
+        # Create BLs with different statuses
+        BonDeLivraison.objects.create(
+            numero_bon_livraison="BL/001",
+            client=bon_de_livraison_client,
+            date_bon_livraison="2025-01-01",
+            statut="Brouillon",
+            created_by_user=bon_de_livraison_user,
+        )
+        BonDeLivraison.objects.create(
+            numero_bon_livraison="BL/002",
+            client=bon_de_livraison_client,
+            date_bon_livraison="2025-01-02",
+            statut="Validé",
+            created_by_user=bon_de_livraison_user,
+        )
+        BonDeLivraison.objects.create(
+            numero_bon_livraison="BL/003",
+            client=bon_de_livraison_client,
+            date_bon_livraison="2025-01-03",
+            statut="Facturé",
+            created_by_user=bon_de_livraison_user,
+        )
+        
+        client_api = APIClient()
+        client_api.force_authenticate(user=bon_de_livraison_user)
+        
+        url = reverse("bon_de_livraison:bon-de-livraison-uninvoiced-list") + f"?company_id={bon_de_livraison_company.id}"
+        response = client_api.get(url)
+        
+        assert response.status_code == status.HTTP_200_OK
+        assert len(response.data) == 2  # Should exclude "Facturé"
+
+    def test_uninvoiced_list_with_pagination(self, bon_de_livraison_user, bon_de_livraison_company, bon_de_livraison_client):
+        """Test uninvoiced list with pagination."""
+        from django.urls import reverse
+        from rest_framework import status
+        
+        Membership.objects.create(user=bon_de_livraison_user, company=bon_de_livraison_company)
+        
+        # Create multiple BLs
+        for i in range(5):
+            BonDeLivraison.objects.create(
+                numero_bon_livraison=f"BL/00{i}",
+                client=bon_de_livraison_client,
+                date_bon_livraison=f"2025-01-{i+1:02d}",
+                statut="Brouillon",
+                created_by_user=bon_de_livraison_user,
+            )
+        
+        client_api = APIClient()
+        client_api.force_authenticate(user=bon_de_livraison_user)
+        
+        url = reverse("bon_de_livraison:bon-de-livraison-uninvoiced-list") + f"?company_id={bon_de_livraison_company.id}&pagination=true"
+        response = client_api.get(url)
+        
+        assert response.status_code == status.HTTP_200_OK
+        assert "results" in response.data
+
+    def test_uninvoiced_list_post_disabled(self, bon_de_livraison_user, bon_de_livraison_company):
+        """Test that POST is disabled for uninvoiced list."""
+        from django.urls import reverse
+        from rest_framework import status
+        
+        Membership.objects.create(user=bon_de_livraison_user, company=bon_de_livraison_company)
+        
+        client_api = APIClient()
+        client_api.force_authenticate(user=bon_de_livraison_user)
+        
+        url = reverse("bon_de_livraison:bon-de-livraison-uninvoiced-list") + f"?company_id={bon_de_livraison_company.id}"
+        response = client_api.post(url, {})
+        
+        assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
