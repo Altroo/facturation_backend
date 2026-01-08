@@ -42,6 +42,8 @@ urlpatterns = [
     path("api/reglement/", include("reglement.urls")),
     # Parameter
     path("api/parameter/", include("parameter.urls")),
+    # Dashboard
+    path("api/dashboard/", include("dashboard.urls")),
     # Admin panel
     path("admin/", admin.site.urls),
     # Static & media files

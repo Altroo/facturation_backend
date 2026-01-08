@@ -1,0 +1,1245 @@
+from datetime import timedelta, datetime
+from decimal import Decimal
+
+from django.db.models import Sum, Count, F, Avg
+from django.db.models.functions import TruncMonth, TruncDate
+from django.utils import timezone
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from bon_de_livraison.models import BonDeLivraison, BonDeLivraisonLine
+from client.models import Client
+from devi.models import Devi, DeviLine
+from facture_client.models import FactureClient, FactureClientLine
+from facture_proforma.models import FactureProForma, FactureProFormaLine
+from reglement.models import Reglement
+
+
+def parse_date_filters(request):
+    """
+    Parse date_from and date_to query parameters.
+
+    Returns (date_from, date_to) tuple.
+    - date_to defaults to today if not provided
+    - date_from is None if not provided (no lower bound)
+    """
+    date_to_str = request.query_params.get("date_to")
+    date_from_str = request.query_params.get("date_from")
+
+    if date_to_str:
+        try:
+            date_to = datetime.strptime(date_to_str, "%Y-%m-%d").date()
+        except ValueError:
+            date_to = timezone.now().date()
+    else:
+        date_to = timezone.now().date()
+
+    if date_from_str:
+        try:
+            date_from = datetime.strptime(date_from_str, "%Y-%m-%d").date()
+        except ValueError:
+            date_from = None
+    else:
+        date_from = None
+
+    return date_from, date_to
+
+
+# ===== FINANCIAL OVERVIEW =====
+
+
+class MonthlyRevenueEvolutionView(APIView):
+    """Monthly revenue evolution."""
+
+    permission_classes = [IsAuthenticated]
+
+    @staticmethod
+    def get(request):
+        date_from, date_to = parse_date_filters(request)
+
+        # Default to last 12 months if no date_from
+        if not date_from:
+            date_from = date_to - timedelta(days=365)
+
+        queryset = FactureClient.objects.filter(
+            date_facture__gte=date_from, date_facture__lte=date_to
+        )
+
+        data = (
+            queryset.annotate(month=TruncMonth("date_facture"))
+            .values("month")
+            .annotate(revenue=Sum("total_ttc_apres_remise"))
+            .order_by("month")
+        )
+
+        result = [
+            {
+                "month": item["month"].strftime("%Y-%m"),
+                "revenue": float(item["revenue"] or 0),
+            }
+            for item in data
+        ]
+
+        return Response(result)
+
+
+class RevenueByDocumentTypeView(APIView):
+    """Revenue breakdown by document type."""
+
+    permission_classes = [IsAuthenticated]
+
+    @staticmethod
+    def get(request):
+        date_from, date_to = parse_date_filters(request)
+
+        # Build filters
+        devi_filter = {"date_devis__lte": date_to}
+        proforma_filter = {"date_facture__lte": date_to}
+        facture_filter = {"date_facture__lte": date_to}
+        bdl_filter = {"date_bon_livraison__lte": date_to}
+
+        if date_from:
+            devi_filter["date_devis__gte"] = date_from
+            proforma_filter["date_facture__gte"] = date_from
+            facture_filter["date_facture__gte"] = date_from
+            bdl_filter["date_bon_livraison__gte"] = date_from
+
+        devis_total = (
+            Devi.objects.filter(**devi_filter).aggregate(
+                total=Sum("total_ttc_apres_remise")
+            )["total"]
+            or 0
+        )
+        proforma_total = (
+            FactureProForma.objects.filter(**proforma_filter).aggregate(
+                total=Sum("total_ttc_apres_remise")
+            )["total"]
+            or 0
+        )
+        facture_total = (
+            FactureClient.objects.filter(**facture_filter).aggregate(
+                total=Sum("total_ttc_apres_remise")
+            )["total"]
+            or 0
+        )
+        bdl_total = (
+            BonDeLivraison.objects.filter(**bdl_filter).aggregate(
+                total=Sum("total_ttc_apres_remise")
+            )["total"]
+            or 0
+        )
+
+        result = [
+            {"type": "Devis", "amount": float(devis_total)},
+            {"type": "Facture Pro Forma", "amount": float(proforma_total)},
+            {"type": "Facture Client", "amount": float(facture_total)},
+            {"type": "Bon de Livraison", "amount": float(bdl_total)},
+        ]
+
+        return Response(result)
+
+
+class PaymentStatusOverviewView(APIView):
+    """Payment status distribution of invoices."""
+
+    permission_classes = [IsAuthenticated]
+
+    @staticmethod
+    def get(request):
+        date_from, date_to = parse_date_filters(request)
+
+        facture_filter = {"date_facture__lte": date_to}
+        if date_from:
+            facture_filter["date_facture__gte"] = date_from
+
+        factures = FactureClient.objects.filter(**facture_filter)
+
+        fully_paid = 0
+        partially_paid = 0
+        unpaid = 0
+
+        for facture in factures:
+            total_reglements = Reglement.get_total_reglements_for_facture(facture.id)
+            total_facture = facture.total_ttc_apres_remise
+
+            if total_reglements >= total_facture:
+                fully_paid += 1
+            elif total_reglements > 0:
+                partially_paid += 1
+            else:
+                unpaid += 1
+
+        result = [
+            {"status": "Totalement payée", "count": fully_paid},
+            {"status": "Partiellement payée", "count": partially_paid},
+            {"status": "Impayée", "count": unpaid},
+        ]
+
+        return Response(result)
+
+
+class CollectionRateView(APIView):
+    """Collection rate: percentage of payments collected vs total invoiced."""
+
+    permission_classes = [IsAuthenticated]
+
+    @staticmethod
+    def get(request):
+        date_from, date_to = parse_date_filters(request)
+
+        facture_filter = {"date_facture__lte": date_to}
+        reglement_filter = {"date_reglement__lte": date_to, "statut": "Valide"}
+
+        if date_from:
+            facture_filter["date_facture__gte"] = date_from
+            reglement_filter["date_reglement__gte"] = date_from
+
+        total_invoiced = FactureClient.objects.filter(**facture_filter).aggregate(
+            total=Sum("total_ttc_apres_remise")
+        )["total"] or Decimal("0")
+
+        total_collected = Reglement.objects.filter(**reglement_filter).aggregate(
+            total=Sum("montant")
+        )["total"] or Decimal("0")
+
+        if total_invoiced > 0:
+            rate = (total_collected / total_invoiced) * 100
+        else:
+            rate = 0
+
+        result = {
+            "rate": float(rate),
+            "total_invoiced": float(total_invoiced),
+            "total_collected": float(total_collected),
+        }
+
+        return Response(result)
+
+
+# ===== COMMERCIAL PERFORMANCE =====
+
+
+class TopClientsByRevenueView(APIView):
+    """Top 10 clients by revenue."""
+
+    permission_classes = [IsAuthenticated]
+
+    @staticmethod
+    def get(request):
+        date_from, date_to = parse_date_filters(request)
+
+        facture_filter = {"date_facture__lte": date_to}
+        if date_from:
+            facture_filter["date_facture__gte"] = date_from
+
+        data = (
+            FactureClient.objects.filter(**facture_filter)
+            .values("client__id", "client__code_client")
+            .annotate(
+                revenue=Sum("total_ttc_apres_remise"),
+                client_name=F("client__raison_sociale"),
+            )
+            .order_by("-revenue")[:10]
+        )
+
+        result = [
+            {
+                "client_id": item["client__id"],
+                "client_code": item["client__code_client"],
+                "client_name": item["client_name"] or item["client__code_client"],
+                "revenue": float(item["revenue"] or 0),
+            }
+            for item in data
+        ]
+
+        return Response(result)
+
+
+class TopProductsByQuantityView(APIView):
+    """Top 10 products by quantity sold."""
+
+    permission_classes = [IsAuthenticated]
+
+    @staticmethod
+    def get(request):
+        date_from, date_to = parse_date_filters(request)
+
+        # Build date filters for each document type
+        devi_filter = {"devis__date_devis__lte": date_to}
+        facture_filter = {"facture_client__date_facture__lte": date_to}
+        proforma_filter = {"facture_pro_forma__date_facture__lte": date_to}
+        bdl_filter = {"bon_de_livraison__date_bon_livraison__lte": date_to}
+
+        if date_from:
+            devi_filter["devis__date_devis__gte"] = date_from
+            facture_filter["facture_client__date_facture__gte"] = date_from
+            proforma_filter["facture_pro_forma__date_facture__gte"] = date_from
+            bdl_filter["bon_de_livraison__date_bon_livraison__gte"] = date_from
+
+        # Aggregate from all document lines
+        devi_lines = (
+            DeviLine.objects.filter(**devi_filter)
+            .values("article__id", "article__designation")
+            .annotate(qty=Sum("quantity"))
+        )
+        facture_lines = (
+            FactureClientLine.objects.filter(**facture_filter)
+            .values("article__id", "article__designation")
+            .annotate(qty=Sum("quantity"))
+        )
+        proforma_lines = (
+            FactureProFormaLine.objects.filter(**proforma_filter)
+            .values("article__id", "article__designation")
+            .annotate(qty=Sum("quantity"))
+        )
+        bdl_lines = (
+            BonDeLivraisonLine.objects.filter(**bdl_filter)
+            .values("article__id", "article__designation")
+            .annotate(qty=Sum("quantity"))
+        )
+
+        # Combine all quantities
+        article_quantities = {}
+
+        for line in devi_lines:
+            article_id = line["article__id"]
+            if article_id not in article_quantities:
+                article_quantities[article_id] = {
+                    "designation": line["article__designation"],
+                    "quantity": 0,
+                }
+            article_quantities[article_id]["quantity"] += line["qty"] or 0
+
+        for line in facture_lines:
+            article_id = line["article__id"]
+            if article_id not in article_quantities:
+                article_quantities[article_id] = {
+                    "designation": line["article__designation"],
+                    "quantity": 0,
+                }
+            article_quantities[article_id]["quantity"] += line["qty"] or 0
+
+        for line in proforma_lines:
+            article_id = line["article__id"]
+            if article_id not in article_quantities:
+                article_quantities[article_id] = {
+                    "designation": line["article__designation"],
+                    "quantity": 0,
+                }
+            article_quantities[article_id]["quantity"] += line["qty"] or 0
+
+        for line in bdl_lines:
+            article_id = line["article__id"]
+            if article_id not in article_quantities:
+                article_quantities[article_id] = {
+                    "designation": line["article__designation"],
+                    "quantity": 0,
+                }
+            article_quantities[article_id]["quantity"] += line["qty"] or 0
+
+        # Sort and get top 10
+        sorted_articles = sorted(
+            [{"article_id": k, **v} for k, v in article_quantities.items()],
+            key=lambda x: x["quantity"],
+            reverse=True,
+        )[:10]
+
+        result = [
+            {
+                "article_id": item["article_id"],
+                "designation": item["designation"],
+                "quantity": float(item["quantity"]),
+            }
+            for item in sorted_articles
+        ]
+
+        return Response(result)
+
+
+class QuoteConversionRateView(APIView):
+    """Quote status distribution."""
+
+    permission_classes = [IsAuthenticated]
+
+    @staticmethod
+    def get(request):
+        date_from, date_to = parse_date_filters(request)
+
+        devi_filter = {"date_devis__lte": date_to}
+        if date_from:
+            devi_filter["date_devis__gte"] = date_from
+
+        data = (
+            Devi.objects.filter(**devi_filter)
+            .values("statut")
+            .annotate(count=Count("id"))
+        )
+
+        result = [{"status": item["statut"], "count": item["count"]} for item in data]
+
+        return Response(result)
+
+
+class ProductPriceVolumeAnalysisView(APIView):
+    """Price vs volume analysis for products."""
+
+    permission_classes = [IsAuthenticated]
+
+    @staticmethod
+    def get(request):
+        date_from, date_to = parse_date_filters(request)
+
+        facture_filter = {"facture_client__date_facture__lte": date_to}
+        if date_from:
+            facture_filter["facture_client__date_facture__gte"] = date_from
+
+        # Get total quantity and average price for each article
+        article_data = {}
+
+        for line in FactureClientLine.objects.filter(**facture_filter).select_related(
+            "article"
+        ):
+            article_id = line.article.id
+            if article_id not in article_data:
+                article_data[article_id] = {
+                    "designation": line.article.designation,
+                    "total_quantity": 0,
+                    "total_revenue": Decimal("0"),
+                }
+            article_data[article_id]["total_quantity"] += line.quantity
+            article_data[article_id]["total_revenue"] += line.prix_vente * line.quantity
+
+        result = []
+        for article_id, data in article_data.items():
+            if data["total_quantity"] > 0:
+                avg_price = data["total_revenue"] / data["total_quantity"]
+                result.append(
+                    {
+                        "article_id": article_id,
+                        "designation": data["designation"],
+                        "average_price": float(avg_price),
+                        "total_quantity": float(data["total_quantity"]),
+                    }
+                )
+
+        return Response(result)
+
+
+# ===== OPERATIONAL INDICATORS =====
+
+
+class InvoiceStatusDistributionView(APIView):
+    """Invoice status distribution."""
+
+    permission_classes = [IsAuthenticated]
+
+    @staticmethod
+    def get(request):
+        date_from, date_to = parse_date_filters(request)
+
+        facture_filter = {"date_facture__lte": date_to}
+        if date_from:
+            facture_filter["date_facture__gte"] = date_from
+
+        data = (
+            FactureClient.objects.filter(**facture_filter)
+            .values("statut")
+            .annotate(count=Count("id"))
+        )
+
+        result = [{"status": item["statut"], "count": item["count"]} for item in data]
+
+        return Response(result)
+
+
+class MonthlyDocumentVolumeView(APIView):
+    """Monthly document volume."""
+
+    permission_classes = [IsAuthenticated]
+
+    @staticmethod
+    def get(request):
+        date_from, date_to = parse_date_filters(request)
+
+        # Default to last 12 months if no date_from
+        if not date_from:
+            date_from = date_to - timedelta(days=365)
+
+        devis_data = (
+            Devi.objects.filter(date_devis__gte=date_from, date_devis__lte=date_to)
+            .annotate(month=TruncMonth("date_devis"))
+            .values("month")
+            .annotate(count=Count("id"))
+            .order_by("month")
+        )
+
+        facture_data = (
+            FactureClient.objects.filter(
+                date_facture__gte=date_from, date_facture__lte=date_to
+            )
+            .annotate(month=TruncMonth("date_facture"))
+            .values("month")
+            .annotate(count=Count("id"))
+            .order_by("month")
+        )
+
+        bdl_data = (
+            BonDeLivraison.objects.filter(
+                date_bon_livraison__gte=date_from, date_bon_livraison__lte=date_to
+            )
+            .annotate(month=TruncMonth("date_bon_livraison"))
+            .values("month")
+            .annotate(count=Count("id"))
+            .order_by("month")
+        )
+
+        # Combine data by month
+        months = {}
+
+        for item in devis_data:
+            month_key = item["month"].strftime("%Y-%m")
+            if month_key not in months:
+                months[month_key] = {
+                    "month": month_key,
+                    "devis": 0,
+                    "factures": 0,
+                    "bdl": 0,
+                }
+            months[month_key]["devis"] = item["count"]
+
+        for item in facture_data:
+            month_key = item["month"].strftime("%Y-%m")
+            if month_key not in months:
+                months[month_key] = {
+                    "month": month_key,
+                    "devis": 0,
+                    "factures": 0,
+                    "bdl": 0,
+                }
+            months[month_key]["factures"] = item["count"]
+
+        for item in bdl_data:
+            month_key = item["month"].strftime("%Y-%m")
+            if month_key not in months:
+                months[month_key] = {
+                    "month": month_key,
+                    "devis": 0,
+                    "factures": 0,
+                    "bdl": 0,
+                }
+            months[month_key]["bdl"] = item["count"]
+
+        result = sorted(months.values(), key=lambda x: x["month"])
+
+        return Response(result)
+
+
+# ===== CASH FLOW ANALYSIS =====
+
+
+class PaymentTimelineView(APIView):
+    """Payment timeline: invoices vs actual payments by date."""
+
+    permission_classes = [IsAuthenticated]
+
+    @staticmethod
+    def get(request):
+        date_from, date_to = parse_date_filters(request)
+
+        # Default to last 30 days if no date_from
+        if not date_from:
+            date_from = date_to - timedelta(days=30)
+
+        # Invoices by date
+        invoice_data = (
+            FactureClient.objects.filter(
+                date_facture__gte=date_from, date_facture__lte=date_to
+            )
+            .annotate(date=TruncDate("date_facture"))
+            .values("date")
+            .annotate(amount=Sum("total_ttc_apres_remise"))
+            .order_by("date")
+        )
+
+        # Payments by date
+        payment_data = (
+            Reglement.objects.filter(
+                date_reglement__gte=date_from,
+                date_reglement__lte=date_to,
+                statut="Valide",
+            )
+            .annotate(date=TruncDate("date_reglement"))
+            .values("date")
+            .annotate(amount=Sum("montant"))
+            .order_by("date")
+        )
+
+        # Combine data
+        dates = {}
+
+        for item in invoice_data:
+            date_key = item["date"].strftime("%Y-%m-%d")
+            if date_key not in dates:
+                dates[date_key] = {"date": date_key, "invoiced": 0, "collected": 0}
+            dates[date_key]["invoiced"] = float(item["amount"] or 0)
+
+        for item in payment_data:
+            date_key = item["date"].strftime("%Y-%m-%d")
+            if date_key not in dates:
+                dates[date_key] = {"date": date_key, "invoiced": 0, "collected": 0}
+            dates[date_key]["collected"] = float(item["amount"] or 0)
+
+        result = sorted(dates.values(), key=lambda x: x["date"])
+
+        return Response(result)
+
+
+class OverdueReceivablesView(APIView):
+    """Overdue receivables grouped by aging periods."""
+
+    permission_classes = [IsAuthenticated]
+
+    @staticmethod
+    def get(request):
+        date_from, date_to = parse_date_filters(request)
+
+        facture_filter = {"date_facture__lte": date_to}
+        if date_from:
+            facture_filter["date_facture__gte"] = date_from
+
+        factures = FactureClient.objects.filter(**facture_filter)
+
+        aging_buckets = {
+            "0-30": {"label": "0-30 jours", "count": 0, "amount": Decimal("0")},
+            "31-60": {"label": "31-60 jours", "count": 0, "amount": Decimal("0")},
+            "61-90": {"label": "61-90 jours", "count": 0, "amount": Decimal("0")},
+            "90+": {"label": "90+ jours", "count": 0, "amount": Decimal("0")},
+        }
+
+        for facture in factures:
+            total_reglements = Reglement.get_total_reglements_for_facture(facture.id)
+            total_facture = facture.total_ttc_apres_remise
+            outstanding = total_facture - total_reglements
+
+            if outstanding > 0:
+                days_overdue = (date_to - facture.date_facture).days
+
+                if days_overdue <= 30:
+                    bucket = "0-30"
+                elif days_overdue <= 60:
+                    bucket = "31-60"
+                elif days_overdue <= 90:
+                    bucket = "61-90"
+                else:
+                    bucket = "90+"
+
+                aging_buckets[bucket]["count"] += 1
+                aging_buckets[bucket]["amount"] += outstanding
+
+        result = [
+            {
+                "period": bucket["label"],
+                "count": bucket["count"],
+                "amount": float(bucket["amount"]),
+            }
+            for bucket in aging_buckets.values()
+        ]
+
+        return Response(result)
+
+
+class PaymentDelayByClientView(APIView):
+    """Payment delay analysis by client."""
+
+    permission_classes = [IsAuthenticated]
+
+    @staticmethod
+    def get(request):
+        date_from, date_to = parse_date_filters(request)
+
+        reglement_filter = {"statut": "Valide", "date_reglement__lte": date_to}
+        if date_from:
+            reglement_filter["date_reglement__gte"] = date_from
+
+        clients_data = {}
+
+        for reglement in Reglement.objects.filter(**reglement_filter).select_related(
+            "facture_client", "facture_client__client"
+        ):
+            client_id = reglement.facture_client.client.id
+            client_name = (
+                reglement.facture_client.client.raison_sociale
+                or reglement.facture_client.client.code_client
+            )
+
+            delay_days = (
+                reglement.date_reglement - reglement.facture_client.date_facture
+            ).days
+
+            if client_id not in clients_data:
+                clients_data[client_id] = {
+                    "client_name": client_name,
+                    "total_amount": Decimal("0"),
+                    "total_delay_weighted": 0,
+                }
+
+            clients_data[client_id]["total_amount"] += reglement.montant
+            clients_data[client_id]["total_delay_weighted"] += delay_days * float(
+                reglement.montant
+            )
+
+        result = []
+        for client_id, data in clients_data.items():
+            if data["total_amount"] > 0:
+                avg_delay = data["total_delay_weighted"] / float(data["total_amount"])
+                result.append(
+                    {
+                        "client_id": client_id,
+                        "client_name": data["client_name"],
+                        "total_amount": float(data["total_amount"]),
+                        "average_delay_days": round(avg_delay, 1),
+                    }
+                )
+
+        return Response(result)
+
+
+# ===== CLIENT ANALYSIS =====
+
+
+class ClientMultidimensionalProfileView(APIView):
+    """Multi-dimensional profile of top 5 clients."""
+
+    permission_classes = [IsAuthenticated]
+
+    @staticmethod
+    def get(request):
+        date_from, date_to = parse_date_filters(request)
+
+        facture_filter = {"date_facture__lte": date_to}
+        if date_from:
+            facture_filter["date_facture__gte"] = date_from
+
+        # Get top 5 clients by revenue
+        top_clients = (
+            FactureClient.objects.filter(**facture_filter)
+            .values("client__id", "client__code_client", "client__raison_sociale")
+            .annotate(revenue=Sum("total_ttc_apres_remise"))
+            .order_by("-revenue")[:5]
+        )
+
+        result = []
+
+        for client_data in top_clients:
+            client_id = client_data["client__id"]
+            client_name = (
+                client_data["client__raison_sociale"]
+                or client_data["client__code_client"]
+            )
+
+            # Volume d'affaires (normalized to 100)
+            volume = float(client_data["revenue"] or 0)
+
+            # Fréquence de commande
+            frequency = FactureClient.objects.filter(
+                client_id=client_id, **facture_filter
+            ).count()
+
+            # Montant moyen
+            avg_amount = volume / frequency if frequency > 0 else 0
+
+            # Rapidité de paiement (inverse of average delay)
+            reglement_filter = {
+                "facture_client__client_id": client_id,
+                "statut": "Valide",
+                "date_reglement__lte": date_to,
+            }
+            if date_from:
+                reglement_filter["date_reglement__gte"] = date_from
+
+            reglements = Reglement.objects.filter(**reglement_filter).select_related(
+                "facture_client"
+            )
+
+            total_delay = 0
+            delay_count = 0
+            for reglement in reglements:
+                delay = (
+                    reglement.date_reglement - reglement.facture_client.date_facture
+                ).days
+                total_delay += delay
+                delay_count += 1
+
+            avg_delay = total_delay / delay_count if delay_count > 0 else 0
+            # Convert to a score (lower delay = higher score)
+            payment_speed = max(0, 100 - avg_delay) if avg_delay < 100 else 0
+
+            # Taux d'acceptation des devis
+            devi_filter = {"client_id": client_id, "date_devis__lte": date_to}
+            if date_from:
+                devi_filter["date_devis__gte"] = date_from
+
+            total_devis = Devi.objects.filter(**devi_filter).count()
+            accepted_devis = Devi.objects.filter(**devi_filter, statut="Accepté").count()
+            acceptance_rate = (
+                (accepted_devis / total_devis * 100) if total_devis > 0 else 0
+            )
+
+            result.append(
+                {
+                    "client_id": client_id,
+                    "client_name": client_name,
+                    "metrics": {
+                        "volume": volume,
+                        "frequency": frequency,
+                        "avg_amount": avg_amount,
+                        "payment_speed": payment_speed,
+                        "acceptance_rate": acceptance_rate,
+                    },
+                }
+            )
+
+        return Response(result)
+
+
+# ===== KPI CARDS =====
+
+
+class KPICardsWithTrendsView(APIView):
+    """KPI cards with sparkline data."""
+
+    permission_classes = [IsAuthenticated]
+
+    @staticmethod
+    def get(request):
+        date_from, date_to = parse_date_filters(request)
+
+        today = timezone.now()
+        seven_days_before_date_to = date_to - timedelta(days=7)
+
+        # CA total with trend
+        if date_from:
+            current_period_start = date_from
+        else:
+            # Default to current month
+            current_period_start = today.replace(
+                day=1, hour=0, minute=0, second=0, microsecond=0
+            ).date()
+
+        current_month_revenue = (
+            FactureClient.objects.filter(
+                date_facture__gte=current_period_start, date_facture__lte=date_to
+            ).aggregate(total=Sum("total_ttc_apres_remise"))["total"]
+            or 0
+        )
+
+        daily_revenue = (
+            FactureClient.objects.filter(
+                date_facture__gte=seven_days_before_date_to, date_facture__lte=date_to
+            )
+            .annotate(date=TruncDate("date_facture"))
+            .values("date")
+            .annotate(amount=Sum("total_ttc_apres_remise"))
+            .order_by("date")
+        )
+
+        revenue_trend = [float(item["amount"] or 0) for item in daily_revenue]
+
+        # Créances en cours
+        facture_filter = {"date_facture__lte": date_to}
+        if date_from:
+            facture_filter["date_facture__gte"] = date_from
+
+        factures = FactureClient.objects.filter(**facture_filter)
+        outstanding_current = Decimal("0")
+
+        for facture in factures:
+            total_reglements = Reglement.get_total_reglements_for_facture(facture.id)
+            outstanding = facture.total_ttc_apres_remise - total_reglements
+            if outstanding > 0:
+                outstanding_current += outstanding
+
+        outstanding_trend = [
+            float(outstanding_current * Decimal("0.95")),
+            float(outstanding_current),
+        ]
+
+        # Montant moyen des factures
+        avg_amount_current = (
+            FactureClient.objects.filter(**facture_filter).aggregate(
+                avg=Avg("total_ttc_apres_remise")
+            )["avg"]
+            or 0
+        )
+
+        # Nombre de clients actifs
+        active_clients = (
+            FactureClient.objects.filter(**facture_filter)
+            .values("client")
+            .distinct()
+            .count()
+        )
+
+        result = {
+            "current_month_revenue": {
+                "value": float(current_month_revenue),
+                "trend": revenue_trend,
+            },
+            "outstanding_receivables": {
+                "value": float(outstanding_current),
+                "trend": outstanding_trend,
+            },
+            "average_invoice_amount": {"value": float(avg_amount_current), "trend": []},
+            "active_clients": {"value": active_clients, "trend": []},
+        }
+
+        return Response(result)
+
+
+class MonthlyObjectivesView(APIView):
+    """Monthly objectives' achievement."""
+
+    permission_classes = [IsAuthenticated]
+
+    @staticmethod
+    def get(request):
+        date_from, date_to = parse_date_filters(request)
+
+        # Use date range or default to current month
+        if date_from:
+            current_period_start = date_from
+        else:
+            today = timezone.now()
+            current_period_start = today.replace(
+                day=1, hour=0, minute=0, second=0, microsecond=0
+            ).date()
+
+        facture_filter = {
+            "date_facture__gte": current_period_start,
+            "date_facture__lte": date_to,
+        }
+        devi_filter = {
+            "date_devis__gte": current_period_start,
+            "date_devis__lte": date_to,
+        }
+
+        current_revenue = (
+            FactureClient.objects.filter(**facture_filter).aggregate(
+                total=Sum("total_ttc_apres_remise")
+            )["total"]
+            or 0
+        )
+
+        invoice_count = FactureClient.objects.filter(**facture_filter).count()
+
+        # Quote conversion
+        total_quotes = Devi.objects.filter(**devi_filter).count()
+        accepted_quotes = Devi.objects.filter(**devi_filter, statut="Accepté").count()
+        conversion_rate = (
+            (accepted_quotes / total_quotes * 100) if total_quotes > 0 else 0
+        )
+
+        # Mock objectives
+        revenue_objective = 500000  # 500k MAD
+        invoice_objective = 50
+        conversion_objective = 60  # 60%
+
+        result = {
+            "revenue": {
+                "current": float(current_revenue),
+                "objective": revenue_objective,
+                "percentage": (
+                    min(100, int(float(current_revenue) / revenue_objective * 100))
+                    if revenue_objective > 0
+                    else 0
+                ),
+            },
+            "invoices": {
+                "current": invoice_count,
+                "objective": invoice_objective,
+                "percentage": (
+                    min(100, int(invoice_count / invoice_objective * 100))
+                    if invoice_objective > 0
+                    else 0
+                ),
+            },
+            "conversion": {
+                "current": conversion_rate,
+                "objective": conversion_objective,
+                "percentage": (
+                    min(100, int(conversion_rate / conversion_objective * 100))
+                    if conversion_objective > 0
+                    else 0
+                ),
+            },
+        }
+
+        return Response(result)
+
+
+# ===== DISCOUNT AND MARGIN ANALYSIS =====
+
+
+class DiscountImpactAnalysisView(APIView):
+    """Discount impact on revenue."""
+
+    permission_classes = [IsAuthenticated]
+
+    @staticmethod
+    def get(request):
+        date_from, date_to = parse_date_filters(request)
+
+        facture_filter = {"date_facture__lte": date_to}
+        if date_from:
+            facture_filter["date_facture__gte"] = date_from
+
+        # Get all documents with remise data
+        result = []
+
+        for facture in FactureClient.objects.filter(**facture_filter).exclude(remise=0):
+            discount_amount = facture.total_ttc - facture.total_ttc_apres_remise
+            result.append(
+                {
+                    "document_id": facture.id,
+                    "document_type": "Facture",
+                    "total_amount": float(facture.total_ttc_apres_remise),
+                    "discount_amount": float(discount_amount),
+                }
+            )
+
+        return Response(result)
+
+
+class ProductMarginVolumeView(APIView):
+    """Product margin vs volume analysis."""
+
+    permission_classes = [IsAuthenticated]
+
+    @staticmethod
+    def get(request):
+        date_from, date_to = parse_date_filters(request)
+
+        facture_filter = {"facture_client__date_facture__lte": date_to}
+        if date_from:
+            facture_filter["facture_client__date_facture__gte"] = date_from
+
+        article_data = {}
+
+        for line in FactureClientLine.objects.filter(**facture_filter).select_related(
+            "article"
+        ):
+            article_id = line.article.id
+            if article_id not in article_data:
+                article_data[article_id] = {
+                    "designation": line.article.designation,
+                    "total_quantity": 0,
+                    "total_margin": Decimal("0"),
+                }
+
+            margin_per_unit = line.prix_vente - line.prix_achat
+            article_data[article_id]["total_quantity"] += line.quantity
+            article_data[article_id]["total_margin"] += margin_per_unit * line.quantity
+
+        result = []
+        for article_id, data in article_data.items():
+            if data["total_quantity"] > 0:
+                avg_margin = data["total_margin"] / data["total_quantity"]
+                result.append(
+                    {
+                        "article_id": article_id,
+                        "designation": data["designation"],
+                        "average_margin": float(avg_margin),
+                        "total_quantity": float(data["total_quantity"]),
+                    }
+                )
+
+        return Response(result)
+
+
+# ===== SYNTHETIC DASHBOARDS =====
+
+
+class MonthlyGlobalPerformanceView(APIView):
+    """Global performance comparison: current period vs previous period."""
+
+    permission_classes = [IsAuthenticated]
+
+    @staticmethod
+    def get(request):
+        date_from, date_to = parse_date_filters(request)
+
+        today = timezone.now()
+
+        # If date range provided, use it; otherwise use current month
+        if date_from:
+            current_start = date_from
+            current_end = date_to
+            # Calculate previous period of same duration
+            duration = (date_to - date_from).days
+            previous_end = date_from - timedelta(days=1)
+            previous_start = previous_end - timedelta(days=duration)
+        else:
+            current_start = today.replace(
+                day=1, hour=0, minute=0, second=0, microsecond=0
+            ).date()
+            current_end = date_to
+
+            # Previous month
+            if current_start.month == 1:
+                previous_start = current_start.replace(
+                    year=current_start.year - 1, month=12
+                )
+            else:
+                previous_start = current_start.replace(month=current_start.month - 1)
+            previous_end = current_start - timedelta(days=1)
+
+        # Current period metrics
+        current_revenue = (
+            FactureClient.objects.filter(
+                date_facture__gte=current_start, date_facture__lte=current_end
+            ).aggregate(total=Sum("total_ttc_apres_remise"))["total"]
+            or 0
+        )
+
+        current_quotes = Devi.objects.filter(
+            date_devis__gte=current_start, date_devis__lte=current_end
+        ).count()
+
+        current_accepted = Devi.objects.filter(
+            date_devis__gte=current_start, date_devis__lte=current_end, statut="Accepté"
+        ).count()
+        current_conversion = (
+            (current_accepted / current_quotes * 100) if current_quotes > 0 else 0
+        )
+
+        current_collected = (
+            Reglement.objects.filter(
+                date_reglement__gte=current_start,
+                date_reglement__lte=current_end,
+                statut="Valide",
+            ).aggregate(total=Sum("montant"))["total"]
+            or 0
+        )
+
+        current_new_clients = Client.objects.filter(
+            date_created__gte=current_start, date_created__lte=current_end
+        ).count()
+
+        # Previous period metrics
+        previous_revenue = (
+            FactureClient.objects.filter(
+                date_facture__gte=previous_start, date_facture__lte=previous_end
+            ).aggregate(total=Sum("total_ttc_apres_remise"))["total"]
+            or 0
+        )
+
+        previous_quotes = Devi.objects.filter(
+            date_devis__gte=previous_start, date_devis__lte=previous_end
+        ).count()
+
+        previous_accepted = Devi.objects.filter(
+            date_devis__gte=previous_start,
+            date_devis__lte=previous_end,
+            statut="Accepté",
+        ).count()
+        previous_conversion = (
+            (previous_accepted / previous_quotes * 100) if previous_quotes > 0 else 0
+        )
+
+        previous_collected = (
+            Reglement.objects.filter(
+                date_reglement__gte=previous_start,
+                date_reglement__lte=previous_end,
+                statut="Valide",
+            ).aggregate(total=Sum("montant"))["total"]
+            or 0
+        )
+
+        previous_new_clients = Client.objects.filter(
+            date_created__gte=previous_start, date_created__lte=previous_end
+        ).count()
+
+        result = {
+            "current": {
+                "revenue": float(current_revenue),
+                "quotes": current_quotes,
+                "conversion": current_conversion,
+                "collection": float(current_collected),
+                "new_clients": current_new_clients,
+            },
+            "previous": {
+                "revenue": float(previous_revenue),
+                "quotes": previous_quotes,
+                "conversion": previous_conversion,
+                "collection": float(previous_collected),
+                "new_clients": previous_new_clients,
+            },
+        }
+
+        return Response(result)
+
+
+class SectionMicroTrendsView(APIView):
+    """Micro trends for each dashboard section."""
+
+    permission_classes = [IsAuthenticated]
+
+    @staticmethod
+    def get(request):
+        date_from, date_to = parse_date_filters(request)
+
+        # Default to last 30 days if no date_from
+        if not date_from:
+            date_from = date_to - timedelta(days=30)
+
+        # Financial section trend
+        financial_trend = (
+            FactureClient.objects.filter(
+                date_facture__gte=date_from, date_facture__lte=date_to
+            )
+            .annotate(date=TruncDate("date_facture"))
+            .values("date")
+            .annotate(amount=Sum("total_ttc_apres_remise"))
+            .order_by("date")
+        )
+
+        # Commercial section trend (quotes created)
+        commercial_trend = (
+            Devi.objects.filter(date_devis__gte=date_from, date_devis__lte=date_to)
+            .annotate(date=TruncDate("date_devis"))
+            .values("date")
+            .annotate(count=Count("id"))
+            .order_by("date")
+        )
+
+        # Operational section trend (invoices created)
+        operational_trend = (
+            FactureClient.objects.filter(
+                date_created__gte=date_from, date_created__lte=date_to
+            )
+            .annotate(date=TruncDate("date_created"))
+            .values("date")
+            .annotate(count=Count("id"))
+            .order_by("date")
+        )
+
+        # Cash flow section trend (payments)
+        cashflow_trend = (
+            Reglement.objects.filter(
+                date_reglement__gte=date_from, date_reglement__lte=date_to, statut="Valide"
+            )
+            .annotate(date=TruncDate("date_reglement"))
+            .values("date")
+            .annotate(amount=Sum("montant"))
+            .order_by("date")
+        )
+
+        result = {
+            "financial": [float(item["amount"] or 0) for item in financial_trend],
+            "commercial": [item["count"] for item in commercial_trend],
+            "operational": [item["count"] for item in operational_trend],
+            "cashflow": [float(item["amount"] or 0) for item in cashflow_trend],
+        }
+
+        return Response(result)
