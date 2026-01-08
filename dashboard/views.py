@@ -18,14 +18,16 @@ from reglement.models import Reglement
 
 def parse_date_filters(request):
     """
-    Parse date_from and date_to query parameters.
+    Parse date_from, date_to, and company_id query parameters.
 
-    Returns (date_from, date_to) tuple.
+    Returns (date_from, date_to, company_id) tuple.
     - date_to defaults to today if not provided
     - date_from is None if not provided (no lower bound)
+    - company_id is None if not provided (no filtering by company)
     """
     date_to_str = request.query_params.get("date_to")
     date_from_str = request.query_params.get("date_from")
+    company_id_str = request.query_params.get("company_id")
 
     if date_to_str:
         try:
@@ -43,7 +45,15 @@ def parse_date_filters(request):
     else:
         date_from = None
 
-    return date_from, date_to
+    if company_id_str:
+        try:
+            company_id = int(company_id_str)
+        except (ValueError, TypeError):
+            company_id = None
+    else:
+        company_id = None
+
+    return date_from, date_to, company_id
 
 
 # ===== FINANCIAL OVERVIEW =====
@@ -56,7 +66,7 @@ class MonthlyRevenueEvolutionView(APIView):
 
     @staticmethod
     def get(request):
-        date_from, date_to = parse_date_filters(request)
+        date_from, date_to, company_id = parse_date_filters(request)
 
         # Default to last 12 months if no date_from
         if not date_from:
@@ -65,6 +75,9 @@ class MonthlyRevenueEvolutionView(APIView):
         queryset = FactureClient.objects.filter(
             date_facture__gte=date_from, date_facture__lte=date_to
         )
+
+        if company_id:
+            queryset = queryset.filter(client__company_id=company_id)
 
         data = (
             queryset.annotate(month=TruncMonth("date_facture"))
@@ -91,7 +104,7 @@ class RevenueByDocumentTypeView(APIView):
 
     @staticmethod
     def get(request):
-        date_from, date_to = parse_date_filters(request)
+        date_from, date_to, company_id = parse_date_filters(request)
 
         # Build filters
         devi_filter = {"date_devis__lte": date_to}
@@ -104,6 +117,12 @@ class RevenueByDocumentTypeView(APIView):
             proforma_filter["date_facture__gte"] = date_from
             facture_filter["date_facture__gte"] = date_from
             bdl_filter["date_bon_livraison__gte"] = date_from
+
+        if company_id:
+            devi_filter["client__company_id"] = company_id
+            proforma_filter["client__company_id"] = company_id
+            facture_filter["client__company_id"] = company_id
+            bdl_filter["client__company_id"] = company_id
 
         devis_total = (
             Devi.objects.filter(**devi_filter).aggregate(
@@ -147,11 +166,13 @@ class PaymentStatusOverviewView(APIView):
 
     @staticmethod
     def get(request):
-        date_from, date_to = parse_date_filters(request)
+        date_from, date_to, company_id = parse_date_filters(request)
 
         facture_filter = {"date_facture__lte": date_to}
         if date_from:
             facture_filter["date_facture__gte"] = date_from
+        if company_id:
+            facture_filter["client__company_id"] = company_id
 
         factures = FactureClient.objects.filter(**facture_filter)
 
@@ -186,7 +207,7 @@ class CollectionRateView(APIView):
 
     @staticmethod
     def get(request):
-        date_from, date_to = parse_date_filters(request)
+        date_from, date_to, company_id = parse_date_filters(request)
 
         facture_filter = {"date_facture__lte": date_to}
         reglement_filter = {"date_reglement__lte": date_to, "statut": "Valide"}
@@ -194,6 +215,10 @@ class CollectionRateView(APIView):
         if date_from:
             facture_filter["date_facture__gte"] = date_from
             reglement_filter["date_reglement__gte"] = date_from
+
+        if company_id:
+            facture_filter["client__company_id"] = company_id
+            reglement_filter["facture_client__client__company_id"] = company_id
 
         total_invoiced = FactureClient.objects.filter(**facture_filter).aggregate(
             total=Sum("total_ttc_apres_remise")
@@ -227,11 +252,13 @@ class TopClientsByRevenueView(APIView):
 
     @staticmethod
     def get(request):
-        date_from, date_to = parse_date_filters(request)
+        date_from, date_to, company_id = parse_date_filters(request)
 
         facture_filter = {"date_facture__lte": date_to}
         if date_from:
             facture_filter["date_facture__gte"] = date_from
+        if company_id:
+            facture_filter["client__company_id"] = company_id
 
         data = (
             FactureClient.objects.filter(**facture_filter)
@@ -263,7 +290,7 @@ class TopProductsByQuantityView(APIView):
 
     @staticmethod
     def get(request):
-        date_from, date_to = parse_date_filters(request)
+        date_from, date_to, company_id = parse_date_filters(request)
 
         # Build date filters for each document type
         devi_filter = {"devis__date_devis__lte": date_to}
@@ -276,6 +303,12 @@ class TopProductsByQuantityView(APIView):
             facture_filter["facture_client__date_facture__gte"] = date_from
             proforma_filter["facture_pro_forma__date_facture__gte"] = date_from
             bdl_filter["bon_de_livraison__date_bon_livraison__gte"] = date_from
+
+        if company_id:
+            devi_filter["devis__client__company_id"] = company_id
+            facture_filter["facture_client__client__company_id"] = company_id
+            proforma_filter["facture_pro_forma__client__company_id"] = company_id
+            bdl_filter["bon_de_livraison__client__company_id"] = company_id
 
         # Aggregate from all document lines
         devi_lines = (
@@ -364,11 +397,13 @@ class QuoteConversionRateView(APIView):
 
     @staticmethod
     def get(request):
-        date_from, date_to = parse_date_filters(request)
+        date_from, date_to, company_id = parse_date_filters(request)
 
         devi_filter = {"date_devis__lte": date_to}
         if date_from:
             devi_filter["date_devis__gte"] = date_from
+        if company_id:
+            devi_filter["client__company_id"] = company_id
 
         data = (
             Devi.objects.filter(**devi_filter)
@@ -388,11 +423,13 @@ class ProductPriceVolumeAnalysisView(APIView):
 
     @staticmethod
     def get(request):
-        date_from, date_to = parse_date_filters(request)
+        date_from, date_to, company_id = parse_date_filters(request)
 
         facture_filter = {"facture_client__date_facture__lte": date_to}
         if date_from:
             facture_filter["facture_client__date_facture__gte"] = date_from
+        if company_id:
+            facture_filter["facture_client__client__company_id"] = company_id
 
         # Get total quantity and average price for each article
         article_data = {}
@@ -436,11 +473,13 @@ class InvoiceStatusDistributionView(APIView):
 
     @staticmethod
     def get(request):
-        date_from, date_to = parse_date_filters(request)
+        date_from, date_to, company_id = parse_date_filters(request)
 
         facture_filter = {"date_facture__lte": date_to}
         if date_from:
             facture_filter["date_facture__gte"] = date_from
+        if company_id:
+            facture_filter["client__company_id"] = company_id
 
         data = (
             FactureClient.objects.filter(**facture_filter)
@@ -460,14 +499,27 @@ class MonthlyDocumentVolumeView(APIView):
 
     @staticmethod
     def get(request):
-        date_from, date_to = parse_date_filters(request)
+        date_from, date_to, company_id = parse_date_filters(request)
 
         # Default to last 12 months if no date_from
         if not date_from:
             date_from = date_to - timedelta(days=365)
 
+        devis_query = Devi.objects.filter(date_devis__gte=date_from, date_devis__lte=date_to)
+        facture_query = FactureClient.objects.filter(
+            date_facture__gte=date_from, date_facture__lte=date_to
+        )
+        bdl_query = BonDeLivraison.objects.filter(
+            date_bon_livraison__gte=date_from, date_bon_livraison__lte=date_to
+        )
+
+        if company_id:
+            devis_query = devis_query.filter(client__company_id=company_id)
+            facture_query = facture_query.filter(client__company_id=company_id)
+            bdl_query = bdl_query.filter(client__company_id=company_id)
+
         devis_data = (
-            Devi.objects.filter(date_devis__gte=date_from, date_devis__lte=date_to)
+            devis_query
             .annotate(month=TruncMonth("date_devis"))
             .values("month")
             .annotate(count=Count("id"))
@@ -475,9 +527,7 @@ class MonthlyDocumentVolumeView(APIView):
         )
 
         facture_data = (
-            FactureClient.objects.filter(
-                date_facture__gte=date_from, date_facture__lte=date_to
-            )
+            facture_query
             .annotate(month=TruncMonth("date_facture"))
             .values("month")
             .annotate(count=Count("id"))
@@ -485,9 +535,7 @@ class MonthlyDocumentVolumeView(APIView):
         )
 
         bdl_data = (
-            BonDeLivraison.objects.filter(
-                date_bon_livraison__gte=date_from, date_bon_livraison__lte=date_to
-            )
+            bdl_query
             .annotate(month=TruncMonth("date_bon_livraison"))
             .values("month")
             .annotate(count=Count("id"))
@@ -545,17 +593,29 @@ class PaymentTimelineView(APIView):
 
     @staticmethod
     def get(request):
-        date_from, date_to = parse_date_filters(request)
+        date_from, date_to, company_id = parse_date_filters(request)
 
         # Default to last 30 days if no date_from
         if not date_from:
             date_from = date_to - timedelta(days=30)
 
+        # Build queries
+        invoice_query = FactureClient.objects.filter(
+            date_facture__gte=date_from, date_facture__lte=date_to
+        )
+        payment_query = Reglement.objects.filter(
+            date_reglement__gte=date_from,
+            date_reglement__lte=date_to,
+            statut="Valide",
+        )
+
+        if company_id:
+            invoice_query = invoice_query.filter(client__company_id=company_id)
+            payment_query = payment_query.filter(facture_client__client__company_id=company_id)
+
         # Invoices by date
         invoice_data = (
-            FactureClient.objects.filter(
-                date_facture__gte=date_from, date_facture__lte=date_to
-            )
+            invoice_query
             .annotate(date=TruncDate("date_facture"))
             .values("date")
             .annotate(amount=Sum("total_ttc_apres_remise"))
@@ -564,11 +624,7 @@ class PaymentTimelineView(APIView):
 
         # Payments by date
         payment_data = (
-            Reglement.objects.filter(
-                date_reglement__gte=date_from,
-                date_reglement__lte=date_to,
-                statut="Valide",
-            )
+            payment_query
             .annotate(date=TruncDate("date_reglement"))
             .values("date")
             .annotate(amount=Sum("montant"))
@@ -602,11 +658,13 @@ class OverdueReceivablesView(APIView):
 
     @staticmethod
     def get(request):
-        date_from, date_to = parse_date_filters(request)
+        date_from, date_to, company_id = parse_date_filters(request)
 
         facture_filter = {"date_facture__lte": date_to}
         if date_from:
             facture_filter["date_facture__gte"] = date_from
+        if company_id:
+            facture_filter["client__company_id"] = company_id
 
         factures = FactureClient.objects.filter(**facture_filter)
 
@@ -656,11 +714,13 @@ class PaymentDelayByClientView(APIView):
 
     @staticmethod
     def get(request):
-        date_from, date_to = parse_date_filters(request)
+        date_from, date_to, company_id = parse_date_filters(request)
 
         reglement_filter = {"statut": "Valide", "date_reglement__lte": date_to}
         if date_from:
             reglement_filter["date_reglement__gte"] = date_from
+        if company_id:
+            reglement_filter["facture_client__client__company_id"] = company_id
 
         clients_data = {}
 
@@ -715,11 +775,13 @@ class ClientMultidimensionalProfileView(APIView):
 
     @staticmethod
     def get(request):
-        date_from, date_to = parse_date_filters(request)
+        date_from, date_to, company_id = parse_date_filters(request)
 
         facture_filter = {"date_facture__lte": date_to}
         if date_from:
             facture_filter["date_facture__gte"] = date_from
+        if company_id:
+            facture_filter["client__company_id"] = company_id
 
         # Get top 5 clients by revenue
         top_clients = (
@@ -813,7 +875,7 @@ class KPICardsWithTrendsView(APIView):
 
     @staticmethod
     def get(request):
-        date_from, date_to = parse_date_filters(request)
+        date_from, date_to, company_id = parse_date_filters(request)
 
         today = timezone.now()
         seven_days_before_date_to = date_to - timedelta(days=7)
@@ -827,17 +889,24 @@ class KPICardsWithTrendsView(APIView):
                 day=1, hour=0, minute=0, second=0, microsecond=0
             ).date()
 
+        current_month_query = FactureClient.objects.filter(
+            date_facture__gte=current_period_start, date_facture__lte=date_to
+        )
+        daily_revenue_query = FactureClient.objects.filter(
+            date_facture__gte=seven_days_before_date_to, date_facture__lte=date_to
+        )
+
+        if company_id:
+            current_month_query = current_month_query.filter(client__company_id=company_id)
+            daily_revenue_query = daily_revenue_query.filter(client__company_id=company_id)
+
         current_month_revenue = (
-            FactureClient.objects.filter(
-                date_facture__gte=current_period_start, date_facture__lte=date_to
-            ).aggregate(total=Sum("total_ttc_apres_remise"))["total"]
+            current_month_query.aggregate(total=Sum("total_ttc_apres_remise"))["total"]
             or 0
         )
 
         daily_revenue = (
-            FactureClient.objects.filter(
-                date_facture__gte=seven_days_before_date_to, date_facture__lte=date_to
-            )
+            daily_revenue_query
             .annotate(date=TruncDate("date_facture"))
             .values("date")
             .annotate(amount=Sum("total_ttc_apres_remise"))
@@ -850,6 +919,8 @@ class KPICardsWithTrendsView(APIView):
         facture_filter = {"date_facture__lte": date_to}
         if date_from:
             facture_filter["date_facture__gte"] = date_from
+        if company_id:
+            facture_filter["client__company_id"] = company_id
 
         factures = FactureClient.objects.filter(**facture_filter)
         outstanding_current = Decimal("0")
@@ -904,7 +975,7 @@ class MonthlyObjectivesView(APIView):
 
     @staticmethod
     def get(request):
-        date_from, date_to = parse_date_filters(request)
+        date_from, date_to, company_id = parse_date_filters(request)
 
         # Use date range or default to current month
         if date_from:
@@ -923,6 +994,10 @@ class MonthlyObjectivesView(APIView):
             "date_devis__gte": current_period_start,
             "date_devis__lte": date_to,
         }
+
+        if company_id:
+            facture_filter["client__company_id"] = company_id
+            devi_filter["client__company_id"] = company_id
 
         current_revenue = (
             FactureClient.objects.filter(**facture_filter).aggregate(
@@ -988,11 +1063,13 @@ class DiscountImpactAnalysisView(APIView):
 
     @staticmethod
     def get(request):
-        date_from, date_to = parse_date_filters(request)
+        date_from, date_to, company_id = parse_date_filters(request)
 
         facture_filter = {"date_facture__lte": date_to}
         if date_from:
             facture_filter["date_facture__gte"] = date_from
+        if company_id:
+            facture_filter["client__company_id"] = company_id
 
         # Get all documents with remise data
         result = []
@@ -1018,11 +1095,13 @@ class ProductMarginVolumeView(APIView):
 
     @staticmethod
     def get(request):
-        date_from, date_to = parse_date_filters(request)
+        date_from, date_to, company_id = parse_date_filters(request)
 
         facture_filter = {"facture_client__date_facture__lte": date_to}
         if date_from:
             facture_filter["facture_client__date_facture__gte"] = date_from
+        if company_id:
+            facture_filter["facture_client__client__company_id"] = company_id
 
         article_data = {}
 
@@ -1067,7 +1146,7 @@ class MonthlyGlobalPerformanceView(APIView):
 
     @staticmethod
     def get(request):
-        date_from, date_to = parse_date_filters(request)
+        date_from, date_to, company_id = parse_date_filters(request)
 
         today = timezone.now()
 
@@ -1094,71 +1173,87 @@ class MonthlyGlobalPerformanceView(APIView):
                 previous_start = current_start.replace(month=current_start.month - 1)
             previous_end = current_start - timedelta(days=1)
 
+        # Build queries with company filter
+        current_facture_query = FactureClient.objects.filter(
+            date_facture__gte=current_start, date_facture__lte=current_end
+        )
+        current_devi_query = Devi.objects.filter(
+            date_devis__gte=current_start, date_devis__lte=current_end
+        )
+        current_reglement_query = Reglement.objects.filter(
+            date_reglement__gte=current_start,
+            date_reglement__lte=current_end,
+            statut="Valide",
+        )
+        current_client_query = Client.objects.filter(
+            date_created__gte=current_start, date_created__lte=current_end
+        )
+
+        previous_facture_query = FactureClient.objects.filter(
+            date_facture__gte=previous_start, date_facture__lte=previous_end
+        )
+        previous_devi_query = Devi.objects.filter(
+            date_devis__gte=previous_start, date_devis__lte=previous_end
+        )
+        previous_reglement_query = Reglement.objects.filter(
+            date_reglement__gte=previous_start,
+            date_reglement__lte=previous_end,
+            statut="Valide",
+        )
+        previous_client_query = Client.objects.filter(
+            date_created__gte=previous_start, date_created__lte=previous_end
+        )
+
+        if company_id:
+            current_facture_query = current_facture_query.filter(client__company_id=company_id)
+            current_devi_query = current_devi_query.filter(client__company_id=company_id)
+            current_reglement_query = current_reglement_query.filter(facture_client__client__company_id=company_id)
+            current_client_query = current_client_query.filter(company_id=company_id)
+
+            previous_facture_query = previous_facture_query.filter(client__company_id=company_id)
+            previous_devi_query = previous_devi_query.filter(client__company_id=company_id)
+            previous_reglement_query = previous_reglement_query.filter(facture_client__client__company_id=company_id)
+            previous_client_query = previous_client_query.filter(company_id=company_id)
+
         # Current period metrics
         current_revenue = (
-            FactureClient.objects.filter(
-                date_facture__gte=current_start, date_facture__lte=current_end
-            ).aggregate(total=Sum("total_ttc_apres_remise"))["total"]
+            current_facture_query.aggregate(total=Sum("total_ttc_apres_remise"))["total"]
             or 0
         )
 
-        current_quotes = Devi.objects.filter(
-            date_devis__gte=current_start, date_devis__lte=current_end
-        ).count()
+        current_quotes = current_devi_query.count()
 
-        current_accepted = Devi.objects.filter(
-            date_devis__gte=current_start, date_devis__lte=current_end, statut="Accepté"
-        ).count()
+        current_accepted = current_devi_query.filter(statut="Accepté").count()
         current_conversion = (
             (current_accepted / current_quotes * 100) if current_quotes > 0 else 0
         )
 
         current_collected = (
-            Reglement.objects.filter(
-                date_reglement__gte=current_start,
-                date_reglement__lte=current_end,
-                statut="Valide",
-            ).aggregate(total=Sum("montant"))["total"]
+            current_reglement_query.aggregate(total=Sum("montant"))["total"]
             or 0
         )
 
-        current_new_clients = Client.objects.filter(
-            date_created__gte=current_start, date_created__lte=current_end
-        ).count()
+        current_new_clients = current_client_query.count()
 
         # Previous period metrics
         previous_revenue = (
-            FactureClient.objects.filter(
-                date_facture__gte=previous_start, date_facture__lte=previous_end
-            ).aggregate(total=Sum("total_ttc_apres_remise"))["total"]
+            previous_facture_query.aggregate(total=Sum("total_ttc_apres_remise"))["total"]
             or 0
         )
 
-        previous_quotes = Devi.objects.filter(
-            date_devis__gte=previous_start, date_devis__lte=previous_end
-        ).count()
+        previous_quotes = previous_devi_query.count()
 
-        previous_accepted = Devi.objects.filter(
-            date_devis__gte=previous_start,
-            date_devis__lte=previous_end,
-            statut="Accepté",
-        ).count()
+        previous_accepted = previous_devi_query.filter(statut="Accepté").count()
         previous_conversion = (
             (previous_accepted / previous_quotes * 100) if previous_quotes > 0 else 0
         )
 
         previous_collected = (
-            Reglement.objects.filter(
-                date_reglement__gte=previous_start,
-                date_reglement__lte=previous_end,
-                statut="Valide",
-            ).aggregate(total=Sum("montant"))["total"]
+            previous_reglement_query.aggregate(total=Sum("montant"))["total"]
             or 0
         )
 
-        previous_new_clients = Client.objects.filter(
-            date_created__gte=previous_start, date_created__lte=previous_end
-        ).count()
+        previous_new_clients = previous_client_query.count()
 
         result = {
             "current": {
@@ -1187,17 +1282,33 @@ class SectionMicroTrendsView(APIView):
 
     @staticmethod
     def get(request):
-        date_from, date_to = parse_date_filters(request)
+        date_from, date_to, company_id = parse_date_filters(request)
 
         # Default to last 30 days if no date_from
         if not date_from:
             date_from = date_to - timedelta(days=30)
 
+        # Build queries
+        financial_query = FactureClient.objects.filter(
+            date_facture__gte=date_from, date_facture__lte=date_to
+        )
+        commercial_query = Devi.objects.filter(date_devis__gte=date_from, date_devis__lte=date_to)
+        operational_query = FactureClient.objects.filter(
+            date_created__gte=date_from, date_created__lte=date_to
+        )
+        cashflow_query = Reglement.objects.filter(
+            date_reglement__gte=date_from, date_reglement__lte=date_to, statut="Valide"
+        )
+
+        if company_id:
+            financial_query = financial_query.filter(client__company_id=company_id)
+            commercial_query = commercial_query.filter(client__company_id=company_id)
+            operational_query = operational_query.filter(client__company_id=company_id)
+            cashflow_query = cashflow_query.filter(facture_client__client__company_id=company_id)
+
         # Financial section trend
         financial_trend = (
-            FactureClient.objects.filter(
-                date_facture__gte=date_from, date_facture__lte=date_to
-            )
+            financial_query
             .annotate(date=TruncDate("date_facture"))
             .values("date")
             .annotate(amount=Sum("total_ttc_apres_remise"))
@@ -1206,7 +1317,7 @@ class SectionMicroTrendsView(APIView):
 
         # Commercial section trend (quotes created)
         commercial_trend = (
-            Devi.objects.filter(date_devis__gte=date_from, date_devis__lte=date_to)
+            commercial_query
             .annotate(date=TruncDate("date_devis"))
             .values("date")
             .annotate(count=Count("id"))
@@ -1215,9 +1326,7 @@ class SectionMicroTrendsView(APIView):
 
         # Operational section trend (invoices created)
         operational_trend = (
-            FactureClient.objects.filter(
-                date_created__gte=date_from, date_created__lte=date_to
-            )
+            operational_query
             .annotate(date=TruncDate("date_created"))
             .values("date")
             .annotate(count=Count("id"))
@@ -1226,9 +1335,7 @@ class SectionMicroTrendsView(APIView):
 
         # Cash flow section trend (payments)
         cashflow_trend = (
-            Reglement.objects.filter(
-                date_reglement__gte=date_from, date_reglement__lte=date_to, statut="Valide"
-            )
+            cashflow_query
             .annotate(date=TruncDate("date_reglement"))
             .values("date")
             .annotate(amount=Sum("montant"))
