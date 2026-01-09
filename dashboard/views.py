@@ -1,4 +1,4 @@
-from datetime import timedelta, datetime
+from datetime import timedelta, datetime, time
 from decimal import Decimal
 
 from django.db.models import Sum, Count, F, Avg
@@ -14,6 +14,20 @@ from devi.models import Devi, DeviLine
 from facture_client.models import FactureClient, FactureClientLine
 from facture_proforma.models import FactureProForma, FactureProFormaLine
 from reglement.models import Reglement
+
+
+def make_aware_datetime_start(d):
+    """Convert a date to timezone-aware datetime at start of day."""
+    if d is None:
+        return None
+    return timezone.make_aware(datetime.combine(d, time.min))
+
+
+def make_aware_datetime_end(d):
+    """Convert a date to timezone-aware datetime at end of day."""
+    if d is None:
+        return None
+    return timezone.make_aware(datetime.combine(d, time.max))
 
 
 def parse_date_filters(request):
@@ -1185,8 +1199,10 @@ class MonthlyGlobalPerformanceView(APIView):
             date_reglement__lte=current_end,
             statut="Valide",
         )
+        # Use timezone-aware datetimes for DateTimeField
         current_client_query = Client.objects.filter(
-            date_created__gte=current_start, date_created__lte=current_end
+            date_created__gte=make_aware_datetime_start(current_start),
+            date_created__lte=make_aware_datetime_end(current_end),
         )
 
         previous_facture_query = FactureClient.objects.filter(
@@ -1200,8 +1216,10 @@ class MonthlyGlobalPerformanceView(APIView):
             date_reglement__lte=previous_end,
             statut="Valide",
         )
+        # Use timezone-aware datetimes for DateTimeField
         previous_client_query = Client.objects.filter(
-            date_created__gte=previous_start, date_created__lte=previous_end
+            date_created__gte=make_aware_datetime_start(previous_start),
+            date_created__lte=make_aware_datetime_end(previous_end),
         )
 
         if company_id:
@@ -1293,8 +1311,10 @@ class SectionMicroTrendsView(APIView):
             date_facture__gte=date_from, date_facture__lte=date_to
         )
         commercial_query = Devi.objects.filter(date_devis__gte=date_from, date_devis__lte=date_to)
+        # Use timezone-aware datetimes for DateTimeField
         operational_query = FactureClient.objects.filter(
-            date_created__gte=date_from, date_created__lte=date_to
+            date_created__gte=make_aware_datetime_start(date_from),
+            date_created__lte=make_aware_datetime_end(date_to),
         )
         cashflow_query = Reglement.objects.filter(
             date_reglement__gte=date_from, date_reglement__lte=date_to, statut="Valide"

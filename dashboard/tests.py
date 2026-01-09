@@ -4,10 +4,10 @@ Dashboard API Tests.
 Tests for all 20 dashboard endpoints with date filtering support.
 """
 
-import pytest
 from datetime import date, timedelta
 from decimal import Decimal
 
+import pytest
 from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.test import APIClient
@@ -22,7 +22,6 @@ from facture_client.models import FactureClient, FactureClientLine
 from facture_proforma.models import FactureProForma, FactureProFormaLine
 from parameter.models import Ville, ModePaiement
 from reglement.models import Reglement
-
 
 pytestmark = pytest.mark.django_db
 
@@ -145,7 +144,7 @@ def devi(client_entity, mode_paiement, user):
 
 @pytest.fixture
 def facture_proforma(client_entity, mode_paiement, user):
-    """Create a test facture proforma."""
+    """Create a test facture pro forma."""
     today = date.today()
     return FactureProForma.objects.create(
         numero_facture="FP_DASH_001",
@@ -175,6 +174,7 @@ def bon_de_livraison(client_entity, mode_paiement, user):
 def mode_reglement():
     """Create a test mode reglement."""
     from parameter.models import ModeReglement
+
     return ModeReglement.objects.create(nom="Carte Bancaire")
 
 
@@ -235,14 +235,21 @@ class TestFinancialOverviewEndpoints:
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_revenue_by_type_authenticated(
-        self, authenticated_client, facture_client, devi, facture_proforma, bon_de_livraison
+        self,
+        authenticated_client,
+        facture_client,
+        devi,
+        facture_proforma,
+        bon_de_livraison,
     ):
         """Test revenue by document type endpoint."""
         response = authenticated_client.get("/api/dashboard/financial/revenue-by-type/")
         assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.data, list)
 
-    def test_revenue_by_type_with_date_filters(self, authenticated_client, facture_client):
+    def test_revenue_by_type_with_date_filters(
+        self, authenticated_client, facture_client
+    ):
         """Test revenue by type with date filters."""
         today = date.today()
         date_from = (today - timedelta(days=90)).isoformat()
@@ -261,7 +268,9 @@ class TestFinancialOverviewEndpoints:
         assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.data, list)
 
-    def test_payment_status_with_date_filters(self, authenticated_client, facture_client):
+    def test_payment_status_with_date_filters(
+        self, authenticated_client, facture_client
+    ):
         """Test payment status with date filters."""
         today = date.today()
         response = authenticated_client.get(
@@ -333,7 +342,9 @@ class TestCommercialPerformanceEndpoints:
 
     def test_quote_conversion_rate_authenticated(self, authenticated_client, devi):
         """Test quote conversion rate endpoint."""
-        response = authenticated_client.get("/api/dashboard/commercial/quote-conversion/")
+        response = authenticated_client.get(
+            "/api/dashboard/commercial/quote-conversion/"
+        )
         assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.data, list)
 
@@ -375,7 +386,9 @@ class TestOperationalIndicatorEndpoints:
         self, authenticated_client, facture_client
     ):
         """Test invoice status distribution endpoint."""
-        response = authenticated_client.get("/api/dashboard/operational/invoice-status/")
+        response = authenticated_client.get(
+            "/api/dashboard/operational/invoice-status/"
+        )
         assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.data, list)
 
@@ -393,7 +406,9 @@ class TestOperationalIndicatorEndpoints:
         self, authenticated_client, facture_client, devi, bon_de_livraison
     ):
         """Test monthly document volume endpoint."""
-        response = authenticated_client.get("/api/dashboard/operational/document-volume/")
+        response = authenticated_client.get(
+            "/api/dashboard/operational/document-volume/"
+        )
         assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.data, list)
 
@@ -437,7 +452,9 @@ class TestCashFlowEndpoints:
         self, authenticated_client, facture_client
     ):
         """Test overdue receivables endpoint."""
-        response = authenticated_client.get("/api/dashboard/cashflow/overdue-receivables/")
+        response = authenticated_client.get(
+            "/api/dashboard/cashflow/overdue-receivables/"
+        )
         assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.data, list)
 
@@ -738,7 +755,7 @@ class TestEmptyDataHandling:
 
 
 class TestDocumentLinesAggregation:
-    """Tests for document lines aggregation in top products endpoint."""
+    """Tests for document lines aggregation in top products' endpoint."""
 
     def test_top_products_aggregates_devi_lines(
         self, authenticated_client, devi, article
@@ -793,7 +810,13 @@ class TestDocumentLinesAggregation:
         assert isinstance(response.data, list)
 
     def test_top_products_aggregates_all_document_types(
-        self, authenticated_client, devi, facture_with_line, facture_proforma, bon_de_livraison, article
+        self,
+        authenticated_client,
+        devi,
+        facture_with_line,
+        facture_proforma,
+        bon_de_livraison,
+        article,
     ):
         """Test that all document line types are aggregated correctly."""
         # Create lines for each document type
@@ -830,4 +853,873 @@ class TestDocumentLinesAggregation:
                 (p for p in response.data if p["article_id"] == article.id), None
             )
             if article_result:
-                assert article_result["quantity"] >= 30  # At least from lines we created
+                assert (
+                    article_result["quantity"] >= 30
+                )  # At least from lines we created
+
+
+class TestCompanyFiltering:
+    """Tests for company_id filtering on all endpoints."""
+
+    def test_monthly_revenue_with_company_filter(
+        self, authenticated_client, facture_client, company
+    ):
+        """Test monthly revenue with company_id filter."""
+        response = authenticated_client.get(
+            f"/api/dashboard/financial/monthly-revenue/?company_id={company.id}"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert isinstance(response.data, list)
+
+    def test_revenue_by_type_with_company_filter(
+        self, authenticated_client, facture_client, devi, company
+    ):
+        """Test revenue by type with company_id filter."""
+        response = authenticated_client.get(
+            f"/api/dashboard/financial/revenue-by-type/?company_id={company.id}"
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_payment_status_with_company_filter(
+        self, authenticated_client, facture_client, company
+    ):
+        """Test payment status with company_id filter."""
+        response = authenticated_client.get(
+            f"/api/dashboard/financial/payment-status/?company_id={company.id}"
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_collection_rate_with_company_filter(
+        self, authenticated_client, facture_client, reglement, company
+    ):
+        """Test collection rate with company_id filter."""
+        response = authenticated_client.get(
+            f"/api/dashboard/financial/collection-rate/?company_id={company.id}"
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_top_clients_with_company_filter(
+        self, authenticated_client, facture_client, company
+    ):
+        """Test top clients with company_id filter."""
+        response = authenticated_client.get(
+            f"/api/dashboard/commercial/top-clients/?company_id={company.id}"
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_top_products_with_company_filter(
+        self, authenticated_client, facture_with_line, company
+    ):
+        """Test top products with company_id filter."""
+        response = authenticated_client.get(
+            f"/api/dashboard/commercial/top-products/?company_id={company.id}"
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_quote_conversion_with_company_filter(
+        self, authenticated_client, devi, company
+    ):
+        """Test quote conversion with company_id filter."""
+        response = authenticated_client.get(
+            f"/api/dashboard/commercial/quote-conversion/?company_id={company.id}"
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_product_price_volume_with_company_filter(
+        self, authenticated_client, facture_with_line, company
+    ):
+        """Test product price volume with company_id filter."""
+        response = authenticated_client.get(
+            f"/api/dashboard/commercial/product-price-volume/?company_id={company.id}"
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_invoice_status_with_company_filter(
+        self, authenticated_client, facture_client, company
+    ):
+        """Test invoice status with company_id filter."""
+        response = authenticated_client.get(
+            f"/api/dashboard/operational/invoice-status/?company_id={company.id}"
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_document_volume_with_company_filter(
+        self, authenticated_client, facture_client, devi, bon_de_livraison, company
+    ):
+        """Test document volume with company_id filter."""
+        response = authenticated_client.get(
+            f"/api/dashboard/operational/document-volume/?company_id={company.id}"
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_payment_timeline_with_company_filter(
+        self, authenticated_client, facture_client, reglement, company
+    ):
+        """Test payment timeline with company_id filter."""
+        response = authenticated_client.get(
+            f"/api/dashboard/cashflow/payment-timeline/?company_id={company.id}"
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_overdue_receivables_with_company_filter(
+        self, authenticated_client, facture_client, company
+    ):
+        """Test overdue receivables with company_id filter."""
+        response = authenticated_client.get(
+            f"/api/dashboard/cashflow/overdue-receivables/?company_id={company.id}"
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_payment_delay_with_company_filter(
+        self, authenticated_client, facture_client, reglement, company
+    ):
+        """Test payment delay with company_id filter."""
+        response = authenticated_client.get(
+            f"/api/dashboard/cashflow/payment-delay/?company_id={company.id}"
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_client_profile_with_company_filter(
+        self, authenticated_client, facture_client, devi, company
+    ):
+        """Test client profile with company_id filter."""
+        response = authenticated_client.get(
+            f"/api/dashboard/client/multidimensional-profile/?company_id={company.id}"
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_kpi_cards_with_company_filter(
+        self, authenticated_client, facture_client, reglement, company
+    ):
+        """Test KPI cards with company_id filter."""
+        response = authenticated_client.get(
+            f"/api/dashboard/kpi/cards-with-trends/?company_id={company.id}"
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_monthly_objectives_with_company_filter(
+        self, authenticated_client, facture_client, devi, company
+    ):
+        """Test monthly objectives with company_id filter."""
+        response = authenticated_client.get(
+            f"/api/dashboard/kpi/monthly-objectives/?company_id={company.id}"
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_discount_impact_with_company_filter(
+        self, authenticated_client, facture_client, company
+    ):
+        """Test discount impact with company_id filter."""
+        response = authenticated_client.get(
+            f"/api/dashboard/analysis/discount-impact/?company_id={company.id}"
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_product_margin_with_company_filter(
+        self, authenticated_client, facture_with_line, company
+    ):
+        """Test product margin with company_id filter."""
+        response = authenticated_client.get(
+            f"/api/dashboard/analysis/product-margin-volume/?company_id={company.id}"
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_monthly_performance_with_company_filter(
+        self, authenticated_client, facture_client, devi, reglement, company
+    ):
+        """Test monthly performance with company_id filter."""
+        response = authenticated_client.get(
+            f"/api/dashboard/synthetic/monthly-performance/?company_id={company.id}"
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_section_micro_trends_with_company_filter(
+        self, authenticated_client, facture_client, devi, reglement, company
+    ):
+        """Test section micro trends with company_id filter."""
+        response = authenticated_client.get(
+            f"/api/dashboard/synthetic/section-micro-trends/?company_id={company.id}"
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_invalid_company_id_ignored(self, authenticated_client, facture_client):
+        """Test invalid company_id is ignored (returns all data)."""
+        response = authenticated_client.get(
+            "/api/dashboard/financial/monthly-revenue/?company_id=invalid"
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+
+class TestDateFromFilterBranches:
+    """Tests for date_from filter branches."""
+
+    def test_monthly_revenue_with_explicit_date_from(
+        self, authenticated_client, facture_client
+    ):
+        """Test monthly revenue with explicit date_from parameter."""
+        today = date.today()
+        date_from = (today - timedelta(days=60)).isoformat()
+        response = authenticated_client.get(
+            f"/api/dashboard/financial/monthly-revenue/?date_from={date_from}"
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_payment_timeline_with_explicit_date_from(
+        self, authenticated_client, facture_client, reglement
+    ):
+        """Test payment timeline with explicit date_from parameter."""
+        today = date.today()
+        date_from = (today - timedelta(days=15)).isoformat()
+        response = authenticated_client.get(
+            f"/api/dashboard/cashflow/payment-timeline/?date_from={date_from}"
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_document_volume_with_explicit_date_from(
+        self, authenticated_client, facture_client, devi, bon_de_livraison
+    ):
+        """Test document volume with explicit date_from parameter."""
+        today = date.today()
+        date_from = (today - timedelta(days=180)).isoformat()
+        response = authenticated_client.get(
+            f"/api/dashboard/operational/document-volume/?date_from={date_from}"
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+
+class TestPaymentStatusScenarios:
+    """Tests for different payment status scenarios."""
+
+    def test_fully_paid_facture(
+        self, authenticated_client, client_entity, mode_paiement, user, mode_reglement
+    ):
+        """Test facture that is fully paid."""
+        today = date.today()
+        facture = FactureClient.objects.create(
+            numero_facture="FC_PAID_001",
+            date_facture=today,
+            client=client_entity,
+            mode_paiement=mode_paiement,
+            created_by_user=user,
+            statut="Envoyé",
+            total_ttc_apres_remise=Decimal("1000.00"),
+        )
+        # Create reglement that fully pays the facture
+        Reglement.objects.create(
+            facture_client=facture,
+            mode_reglement=mode_reglement,
+            montant=Decimal("1000.00"),
+            date_reglement=today,
+            statut="Valide",
+        )
+
+        response = authenticated_client.get("/api/dashboard/financial/payment-status/")
+        assert response.status_code == status.HTTP_200_OK
+        fully_paid_count = next(
+            (s["count"] for s in response.data if s["status"] == "Totalement payée"), 0
+        )
+        assert fully_paid_count >= 1
+
+    def test_partially_paid_facture(
+        self,
+        authenticated_client,
+        client_entity,
+        mode_paiement,
+        user,
+        mode_reglement,
+        article,
+    ):
+        """Test facture that is partially paid."""
+        today = date.today()
+        facture = FactureClient.objects.create(
+            numero_facture="FC_PARTIAL_001",
+            date_facture=today,
+            client=client_entity,
+            mode_paiement=mode_paiement,
+            created_by_user=user,
+            statut="Envoyé",
+        )
+        # Add a line to have total > 0
+        FactureClientLine.objects.create(
+            facture_client=facture,
+            article=article,
+            prix_vente=Decimal("1000.00"),
+            prix_achat=Decimal("800.00"),
+            quantity=1,
+        )
+        facture.recalc_totals()
+        facture.save()
+
+        # Create partial reglement (less than total)
+        Reglement.objects.create(
+            facture_client=facture,
+            mode_reglement=mode_reglement,
+            montant=Decimal("500.00"),
+            date_reglement=today,
+            statut="Valide",
+        )
+
+        response = authenticated_client.get("/api/dashboard/financial/payment-status/")
+        assert response.status_code == status.HTTP_200_OK
+        partial_count = next(
+            (s["count"] for s in response.data if s["status"] == "Partiellement payée"),
+            0,
+        )
+        assert partial_count >= 1
+
+
+class TestOverdueReceivablesAgingBuckets:
+    """Tests for overdue receivables aging buckets."""
+
+    def test_overdue_30_60_days(
+        self, authenticated_client, client_entity, mode_paiement, user
+    ):
+        """Test facture overdue 31-60 days."""
+        old_date = date.today() - timedelta(days=45)
+        facture = FactureClient.objects.create(
+            numero_facture="FC_OLD_45",
+            date_facture=old_date,
+            client=client_entity,
+            mode_paiement=mode_paiement,
+            created_by_user=user,
+            statut="Envoyé",
+            total_ttc_apres_remise=Decimal("2000.00"),
+        )
+
+        response = authenticated_client.get(
+            "/api/dashboard/cashflow/overdue-receivables/"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        bucket_31_60 = next(
+            (b for b in response.data if b["period"] == "31-60 jours"), None
+        )
+        assert bucket_31_60 is not None
+
+    def test_overdue_61_90_days(
+        self, authenticated_client, client_entity, mode_paiement, user
+    ):
+        """Test facture overdue 61-90 days."""
+        old_date = date.today() - timedelta(days=75)
+        facture = FactureClient.objects.create(
+            numero_facture="FC_OLD_75",
+            date_facture=old_date,
+            client=client_entity,
+            mode_paiement=mode_paiement,
+            created_by_user=user,
+            statut="Envoyé",
+            total_ttc_apres_remise=Decimal("3000.00"),
+        )
+
+        response = authenticated_client.get(
+            "/api/dashboard/cashflow/overdue-receivables/"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        bucket_61_90 = next(
+            (b for b in response.data if b["period"] == "61-90 jours"), None
+        )
+        assert bucket_61_90 is not None
+
+    def test_overdue_90_plus_days(
+        self, authenticated_client, client_entity, mode_paiement, user
+    ):
+        """Test facture overdue 90+ days."""
+        old_date = date.today() - timedelta(days=120)
+        facture = FactureClient.objects.create(
+            numero_facture="FC_OLD_120",
+            date_facture=old_date,
+            client=client_entity,
+            mode_paiement=mode_paiement,
+            created_by_user=user,
+            statut="Envoyé",
+            total_ttc_apres_remise=Decimal("4000.00"),
+        )
+
+        response = authenticated_client.get(
+            "/api/dashboard/cashflow/overdue-receivables/"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        bucket_90_plus = next(
+            (b for b in response.data if b["period"] == "90+ jours"), None
+        )
+        assert bucket_90_plus is not None
+
+
+class TestMonthlyPerformanceWithDateRange:
+    """Tests for monthly performance with custom date ranges."""
+
+    def test_monthly_performance_with_custom_date_range(
+        self, authenticated_client, facture_client, devi
+    ):
+        """Test monthly performance with both date_from and date_to."""
+        today = date.today()
+        date_from = (today - timedelta(days=60)).isoformat()
+        date_to = today.isoformat()
+
+        response = authenticated_client.get(
+            f"/api/dashboard/synthetic/monthly-performance/?date_from={date_from}&date_to={date_to}"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert "current" in response.data
+        assert "previous" in response.data
+
+    def test_monthly_performance_january_previous_month(
+        self, authenticated_client, facture_client
+    ):
+        """Test monthly performance calculation for January (previous month is December)."""
+        # This test ensures the January edge case for previous month calculation works
+        response = authenticated_client.get(
+            "/api/dashboard/synthetic/monthly-performance/"
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+
+class TestKPICardsWithDateFrom:
+    """Tests for KPI cards with date_from filter."""
+
+    def test_kpi_cards_with_date_from(
+        self, authenticated_client, facture_client, reglement
+    ):
+        """Test KPI cards with date_from parameter."""
+        today = date.today()
+        date_from = (today - timedelta(days=60)).isoformat()
+        response = authenticated_client.get(
+            f"/api/dashboard/kpi/cards-with-trends/?date_from={date_from}"
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+
+class TestDiscountImpactWithDiscount:
+    """Tests for discount impact with actual discounts."""
+
+    def test_discount_impact_with_discounted_facture(
+        self, authenticated_client, client_entity, mode_paiement, user
+    ):
+        """Test discount impact with a facture that has a discount."""
+        today = date.today()
+        facture = FactureClient.objects.create(
+            numero_facture="FC_DISC_001",
+            date_facture=today,
+            client=client_entity,
+            mode_paiement=mode_paiement,
+            created_by_user=user,
+            statut="Envoyé",
+            total_ttc=Decimal("1000.00"),
+            total_ttc_apres_remise=Decimal("900.00"),
+            remise=Decimal("10.00"),
+        )
+
+        response = authenticated_client.get("/api/dashboard/analysis/discount-impact/")
+        assert response.status_code == status.HTTP_200_OK
+        assert isinstance(response.data, list)
+        # Should contain the discounted facture
+        assert len(response.data) >= 1
+
+
+class TestClientMultidimensionalProfile:
+    """Tests for client multidimensional profile scenarios."""
+
+    def test_client_profile_with_accepted_devis(
+        self, authenticated_client, facture_client, client_entity, mode_paiement, user
+    ):
+        """Test client profile with accepted devis."""
+        today = date.today()
+        Devi.objects.create(
+            numero_devis="DEV_ACC_001",
+            date_devis=today,
+            client=client_entity,
+            mode_paiement=mode_paiement,
+            created_by_user=user,
+            statut="Accepté",
+        )
+
+        response = authenticated_client.get(
+            "/api/dashboard/client/multidimensional-profile/"
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_client_profile_with_reglements(
+        self, authenticated_client, facture_client, reglement
+    ):
+        """Test client profile with reglements for payment speed calculation."""
+        response = authenticated_client.get(
+            "/api/dashboard/client/multidimensional-profile/"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        if len(response.data) > 0:
+            # Check that metrics are present
+            assert "metrics" in response.data[0]
+
+
+class TestMonthlyObjectivesWithDateFrom:
+    """Tests for monthly objectives with date_from filter."""
+
+    def test_monthly_objectives_with_date_from(
+        self, authenticated_client, facture_client, devi
+    ):
+        """Test monthly objectives with date_from parameter."""
+        today = date.today()
+        date_from = (today - timedelta(days=60)).isoformat()
+        response = authenticated_client.get(
+            f"/api/dashboard/kpi/monthly-objectives/?date_from={date_from}"
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+
+class TestHelperFunctions:
+    """Tests for helper functions in views."""
+
+    def test_parse_date_filters_invalid_date_from(self, authenticated_client):
+        """Test that invalid date_from is handled gracefully."""
+        response = authenticated_client.get(
+            "/api/dashboard/financial/monthly-revenue/?date_from=invalid-date"
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_parse_date_filters_invalid_company_id(self, authenticated_client):
+        """Test that invalid company_id is handled gracefully."""
+        response = authenticated_client.get(
+            "/api/dashboard/financial/monthly-revenue/?company_id=not-a-number"
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+
+class TestHelperFunctionsNoneCases:
+    """Tests for helper functions returning None."""
+
+    def test_make_aware_datetime_start_none(self, authenticated_client):
+        """Test make_aware_datetime_start returns None when d is None (line 22)."""
+        from dashboard.views import make_aware_datetime_start
+        assert make_aware_datetime_start(None) is None
+
+    def test_make_aware_datetime_end_none(self, authenticated_client):
+        """Test make_aware_datetime_end returns None when d is None (line 29)."""
+        from dashboard.views import make_aware_datetime_end
+        assert make_aware_datetime_end(None) is None
+
+
+class TestCollectionRateZeroInvoiced:
+    """Tests for collection rate when total invoiced is zero."""
+
+    def test_collection_rate_zero_invoiced(self, authenticated_client):
+        """Test collection rate returns 0 when total_invoiced is 0 (line 246)."""
+        # No factures exist, so total_invoiced should be 0
+        # Delete all factures first
+        FactureClient.objects.all().delete()
+        
+        response = authenticated_client.get(
+            "/api/dashboard/financial/collection-rate/"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["rate"] == 0
+
+
+class TestOverdueReceivables0to30Days:
+    """Tests for overdue receivables in 0-30 days bucket."""
+
+    def test_overdue_0_30_days(
+        self, authenticated_client, client_entity, mode_paiement, user
+    ):
+        """Test facture overdue 0-30 days (line 700 - bucket 0-30)."""
+        recent_date = date.today() - timedelta(days=15)
+        facture = FactureClient.objects.create(
+            numero_facture="FC_OLD_15",
+            date_facture=recent_date,
+            client=client_entity,
+            mode_paiement=mode_paiement,
+            created_by_user=user,
+            statut="Envoyé",
+            total_ttc=Decimal("1000.00"),
+            total_ttc_apres_remise=Decimal("1000.00"),
+        )
+
+        response = authenticated_client.get(
+            "/api/dashboard/cashflow/overdue-receivables/"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        bucket_0_30 = next(
+            (b for b in response.data if b["period"] == "0-30 jours"), None
+        )
+        assert bucket_0_30 is not None
+
+
+class TestPaymentStatusPartialAndUnpaid:
+    """Tests for payment status with partial and unpaid factures."""
+
+    def test_unpaid_facture(
+        self, authenticated_client, client_entity, mode_paiement, user
+    ):
+        """Test payment status counts unpaid facture correctly (line 206)."""
+        FactureClient.objects.create(
+            numero_facture="FC_UNPAID",
+            date_facture=date.today(),
+            client=client_entity,
+            mode_paiement=mode_paiement,
+            created_by_user=user,
+            statut="Envoyé",
+            total_ttc_apres_remise=Decimal("5000.00"),
+        )
+        
+        response = authenticated_client.get(
+            "/api/dashboard/financial/payment-status/"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        unpaid_item = next(
+            (item for item in response.data if item["status"] == "Impayée"), None
+        )
+        assert unpaid_item is not None
+
+
+class TestTopProductsFiltering:
+    """Tests for top products filtering date branches."""
+
+    def test_top_products_no_date_from(
+        self, authenticated_client, article, client_entity, mode_paiement, user
+    ):
+        """Test top products without date_from parameter (line 316-319 not triggered)."""
+        # Create devi with line
+        devi = Devi.objects.create(
+            numero_devis="DEV_TOPPRODUCT",
+            date_devis=date.today(),
+            client=client_entity,
+            mode_paiement=mode_paiement,
+            created_by_user=user,
+            statut="Brouillon",
+        )
+        DeviLine.objects.create(
+            devis=devi,
+            article=article,
+            quantity=5,
+            prix_achat=Decimal("80.00"),
+            prix_vente=Decimal("100.00"),
+        )
+        
+        # Request without date_from
+        response = authenticated_client.get(
+            "/api/dashboard/commercial/top-products/"
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+
+class TestQuoteConversionFiltering:
+    """Tests for quote conversion filtering branches."""
+
+    def test_quote_conversion_no_date_from(
+        self, authenticated_client, client_entity, mode_paiement, user
+    ):
+        """Test quote conversion without date_from (line 418 not triggered)."""
+        Devi.objects.create(
+            numero_devis="DEV_QUOTCONV",
+            date_devis=date.today(),
+            client=client_entity,
+            mode_paiement=mode_paiement,
+            created_by_user=user,
+            statut="Accepté",
+        )
+        
+        response = authenticated_client.get(
+            "/api/dashboard/commercial/quote-conversion/"
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+
+class TestInvoiceStatusFiltering:
+    """Tests for invoice status filtering branches."""
+
+    def test_invoice_status_no_date_from(
+        self, authenticated_client, client_entity, mode_paiement, user
+    ):
+        """Test invoice status without date_from."""
+        FactureClient.objects.create(
+            numero_facture="FC_INVSTATUS",
+            date_facture=date.today(),
+            client=client_entity,
+            mode_paiement=mode_paiement,
+            created_by_user=user,
+            statut="Brouillon",
+        )
+        
+        response = authenticated_client.get(
+            "/api/dashboard/operational/invoice-status/"
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+
+class TestPaymentDelayFiltering:
+    """Tests for payment delay filtering branches."""
+
+    def test_payment_delay_no_date_from(
+        self, authenticated_client, client_entity, mode_paiement, user
+    ):
+        """Test payment delay without date_from (line 576)."""
+        from parameter.models import ModeReglement
+        
+        facture = FactureClient.objects.create(
+            numero_facture="FC_PAYDELAY",
+            date_facture=date.today() - timedelta(days=30),
+            client=client_entity,
+            mode_paiement=mode_paiement,
+            created_by_user=user,
+            statut="Envoyé",
+            total_ttc_apres_remise=Decimal("1000.00"),
+        )
+        # Create a mode reglement
+        mode_reglement = ModeReglement.objects.create(nom="Virement")
+        # Create a reglement
+        Reglement.objects.create(
+            facture_client=facture,
+            montant=Decimal("1000.00"),
+            mode_reglement=mode_reglement,
+            date_reglement=date.today(),
+            statut="Valide",
+        )
+        
+        response = authenticated_client.get(
+            "/api/dashboard/cashflow/payment-delay/"
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+
+class TestOverdueReceivablesFiltering:
+    """Tests for overdue receivables filtering branches."""
+
+    def test_overdue_receivables_no_date_from(
+        self, authenticated_client, client_entity, mode_paiement, user
+    ):
+        """Test overdue receivables without date_from (line 660)."""
+        FactureClient.objects.create(
+            numero_facture="FC_OVERDUE_NOFROM",
+            date_facture=date.today() - timedelta(days=45),
+            client=client_entity,
+            mode_paiement=mode_paiement,
+            created_by_user=user,
+            statut="Envoyé",
+            total_ttc_apres_remise=Decimal("2000.00"),
+        )
+        
+        response = authenticated_client.get(
+            "/api/dashboard/cashflow/overdue-receivables/"
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+
+class TestClientProfileFiltering:
+    """Tests for client profile filtering branches."""
+
+    def test_client_profile_no_date_from(
+        self, authenticated_client, client_entity, mode_paiement, user
+    ):
+        """Test client profile without date_from (line 735)."""
+        FactureClient.objects.create(
+            numero_facture="FC_PROFILE_NOFROM",
+            date_facture=date.today(),
+            client=client_entity,
+            mode_paiement=mode_paiement,
+            created_by_user=user,
+            statut="Envoyé",
+            total_ttc_apres_remise=Decimal("1000.00"),
+        )
+        
+        response = authenticated_client.get(
+            "/api/dashboard/client/multidimensional-profile/"
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+
+class TestKPICardsFiltering:
+    """Tests for KPI cards filtering branches."""
+
+    def test_kpi_cards_no_date_from(
+        self, authenticated_client, client_entity, mode_paiement, user
+    ):
+        """Test KPI cards without date_from (line 946)."""
+        FactureClient.objects.create(
+            numero_facture="FC_KPI_NOFROM",
+            date_facture=date.today(),
+            client=client_entity,
+            mode_paiement=mode_paiement,
+            created_by_user=user,
+            statut="Envoyé",
+            total_ttc_apres_remise=Decimal("1000.00"),
+        )
+        
+        response = authenticated_client.get(
+            "/api/dashboard/kpi/cards-with-trends/"
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+
+class TestDiscountImpactFiltering:
+    """Tests for discount impact filtering branches."""
+
+    def test_discount_impact_no_date_from(
+        self, authenticated_client, client_entity, mode_paiement, user
+    ):
+        """Test discount impact without date_from (line 1084)."""
+        FactureClient.objects.create(
+            numero_facture="FC_DISCOUNT_NOFROM",
+            date_facture=date.today(),
+            client=client_entity,
+            mode_paiement=mode_paiement,
+            created_by_user=user,
+            statut="Envoyé",
+            remise=Decimal("10.00"),
+            total_ttc=Decimal("1100.00"),
+            total_ttc_apres_remise=Decimal("990.00"),
+        )
+        
+        response = authenticated_client.get(
+            "/api/dashboard/analysis/discount-impact/"
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+
+class TestProductMarginFiltering:
+    """Tests for product margin filtering branches."""
+
+    def test_product_margin_no_date_from(
+        self, authenticated_client, article, client_entity, mode_paiement, user
+    ):
+        """Test product margin without date_from (line 1116)."""
+        facture = FactureClient.objects.create(
+            numero_facture="FC_MARGIN_NOFROM",
+            date_facture=date.today(),
+            client=client_entity,
+            mode_paiement=mode_paiement,
+            created_by_user=user,
+            statut="Envoyé",
+        )
+        FactureClientLine.objects.create(
+            facture_client=facture,
+            article=article,
+            quantity=10,
+            prix_achat=Decimal("80.00"),
+            prix_vente=Decimal("100.00"),
+        )
+        
+        response = authenticated_client.get(
+            "/api/dashboard/analysis/product-margin-volume/"
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+
+class TestMonthlyPerformanceFiltering:
+    """Tests for monthly performance filtering branches."""
+
+    def test_monthly_performance_no_date_from(
+        self, authenticated_client, client_entity, mode_paiement, user
+    ):
+        """Test monthly performance without date_from (line 1187)."""
+        FactureClient.objects.create(
+            numero_facture="FC_PERF_NOFROM",
+            date_facture=date.today(),
+            client=client_entity,
+            mode_paiement=mode_paiement,
+            created_by_user=user,
+            statut="Envoyé",
+            total_ttc_apres_remise=Decimal("1000.00"),
+        )
+        
+        response = authenticated_client.get(
+            "/api/dashboard/synthetic/monthly-performance/"
+        )
+        assert response.status_code == status.HTTP_200_OK

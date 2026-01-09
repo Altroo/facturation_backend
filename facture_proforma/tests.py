@@ -525,9 +525,7 @@ class TestFactureProFormaModelExtra(SharedDocumentModelTestsMixin):
 
     def test_convert_to_facture_client(self, pf_conv_with_lines, pf_conv_user):
         """Test converting FactureProForma to FactureClient."""
-        facture = pf_conv_with_lines.convert_to_facture_client(
-            "FC-PF001", pf_conv_user
-        )
+        facture = pf_conv_with_lines.convert_to_facture_client("FC-PF001", pf_conv_user)
 
         assert facture is not None
         assert facture.client == pf_conv_with_lines.client
@@ -537,18 +535,14 @@ class TestFactureProFormaModelExtra(SharedDocumentModelTestsMixin):
 
     def test_conversion_copies_remise(self, pf_conv_with_lines, pf_conv_user):
         """Test that conversion copies remise fields."""
-        facture = pf_conv_with_lines.convert_to_facture_client(
-            "FC-PF002", pf_conv_user
-        )
+        facture = pf_conv_with_lines.convert_to_facture_client("FC-PF002", pf_conv_user)
 
         assert facture.remise == pf_conv_with_lines.remise
         assert facture.remise_type == pf_conv_with_lines.remise_type
 
     def test_conversion_copies_line_details(self, pf_conv_with_lines, pf_conv_user):
         """Test that conversion copies line details correctly."""
-        facture = pf_conv_with_lines.convert_to_facture_client(
-            "FC-PF003", pf_conv_user
-        )
+        facture = pf_conv_with_lines.convert_to_facture_client("FC-PF003", pf_conv_user)
 
         original_line = pf_conv_with_lines.lignes.first()
         new_line = facture.lignes.first()
@@ -598,21 +592,27 @@ class TestFactureProFormaLineModelExtra:
         expected = f"{pf_conv_with_lines} - {line.article}"
         assert str(line) == expected
 
+
 @pytest.mark.django_db
 class TestFactureProFormaPDFGeneration:
-    """Test PDF generation for facture proforma."""
+    """Test PDF generation for facture pro forma."""
 
     def test_generate_pdf(self, pf_conv_user, pf_conv_company, pf_conv_with_lines):
-        """Test generating PDF for facture proforma."""
+        """Test generating PDF for facture pro forma."""
         from django.urls import reverse
         from rest_framework import status
-        
+
         Membership.objects.create(user=pf_conv_user, company=pf_conv_company)
-        
+
         client_api = APIClient()
         client_api.force_authenticate(user=pf_conv_user)
 
-        url = reverse("facture_proforma:facture-proforma-pdf", args=[pf_conv_with_lines.id]) + f"?company_id={pf_conv_company.id}"
+        url = (
+            reverse(
+                "facture_proforma:facture-proforma-pdf", args=[pf_conv_with_lines.id]
+            )
+            + f"?company_id={pf_conv_company.id}"
+        )
         response = client_api.get(url)
 
         assert response.status_code == status.HTTP_200_OK
@@ -623,13 +623,15 @@ class TestFactureProFormaPDFGeneration:
         """Test PDF fails without company_id."""
         from django.urls import reverse
         from rest_framework import status
-        
+
         Membership.objects.create(user=pf_conv_user, company=pf_conv_company)
-        
+
         client_api = APIClient()
         client_api.force_authenticate(user=pf_conv_user)
 
-        url = reverse("facture_proforma:facture-proforma-pdf", args=[pf_conv_with_lines.id])
+        url = reverse(
+            "facture_proforma:facture-proforma-pdf", args=[pf_conv_with_lines.id]
+        )
         response = client_api.get(url)
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -638,44 +640,61 @@ class TestFactureProFormaPDFGeneration:
         """Test PDF fails for non-existent facture proforma."""
         from django.urls import reverse
         from rest_framework import status
-        
+
         Membership.objects.create(user=pf_conv_user, company=pf_conv_company)
-        
+
         client_api = APIClient()
         client_api.force_authenticate(user=pf_conv_user)
 
-        url = reverse("facture_proforma:facture-proforma-pdf", args=[99999]) + f"?company_id={pf_conv_company.id}"
+        url = (
+            reverse("facture_proforma:facture-proforma-pdf", args=[99999])
+            + f"?company_id={pf_conv_company.id}"
+        )
         response = client_api.get(url)
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
-    def test_pdf_sans_remise_type(self, pf_conv_user, pf_conv_company, pf_conv_with_lines):
+    def test_pdf_sans_remise_type(
+        self, pf_conv_user, pf_conv_company, pf_conv_with_lines
+    ):
         """Test PDF generation with sans_remise type."""
         from django.urls import reverse
         from rest_framework import status
-        
+
         Membership.objects.create(user=pf_conv_user, company=pf_conv_company)
-        
+
         client_api = APIClient()
         client_api.force_authenticate(user=pf_conv_user)
 
-        url = reverse("facture_proforma:facture-proforma-pdf", args=[pf_conv_with_lines.id]) + f"?company_id={pf_conv_company.id}&type=sans_remise"
+        url = (
+            reverse(
+                "facture_proforma:facture-proforma-pdf", args=[pf_conv_with_lines.id]
+            )
+            + f"?company_id={pf_conv_company.id}&type=sans_remise"
+        )
         response = client_api.get(url)
 
         assert response.status_code == status.HTTP_200_OK
         assert response["Content-Type"] == "application/pdf"
 
-    def test_pdf_avec_unite_type(self, pf_conv_user, pf_conv_company, pf_conv_with_lines):
+    def test_pdf_avec_unite_type(
+        self, pf_conv_user, pf_conv_company, pf_conv_with_lines
+    ):
         """Test PDF generation with avec_unite type."""
         from django.urls import reverse
         from rest_framework import status
-        
+
         Membership.objects.create(user=pf_conv_user, company=pf_conv_company)
-        
+
         client_api = APIClient()
         client_api.force_authenticate(user=pf_conv_user)
 
-        url = reverse("facture_proforma:facture-proforma-pdf", args=[pf_conv_with_lines.id]) + f"?company_id={pf_conv_company.id}&type=avec_unite"
+        url = (
+            reverse(
+                "facture_proforma:facture-proforma-pdf", args=[pf_conv_with_lines.id]
+            )
+            + f"?company_id={pf_conv_company.id}&type=avec_unite"
+        )
         response = client_api.get(url)
 
         assert response.status_code == status.HTTP_200_OK

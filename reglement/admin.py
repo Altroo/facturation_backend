@@ -38,7 +38,7 @@ class ReglementAdminForm(forms.ModelForm):
                     self.instance.pk if self.instance and self.instance.pk else None
                 )
 
-                # Only validate if status is "Valide" (cancelled payments don't count)
+                # Only validate if status is "Valide" (canceled payments don't count)
                 if statut == "Valide":
                     reste_a_payer = Reglement.get_reste_a_payer(
                         facture_client, exclude_id

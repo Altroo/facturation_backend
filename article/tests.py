@@ -1095,8 +1095,525 @@ class TestArticleSerializerExtra:
         assert updated.photo
         assert updated.photo.name != old_name
 
-    def test_validate_missing_required_fields(self):
-        """Test validation raises error for missing required fields."""
+    def test_article_serializer_validate_missing_required_fields(self):
+        """Test ArticleSerializer validation raises error for missing required fields."""
         serializer = ArticleSerializer(data={})
         assert not serializer.is_valid()
         assert "reference" in serializer.errors or "designation" in serializer.errors
+
+    def test_article_serializer_validate_with_instance_missing_fields(self):
+        """Test ArticleSerializer validation with instance but missing required attrs.
+        
+        Tests lines 53-55 in serializers.py - when instance exists but field is missing.
+        """
+        # Create instance with no reference (simulating partial data)
+        article = Article.objects.create(
+            reference="",  # Empty reference
+            designation="Test Designation",
+            company=self.company,
+            prix_vente=100,
+            tva=20,
+        )
+        # Try to update without providing reference - instance has empty value
+        serializer = ArticleSerializer(
+            instance=article,
+            data={"designation": "Updated"},  # No reference in attrs, instance has empty
+            partial=True,
+        )
+        # The validation should fail because reference is required and instance's value is empty
+        assert not serializer.is_valid()
+        # The error should be about reference being required
+        assert "reference" in serializer.errors
+
+    def test_process_image_field_file_upload_error(self):
+        """Test _process_image_field when file read fails.
+        
+        Tests lines 79-80 in serializers.py - exception handling for file upload.
+        """
+        from unittest.mock import MagicMock
+        from rest_framework.serializers import ValidationError as DRFValidationError
+        
+        # Create mock file that raises error when read
+        mock_file = MagicMock()
+        mock_file.read.side_effect = IOError("Read error")
+        
+        # Call _process_image_field directly
+        with pytest.raises(DRFValidationError) as exc_info:
+            ArticleSerializer._process_image_field("photo", {"photo": mock_file}, None)
+        
+        assert "Invalid file upload" in str(exc_info.value.detail)
+
+    def test_process_image_field_base64_decode_error(self):
+        """Test _process_image_field with invalid base64 data.
+        
+        Tests lines 93-94 in serializers.py - exception handling for base64 decode.
+        """
+        from rest_framework.serializers import ValidationError as DRFValidationError
+        
+        # Invalid base64 data
+        invalid_base64 = "data:image/png;base64,INVALID_DATA!!!"
+        
+        with pytest.raises(DRFValidationError) as exc_info:
+            ArticleSerializer._process_image_field("photo", {"photo": invalid_base64}, None)
+        
+        assert "Invalid base64 image data" in str(exc_info.value.detail)
+
+    def test_update_photo_delete_old_file_error_handling(self):
+        """Test ArticleSerializer update handles file deletion errors gracefully.
+        
+        Tests lines 166-168 and 188-189 in serializers.py.
+        """
+        from unittest.mock import patch
+        from django.core.files.base import ContentFile
+        
+        # Create article with photo
+        article = Article.objects.create(
+            reference="DELTEST001",
+            designation="Delete Test",
+            company=self.company,
+            prix_vente=100,
+            tva=20,
+        )
+        article.photo.save("test.png", ContentFile(b"test_content"), save=True)
+        
+        # Mock remove to raise error - this triggers the exception path (164->170)
+        with patch("article.serializers.remove", side_effect=OSError("Permission denied")):
+            # Update photo to None should not raise error even though remove fails
+            serializer = ArticleSerializer(
+                instance=article,
+                data={"photo": None},
+                partial=True,
+            )
+            serializer.is_valid(raise_exception=True)
+            updated = serializer.save()
+        
+        # Should succeed despite file deletion error
+        assert not updated.photo
+
+    def test_update_photo_delete_path_exists_raises_value_error(self):
+        """Test ArticleSerializer handles ValueError during file path check.
+        
+        Tests branch 164->170 in serializers.py - when Path().exists() raises error.
+        """
+        from unittest.mock import patch, PropertyMock
+        from django.core.files.base import ContentFile
+        from pathlib import Path
+        
+        # Create article with photo
+        article = Article.objects.create(
+            reference="PATHDEL001",
+            designation="Path Delete Test",
+            company=self.company,
+            prix_vente=100,
+            tva=20,
+        )
+        article.photo.save("test.png", ContentFile(b"test_content"), save=True)
+        
+        # Mock Path.exists to raise ValueError
+        with patch.object(Path, 'exists', side_effect=ValueError("Invalid path")):
+            # Update photo to None should not raise error even though Path.exists fails
+            serializer = ArticleSerializer(
+                instance=article,
+                data={"photo": None},
+                partial=True,
+            )
+            serializer.is_valid(raise_exception=True)
+            updated = serializer.save()
+        
+        # Should succeed despite Path.exists error
+        assert not updated.photo
+
+    def test_update_photo_delete_when_file_path_does_not_exist(self):
+        """Test ArticleSerializer update when file path doesn't exist.
+        
+        Tests branch 164->170 in serializers.py - when Path().exists() returns False.
+        """
+        from unittest.mock import patch, MagicMock
+        from django.core.files.base import ContentFile
+        
+        # Create article with photo
+        article = Article.objects.create(
+            reference="NOEXIST001",
+            designation="Non-existent Path Test",
+            company=self.company,
+            prix_vente=100,
+            tva=20,
+        )
+        article.photo.save("test.png", ContentFile(b"test_content"), save=True)
+        
+        # Delete the physical file to make Path.exists() return False
+        import os
+        try:
+            os.remove(article.photo.path)
+        except (FileNotFoundError, OSError):
+            pass  # File might not exist
+        
+        # Update photo to None - should succeed because path doesn't exist
+        serializer = ArticleSerializer(
+            instance=article,
+            data={"photo": None},
+            partial=True,
+        )
+        serializer.is_valid(raise_exception=True)
+        updated = serializer.save()
+        
+        # Should succeed
+        assert not updated.photo
+
+    def test_update_replace_photo_with_deletion_error(self):
+        """Test ArticleSerializer update replaces photo even if old file deletion fails.
+        
+        Tests lines 188-189 in serializers.py - handling deletion errors during replacement.
+        """
+        from unittest.mock import patch
+        from django.core.files.base import ContentFile
+        
+        # Create article with photo
+        article = Article.objects.create(
+            reference="RPLTEST001",
+            designation="Replace Test",
+            company=self.company,
+            prix_vente=100,
+            tva=20,
+        )
+        article.photo.save("old.png", ContentFile(b"old_content"), save=True)
+        
+        base64_png = (
+            "data:image/png;base64,"
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMA"
+            "ASsJTYQAAAAASUVORK5CYII="
+        )
+        
+        # Mock remove to raise error
+        with patch("article.serializers.remove", side_effect=OSError("Permission denied")):
+            serializer = ArticleSerializer(
+                instance=article,
+                data={"photo": base64_png},
+                partial=True,
+            )
+            serializer.is_valid(raise_exception=True)
+            updated = serializer.save()
+        
+        # Should still update photo even though old file deletion failed
+        assert updated.photo
+
+    def test_to_representation_without_request(self):
+        """Test ArticleListSerializer to_representation without request in context.
+        
+        Tests line 283 in serializers.py - when request is not in context.
+        """
+        from django.core.files.base import ContentFile
+        from article.serializers import ArticleListSerializer
+        
+        # Create article with photo
+        article = Article.objects.create(
+            reference="REPR001",
+            designation="Representation Test",
+            company=self.company,
+            prix_vente=100,
+            tva=20,
+        )
+        article.photo.save("test.png", ContentFile(b"test_content"), save=True)
+        
+        # Serialize with ArticleListSerializer without request in context
+        serializer = ArticleListSerializer(instance=article, context={})
+        data = serializer.data
+        
+        # Should have photo URL without full domain (just the path)
+        assert data["photo"] is not None
+        # Should start with /media/ (relative URL)
+        assert data["photo"].startswith("/media/")
+
+    def test_update_photo_to_null_when_no_photo_exists(self):
+        """Test update with photo=None when article has no photo.
+        
+        Tests branch 161->171 in serializers.py - when field is falsy.
+        """
+        # Create article without photo
+        article = Article.objects.create(
+            reference="NOphoto001",
+            designation="No Photo Test",
+            company=self.company,
+            prix_vente=100,
+            tva=20,
+        )
+        
+        # Update with photo=None should succeed without error
+        serializer = ArticleSerializer(
+            instance=article,
+            data={"photo": None},
+            partial=True,
+        )
+        serializer.is_valid(raise_exception=True)
+        updated = serializer.save()
+        
+        # Photo should still be empty
+        assert not updated.photo
+
+    def test_update_replace_photo_when_old_file_path_none(self):
+        """Test update replace photo when old file has no path (edge case).
+        
+        Tests branch 186->191 in serializers.py.
+        """
+        from unittest.mock import patch, MagicMock, PropertyMock
+        from django.core.files.base import ContentFile
+        
+        # Create article with photo
+        article = Article.objects.create(
+            reference="PATHTEST001",
+            designation="Path Test",
+            company=self.company,
+            prix_vente=100,
+            tva=20,
+        )
+        article.photo.save("old.png", ContentFile(b"old_content"), save=True)
+        
+        base64_png = (
+            "data:image/png;base64,"
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMA"
+            "ASsJTYQAAAAASUVORK5CYII="
+        )
+        
+        # Mock old_field.path to be None
+        original_photo = article.photo
+        
+        with patch.object(type(original_photo), 'path', new_callable=PropertyMock) as mock_path:
+            mock_path.return_value = None
+            
+            serializer = ArticleSerializer(
+                instance=article,
+                data={"photo": base64_png},
+                partial=True,
+            )
+            serializer.is_valid(raise_exception=True)
+            updated = serializer.save()
+        
+        # Should still update photo successfully
+        assert updated.photo
+
+
+@pytest.mark.django_db
+class TestArticleViewsCoverage:
+    """Tests to achieve 100% coverage for article/views.py."""
+
+    @pytest.fixture(autouse=True)
+    def setup(self):
+        """Setup test fixtures."""
+        self.client = APIClient()
+        self.user_model = get_user_model()
+        self.user = self.user_model.objects.create_user(
+            email="articleview@test.com",
+            password="testpass123",
+            first_name="Article",
+            last_name="View",
+        )
+        self.client.force_authenticate(user=self.user)
+        
+        self.company = Company.objects.create(
+            raison_sociale="ViewTestCorp",
+            ICE="ICE_VIEW",
+            registre_de_commerce="RC_VIEW",
+            nbr_employe="1 à 5",
+        )
+        Membership.objects.create(user=self.user, company=self.company)
+
+    def test_delete_article_no_membership(self):
+        """Test delete article when user has no membership."""
+        from django.urls import reverse
+        
+        # Create another company and article
+        other_company = Company.objects.create(
+            raison_sociale="OtherCorp",
+            ICE="ICE_OTHER",
+            registre_de_commerce="RC_OTHER",
+            nbr_employe="1 à 5",
+        )
+        article = Article.objects.create(
+            reference="DELTEST001",
+            designation="Delete Test",
+            company=other_company,
+            prix_vente=100,
+            tva=20,
+        )
+        
+        url = reverse("article:article-detail", args=[article.pk])
+        response = self.client.delete(url)
+        
+        # Should be forbidden
+        assert response.status_code == 403
+    
+    def test_patch_article_no_membership(self):
+        """Test patch article when user has no membership (line 131)."""
+        from django.urls import reverse
+        
+        # Create another company and article
+        other_company = Company.objects.create(
+            raison_sociale="OtherCorp2",
+            ICE="ICE_OTHER2",
+            registre_de_commerce="RC_OTHER2",
+            nbr_employe="1 à 5",
+        )
+        article = Article.objects.create(
+            reference="PATCHTEST001",
+            designation="Patch Test",
+            company=other_company,
+            prix_vente=100,
+            tva=20,
+        )
+        
+        url = reverse("article:article-detail", args=[article.pk])
+        response = self.client.patch(url, {"designation": "Updated"})
+        
+        # Should be forbidden
+        assert response.status_code == 403
+
+    def test_generate_reference_with_empty_refs(self):
+        """Test generate reference with empty reference values (line 154)."""
+        from django.urls import reverse
+        
+        # Create articles with empty and None references
+        Article.objects.create(
+            reference="",  # Empty
+            designation="Empty Ref",
+            company=self.company,
+            prix_vente=100,
+            tva=20,
+        )
+        
+        url = reverse("article:article-generate-reference")
+        response = self.client.get(url)
+        
+        assert response.status_code == 200
+        assert "reference" in response.data
+
+    def test_generate_reference_with_non_standard_format(self):
+        """Test generate reference with non-ART format (lines 159-160)."""
+        from django.urls import reverse
+        
+        # Create article with different format (no ART prefix)
+        Article.objects.create(
+            reference="PROD-12345",  # Non-ART format with number at end
+            designation="Non-Standard Ref",
+            company=self.company,
+            prix_vente=100,
+            tva=20,
+        )
+        
+        url = reverse("article:article-generate-reference")
+        response = self.client.get(url)
+        
+        assert response.status_code == 200
+        assert "reference" in response.data
+        # Should extract 12345 and suggest ART12346
+
+    def test_generate_reference_with_no_numbers(self):
+        """Test generate reference with reference containing no numbers (line 162)."""
+        from django.urls import reverse
+        
+        # Create article with no numbers in reference
+        Article.objects.create(
+            reference="ALPHABETIC",  # No numbers
+            designation="No Numbers Ref",
+            company=self.company,
+            prix_vente=100,
+            tva=20,
+        )
+        
+        url = reverse("article:article-generate-reference")
+        response = self.client.get(url)
+        
+        assert response.status_code == 200
+        assert "reference" in response.data
+
+    def test_generate_reference_with_invalid_number_format(self):
+        """Test generate reference with invalid number that raises ValueError (lines 165-166)."""
+        from unittest.mock import patch, MagicMock
+        from article.views import GenerateArticleReferenceCodeView
+        from rest_framework.test import APIRequestFactory
+        
+        # Create mock Article queryset that returns a reference that will cause ValueError
+        mock_ref_list = ["ARTinvalid"]  # This doesn't match the pattern so won't trigger issue
+        
+        # To test ValueError, we need to mock the int() call within the view's context
+        # The try/except is at lines 165-166, catching ValueError from int(num_str)
+        factory = APIRequestFactory()
+        request = factory.get("/api/article/generate_reference_article/")
+        request.user = self.user
+        
+        # Create a regex match object that returns invalid numeric string
+        with patch("article.views.search") as mock_search:
+            # First call to search with ART pattern - return a match with an invalid number
+            mock_match = MagicMock()
+            mock_match.group.return_value = "invalid_number"  # This will raise ValueError
+            mock_search.return_value = mock_match
+            
+            # Also mock Article.objects to return some references
+            with patch("article.views.Article.objects.filter") as mock_filter:
+                mock_filter.return_value.values_list.return_value = ["ART0001"]
+                
+                view = GenerateArticleReferenceCodeView()
+                response = view.get(request)
+                
+                assert response.status_code == 200
+                assert "reference" in response.data
+
+    def test_to_bool_with_string_values(self):
+        """Test _to_bool with various string values (line 188)."""
+        from article.views import ArchiveToggleArticleView
+        
+        view = ArchiveToggleArticleView()
+        
+        # Test string representations
+        assert view._to_bool("true") == True
+        assert view._to_bool("True") == True
+        assert view._to_bool("1") == True
+        assert view._to_bool("yes") == True
+        assert view._to_bool("y") == True
+        assert view._to_bool("false") == False
+        assert view._to_bool("False") == False
+        assert view._to_bool("0") == False
+        assert view._to_bool("no") == False
+    
+    def test_to_bool_with_bool_values(self):
+        """Test _to_bool with actual bool values (line 184)."""
+        from article.views import ArchiveToggleArticleView
+        
+        view = ArchiveToggleArticleView()
+        
+        # Test boolean inputs - should return as-is
+        assert view._to_bool(True) == True
+        assert view._to_bool(False) == False
+    
+    def test_to_bool_with_int_float_values(self):
+        """Test _to_bool with int/float values (line 186)."""
+        from article.views import ArchiveToggleArticleView
+        
+        view = ArchiveToggleArticleView()
+        
+        # Test numeric inputs
+        assert view._to_bool(1) == True
+        assert view._to_bool(0) == False
+        assert view._to_bool(1.0) == True
+        assert view._to_bool(0.0) == False
+        assert view._to_bool(42) == True
+        assert view._to_bool(-1) == True
+
+    def test_to_bool_with_none_type(self):
+        """Test _to_bool with unsupported type (line 186)."""
+        from article.views import ArchiveToggleArticleView
+        
+        view = ArchiveToggleArticleView()
+        
+        # Test with dict/list (unsupported types)
+        assert view._to_bool({}) is None
+        assert view._to_bool([]) is None
+        assert view._to_bool(None) is None
+
+    def test_archive_toggle_article_not_found(self):
+        """Test archive toggle with non-existent article (line 189)."""
+        from django.urls import reverse
+        
+        url = reverse("article:article-archive", args=[99999])
+        response = self.client.patch(url, {"archived": True})
+        
+        assert response.status_code == 404

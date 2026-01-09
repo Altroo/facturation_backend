@@ -7,21 +7,29 @@ from django.db.utils import DatabaseError
 class BaseDocumentFilter(django_filters.FilterSet):
     """
     Base filter class for document models (Devi, FactureProForma, FactureClient, BonDeLivraison).
-    
+
     Subclasses should set:
     - numero_field: the name of the numero field (e.g., 'numero_devis', 'numero_facture', 'numero_bon_livraison')
-    - req_field: the name of the request/command field (e.g., 'numero_demande_prix_client', 'numero_bon_commande_client')
+    - req_field: the name of the request/command field (e.g., 'numero_demande_prix_client',
+    'numero_bon_commande_client')
     - date_field: the name of the date field (e.g., 'date_devis', 'date_facture', 'date_bon_livraison')
     """
+
     search = django_filters.CharFilter(method="global_search", label="Search")
     statut = django_filters.CharFilter(method="filter_statut", label="Status")
     client_id = django_filters.NumberFilter(field_name="client__id", label="Client ID")
     # Generic date filters that will be mapped to specific date fields by subclasses
-    date_after = django_filters.DateFilter(method="filter_date_after", label="Date After")
-    date_before = django_filters.DateFilter(method="filter_date_before", label="Date Before")
+    date_after = django_filters.DateFilter(
+        method="filter_date_after", label="Date After"
+    )
+    date_before = django_filters.DateFilter(
+        method="filter_date_before", label="Date Before"
+    )
 
     # Subclasses should override these
-    numero_field = None  # e.g., 'numero_devis', 'numero_facture', 'numero_bon_livraison'
+    numero_field = (
+        None  # e.g., 'numero_devis', 'numero_facture', 'numero_bon_livraison'
+    )
     req_field = None  # e.g., 'numero_demande_prix_client', 'numero_bon_commande_client'
     date_field = None  # e.g., 'date_devis', 'date_facture', 'date_bon_livraison'
 

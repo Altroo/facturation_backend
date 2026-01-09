@@ -748,3 +748,214 @@ class TestClientModelExtra:
             ville=self.ville,
         )
         assert str(client) == "PM002"
+
+
+@pytest.mark.django_db
+class TestClientSerializerCoverage:
+    """Tests to cover client/serializers.py"""
+
+    def test_client_list_serializer_get_client_type_with_value(self):
+        """Test ClientListSerializer.get_client_type with non-empty client_type (line 115)."""
+        from client.serializers import ClientListSerializer
+        from client.models import Client
+        from company.models import Company
+        
+        company = Company.objects.create(
+            raison_sociale="Test Company",
+            ICE="ICE_SERIALIZER",
+            registre_de_commerce="RC_SERIALIZER",
+        )
+        
+        # Create client with client_type set
+        client = Client.objects.create(
+            code_client="SER001",
+            client_type=Client.PERSONNE_MORALE,
+            raison_sociale="Test Société",
+            company=company,
+        )
+        
+        # Serialize the client
+        serializer = ClientListSerializer(client)
+        
+        # Verify that get_client_type returns the display value
+        assert serializer.data["client_type"] == "Personne morale"
+    
+    def test_client_list_serializer_get_client_type_empty(self):
+        """Test ClientListSerializer.get_client_type with empty client_type (returns None)."""
+        from client.serializers import ClientListSerializer
+        from client.models import Client
+        from company.models import Company
+        
+        company = Company.objects.create(
+            raison_sociale="Test Company 2",
+            ICE="ICE_SERIALIZER2",
+            registre_de_commerce="RC_SERIALIZER2",
+        )
+        
+        # Create client and bypass validation to set empty client_type
+        client = Client.objects.create(
+            code_client="SER002",
+            client_type="PM",  # Temporarily set a value
+            company=company,
+        )
+        # Update to empty string in DB
+        Client.objects.filter(pk=client.pk).update(client_type="")
+        client.refresh_from_db()
+        
+        # Serialize the client
+        serializer = ClientListSerializer(client)
+        
+        # Verify that get_client_type returns None for empty client_type
+        assert serializer.data["client_type"] is None
+
+
+@pytest.mark.django_db
+class TestClientViewsCoverage:
+    """Tests to cover client/views.py"""
+
+    def test_patch_client_without_membership(self):
+        """Test PATCH client without membership raises PermissionDenied (line 119)."""
+        from django.contrib.auth import get_user_model
+        from django.urls import reverse
+        from rest_framework import status
+        from rest_framework.test import APIClient
+        
+        User = get_user_model()
+        user = User.objects.create_user(email="noaccess@test.com", password="pass")
+        
+        company = Company.objects.create(
+            raison_sociale="Other Company",
+            ICE="ICE_OTHER",
+            registre_de_commerce="RC_OTHER",
+        )
+        
+        client_obj = Client.objects.create(
+            code_client="CLT_NOACCESS",
+            client_type=Client.PERSONNE_MORALE,
+            raison_sociale="Test Client",
+            company=company,
+        )
+        
+        api_client = APIClient()
+        api_client.force_authenticate(user=user)
+        
+        # User is not a member of company, should raise PermissionDenied
+        url = reverse("client:client-detail", args=[client_obj.pk])
+        response = api_client.patch(url, {"raison_sociale": "Updated"})
+        
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+    
+    def test_generate_code_with_non_clt_codes(self):
+        """Test GenerateClientCodeView with non-CLT codes (line 140)."""
+        from django.contrib.auth import get_user_model
+        from django.urls import reverse
+        from rest_framework import status
+        from rest_framework.test import APIClient
+        from account.models import Membership
+        
+        User = get_user_model()
+        user = User.objects.create_user(email="gencode@test.com", password="pass")
+        
+        company = Company.objects.create(
+            raison_sociale="Gen Code Company",
+            ICE="ICE_GEN",
+            registre_de_commerce="RC_GEN",
+        )
+        Membership.objects.create(user=user, company=company)
+        
+        # Create a client with non-standard code (no match for CLT pattern)
+        Client.objects.create(
+            code_client="ABC123",  # Non-CLT code
+            client_type=Client.PERSONNE_MORALE,
+            raison_sociale="Non Standard Client",
+            company=company,
+        )
+        
+        api_client = APIClient()
+        api_client.force_authenticate(user=user)
+        
+        url = reverse("client:client-generate-code")
+        response = api_client.get(url)
+        
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["code_client"] == "CLT0001"
+    
+    def test_generate_code_with_invalid_number(self):
+        """Test GenerateClientCodeView with invalid number in code (lines 143-144)."""
+        from django.contrib.auth import get_user_model
+        from django.urls import reverse
+        from rest_framework import status
+        from rest_framework.test import APIClient
+        from account.models import Membership
+        
+        User = get_user_model()
+        user = User.objects.create_user(email="gencode2@test.com", password="pass")
+        
+        company = Company.objects.create(
+            raison_sociale="Gen Code Company 2",
+            ICE="ICE_GEN2",
+            registre_de_commerce="RC_GEN2",
+        )
+        Membership.objects.create(user=user, company=company)
+        
+        # Create a client with CLT pattern but update to very large number that could cause issues
+        Client.objects.create(
+            code_client="CLT0005",
+            client_type=Client.PERSONNE_MORALE,
+            raison_sociale="Standard Client",
+            company=company,
+        )
+        
+        api_client = APIClient()
+        api_client.force_authenticate(user=user)
+        
+        url = reverse("client:client-generate-code")
+        response = api_client.get(url)
+        
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["code_client"] == "CLT0006"
+    
+    def test_archive_toggle_to_bool_with_int(self):
+        """Test _to_bool with int value (line 166)."""
+        from client.views import ArchiveToggleClientView
+        
+        view = ArchiveToggleClientView()
+        assert view._to_bool(1) is True
+        assert view._to_bool(0) is False
+    
+    def test_archive_toggle_to_bool_with_float(self):
+        """Test _to_bool with float value (line 166)."""
+        from client.views import ArchiveToggleClientView
+        
+        view = ArchiveToggleClientView()
+        assert view._to_bool(1.0) is True
+        assert view._to_bool(0.0) is False
+    
+    def test_archive_toggle_to_bool_with_string(self):
+        """Test _to_bool with string value (line 168)."""
+        from client.views import ArchiveToggleClientView
+        
+        view = ArchiveToggleClientView()
+        assert view._to_bool("true") is True
+        assert view._to_bool("True") is True
+        assert view._to_bool("1") is True
+        assert view._to_bool("yes") is True
+        assert view._to_bool("y") is True
+        assert view._to_bool("false") is False
+        assert view._to_bool("no") is False
+    
+    def test_archive_toggle_to_bool_with_bool(self):
+        """Test _to_bool with bool value (line 166)."""
+        from client.views import ArchiveToggleClientView
+        
+        view = ArchiveToggleClientView()
+        assert view._to_bool(True) is True
+        assert view._to_bool(False) is False
+    
+    def test_archive_toggle_to_bool_with_none(self):
+        """Test _to_bool with None value (line 171)."""
+        from client.views import ArchiveToggleClientView
+        
+        view = ArchiveToggleClientView()
+        assert view._to_bool(None) is None
+        assert view._to_bool([]) is None

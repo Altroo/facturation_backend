@@ -1279,7 +1279,7 @@ class TestReglementEdgeCases:
             statut="Valide",
         )
 
-        # Payment 3: 100 cash (cancelled)
+        # Payment 3: 100 cash (canceled)
         Reglement.objects.create(
             facture_client=reglement_facture_with_lines,
             mode_reglement=reglement_mode_reglement,
@@ -1558,15 +1558,20 @@ class TestReglementFactureStatusValidation:
         response = self.client_api.patch(url, {"statut": "Valide"}, format="json")
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
+
 class TestReglementPDFGeneration:
     """Test PDF generation for reglements."""
 
     def test_generate_reglement_pdf(
-        self, reglement_user, reglement_company, reglement_facture, reglement_mode_reglement
+        self,
+        reglement_user,
+        reglement_company,
+        reglement_facture,
+        reglement_mode_reglement,
     ):
         """Test generating PDF for a règlement."""
         Membership.objects.create(user=reglement_user, company=reglement_company)
-        
+
         reglement = Reglement.objects.create(
             facture_client=reglement_facture,
             mode_reglement=reglement_mode_reglement,
@@ -1580,17 +1585,26 @@ class TestReglementPDFGeneration:
         client_api = APIClient()
         client_api.force_authenticate(user=reglement_user)
 
-        url = reverse("reglement:reglement-pdf", args=[reglement.id]) + f"?company_id={reglement_company.id}"
+        url = (
+            reverse("reglement:reglement-pdf", args=[reglement.id])
+            + f"?company_id={reglement_company.id}"
+        )
         response = client_api.get(url)
 
         assert response.status_code == status.HTTP_200_OK
         assert response["Content-Type"] == "application/pdf"
         assert "filename" in response["Content-Disposition"]
 
-    def test_pdf_no_company_id(self, reglement_user, reglement_company, reglement_facture, reglement_mode_reglement):
+    def test_pdf_no_company_id(
+        self,
+        reglement_user,
+        reglement_company,
+        reglement_facture,
+        reglement_mode_reglement,
+    ):
         """Test PDF fails without company_id."""
         Membership.objects.create(user=reglement_user, company=reglement_company)
-        
+
         reglement = Reglement.objects.create(
             facture_client=reglement_facture,
             mode_reglement=reglement_mode_reglement,
@@ -1609,11 +1623,14 @@ class TestReglementPDFGeneration:
     def test_pdf_not_found(self, reglement_user, reglement_company):
         """Test PDF fails for non-existent règlement."""
         Membership.objects.create(user=reglement_user, company=reglement_company)
-        
+
         client_api = APIClient()
         client_api.force_authenticate(user=reglement_user)
 
-        url = reverse("reglement:reglement-pdf", args=[99999]) + f"?company_id={reglement_company.id}"
+        url = (
+            reverse("reglement:reglement-pdf", args=[99999])
+            + f"?company_id={reglement_company.id}"
+        )
         response = client_api.get(url)
 
         assert response.status_code == status.HTTP_404_NOT_FOUND

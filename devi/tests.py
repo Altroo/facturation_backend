@@ -649,34 +649,42 @@ class TestDeviLineModelExtra:
         expected = f"{devi_conv_with_lines} - {line.article}"
         assert str(line) == expected
 
+
 @pytest.mark.django_db
 class TestDeviPDFGeneration:
     """Test PDF generation for devi."""
 
-    def test_generate_pdf(self, devi_conv_user, devi_conv_company, devi_conv_with_lines):
+    def test_generate_pdf(
+        self, devi_conv_user, devi_conv_company, devi_conv_with_lines
+    ):
         """Test generating PDF for devi."""
         from django.urls import reverse
         from rest_framework import status
-        
+
         Membership.objects.create(user=devi_conv_user, company=devi_conv_company)
-        
+
         client_api = APIClient()
         client_api.force_authenticate(user=devi_conv_user)
 
-        url = reverse("devi:devi-pdf", args=[devi_conv_with_lines.id]) + f"?company_id={devi_conv_company.id}"
+        url = (
+            reverse("devi:devi-pdf", args=[devi_conv_with_lines.id])
+            + f"?company_id={devi_conv_company.id}"
+        )
         response = client_api.get(url)
 
         assert response.status_code == status.HTTP_200_OK
         assert response["Content-Type"] == "application/pdf"
         assert "filename" in response["Content-Disposition"]
 
-    def test_pdf_no_company_id(self, devi_conv_user, devi_conv_company, devi_conv_with_lines):
+    def test_pdf_no_company_id(
+        self, devi_conv_user, devi_conv_company, devi_conv_with_lines
+    ):
         """Test PDF fails without company_id."""
         from django.urls import reverse
         from rest_framework import status
-        
+
         Membership.objects.create(user=devi_conv_user, company=devi_conv_company)
-        
+
         client_api = APIClient()
         client_api.force_authenticate(user=devi_conv_user)
 
@@ -689,35 +697,112 @@ class TestDeviPDFGeneration:
         """Test PDF fails for non-existent devi."""
         from django.urls import reverse
         from rest_framework import status
-        
+
         Membership.objects.create(user=devi_conv_user, company=devi_conv_company)
-        
+
         client_api = APIClient()
         client_api.force_authenticate(user=devi_conv_user)
 
-        url = reverse("devi:devi-pdf", args=[99999]) + f"?company_id={devi_conv_company.id}"
+        url = (
+            reverse("devi:devi-pdf", args=[99999])
+            + f"?company_id={devi_conv_company.id}"
+        )
         response = client_api.get(url)
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
-    def test_pdf_sans_remise_type(self, devi_conv_user, devi_conv_company, devi_conv_with_lines):
+    def test_pdf_sans_remise_type(
+        self, devi_conv_user, devi_conv_company, devi_conv_with_lines
+    ):
         """Test PDF generation with sans_remise type."""
         from django.urls import reverse
         from rest_framework import status
-        
+
         Membership.objects.create(user=devi_conv_user, company=devi_conv_company)
-        
+
         client_api = APIClient()
         client_api.force_authenticate(user=devi_conv_user)
 
-        url = reverse("devi:devi-pdf", args=[devi_conv_with_lines.id]) + f"?company_id={devi_conv_company.id}&type=sans_remise"
+        url = (
+            reverse("devi:devi-pdf", args=[devi_conv_with_lines.id])
+            + f"?company_id={devi_conv_company.id}&type=sans_remise"
+        )
         response = client_api.get(url)
 
         assert response.status_code == status.HTTP_200_OK
         assert response["Content-Type"] == "application/pdf"
 
-    def test_pdf_avec_unite_type(self, devi_conv_user, devi_conv_company, devi_conv_with_lines):
+    def test_pdf_avec_unite_type(
+        self, devi_conv_user, devi_conv_company, devi_conv_with_lines
+    ):
         """Test PDF generation with avec_unite type."""
+        from django.urls import reverse
+        from rest_framework import status
+
+        Membership.objects.create(user=devi_conv_user, company=devi_conv_company)
+
+        client_api = APIClient()
+        client_api.force_authenticate(user=devi_conv_user)
+
+        url = (
+            reverse("devi:devi-pdf", args=[devi_conv_with_lines.id])
+            + f"?company_id={devi_conv_company.id}&type=avec_unite"
+        )
+        response = client_api.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response["Content-Type"] == "application/pdf"
+
+
+@pytest.mark.django_db
+class TestDeviSerializerCoverage:
+    """Coverage tests for devi/serializers.py line 99 - get_line_serializer_class."""
+
+    def test_devi_serializer_to_representation_calls_get_line_serializer_class(
+        self, devi_conv_user, devi_conv_company, devi_conv_with_lines
+    ):
+        """Test that retrieving a Devi calls get_line_serializer_class via to_representation."""
+        from django.urls import reverse
+        from rest_framework import status
+
+        Membership.objects.create(user=devi_conv_user, company=devi_conv_company)
+
+        client_api = APIClient()
+        client_api.force_authenticate(user=devi_conv_user)
+
+        # GET detail view should call to_representation which calls get_line_serializer_class
+        url = (
+            reverse("devi:devi-detail", args=[devi_conv_with_lines.id])
+            + f"?company_id={devi_conv_company.id}"
+        )
+        response = client_api.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        # Check lignes are in response (which means get_line_serializer_class was called)
+        assert "lignes" in response.data
+        assert len(response.data["lignes"]) == 1
+
+
+@pytest.mark.django_db
+class TestCoreViewsCoverage:
+    """Tests to cover core/views.py edge cases for BaseDocumentListCreateView etc."""
+
+    def test_list_no_membership(self, devi_conv_user, devi_conv_company, devi_conv_client):
+        """Test list view when user has no membership (line 34)."""
+        from django.urls import reverse
+        from rest_framework import status
+        
+        # User has no membership to the company
+        client_api = APIClient()
+        client_api.force_authenticate(user=devi_conv_user)
+        
+        url = reverse("devi:devi-list-create") + f"?company_id={devi_conv_company.id}"
+        response = client_api.get(url)
+        
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+    
+    def test_post_client_not_found(self, devi_conv_user, devi_conv_company):
+        """Test POST when client doesn't exist (lines 68-69)."""
         from django.urls import reverse
         from rest_framework import status
         
@@ -725,9 +810,248 @@ class TestDeviPDFGeneration:
         
         client_api = APIClient()
         client_api.force_authenticate(user=devi_conv_user)
-
-        url = reverse("devi:devi-pdf", args=[devi_conv_with_lines.id]) + f"?company_id={devi_conv_company.id}&type=avec_unite"
+        
+        url = reverse("devi:devi-list-create")
+        payload = {
+            "client": 99999,  # Non-existent client
+            "numero_devis": "DEV-TEST",
+            "date_devis": "2025-01-01",
+        }
+        response = client_api.post(url, payload)
+        
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+    
+    def test_post_no_membership_to_client_company(self, devi_conv_user, devi_conv_company, devi_conv_ville):
+        """Test POST when user has no membership to client's company (line 73)."""
+        from django.urls import reverse
+        from rest_framework import status
+        
+        # Create another company and client
+        other_company = Company.objects.create(raison_sociale="Other Co", ICE="ICEOTHER")
+        other_client = Client.objects.create(
+            code_client="OTHER01",
+            client_type=Client.PERSONNE_MORALE,
+            raison_sociale="Other Client",
+            company=other_company,
+            ville=devi_conv_ville,
+        )
+        
+        # User has membership to devi_conv_company but not other_company
+        Membership.objects.create(user=devi_conv_user, company=devi_conv_company)
+        
+        client_api = APIClient()
+        client_api.force_authenticate(user=devi_conv_user)
+        
+        url = reverse("devi:devi-list-create")
+        payload = {
+            "client": other_client.id,
+            "numero_devis": "DEV-OTHER",
+            "date_devis": "2025-01-01",
+        }
+        response = client_api.post(url, payload)
+        
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+    
+    def test_get_detail_no_membership(self, devi_conv_user, devi_conv_company, devi_conv_client):
+        """Test GET detail when user has no membership (line 104-105)."""
+        from django.urls import reverse
+        from rest_framework import status
+        
+        # Create second user who creates the devi
+        other_user = CustomUser.objects.create_user(email="other@test.com", password="pass")
+        
+        # Create a devi but devi_conv_user has no membership
+        devi = Devi.objects.create(
+            numero_devis="DEV-NOACCESS",
+            client=devi_conv_client,
+            date_devis="2025-01-01",
+            statut="Brouillon",
+            created_by_user=other_user,
+        )
+        
+        client_api = APIClient()
+        client_api.force_authenticate(user=devi_conv_user)
+        
+        url = reverse("devi:devi-detail", args=[devi.id])
         response = client_api.get(url)
-
-        assert response.status_code == status.HTTP_200_OK
-        assert response["Content-Type"] == "application/pdf"
+        
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+    
+    def test_put_no_membership(self, devi_conv_user, devi_conv_company, devi_conv_client):
+        """Test PUT when user has no membership (line 119)."""
+        from django.urls import reverse
+        from rest_framework import status
+        
+        # Create second user who creates the devi
+        other_user = CustomUser.objects.create_user(email="otherput@test.com", password="pass")
+        
+        # Create a devi but devi_conv_user has no membership
+        devi = Devi.objects.create(
+            numero_devis="DEV-NOPUT",
+            client=devi_conv_client,
+            date_devis="2025-01-01",
+            statut="Brouillon",
+            created_by_user=other_user,
+        )
+        
+        client_api = APIClient()
+        client_api.force_authenticate(user=devi_conv_user)
+        
+        url = reverse("devi:devi-detail", args=[devi.id])
+        payload = {
+            "client": devi_conv_client.id,
+            "numero_devis": "DEV-UPDATED",
+            "date_devis": "2025-01-02",
+        }
+        response = client_api.put(url, payload, format="json")
+        
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+    
+    def test_delete_no_membership(self, devi_conv_user, devi_conv_company, devi_conv_client):
+        """Test DELETE when user has no membership (line 132)."""
+        from django.urls import reverse
+        from rest_framework import status
+        
+        # Create second user who creates the devi
+        other_user = CustomUser.objects.create_user(email="otherdel@test.com", password="pass")
+        
+        # Create a devi but devi_conv_user has no membership
+        devi = Devi.objects.create(
+            numero_devis="DEV-NODELETE",
+            client=devi_conv_client,
+            date_devis="2025-01-01",
+            statut="Brouillon",
+            created_by_user=other_user,
+        )
+        
+        client_api = APIClient()
+        client_api.force_authenticate(user=devi_conv_user)
+        
+        url = reverse("devi:devi-detail", args=[devi.id])
+        response = client_api.delete(url)
+        
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+    
+    def test_patch_status_no_membership(self, devi_conv_user, devi_conv_company, devi_conv_client):
+        """Test PATCH status when user has no membership (lines 165-166)."""
+        from django.urls import reverse
+        from rest_framework import status
+        
+        # Create second user who creates the devi
+        other_user = CustomUser.objects.create_user(email="otherpatch@test.com", password="pass")
+        
+        # Create a devi but devi_conv_user has no membership
+        devi = Devi.objects.create(
+            numero_devis="DEV-NOPATCH",
+            client=devi_conv_client,
+            date_devis="2025-01-01",
+            statut="Brouillon",
+            created_by_user=other_user,
+        )
+        
+        client_api = APIClient()
+        client_api.force_authenticate(user=devi_conv_user)
+        
+        url = reverse("devi:devi-statut-update", args=[devi.id])
+        payload = {"statut": "Accepté"}
+        response = client_api.patch(url, payload)
+        
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+    
+    def test_patch_invalid_status(self, devi_conv_user, devi_conv_company, devi_conv_client):
+        """Test PATCH with invalid status (line 171)."""
+        from django.urls import reverse
+        from rest_framework import status
+        
+        # User needs membership
+        Membership.objects.create(user=devi_conv_user, company=devi_conv_company)
+        
+        # Create a devi with user having membership
+        devi = Devi.objects.create(
+            numero_devis="DEV-BADSTATUS",
+            client=devi_conv_client,
+            date_devis="2025-01-01",
+            statut="Brouillon",
+            created_by_user=devi_conv_user,
+        )
+        
+        client_api = APIClient()
+        client_api.force_authenticate(user=devi_conv_user)
+        
+        url = reverse("devi:devi-statut-update", args=[devi.id])
+        payload = {"statut": "InvalidStatus"}
+        response = client_api.patch(url, payload)
+        
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+    
+    def test_conversion_not_found(self, devi_conv_user, devi_conv_company):
+        """Test conversion when document not found (lines 200-201)."""
+        from django.urls import reverse
+        from rest_framework import status
+        
+        # User needs membership
+        Membership.objects.create(user=devi_conv_user, company=devi_conv_company)
+        
+        client_api = APIClient()
+        client_api.force_authenticate(user=devi_conv_user)
+        
+        url = reverse("devi:convert-to-facture-proforma", args=[99999])
+        response = client_api.post(url)
+        
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+    
+    def test_conversion_no_membership(self, devi_conv_user, devi_conv_company, devi_conv_client):
+        """Test conversion when user has no membership (line 206)."""
+        from django.urls import reverse
+        from rest_framework import status
+        
+        # Create second user who creates the devi
+        other_user = CustomUser.objects.create_user(email="otherconv@test.com", password="pass")
+        
+        # Create a devi but devi_conv_user has no membership
+        devi = Devi.objects.create(
+            numero_devis="DEV-NOCONV",
+            client=devi_conv_client,
+            date_devis="2025-01-01",
+            statut="Brouillon",
+            created_by_user=other_user,
+        )
+        
+        client_api = APIClient()
+        client_api.force_authenticate(user=devi_conv_user)
+        
+        url = reverse("devi:convert-to-facture-proforma", args=[devi.id])
+        response = client_api.post(url)
+        
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+    
+    def test_get_detail_not_found(self, devi_conv_user, devi_conv_company):
+        """Test GET detail when document not found (line 104-105)."""
+        from django.urls import reverse
+        from rest_framework import status
+        
+        Membership.objects.create(user=devi_conv_user, company=devi_conv_company)
+        
+        client_api = APIClient()
+        client_api.force_authenticate(user=devi_conv_user)
+        
+        url = reverse("devi:devi-detail", args=[99999])
+        response = client_api.get(url)
+        
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+    
+    def test_patch_status_not_found(self, devi_conv_user, devi_conv_company):
+        """Test PATCH status when document not found (line 165-166)."""
+        from django.urls import reverse
+        from rest_framework import status
+        
+        Membership.objects.create(user=devi_conv_user, company=devi_conv_company)
+        
+        client_api = APIClient()
+        client_api.force_authenticate(user=devi_conv_user)
+        
+        url = reverse("devi:devi-statut-update", args=[99999])
+        payload = {"statut": "Accepté"}
+        response = client_api.patch(url, payload)
+        
+        assert response.status_code == status.HTTP_404_NOT_FOUND

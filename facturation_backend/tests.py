@@ -141,7 +141,7 @@ class TestImageProcessor:
         converted_img = Image.open(result)
         assert converted_img.format == "WEBP"
 
-    def test_convert_to_webp_mode_LA(self):
+    def test_convert_to_webp_mode_la(self):
         """Test convert_to_webp with LA mode image (luminance with alpha)."""
         img = Image.new("LA", (50, 50), color=(128, 200))
         bytes_io = BytesIO()
@@ -154,7 +154,7 @@ class TestImageProcessor:
         assert isinstance(result, ContentFile)
         assert result.name.endswith(".webp")
 
-    def test_convert_to_webp_mode_P(self):
+    def test_convert_to_webp_mode_p(self):
         """Test convert_to_webp with P mode image (palette mode)."""
         img = Image.new("P", (50, 50))
         bytes_io = BytesIO()
@@ -167,7 +167,7 @@ class TestImageProcessor:
         assert isinstance(result, ContentFile)
         assert result.name.endswith(".webp")
 
-    def test_convert_to_webp_mode_L(self):
+    def test_convert_to_webp_mode_l(self):
         """Test convert_to_webp with L mode image (grayscale)."""
         img = Image.new("L", (50, 50), color=128)
         bytes_io = BytesIO()
@@ -180,7 +180,7 @@ class TestImageProcessor:
         assert isinstance(result, ContentFile)
         assert result.name.endswith(".webp")
 
-    def test_convert_to_webp_mode_CMYK(self):
+    def test_convert_to_webp_mode_cmyk(self):
         """Test convert_to_webp with CMYK mode image (converts to RGB)."""
         img = Image.new("CMYK", (50, 50), color=(100, 50, 0, 0))
         bytes_io = BytesIO()
@@ -199,7 +199,7 @@ class TestImageProcessor:
 
         with pytest.raises(ValueError) as exc_info:
             ImageProcessor.convert_to_webp(invalid_data)
-        
+
         assert "Failed to convert image to WebP" in str(exc_info.value)
 
     def test_resize_with_blurred_background_landscape(self):
