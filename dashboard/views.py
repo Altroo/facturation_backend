@@ -70,9 +70,6 @@ def parse_date_filters(request):
     return date_from, date_to, company_id
 
 
-# ===== FINANCIAL OVERVIEW =====
-
-
 class MonthlyRevenueEvolutionView(APIView):
     """Monthly revenue evolution."""
 
@@ -254,9 +251,6 @@ class CollectionRateView(APIView):
         }
 
         return Response(result)
-
-
-# ===== COMMERCIAL PERFORMANCE =====
 
 
 class TopClientsByRevenueView(APIView):
@@ -477,9 +471,6 @@ class ProductPriceVolumeAnalysisView(APIView):
         return Response(result)
 
 
-# ===== OPERATIONAL INDICATORS =====
-
-
 class InvoiceStatusDistributionView(APIView):
     """Invoice status distribution."""
 
@@ -519,7 +510,9 @@ class MonthlyDocumentVolumeView(APIView):
         if not date_from:
             date_from = date_to - timedelta(days=365)
 
-        devis_query = Devi.objects.filter(date_devis__gte=date_from, date_devis__lte=date_to)
+        devis_query = Devi.objects.filter(
+            date_devis__gte=date_from, date_devis__lte=date_to
+        )
         facture_query = FactureClient.objects.filter(
             date_facture__gte=date_from, date_facture__lte=date_to
         )
@@ -533,24 +526,21 @@ class MonthlyDocumentVolumeView(APIView):
             bdl_query = bdl_query.filter(client__company_id=company_id)
 
         devis_data = (
-            devis_query
-            .annotate(month=TruncMonth("date_devis"))
+            devis_query.annotate(month=TruncMonth("date_devis"))
             .values("month")
             .annotate(count=Count("id"))
             .order_by("month")
         )
 
         facture_data = (
-            facture_query
-            .annotate(month=TruncMonth("date_facture"))
+            facture_query.annotate(month=TruncMonth("date_facture"))
             .values("month")
             .annotate(count=Count("id"))
             .order_by("month")
         )
 
         bdl_data = (
-            bdl_query
-            .annotate(month=TruncMonth("date_bon_livraison"))
+            bdl_query.annotate(month=TruncMonth("date_bon_livraison"))
             .values("month")
             .annotate(count=Count("id"))
             .order_by("month")
@@ -597,9 +587,6 @@ class MonthlyDocumentVolumeView(APIView):
         return Response(result)
 
 
-# ===== CASH FLOW ANALYSIS =====
-
-
 class PaymentTimelineView(APIView):
     """Payment timeline: invoices vs actual payments by date."""
 
@@ -625,12 +612,13 @@ class PaymentTimelineView(APIView):
 
         if company_id:
             invoice_query = invoice_query.filter(client__company_id=company_id)
-            payment_query = payment_query.filter(facture_client__client__company_id=company_id)
+            payment_query = payment_query.filter(
+                facture_client__client__company_id=company_id
+            )
 
         # Invoices by date
         invoice_data = (
-            invoice_query
-            .annotate(date=TruncDate("date_facture"))
+            invoice_query.annotate(date=TruncDate("date_facture"))
             .values("date")
             .annotate(amount=Sum("total_ttc_apres_remise"))
             .order_by("date")
@@ -638,8 +626,7 @@ class PaymentTimelineView(APIView):
 
         # Payments by date
         payment_data = (
-            payment_query
-            .annotate(date=TruncDate("date_reglement"))
+            payment_query.annotate(date=TruncDate("date_reglement"))
             .values("date")
             .annotate(amount=Sum("montant"))
             .order_by("date")
@@ -779,9 +766,6 @@ class PaymentDelayByClientView(APIView):
         return Response(result)
 
 
-# ===== CLIENT ANALYSIS =====
-
-
 class ClientMultidimensionalProfileView(APIView):
     """Multi-dimensional profile of top 5 clients."""
 
@@ -857,7 +841,9 @@ class ClientMultidimensionalProfileView(APIView):
                 devi_filter["date_devis__gte"] = date_from
 
             total_devis = Devi.objects.filter(**devi_filter).count()
-            accepted_devis = Devi.objects.filter(**devi_filter, statut="Accepté").count()
+            accepted_devis = Devi.objects.filter(
+                **devi_filter, statut="Accepté"
+            ).count()
             acceptance_rate = (
                 (accepted_devis / total_devis * 100) if total_devis > 0 else 0
             )
@@ -877,9 +863,6 @@ class ClientMultidimensionalProfileView(APIView):
             )
 
         return Response(result)
-
-
-# ===== KPI CARDS =====
 
 
 class KPICardsWithTrendsView(APIView):
@@ -911,8 +894,12 @@ class KPICardsWithTrendsView(APIView):
         )
 
         if company_id:
-            current_month_query = current_month_query.filter(client__company_id=company_id)
-            daily_revenue_query = daily_revenue_query.filter(client__company_id=company_id)
+            current_month_query = current_month_query.filter(
+                client__company_id=company_id
+            )
+            daily_revenue_query = daily_revenue_query.filter(
+                client__company_id=company_id
+            )
 
         current_month_revenue = (
             current_month_query.aggregate(total=Sum("total_ttc_apres_remise"))["total"]
@@ -920,8 +907,7 @@ class KPICardsWithTrendsView(APIView):
         )
 
         daily_revenue = (
-            daily_revenue_query
-            .annotate(date=TruncDate("date_facture"))
+            daily_revenue_query.annotate(date=TruncDate("date_facture"))
             .values("date")
             .annotate(amount=Sum("total_ttc_apres_remise"))
             .order_by("date")
@@ -1067,9 +1053,6 @@ class MonthlyObjectivesView(APIView):
         return Response(result)
 
 
-# ===== DISCOUNT AND MARGIN ANALYSIS =====
-
-
 class DiscountImpactAnalysisView(APIView):
     """Discount impact on revenue."""
 
@@ -1150,9 +1133,6 @@ class ProductMarginVolumeView(APIView):
         return Response(result)
 
 
-# ===== SYNTHETIC DASHBOARDS =====
-
-
 class MonthlyGlobalPerformanceView(APIView):
     """Global performance comparison: current period vs previous period."""
 
@@ -1223,19 +1203,33 @@ class MonthlyGlobalPerformanceView(APIView):
         )
 
         if company_id:
-            current_facture_query = current_facture_query.filter(client__company_id=company_id)
-            current_devi_query = current_devi_query.filter(client__company_id=company_id)
-            current_reglement_query = current_reglement_query.filter(facture_client__client__company_id=company_id)
+            current_facture_query = current_facture_query.filter(
+                client__company_id=company_id
+            )
+            current_devi_query = current_devi_query.filter(
+                client__company_id=company_id
+            )
+            current_reglement_query = current_reglement_query.filter(
+                facture_client__client__company_id=company_id
+            )
             current_client_query = current_client_query.filter(company_id=company_id)
 
-            previous_facture_query = previous_facture_query.filter(client__company_id=company_id)
-            previous_devi_query = previous_devi_query.filter(client__company_id=company_id)
-            previous_reglement_query = previous_reglement_query.filter(facture_client__client__company_id=company_id)
+            previous_facture_query = previous_facture_query.filter(
+                client__company_id=company_id
+            )
+            previous_devi_query = previous_devi_query.filter(
+                client__company_id=company_id
+            )
+            previous_reglement_query = previous_reglement_query.filter(
+                facture_client__client__company_id=company_id
+            )
             previous_client_query = previous_client_query.filter(company_id=company_id)
 
         # Current period metrics
         current_revenue = (
-            current_facture_query.aggregate(total=Sum("total_ttc_apres_remise"))["total"]
+            current_facture_query.aggregate(total=Sum("total_ttc_apres_remise"))[
+                "total"
+            ]
             or 0
         )
 
@@ -1247,15 +1241,16 @@ class MonthlyGlobalPerformanceView(APIView):
         )
 
         current_collected = (
-            current_reglement_query.aggregate(total=Sum("montant"))["total"]
-            or 0
+            current_reglement_query.aggregate(total=Sum("montant"))["total"] or 0
         )
 
         current_new_clients = current_client_query.count()
 
         # Previous period metrics
         previous_revenue = (
-            previous_facture_query.aggregate(total=Sum("total_ttc_apres_remise"))["total"]
+            previous_facture_query.aggregate(total=Sum("total_ttc_apres_remise"))[
+                "total"
+            ]
             or 0
         )
 
@@ -1267,8 +1262,7 @@ class MonthlyGlobalPerformanceView(APIView):
         )
 
         previous_collected = (
-            previous_reglement_query.aggregate(total=Sum("montant"))["total"]
-            or 0
+            previous_reglement_query.aggregate(total=Sum("montant"))["total"] or 0
         )
 
         previous_new_clients = previous_client_query.count()
@@ -1310,7 +1304,9 @@ class SectionMicroTrendsView(APIView):
         financial_query = FactureClient.objects.filter(
             date_facture__gte=date_from, date_facture__lte=date_to
         )
-        commercial_query = Devi.objects.filter(date_devis__gte=date_from, date_devis__lte=date_to)
+        commercial_query = Devi.objects.filter(
+            date_devis__gte=date_from, date_devis__lte=date_to
+        )
         # Use timezone-aware datetimes for DateTimeField
         operational_query = FactureClient.objects.filter(
             date_created__gte=make_aware_datetime_start(date_from),
@@ -1324,12 +1320,13 @@ class SectionMicroTrendsView(APIView):
             financial_query = financial_query.filter(client__company_id=company_id)
             commercial_query = commercial_query.filter(client__company_id=company_id)
             operational_query = operational_query.filter(client__company_id=company_id)
-            cashflow_query = cashflow_query.filter(facture_client__client__company_id=company_id)
+            cashflow_query = cashflow_query.filter(
+                facture_client__client__company_id=company_id
+            )
 
         # Financial section trend
         financial_trend = (
-            financial_query
-            .annotate(date=TruncDate("date_facture"))
+            financial_query.annotate(date=TruncDate("date_facture"))
             .values("date")
             .annotate(amount=Sum("total_ttc_apres_remise"))
             .order_by("date")
@@ -1337,8 +1334,7 @@ class SectionMicroTrendsView(APIView):
 
         # Commercial section trend (quotes created)
         commercial_trend = (
-            commercial_query
-            .annotate(date=TruncDate("date_devis"))
+            commercial_query.annotate(date=TruncDate("date_devis"))
             .values("date")
             .annotate(count=Count("id"))
             .order_by("date")
@@ -1346,8 +1342,7 @@ class SectionMicroTrendsView(APIView):
 
         # Operational section trend (invoices created)
         operational_trend = (
-            operational_query
-            .annotate(date=TruncDate("date_created"))
+            operational_query.annotate(date=TruncDate("date_created"))
             .values("date")
             .annotate(count=Count("id"))
             .order_by("date")
@@ -1355,8 +1350,7 @@ class SectionMicroTrendsView(APIView):
 
         # Cash flow section trend (payments)
         cashflow_trend = (
-            cashflow_query
-            .annotate(date=TruncDate("date_reglement"))
+            cashflow_query.annotate(date=TruncDate("date_reglement"))
             .values("date")
             .annotate(amount=Sum("montant"))
             .order_by("date")

@@ -806,81 +806,88 @@ class TestCompanySerializerCoverage:
         from company.models import Company
         from django.core.files.uploadedfile import SimpleUploadedFile
         from rest_framework import serializers as drf_serializers
-        
+
         serializer = CompanySerializer()
-        
+
         # Create an invalid file (not an image)
-        invalid_file = SimpleUploadedFile("test.txt", b"not an image data here", content_type="text/plain")
-        
+        invalid_file = SimpleUploadedFile(
+            "test.txt", b"not an image data here", content_type="text/plain"
+        )
+
         company = Company.objects.create(
             raison_sociale="Image Test Co",
             ICE="ICE_IMG",
             registre_de_commerce="RC_IMG",
         )
-        
+
         validated_data = {"logo": invalid_file}
-        
+
         with pytest.raises(drf_serializers.ValidationError) as exc_info:
             serializer._process_image_field("logo", validated_data, company)
-        
+
         assert "Invalid file upload for logo" in str(exc_info.value)
-    
+
     def test_process_image_field_invalid_base64(self):
         """Test _process_image_field with invalid base64 (lines 139-140)."""
         from company.serializers import CompanySerializer
         from company.models import Company
         from rest_framework import serializers as drf_serializers
-        
+
         serializer = CompanySerializer()
-        
+
         company = Company.objects.create(
             raison_sociale="Base64 Test Co",
             ICE="ICE_B64",
             registre_de_commerce="RC_B64",
         )
-        
+
         # Create invalid base64 data
         invalid_base64 = "data:image/png;base64,not_valid_base64!!!"
         validated_data = {"logo": invalid_base64}
-        
+
         with pytest.raises(drf_serializers.ValidationError) as exc_info:
             serializer._process_image_field("logo", validated_data, company)
-        
+
         assert "Invalid base64 image data for logo" in str(exc_info.value)
-    
+
     def test_to_representation_without_request(self):
         """Test to_representation without request context (line 253)."""
         from company.serializers import CompanySerializer
         from company.models import Company
         from django.core.files.uploadedfile import SimpleUploadedFile
-        
+
         company = Company.objects.create(
             raison_sociale="Test Co",
             ICE="ICE_REP",
             registre_de_commerce="RC_REP",
         )
-        
+
         # Create a minimal valid image file
         import io
         from PIL import Image
-        
-        img = Image.new('RGB', (1, 1), color='red')
+
+        img = Image.new("RGB", (1, 1), color="red")
         buffer = io.BytesIO()
-        img.save(buffer, format='PNG')
+        img.save(buffer, format="PNG")
         buffer.seek(0)
-        
+
         # Save a logo to the company
-        company.logo.save("test_logo.png", SimpleUploadedFile("test_logo.png", buffer.read(), content_type="image/png"))
+        company.logo.save(
+            "test_logo.png",
+            SimpleUploadedFile(
+                "test_logo.png", buffer.read(), content_type="image/png"
+            ),
+        )
         company.refresh_from_db()
-        
+
         # Serialize without request context (request=None)
         serializer = CompanySerializer(company, context={})
         data = serializer.data
-        
+
         # Should return relative URL when no request
         assert data["logo"] is not None
         assert "http" not in data["logo"]  # No absolute URL
-    
+
     def test_update_managed_by_invalid_role(self):
         """Test update with invalid role raises ValidationError (lines 296-297)."""
         from django.contrib.auth import get_user_model
@@ -889,28 +896,30 @@ class TestCompanySerializerCoverage:
         from company.models import Company
         from account.models import Membership
         from rest_framework import serializers as drf_serializers
-        
-        User = get_user_model()
-        user = User.objects.create_user(email="rolefail@test.com", password="pass")
+
+        user_obj = get_user_model()
+        user = user_obj.objects.create_user(email="rolefail@test.com", password="pass")
         admin_group = Group.objects.get_or_create(name="Admin")[0]
-        
+
         company = Company.objects.create(
             raison_sociale="Role Test Co",
             ICE="ICE_ROLE",
             registre_de_commerce="RC_ROLE",
         )
         Membership.objects.create(user=user, company=company, role=admin_group)
-        
-        serializer = CompanyDetailSerializer(company, data={
-            "managed_by": [{"pk": user.pk, "role": "NonExistentRole"}]
-        }, partial=True)
-        
+
+        serializer = CompanyDetailSerializer(
+            company,
+            data={"managed_by": [{"pk": user.pk, "role": "NonExistentRole"}]},
+            partial=True,
+        )
+
         with pytest.raises(drf_serializers.ValidationError) as exc_info:
             serializer.is_valid(raise_exception=True)
             serializer.save()
-        
+
         assert "n'existe pas" in str(exc_info.value)
-    
+
     def test_update_delete_logo_explicit_null(self):
         """Test update with logo=None deletes the file (lines 194-204)."""
         from company.serializers import CompanySerializer
@@ -918,31 +927,36 @@ class TestCompanySerializerCoverage:
         from django.core.files.uploadedfile import SimpleUploadedFile
         import io
         from PIL import Image
-        
+
         company = Company.objects.create(
             raison_sociale="Delete Logo Co",
             ICE="ICE_DEL",
             registre_de_commerce="RC_DEL",
         )
-        
+
         # Create and save a logo first
-        img = Image.new('RGB', (1, 1), color='red')
+        img = Image.new("RGB", (1, 1), color="red")
         buffer = io.BytesIO()
-        img.save(buffer, format='PNG')
+        img.save(buffer, format="PNG")
         buffer.seek(0)
-        company.logo.save("test_logo.png", SimpleUploadedFile("test_logo.png", buffer.read(), content_type="image/png"))
+        company.logo.save(
+            "test_logo.png",
+            SimpleUploadedFile(
+                "test_logo.png", buffer.read(), content_type="image/png"
+            ),
+        )
         company.refresh_from_db()
-        
+
         assert company.logo  # Verify logo exists
-        
+
         # Now update with logo=None to delete it
         serializer = CompanySerializer(company, data={"logo": None}, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        
+
         company.refresh_from_db()
         assert not company.logo  # Logo should be deleted
-    
+
     def test_update_replace_logo_deletes_old_file(self):
         """Test replacing logo deletes the old file (lines 228-233)."""
         from company.serializers import CompanySerializer
@@ -950,36 +964,44 @@ class TestCompanySerializerCoverage:
         from django.core.files.uploadedfile import SimpleUploadedFile
         import io
         from PIL import Image
-        
+
         company = Company.objects.create(
             raison_sociale="Replace Logo Co",
             ICE="ICE_REPL",
             registre_de_commerce="RC_REPL",
         )
-        
+
         # Create and save initial logo
-        img = Image.new('RGB', (1, 1), color='red')
+        img = Image.new("RGB", (1, 1), color="red")
         buffer = io.BytesIO()
-        img.save(buffer, format='PNG')
+        img.save(buffer, format="PNG")
         buffer.seek(0)
-        company.logo.save("old_logo.png", SimpleUploadedFile("old_logo.png", buffer.read(), content_type="image/png"))
+        company.logo.save(
+            "old_logo.png",
+            SimpleUploadedFile("old_logo.png", buffer.read(), content_type="image/png"),
+        )
         company.refresh_from_db()
-        
+
         old_logo_name = company.logo.name
-        
+
         # Create new logo as base64
-        img2 = Image.new('RGB', (2, 2), color='blue')
+        img2 = Image.new("RGB", (2, 2), color="blue")
         buffer2 = io.BytesIO()
-        img2.save(buffer2, format='PNG')
+        img2.save(buffer2, format="PNG")
         buffer2.seek(0)
         import base64
-        new_logo_base64 = f"data:image/png;base64,{base64.b64encode(buffer2.read()).decode()}"
-        
+
+        new_logo_base64 = (
+            f"data:image/png;base64,{base64.b64encode(buffer2.read()).decode()}"
+        )
+
         # Update with new logo
-        serializer = CompanySerializer(company, data={"logo": new_logo_base64}, partial=True)
+        serializer = CompanySerializer(
+            company, data={"logo": new_logo_base64}, partial=True
+        )
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        
+
         company.refresh_from_db()
         # Verify logo was replaced (different name)
         assert company.logo
@@ -997,65 +1019,71 @@ class TestCompanyViewsCoverage:
         from django.urls import reverse
         from rest_framework import status
         from rest_framework.test import APIClient
-        
-        User = get_user_model()
+
+        user_obj = get_user_model()
         # User must be staff to pass IsAdminUser permission
-        user = User.objects.create_user(email="noadmin@test.com", password="pass", is_staff=True)
-        
+        user = user_obj.objects.create_user(
+            email="noadmin@test.com", password="pass", is_staff=True
+        )
+
         # Delete the Admin group if it exists
         Group.objects.filter(name="Admin").delete()
-        
+
         client = APIClient()
         client.force_authenticate(user=user)
-        
+
         url = reverse("company:company-list-create")
         payload = {
             "raison_sociale": "No Admin Co",
             "ICE": "ICE_NOADMIN",
         }
         response = client.post(url, payload)
-        
+
         assert response.status_code == status.HTTP_403_FORBIDDEN
         assert "Admin" in str(response.data)
-        
+
         # Re-create Admin group for other tests
         Group.objects.get_or_create(name="Admin")
-    
+
     def test_create_company_with_managed_by(self):
         """Test create company with managed_by list (line 76)."""
         from django.contrib.auth import get_user_model
-        from django.contrib.auth.models import Group
         from django.urls import reverse
         from rest_framework import status
         from rest_framework.test import APIClient
         from account.models import Membership
-        
-        User = get_user_model()
+
+        user_obj = get_user_model()
         # User must be staff (is_staff=True) for IsAdminUser permission
-        admin_user = User.objects.create_user(email="admin_mb@test.com", password="pass", is_staff=True)
-        member_user = User.objects.create_user(email="member_mb@test.com", password="pass")
-        
+        admin_user = user_obj.objects.create_user(
+            email="admin_mb@test.com", password="pass", is_staff=True
+        )
+        member_user = user_obj.objects.create_user(
+            email="member_mb@test.com", password="pass"
+        )
+
         # Ensure groups exist
         admin_group = Group.objects.get_or_create(name="Admin")[0]
         member_group = Group.objects.get_or_create(name="Member")[0]
-        
+
         client = APIClient()
         client.force_authenticate(user=admin_user)
-        
+
         url = reverse("company:company-list-create")
         payload = {
             "raison_sociale": "With Managed By Co",
             "ICE": "ICE_MB",
-            "managed_by": [{"pk": member_user.pk, "role": "Member"}]
+            "managed_by": [{"pk": member_user.pk, "role": "Member"}],
         }
         response = client.post(url, payload, format="json")
-        
+
         assert response.status_code == status.HTTP_201_CREATED
         # Verify the membership was created
         from company.models import Company
+
         company = Company.objects.get(raison_sociale="With Managed By Co")
         assert Membership.objects.filter(company=company, user=member_user).exists()
-    
+
     def test_companies_by_user(self):
         """Test CompaniesByUserView.get (lines 126-134)."""
         from django.contrib.auth import get_user_model
@@ -1065,11 +1093,11 @@ class TestCompanyViewsCoverage:
         from rest_framework.test import APIClient
         from company.models import Company
         from account.models import Membership
-        
-        User = get_user_model()
-        user = User.objects.create_user(email="byuser@test.com", password="pass")
+
+        user_obj = get_user_model()
+        user = user_obj.objects.create_user(email="byuser@test.com", password="pass")
         admin_group = Group.objects.get_or_create(name="Admin")[0]
-        
+
         # Create companies for the user
         company1 = Company.objects.create(
             raison_sociale="User Company 1",
@@ -1081,12 +1109,12 @@ class TestCompanyViewsCoverage:
         )
         Membership.objects.create(user=user, company=company1, role=admin_group)
         Membership.objects.create(user=user, company=company2, role=admin_group)
-        
+
         client = APIClient()
         client.force_authenticate(user=user)
-        
+
         url = reverse("company:company-by-user")
         response = client.get(url)
-        
+
         assert response.status_code == status.HTTP_200_OK
         assert len(response.data) == 2

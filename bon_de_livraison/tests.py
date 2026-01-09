@@ -985,37 +985,37 @@ class TestBonDeLivraisonUninvoicedListView:
 
 class TestBonDeLivraisonSerializerCoverage:
     """Tests for serializer method coverage."""
-    
+
     def test_get_line_serializer_class(self):
         """Test get_line_serializer_class returns correct serializer (line 105)."""
         from bon_de_livraison.serializers import (
             BonDeLivraisonSerializer,
             BonDeLivraisonLineSerializer,
         )
-        
+
         serializer = BonDeLivraisonSerializer()
         result = serializer.get_line_serializer_class()
-        
+
         assert result == BonDeLivraisonLineSerializer
 
 
 class TestBonDeLivraisonUtilsCoverage:
     """Tests for utils method coverage."""
-    
+
     def test_get_next_numero_with_value_error(self):
         """Test get_next_numero when int() raises ValueError (lines 20-21)."""
         from unittest.mock import patch, MagicMock
         from bon_de_livraison.utils import get_next_numero_bon_livraison
         from datetime import datetime
-        
+
         year_suffix = f"{datetime.now().year % 100:02d}"
-        
+
         # Mock the queryset to return values
         mock_qs = [f"0001/{year_suffix}"]
-        
+
         # Create a mock match object that returns a value that will raise ValueError
-        original_search = __import__('re').search
-        
+        original_search = __import__("re").search
+
         def mock_search(pattern, string):
             match = original_search(pattern, string)
             if match:
@@ -1024,22 +1024,26 @@ class TestBonDeLivraisonUtilsCoverage:
                 mock_match.group.return_value = "not_a_number"
                 return mock_match
             return match
-        
-        with patch("bon_de_livraison.utils.BonDeLivraison.objects.filter") as mock_filter:
+
+        with patch(
+            "bon_de_livraison.utils.BonDeLivraison.objects.filter"
+        ) as mock_filter:
             mock_filter.return_value.values_list.return_value = mock_qs
             with patch("bon_de_livraison.utils.search", side_effect=mock_search):
                 result = get_next_numero_bon_livraison()
-        
+
         # Should still return a valid result
         assert result == f"0001/{year_suffix}"
-    
-    def test_get_next_numero_with_consecutive_numbers(self, bon_de_livraison_user, bon_de_livraison_client):
+
+    def test_get_next_numero_with_consecutive_numbers(
+        self, bon_de_livraison_user, bon_de_livraison_client
+    ):
         """Test get_next_numero with consecutive numbers to exercise loop continuation (branch 25->30)."""
         from bon_de_livraison.utils import get_next_numero_bon_livraison
         from datetime import datetime
-        
+
         year_suffix = f"{datetime.now().year % 100:02d}"
-        
+
         # Create consecutive BLs (1, 2, 3) so we need to iterate through the loop
         BonDeLivraison.objects.create(
             numero_bon_livraison=f"0001/{year_suffix}",
@@ -1062,9 +1066,9 @@ class TestBonDeLivraisonUtilsCoverage:
             statut="Brouillon",
             created_by_user=bon_de_livraison_user,
         )
-        
+
         result = get_next_numero_bon_livraison()
-        
+
         # Should return 0004 since 1, 2, 3 are taken
         assert result == f"0004/{year_suffix}"
 
@@ -1072,7 +1076,7 @@ class TestBonDeLivraisonUtilsCoverage:
 @pytest.mark.django_db
 class TestBonDeLivraisonViewsCoverage:
     """Tests for views coverage - PDF generation branches."""
-    
+
     def test_pdf_generation_with_logo(
         self,
         bon_de_livraison_user,
@@ -1085,7 +1089,7 @@ class TestBonDeLivraisonViewsCoverage:
         from rest_framework import status
         from django.core.files.uploadedfile import SimpleUploadedFile
         import base64
-        
+
         # Create a simple PNG image for logo
         png_data = base64.b64decode(
             "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
@@ -1093,11 +1097,11 @@ class TestBonDeLivraisonViewsCoverage:
         logo_file = SimpleUploadedFile("logo.png", png_data, content_type="image/png")
         bon_de_livraison_company.logo = logo_file
         bon_de_livraison_company.save()
-        
+
         Membership.objects.create(
             user=bon_de_livraison_user, company=bon_de_livraison_company
         )
-        
+
         # Create a BL
         bl = BonDeLivraison.objects.create(
             numero_bon_livraison="BL-WITHLOGO/01",
@@ -1113,16 +1117,16 @@ class TestBonDeLivraisonViewsCoverage:
             prix_vente=bon_de_livraison_article.prix_vente,
             prix_achat=bon_de_livraison_article.prix_achat,
         )
-        
+
         client_api = APIClient()
         client_api.force_authenticate(user=bon_de_livraison_user)
-        
+
         url = reverse("bon_de_livraison:bon-de-livraison-pdf", args=[bl.pk])
         response = client_api.get(url + f"?company_id={bon_de_livraison_company.id}")
-        
+
         assert response.status_code == status.HTTP_200_OK
         assert response.get("Content-Type") == "application/pdf"
-    
+
     def test_pdf_generation_client_type_pp(
         self,
         bon_de_livraison_user,
@@ -1133,11 +1137,11 @@ class TestBonDeLivraisonViewsCoverage:
         """Test PDF generation with client type PP (lines 306-307)."""
         from django.urls import reverse
         from rest_framework import status
-        
+
         Membership.objects.create(
             user=bon_de_livraison_user, company=bon_de_livraison_company
         )
-        
+
         # Create a PP (Personne Physique) client
         pp_client = Client.objects.create(
             code_client="PP001",
@@ -1147,7 +1151,7 @@ class TestBonDeLivraisonViewsCoverage:
             ville=bon_de_livraison_ville,
             company=bon_de_livraison_company,
         )
-        
+
         # Create a BL with PP client
         bl = BonDeLivraison.objects.create(
             numero_bon_livraison="BL-PP/01",
@@ -1163,16 +1167,16 @@ class TestBonDeLivraisonViewsCoverage:
             prix_vente=bon_de_livraison_article.prix_vente,
             prix_achat=bon_de_livraison_article.prix_achat,
         )
-        
+
         client_api = APIClient()
         client_api.force_authenticate(user=bon_de_livraison_user)
-        
+
         url = reverse("bon_de_livraison:bon-de-livraison-pdf", args=[bl.pk])
         response = client_api.get(url + f"?company_id={bon_de_livraison_company.id}")
-        
+
         assert response.status_code == status.HTTP_200_OK
         assert response.get("Content-Type") == "application/pdf"
-    
+
     def test_pdf_generation_with_unite_column(
         self,
         bon_de_livraison_user,
@@ -1183,11 +1187,11 @@ class TestBonDeLivraisonViewsCoverage:
         """Test PDF generation with unite column enabled (lines 416-425)."""
         from django.urls import reverse
         from rest_framework import status
-        
+
         Membership.objects.create(
             user=bon_de_livraison_user, company=bon_de_livraison_company
         )
-        
+
         # Create a BL
         bl = BonDeLivraison.objects.create(
             numero_bon_livraison="BL-UNITE/01",
@@ -1203,19 +1207,19 @@ class TestBonDeLivraisonViewsCoverage:
             prix_vente=bon_de_livraison_article.prix_vente,
             prix_achat=bon_de_livraison_article.prix_achat,
         )
-        
+
         client_api = APIClient()
         client_api.force_authenticate(user=bon_de_livraison_user)
-        
+
         # Request PDF with type=avec_unite to show unite column
         url = reverse("bon_de_livraison:bon-de-livraison-pdf", args=[bl.pk])
         response = client_api.get(
             url + f"?company_id={bon_de_livraison_company.id}&type=avec_unite"
         )
-        
+
         assert response.status_code == status.HTTP_200_OK
         assert response.get("Content-Type") == "application/pdf"
-    
+
     def test_pdf_generation_with_fixed_remise(
         self,
         bon_de_livraison_user,
@@ -1227,11 +1231,11 @@ class TestBonDeLivraisonViewsCoverage:
         from django.urls import reverse
         from rest_framework import status
         from decimal import Decimal
-        
+
         Membership.objects.create(
             user=bon_de_livraison_user, company=bon_de_livraison_company
         )
-        
+
         # Create a BL with fixed remise
         bl = BonDeLivraison.objects.create(
             numero_bon_livraison="BL-FIXE/01",
@@ -1252,17 +1256,19 @@ class TestBonDeLivraisonViewsCoverage:
             remise_type="Fixe",
             remise=Decimal("5.00"),
         )
-        
+
         client_api = APIClient()
         client_api.force_authenticate(user=bon_de_livraison_user)
-        
+
         # Request PDF with type=avec_remise to show remise columns
         url = reverse("bon_de_livraison:bon-de-livraison-pdf", args=[bl.pk])
-        response = client_api.get(url + f"?company_id={bon_de_livraison_company.id}&type=avec_remise")
-        
+        response = client_api.get(
+            url + f"?company_id={bon_de_livraison_company.id}&type=avec_remise"
+        )
+
         assert response.status_code == status.HTTP_200_OK
         assert response.get("Content-Type") == "application/pdf"
-    
+
     def test_pdf_generation_with_percentage_remise(
         self,
         bon_de_livraison_user,
@@ -1274,11 +1280,11 @@ class TestBonDeLivraisonViewsCoverage:
         from django.urls import reverse
         from rest_framework import status
         from decimal import Decimal
-        
+
         Membership.objects.create(
             user=bon_de_livraison_user, company=bon_de_livraison_company
         )
-        
+
         # Create a BL with percentage remise
         bl = BonDeLivraison.objects.create(
             numero_bon_livraison="BL-PERCENT/01",
@@ -1299,17 +1305,19 @@ class TestBonDeLivraisonViewsCoverage:
             remise_type="Pourcentage",
             remise=Decimal("5.00"),
         )
-        
+
         client_api = APIClient()
         client_api.force_authenticate(user=bon_de_livraison_user)
-        
+
         # Request PDF with type=avec_remise to show remise columns
         url = reverse("bon_de_livraison:bon-de-livraison-pdf", args=[bl.pk])
-        response = client_api.get(url + f"?company_id={bon_de_livraison_company.id}&type=avec_remise")
-        
+        response = client_api.get(
+            url + f"?company_id={bon_de_livraison_company.id}&type=avec_remise"
+        )
+
         assert response.status_code == status.HTTP_200_OK
         assert response.get("Content-Type") == "application/pdf"
-    
+
     def test_pdf_generation_article_without_reference(
         self,
         bon_de_livraison_user,
@@ -1320,11 +1328,11 @@ class TestBonDeLivraisonViewsCoverage:
         from django.urls import reverse
         from rest_framework import status
         from decimal import Decimal
-        
+
         Membership.objects.create(
             user=bon_de_livraison_user, company=bon_de_livraison_company
         )
-        
+
         # Create an article with a temporary reference
         article_no_ref = Article.objects.create(
             company=bon_de_livraison_company,
@@ -1337,7 +1345,7 @@ class TestBonDeLivraisonViewsCoverage:
         # Update the reference to empty string in DB (bypasses model validation)
         Article.objects.filter(pk=article_no_ref.pk).update(reference="")
         article_no_ref.refresh_from_db()
-        
+
         # Create a BL
         bl = BonDeLivraison.objects.create(
             numero_bon_livraison="BL-NOREF/01",
@@ -1353,16 +1361,20 @@ class TestBonDeLivraisonViewsCoverage:
             prix_vente=article_no_ref.prix_vente,
             prix_achat=article_no_ref.prix_achat,
         )
-        
+
         client_api = APIClient()
         client_api.force_authenticate(user=bon_de_livraison_user)
         url = reverse("bon_de_livraison:bon-de-livraison-pdf", args=[bl.pk])
-        
+
         # Request quantity_only PDF - this covers branch 136->140 in _create_articles_table_quantity_only
-        response = client_api.get(url + f"?company_id={bon_de_livraison_company.id}&type=quantity_only")
+        response = client_api.get(
+            url + f"?company_id={bon_de_livraison_company.id}&type=quantity_only"
+        )
         assert response.status_code == status.HTTP_200_OK
         assert response.get("Content-Type") == "application/pdf"
-        
+
         # Also request avec_remise PDF to cover branch 474->478 in _create_articles_table
-        response2 = client_api.get(url + f"?company_id={bon_de_livraison_company.id}&type=avec_remise")
+        response2 = client_api.get(
+            url + f"?company_id={bon_de_livraison_company.id}&type=avec_remise"
+        )
         assert response2.status_code == status.HTTP_200_OK

@@ -974,7 +974,7 @@ class TestSerializers:
 
         called = {"called": False, "items": None}
 
-        def fake_create_memberships(self, user_arg, items):
+        def fake_create_memberships(self, _user_arg, items):
             called["called"] = True
             called["items"] = items
 
@@ -986,7 +986,7 @@ class TestSerializers:
         )
 
         # Ensure _process_image_field yields an upload-like object with a name
-        def fake_process(field_name, validated_data):
+        def fake_process(field_name, _validated_data):
             uploaded = SimpleUploadedFile(
                 "new.png", b"\x89PNG\r\n\x1a\n\x00", content_type="image/png"
             )
@@ -1313,7 +1313,7 @@ class TestCreateAccountSerializerExtra:
             email="mem_test@example.com", password="pass"
         )
         company = Company.objects.create(raison_sociale="MemCo", ICE="MEM123")
-        role = Group.objects.create(name="MemTestRole")
+        Group.objects.create(name="MemTestRole")
 
         items = [{"membership_id": 0, "company_id": company.pk, "role": "MemTestRole"}]
         CreateAccountSerializer._create_memberships(user, items)
@@ -1394,7 +1394,7 @@ class TestUserPatchSerializerExtra:
 
     def test_update_with_memberships_creates_new(self, user_extra, company_extra):
         """Test UserPatchSerializer creates new memberships."""
-        role = Group.objects.create(name="PatchRole")
+        Group.objects.create(name="PatchRole")
         serializer = UserPatchSerializer(
             instance=user_extra,
             data={
@@ -1408,7 +1408,7 @@ class TestUserPatchSerializerExtra:
 
     def test_update_with_companies_alias(self, user_extra, company_extra):
         """Test UserPatchSerializer accepts companies as alias for memberships."""
-        role = Group.objects.create(name="AliasRole")
+        Group.objects.create(name="AliasRole")
         serializer = UserPatchSerializer(
             instance=user_extra,
             data={"companies": [{"company_id": company_extra.pk, "role": "AliasRole"}]},
@@ -1457,7 +1457,7 @@ class TestUserPatchSerializerExtra:
             partial=True,
         )
         assert serializer.is_valid(), serializer.errors
-        updated = serializer.save()
+        serializer.save()
         membership.refresh_from_db()
         assert membership.role == new_role
 
@@ -1722,7 +1722,7 @@ class TestUserPatchSerializerMembershipNotFound:
 
     def test_process_membership_nonexistent_id(self, user_extra, company_extra):
         """Test membership_id that doesn't exist creates new membership."""
-        role = Group.objects.create(name="NonExistRole")
+        Group.objects.create(name="NonExistRole")
         serializer = UserPatchSerializer(
             instance=user_extra,
             data={
@@ -1742,7 +1742,7 @@ class TestUserPatchSerializerMembershipNotFound:
 
     def test_process_membership_nonexistent_company_id(self, user_extra, company_extra):
         """Test company_id lookup that doesn't find existing creates new."""
-        role = Group.objects.create(name="NewCompRole")
+        Group.objects.create(name="NewCompRole")
         # Create a different company
         other_company = Company.objects.create(raison_sociale="Other", ICE="OTHER")
 
@@ -2397,7 +2397,6 @@ class TestAccountAdditionalCoverage:
     def test_profile_get_user_not_found(self):
         """Test ProfileView GET when user somehow doesn't exist."""
         # Delete user after authentication
-        pk = self.user.pk
         self.user.delete()
 
         # Token is still valid but user is gone
@@ -2794,7 +2793,7 @@ class TestAccountSerializersCoverage:
             context={"request": request_mock},
         )
         assert serializer.is_valid(), serializer.errors
-        instance = serializer.save()
+        serializer.save()
 
         # Membership should be updated
         membership.refresh_from_db()
@@ -3111,7 +3110,7 @@ class TestAccountSerializersCoverage:
             context={"request": request_mock},
         )
         assert serializer.is_valid(), serializer.errors
-        instance = serializer.save()
+        serializer.save()
 
         # Membership should be updated
         membership.refresh_from_db()
@@ -3183,6 +3182,7 @@ class TestAccountSerializersCoverage:
 
         # Verify membership was created
         from account.models import Membership
+
         assert Membership.objects.filter(user=new_user, company=company).exists()
 
     def test_user_patch_serializer_update_membership_by_membership_id_existing(self):
@@ -3223,7 +3223,7 @@ class TestAccountSerializersCoverage:
             context={"request": request_mock},
         )
         assert serializer.is_valid(), serializer.errors
-        instance = serializer.save()
+        serializer.save()
 
         # Membership should be updated via membership_id lookup
         membership.refresh_from_db()
@@ -3267,7 +3267,7 @@ class TestAccountSerializersCoverage:
     def test_user_patch_delete_file_no_path(self):
         """Test _delete_file handles missing path gracefully."""
         from account.serializers import UserPatchSerializer
-        from unittest.mock import MagicMock, PropertyMock
+        from unittest.mock import MagicMock
 
         # Create mock field with no path
         mock_field = MagicMock()
@@ -3280,7 +3280,7 @@ class TestAccountSerializersCoverage:
     def test_user_patch_delete_file_with_existing_path(self):
         """Test _delete_file removes existing file."""
         from account.serializers import UserPatchSerializer
-        from unittest.mock import MagicMock, patch
+        from unittest.mock import MagicMock
         import tempfile
         import os
 
@@ -3320,7 +3320,9 @@ class TestAccountSerializersCoverage:
         img2 = Image.new("RGB", (50, 50), color="blue")
         img2.save(img_buffer2, format="PNG")
         img_buffer2.seek(0)
-        self.user.avatar_cropped.save("old_cropped_del.png", ContentFile(img_buffer2.read()))
+        self.user.avatar_cropped.save(
+            "old_cropped_del.png", ContentFile(img_buffer2.read())
+        )
         self.user.save()
 
         # Create new avatar as base64
@@ -3366,7 +3368,9 @@ class TestAccountSerializersCoverage:
         img2 = Image.new("RGB", (50, 50), color="purple")
         img2.save(img_buffer2, format="PNG")
         img_buffer2.seek(0)
-        self.user.avatar_cropped.save("clear_cropped.png", ContentFile(img_buffer2.read()))
+        self.user.avatar_cropped.save(
+            "clear_cropped.png", ContentFile(img_buffer2.read())
+        )
         self.user.save()
 
         request_mock = MagicMock()
@@ -3398,7 +3402,9 @@ class TestAccountSerializersCoverage:
         img = Image.new("RGB", (50, 50), color="cyan")
         img.save(img_buffer, format="PNG")
         img_buffer.seek(0)
-        self.user.avatar_cropped.save("replace_old_cropped.png", ContentFile(img_buffer.read()))
+        self.user.avatar_cropped.save(
+            "replace_old_cropped.png", ContentFile(img_buffer.read())
+        )
         self.user.save()
 
         # Create new avatar_cropped as base64
@@ -3464,7 +3470,7 @@ class TestAccountSerializersCoverage:
             context={"request": request_mock},
         )
         assert serializer.is_valid(), serializer.errors
-        instance = serializer.save()
+        serializer.save()
 
         # Membership should be updated via company_id lookup
         membership.refresh_from_db()
@@ -3595,89 +3601,92 @@ class TestAccountViewsCoverage:
 
     def test_profile_get_user_not_exists(self):
         """Test ProfileView GET when user doesn't exist (race condition).
-        
+
         Tests lines 232-233 in views.py.
         """
         from unittest.mock import patch, MagicMock
         from account.views import ProfileView
         from account.models import CustomUser
         from rest_framework.exceptions import ValidationError as DRFValidationError
-        
+
         # Create a mock request with a user whose pk is invalid
         mock_request = MagicMock()
         mock_request.user = MagicMock()
         mock_request.user.pk = 99999  # Non-existent user ID
-        
+
         # Mock CustomUser.objects.get to raise DoesNotExist
-        with patch.object(CustomUser.objects, 'get', side_effect=CustomUser.DoesNotExist):
+        with patch.object(
+            CustomUser.objects, "get", side_effect=CustomUser.DoesNotExist
+        ):
             view = ProfileView()
             with pytest.raises(DRFValidationError) as exc_info:
                 view.get(mock_request)
-        
+
         # Verify the error message
         assert "error" in exc_info.value.detail
 
     def test_password_change_short_password_bypass_serializer(self):
         """Test PasswordChangeView with short password bypassing serializer validation.
-        
-        This tests lines 87-92 in views.py which are normally unreachable 
+
+        This tests lines 87-92 in views.py which are normally unreachable
         because the serializer validates password length first.
         Direct unit test of the view method with mocked serializer.
         """
         from unittest.mock import patch, MagicMock
         from account.views import PasswordChangeView
         from rest_framework.exceptions import ValidationError as DRFValidationError
-        
+
         # Create a mock request
         mock_request = MagicMock()
         mock_request.user = self.user
         mock_request.data = {
-            'old_password': 'testpass123',
-            'new_password': 'short',  # Less than 8 chars
-            'new_password2': 'short',
+            "old_password": "testpass123",
+            "new_password": "short",  # Less than 8 chars
+            "new_password2": "short",
         }
-        
+
         # Mock serializer to accept short password (bypass validate_password)
-        with patch('account.views.ChangePasswordSerializer') as mock_serializer_class:
+        with patch("account.views.ChangePasswordSerializer") as mock_serializer_class:
             mock_serializer = MagicMock()
             mock_serializer.is_valid.return_value = True
             mock_serializer.data = {
-                'old_password': 'testpass123',
-                'new_password': 'short',  # Less than 8 chars
-                'new_password2': 'short',
+                "old_password": "testpass123",
+                "new_password": "short",  # Less than 8 chars
+                "new_password2": "short",
             }
             mock_serializer_class.return_value = mock_serializer
-            
+
             # Mock check_password on user to return True
-            with patch.object(self.user, 'check_password', return_value=True):
+            with patch.object(self.user, "check_password", return_value=True):
                 # Should raise ValidationError because of the view's manual length check (lines 87-92)
                 with pytest.raises(DRFValidationError) as exc_info:
                     PasswordChangeView.put(mock_request)
-        
+
         # Verify the error is about password length
         assert "new_password" in str(exc_info.value.detail)
 
     def test_password_reset_put_with_existing_task_id_windows(self):
         """Test PasswordResetView PUT when user has existing task_id (Windows path).
-        
+
         Tests lines 129-141 in views.py - task revocation on Windows.
         """
-        from unittest.mock import patch, MagicMock
+        from unittest.mock import patch
         from django.urls import reverse
-        
+
         # Set user with existing task_id and password_reset_code
         self.user.email = "password_reset_put@test.com"
         self.user.task_id_password_reset = "some-task-id-123"
         self.user.password_reset_code = "1234"
         self.user.save()
-        
+
         url = reverse("account:password_reset")
-        
-        with patch('account.views.platform', 'win32'), \
-             patch('account.views.current_app') as mock_celery:
-            
+
+        with patch("account.views.platform", "win32"), patch(
+            "account.views.current_app"
+        ) as mock_celery:
+
             response = self.client.put(
-                url, 
+                url,
                 {
                     "email": "password_reset_put@test.com",
                     "code": "1234",
@@ -3685,7 +3694,7 @@ class TestAccountViewsCoverage:
                     "new_password2": "newsecurepass456",
                 },
             )
-        
+
         assert response.status_code == 204
         # Verify task was revoked without SIGKILL (Windows path)
         mock_celery.control.revoke.assert_called_once_with(
@@ -3694,12 +3703,12 @@ class TestAccountViewsCoverage:
 
     def test_password_reset_put_with_existing_task_id_unix(self):
         """Test PasswordResetView PUT when user has existing task_id (Unix path).
-        
+
         Tests lines 136-141 in views.py - Unix task revocation with SIGKILL.
         """
-        from unittest.mock import patch, MagicMock
+        from unittest.mock import patch
         from django.urls import reverse
-        
+
         # Create user with existing task_id
         unix_user = self.user_model.objects.create_user(
             email="unix_password_reset@test.com",
@@ -3710,12 +3719,13 @@ class TestAccountViewsCoverage:
         unix_user.task_id_password_reset = "unix-task-id-456"
         unix_user.password_reset_code = "5678"
         unix_user.save()
-        
+
         url = reverse("account:password_reset")
-        
-        with patch('account.views.platform', 'linux'), \
-             patch('account.views.current_app') as mock_celery:
-            
+
+        with patch("account.views.platform", "linux"), patch(
+            "account.views.current_app"
+        ) as mock_celery:
+
             response = self.client.put(
                 url,
                 {
@@ -3725,7 +3735,7 @@ class TestAccountViewsCoverage:
                     "new_password2": "newsecurepass456",
                 },
             )
-        
+
         assert response.status_code == 204
         # Verify task was revoked with SIGKILL (Unix path)
         mock_celery.control.revoke.assert_called_once_with(
@@ -3736,61 +3746,63 @@ class TestAccountViewsCoverage:
         """Test SendPasswordResetView POST when serializer is invalid (line 211)."""
         from unittest.mock import patch, MagicMock
         from django.urls import reverse
-        
+
         # Create user
-        temp_user = self.user_model.objects.create_user(
+        self.user_model.objects.create_user(
             email="send_pw_reset_invalid@test.com",
             password="test123",
             first_name="Test",
             last_name="User",
         )
-        
+
         url = reverse("account:send_password_reset")
-        
+
         # Mock serializer to return invalid
-        with patch('account.views.UserEmailSerializer') as mock_serializer_class:
+        with patch("account.views.UserEmailSerializer") as mock_serializer_class:
             mock_serializer = MagicMock()
             mock_serializer.is_valid.return_value = False
             mock_serializer.errors = {"email": ["Invalid email"]}
             mock_serializer_class.return_value = mock_serializer
-            
-            response = self.client.post(url, {"email": "send_pw_reset_invalid@test.com"})
-        
+
+            response = self.client.post(
+                url, {"email": "send_pw_reset_invalid@test.com"}
+            )
+
         assert response.status_code == 400
 
     def test_send_password_reset_post_user_email_is_none(self):
         """Test SendPasswordResetView POST when user.email is None (lines 212-213)."""
         from unittest.mock import patch
         from django.urls import reverse
-        
+
         # Create user with email that will be patched to None
-        temp_user = self.user_model.objects.create_user(
+        self.user_model.objects.create_user(
             email="user_email_none@test.com",
             password="test123",
             first_name="Test",
             last_name="User",
         )
-        
+
         url = reverse("account:send_password_reset")
-        
+
         # Mock the CustomUser.objects.get to return user with email=None
-        with patch('account.views.CustomUser.objects.get') as mock_get:
+        with patch("account.views.CustomUser.objects.get") as mock_get:
             mock_user = MagicMock()
             mock_user.email = None  # This triggers the else branch
             mock_get.return_value = mock_user
-            
+
             response = self.client.post(url, {"email": "user_email_none@test.com"})
-        
+
         assert response.status_code == 400
 
     def test_send_password_reset_post_with_existing_task_id_unix(self):
         """Test SendPasswordResetView POST when user has existing task_id (Unix path).
-        
+
         Tests line 178 in views.py - Unix task revocation with SIGKILL.
         """
         from unittest.mock import patch, MagicMock
         from django.urls import reverse
-        
+
         # Create user with existing task_id
         unix_user = self.user_model.objects.create_user(
             email="send_reset_unix@test.com",
@@ -3800,19 +3812,20 @@ class TestAccountViewsCoverage:
         )
         unix_user.task_id_password_reset = "send-reset-unix-task-id"
         unix_user.save()
-        
+
         url = reverse("account:send_password_reset")
-        
-        with patch('account.views.platform', 'linux'), \
-             patch('account.views.current_app') as mock_celery, \
-             patch('account.views.send_email') as mock_send_email, \
-             patch('account.views.start_deleting_expired_codes') as mock_start_delete:
-            
+
+        with patch("account.views.platform", "linux"), patch(
+            "account.views.current_app"
+        ) as mock_celery, patch("account.views.send_email") as mock_send_email, patch(
+            "account.views.start_deleting_expired_codes"
+        ) as mock_start_delete:
+
             mock_send_email.apply_async = MagicMock()
-            mock_start_delete.apply_async = MagicMock(return_value='new-task-id')
-            
+            mock_start_delete.apply_async = MagicMock(return_value="new-task-id")
+
             response = self.client.post(url, {"email": "send_reset_unix@test.com"})
-        
+
         assert response.status_code == 204
         # Verify task was revoked with SIGKILL (Unix path)
         mock_celery.control.revoke.assert_called_once_with(
@@ -3822,7 +3835,7 @@ class TestAccountViewsCoverage:
     def test_users_detail_put_invalid_serializer(self):
         """Test UsersDetail PUT with invalid data (line 362)."""
         from django.urls import reverse
-        
+
         # Create a target user to update (not the current user)
         target_user = self.user_model.objects.create_user(
             email="target_user_put@test.com",
@@ -3830,15 +3843,15 @@ class TestAccountViewsCoverage:
             first_name="Target",
             last_name="User",
         )
-        
+
         url = reverse("account:users_detail", args=[target_user.pk])
-        
+
         # Send invalid data - invalid gender value triggers serializer validation error
         response = self.client.put(
             url,
             {"gender": "InvalidGender"},
             format="json",
         )
-        
+
         assert response.status_code == 400
         assert "gender" in response.data.get("details", response.data)

@@ -1,9 +1,3 @@
-"""
-Dashboard API Tests.
-
-Tests for all 20 dashboard endpoints with date filtering support.
-"""
-
 from datetime import date, timedelta
 from decimal import Decimal
 
@@ -1176,7 +1170,7 @@ class TestOverdueReceivablesAgingBuckets:
     ):
         """Test facture overdue 31-60 days."""
         old_date = date.today() - timedelta(days=45)
-        facture = FactureClient.objects.create(
+        FactureClient.objects.create(
             numero_facture="FC_OLD_45",
             date_facture=old_date,
             client=client_entity,
@@ -1200,7 +1194,7 @@ class TestOverdueReceivablesAgingBuckets:
     ):
         """Test facture overdue 61-90 days."""
         old_date = date.today() - timedelta(days=75)
-        facture = FactureClient.objects.create(
+        FactureClient.objects.create(
             numero_facture="FC_OLD_75",
             date_facture=old_date,
             client=client_entity,
@@ -1224,7 +1218,7 @@ class TestOverdueReceivablesAgingBuckets:
     ):
         """Test facture overdue 90+ days."""
         old_date = date.today() - timedelta(days=120)
-        facture = FactureClient.objects.create(
+        FactureClient.objects.create(
             numero_facture="FC_OLD_120",
             date_facture=old_date,
             client=client_entity,
@@ -1296,7 +1290,7 @@ class TestDiscountImpactWithDiscount:
     ):
         """Test discount impact with a facture that has a discount."""
         today = date.today()
-        facture = FactureClient.objects.create(
+        FactureClient.objects.create(
             numero_facture="FC_DISC_001",
             date_facture=today,
             client=client_entity,
@@ -1389,11 +1383,13 @@ class TestHelperFunctionsNoneCases:
     def test_make_aware_datetime_start_none(self, authenticated_client):
         """Test make_aware_datetime_start returns None when d is None (line 22)."""
         from dashboard.views import make_aware_datetime_start
+
         assert make_aware_datetime_start(None) is None
 
     def test_make_aware_datetime_end_none(self, authenticated_client):
         """Test make_aware_datetime_end returns None when d is None (line 29)."""
         from dashboard.views import make_aware_datetime_end
+
         assert make_aware_datetime_end(None) is None
 
 
@@ -1405,10 +1401,8 @@ class TestCollectionRateZeroInvoiced:
         # No factures exist, so total_invoiced should be 0
         # Delete all factures first
         FactureClient.objects.all().delete()
-        
-        response = authenticated_client.get(
-            "/api/dashboard/financial/collection-rate/"
-        )
+
+        response = authenticated_client.get("/api/dashboard/financial/collection-rate/")
         assert response.status_code == status.HTTP_200_OK
         assert response.data["rate"] == 0
 
@@ -1421,7 +1415,7 @@ class TestOverdueReceivables0to30Days:
     ):
         """Test facture overdue 0-30 days (line 700 - bucket 0-30)."""
         recent_date = date.today() - timedelta(days=15)
-        facture = FactureClient.objects.create(
+        FactureClient.objects.create(
             numero_facture="FC_OLD_15",
             date_facture=recent_date,
             client=client_entity,
@@ -1458,10 +1452,8 @@ class TestPaymentStatusPartialAndUnpaid:
             statut="Envoyé",
             total_ttc_apres_remise=Decimal("5000.00"),
         )
-        
-        response = authenticated_client.get(
-            "/api/dashboard/financial/payment-status/"
-        )
+
+        response = authenticated_client.get("/api/dashboard/financial/payment-status/")
         assert response.status_code == status.HTTP_200_OK
         unpaid_item = next(
             (item for item in response.data if item["status"] == "Impayée"), None
@@ -1492,11 +1484,9 @@ class TestTopProductsFiltering:
             prix_achat=Decimal("80.00"),
             prix_vente=Decimal("100.00"),
         )
-        
+
         # Request without date_from
-        response = authenticated_client.get(
-            "/api/dashboard/commercial/top-products/"
-        )
+        response = authenticated_client.get("/api/dashboard/commercial/top-products/")
         assert response.status_code == status.HTTP_200_OK
 
 
@@ -1515,7 +1505,7 @@ class TestQuoteConversionFiltering:
             created_by_user=user,
             statut="Accepté",
         )
-        
+
         response = authenticated_client.get(
             "/api/dashboard/commercial/quote-conversion/"
         )
@@ -1537,7 +1527,7 @@ class TestInvoiceStatusFiltering:
             created_by_user=user,
             statut="Brouillon",
         )
-        
+
         response = authenticated_client.get(
             "/api/dashboard/operational/invoice-status/"
         )
@@ -1552,7 +1542,7 @@ class TestPaymentDelayFiltering:
     ):
         """Test payment delay without date_from (line 576)."""
         from parameter.models import ModeReglement
-        
+
         facture = FactureClient.objects.create(
             numero_facture="FC_PAYDELAY",
             date_facture=date.today() - timedelta(days=30),
@@ -1572,10 +1562,8 @@ class TestPaymentDelayFiltering:
             date_reglement=date.today(),
             statut="Valide",
         )
-        
-        response = authenticated_client.get(
-            "/api/dashboard/cashflow/payment-delay/"
-        )
+
+        response = authenticated_client.get("/api/dashboard/cashflow/payment-delay/")
         assert response.status_code == status.HTTP_200_OK
 
 
@@ -1595,7 +1583,7 @@ class TestOverdueReceivablesFiltering:
             statut="Envoyé",
             total_ttc_apres_remise=Decimal("2000.00"),
         )
-        
+
         response = authenticated_client.get(
             "/api/dashboard/cashflow/overdue-receivables/"
         )
@@ -1618,7 +1606,7 @@ class TestClientProfileFiltering:
             statut="Envoyé",
             total_ttc_apres_remise=Decimal("1000.00"),
         )
-        
+
         response = authenticated_client.get(
             "/api/dashboard/client/multidimensional-profile/"
         )
@@ -1641,10 +1629,8 @@ class TestKPICardsFiltering:
             statut="Envoyé",
             total_ttc_apres_remise=Decimal("1000.00"),
         )
-        
-        response = authenticated_client.get(
-            "/api/dashboard/kpi/cards-with-trends/"
-        )
+
+        response = authenticated_client.get("/api/dashboard/kpi/cards-with-trends/")
         assert response.status_code == status.HTTP_200_OK
 
 
@@ -1666,10 +1652,8 @@ class TestDiscountImpactFiltering:
             total_ttc=Decimal("1100.00"),
             total_ttc_apres_remise=Decimal("990.00"),
         )
-        
-        response = authenticated_client.get(
-            "/api/dashboard/analysis/discount-impact/"
-        )
+
+        response = authenticated_client.get("/api/dashboard/analysis/discount-impact/")
         assert response.status_code == status.HTTP_200_OK
 
 
@@ -1695,7 +1679,7 @@ class TestProductMarginFiltering:
             prix_achat=Decimal("80.00"),
             prix_vente=Decimal("100.00"),
         )
-        
+
         response = authenticated_client.get(
             "/api/dashboard/analysis/product-margin-volume/"
         )
@@ -1718,7 +1702,7 @@ class TestMonthlyPerformanceFiltering:
             statut="Envoyé",
             total_ttc_apres_remise=Decimal("1000.00"),
         )
-        
+
         response = authenticated_client.get(
             "/api/dashboard/synthetic/monthly-performance/"
         )
