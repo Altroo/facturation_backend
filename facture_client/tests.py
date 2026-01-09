@@ -122,39 +122,10 @@ class TestFactureClientAPI(SharedDocumentAPITestsMixin):
     LineModel = FactureClientLine
 
     def setup_method(self):
-        self.user = CustomUser.objects.create_user(
-            email="user@dev.com", password="pass", first_name="Test", last_name="User"
-        )
-        self.client_api = APIClient()
-        self.client_api.force_authenticate(user=self.user)
+        # Use common base setup
+        self.base_setup_method()
 
-        self.ville = Ville.objects.create(nom="TestVille")
-        self.company = Company.objects.create(
-            raison_sociale="TestCompany", ICE="ICE-1234"
-        )
-        Membership.objects.create(user=self.user, company=self.company)
-
-        self.client_obj = Client.objects.create(
-            code_client="CLT1000",
-            client_type="PM",
-            raison_sociale="TestClient",
-            ICE="ICE1000",
-            registre_de_commerce="RC1000",
-            delai_de_paiement=30,
-            ville=self.ville,
-            company=self.company,
-        )
-        self.mode_paiement = ModePaiement.objects.create(nom="Bank Transfer")
-
-        self.article = Article.objects.create(
-            company=self.company,
-            reference="ART-001",
-            designation="Test Article",
-            prix_achat=100.00,
-            prix_vente=120.00,
-            type_article="Produit",
-        )
-
+        # Create facture_client-specific document and line
         self.doc = FactureClient.objects.create(
             numero_facture="0002/25",
             client=self.client_obj,
@@ -249,31 +220,10 @@ class TestFactureClientFilters(SharedDocumentFilterTestsMixin):
     FilterClass = FactureClientFilter
 
     def setup_method(self):
-        user_object = get_user_model()
-        self.user = user_object.objects.create_user(
-            email="filter@dev.com", password="p"
-        )
+        # Use common base setup for filters
+        self.base_filter_setup_method()
 
-        self.ville = Ville.objects.create(nom="SearchVille")
-        self.company = Company.objects.create(raison_sociale="FilterCo", ICE="ICEFILT")
-        Membership.objects.create(user=self.user, company=self.company)
-
-        self.client_a = Client.objects.create(
-            code_client="C001",
-            client_type="PM",
-            raison_sociale="Client Alpha",
-            company=self.company,
-            ville=self.ville,
-        )
-        self.client_b = Client.objects.create(
-            code_client="C002",
-            client_type="PM",
-            raison_sociale="Other Client",
-            company=self.company,
-            ville=self.ville,
-        )
-        self.mode = ModePaiement.objects.create(nom="Cash")
-
+        # Create facture_client-specific documents
         self.doc1 = FactureClient.objects.create(
             numero_facture="NUM-001",
             client=self.client_a,

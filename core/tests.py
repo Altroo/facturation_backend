@@ -27,6 +27,78 @@ from devi.models import Devi, DeviLine
 from parameter.models import ModePaiement, Ville
 
 
+# -----------------------------------------------------------------------------
+# Common Test Fixtures
+# -----------------------------------------------------------------------------
+@pytest.fixture
+def common_user():
+    """Create a common test user."""
+    return CustomUser.objects.create_user(
+        email="user@test.com",
+        password="testpass",
+        first_name="Test",
+        last_name="User"
+    )
+
+
+@pytest.fixture
+def common_company():
+    """Create a common test company."""
+    return Company.objects.create(
+        raison_sociale="TestCompany",
+        ICE="ICE-TEST123"
+    )
+
+
+@pytest.fixture
+def common_ville():
+    """Create a common test ville."""
+    return Ville.objects.create(nom="TestVille")
+
+
+@pytest.fixture
+def common_mode_paiement():
+    """Create a common test mode de paiement."""
+    return ModePaiement.objects.create(nom="TestPayment")
+
+
+@pytest.fixture
+def common_client(common_ville, common_company):
+    """Create a common test client."""
+    return Client.objects.create(
+        code_client="CLT001",
+        client_type="PM",
+        raison_sociale="TestClient",
+        ville=common_ville,
+        company=common_company,
+    )
+
+
+@pytest.fixture
+def common_article(common_company):
+    """Create a common test article."""
+    return Article.objects.create(
+        company=common_company,
+        reference="ART-001",
+        designation="Test Article",
+        prix_achat=Decimal("100.00"),
+        prix_vente=Decimal("120.00"),
+        tva=20,
+    )
+
+
+@pytest.fixture
+def common_membership(common_user, common_company):
+    """Create a common membership between user and company."""
+    return Membership.objects.create(
+        user=common_user,
+        company=common_company
+    )
+
+
+# -----------------------------------------------------------------------------
+# Helper Functions
+# -----------------------------------------------------------------------------
 def is_numeric_or_none(value: Any) -> bool:
     if value is None:
         return True
@@ -109,6 +181,54 @@ class SharedDocumentAPITestsMixin:
     article: Any
     doc: _HasId | _HasRefreshFromDb
     doc_line: Any
+
+    # --- Common setup method ---
+    def base_setup_method(
+        self,
+        numero_value: str = "0002/25",
+        date_value: str = "2024-06-01",
+        req_value: str = "REQ-001",
+    ) -> None:
+        """
+        Common setup method that can be called by child classes.
+        Sets up user, company, client, article, and basic document.
+        Child classes should call this and then customize as needed.
+        """
+        self.user = CustomUser.objects.create_user(
+            email="user@dev.com", password="pass", first_name="Test", last_name="User"
+        )
+        self.client_api = APIClient()
+        self.client_api.force_authenticate(user=self.user)
+
+        self.ville = Ville.objects.create(nom="TestVille")
+        self.company = Company.objects.create(
+            raison_sociale="TestCompany", ICE="ICE-1234"
+        )
+        Membership.objects.create(user=self.user, company=self.company)
+
+        self.client_obj = Client.objects.create(
+            code_client="CLT1000",
+            client_type="PM",
+            raison_sociale="TestClient",
+            ICE="ICE1000",
+            registre_de_commerce="RC1000",
+            delai_de_paiement=30,
+            ville=self.ville,
+            company=self.company,
+        )
+        self.mode_paiement = ModePaiement.objects.create(nom="Bank Transfer")
+
+        self.article = Article.objects.create(
+            company=self.company,
+            reference="ART-001",
+            designation="Test Article",
+            prix_achat=100.00,
+            prix_vente=120.00,
+            type_article="Produit",
+        )
+
+        # Create document (must be implemented by child or manually)
+        # This is a template - child classes will create their specific doc type
 
     # --- URL helpers ---
     def _list_create_url(self) -> str:
@@ -401,6 +521,36 @@ class SharedDocumentFilterTestsMixin:
     doc1: Any
     doc2: Any
     client_a: _HasId
+
+    def base_filter_setup_method(self) -> None:
+        """
+        Common setup method for filter tests.
+        Sets up user, company, two clients, and two documents.
+        """
+        user_object = get_user_model()
+        self.user = user_object.objects.create_user(
+            email="filter@dev.com", password="p"
+        )
+
+        self.ville = Ville.objects.create(nom="SearchVille")
+        self.company = Company.objects.create(raison_sociale="FilterCo", ICE="ICEFILT")
+        Membership.objects.create(user=self.user, company=self.company)
+
+        self.client_a = Client.objects.create(
+            code_client="C001",
+            client_type="PM",
+            raison_sociale="Client Alpha",
+            company=self.company,
+            ville=self.ville,
+        )
+        self.client_b = Client.objects.create(
+            code_client="C002",
+            client_type="PM",
+            raison_sociale="Other Client",
+            company=self.company,
+            ville=self.ville,
+        )
+        self.mode = ModePaiement.objects.create(nom="Cash")
 
     def shared_test_global_search_matches_numero_and_client_and_req(
         self, *, numero_field: str, client_label: str, req_value: str

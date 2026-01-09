@@ -138,40 +138,13 @@ class TestBonDeLivraisonAPI(SharedDocumentAPITestsMixin):
     LineModel = BonDeLivraisonLine
 
     def setup_method(self):
-        self.user = CustomUser.objects.create_user(
-            email="user@bon.com", password="pass", first_name="Test", last_name="User"
-        )
-        self.client_api = APIClient()
-        self.client_api.force_authenticate(user=self.user)
+        # Use common base setup
+        self.base_setup_method()
 
-        self.ville = Ville.objects.create(nom="TestVille")
-        self.company = Company.objects.create(
-            raison_sociale="TestCompany", ICE="ICE-1234"
-        )
-        Membership.objects.create(user=self.user, company=self.company)
-
-        self.client_obj = Client.objects.create(
-            code_client="CLT1000",
-            client_type="PM",
-            raison_sociale="TestClient",
-            ICE="ICE1000",
-            registre_de_commerce="RC1000",
-            delai_de_paiement=30,
-            ville=self.ville,
-            company=self.company,
-        )
-        self.mode_paiement = ModePaiement.objects.create(nom="Bank Transfer")
+        # Create bon_de_livraison-specific field
         self.livre_par = LivrePar.objects.create(nom="Jean Dupont")
 
-        self.article = Article.objects.create(
-            company=self.company,
-            reference="ART-001",
-            designation="Test Article",
-            prix_achat=100.00,
-            prix_vente=120.00,
-            type_article="Produit",
-        )
-
+        # Create bon_de_livraison-specific document and line
         self.doc = BonDeLivraison.objects.create(
             numero_bon_livraison="0002/25",
             client=self.client_obj,
@@ -264,32 +237,13 @@ class TestBonDeLivraisonFilters(SharedDocumentFilterTestsMixin):
     FilterClass = BonDeLivraisonFilter
 
     def setup_method(self):
-        user_object = get_user_model()
-        self.user = user_object.objects.create_user(
-            email="filter@bon.com", password="p"
-        )
+        # Use common base setup for filters
+        self.base_filter_setup_method()
 
-        self.ville = Ville.objects.create(nom="SearchVille")
-        self.company = Company.objects.create(raison_sociale="FilterCo", ICE="ICEFILT")
-        Membership.objects.create(user=self.user, company=self.company)
-
-        self.client_a = Client.objects.create(
-            code_client="C001",
-            client_type="PM",
-            raison_sociale="Client Alpha",
-            company=self.company,
-            ville=self.ville,
-        )
-        self.client_b = Client.objects.create(
-            code_client="C002",
-            client_type="PM",
-            raison_sociale="Other Client",
-            company=self.company,
-            ville=self.ville,
-        )
-        self.mode = ModePaiement.objects.create(nom="Cash")
+        # Create bon_de_livraison-specific field
         self.livre_par = LivrePar.objects.create(nom="Livreur Test")
 
+        # Create bon_de_livraison-specific documents
         self.doc1 = BonDeLivraison.objects.create(
             numero_bon_livraison="NUM-001",
             client=self.client_a,
