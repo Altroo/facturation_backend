@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.db import transaction
 from django.utils.html import format_html
+from simple_history.admin import SimpleHistoryAdmin
 
 
 class BaseDocumentLineInline(admin.TabularInline):
@@ -25,7 +26,7 @@ class BaseDocumentLineInline(admin.TabularInline):
 
 
 # python
-class BaseDocumentAdmin(admin.ModelAdmin):
+class BaseDocumentAdmin(SimpleHistoryAdmin):
     """Abstract admin for document models (Devi, FactureClient, FactureProForma)."""
 
     list_filter = (

@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib import admin
 from django.utils.html import format_html
+from simple_history.admin import SimpleHistoryAdmin
 
 from .models import Reglement
 
@@ -60,7 +61,7 @@ class ReglementAdminForm(forms.ModelForm):
         return cleaned_data
 
 
-class ReglementAdmin(admin.ModelAdmin):
+class ReglementAdmin(SimpleHistoryAdmin):
     """Admin configuration for the Reglement model."""
 
     form = ReglementAdminForm

@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from account.models import Membership
+from core.utils import format_number_with_dynamic_digits
 from facturation_backend.utils import CustomPagination
 from .filters import ClientFilter
 from .models import Client
@@ -124,12 +125,14 @@ class ClientDetailEditDeleteView(APIView):
 
 
 class GenerateClientCodeView(APIView):
-    """Return the next available ``code_client`` (e.g. ``CLT0018``)."""
+    """Return the next available ``code_client`` (e.g. ``CLT0018``).
+    Automatically increases digit count when 9999 is reached."""
 
     permission_classes = (permissions.IsAuthenticated,)
 
     @staticmethod
     def get(request, *args, **kwargs):
+
         # Robustly scan all existing codes and extract numeric parts.
         max_num = 0
         for code in Client.objects.filter(code_client__isnull=False).values_list(
@@ -146,7 +149,8 @@ class GenerateClientCodeView(APIView):
                 max_num = value
 
         next_number = max_num + 1
-        new_code = f"CLT{next_number:04d}"
+        formatted_number = format_number_with_dynamic_digits(next_number, min_digits=4)
+        new_code = f"CLT{formatted_number}"
         return Response({"code_client": new_code}, status=status.HTTP_200_OK)
 
 

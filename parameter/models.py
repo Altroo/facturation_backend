@@ -60,19 +60,6 @@ class Unite(models.Model):
         return self.nom
 
 
-class ModeReglement(models.Model):
-    nom = models.CharField(
-        max_length=255, unique=True, verbose_name="Nom du mode de règlement"
-    )
-
-    class Meta:
-        verbose_name = "Mode de règlement"
-        verbose_name_plural = "Modes de règlement"
-
-    def __str__(self):
-        return self.nom
-
-
 class Emplacement(models.Model):
     nom = models.CharField(
         max_length=255, unique=True, verbose_name="Nom de l'emplacement"

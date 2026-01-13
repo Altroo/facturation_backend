@@ -11,7 +11,7 @@ from article.models import Article
 from client.models import Client
 from company.models import Company
 from facture_client.models import FactureClient, FactureClientLine
-from parameter.models import ModePaiement, ModeReglement, Ville
+from parameter.models import ModePaiement, Ville
 from .filters import ReglementFilter
 from .models import Reglement
 
@@ -59,12 +59,12 @@ def reglement_mode_paiement():
 
 @pytest.fixture
 def reglement_mode_reglement():
-    return ModeReglement.objects.create(nom="Espèces")
+    return ModePaiement.objects.create(nom="Espèces")
 
 
 @pytest.fixture
 def reglement_mode_reglement_cheque():
-    return ModeReglement.objects.create(nom="Chèque")
+    return ModePaiement.objects.create(nom="Chèque")
 
 
 @pytest.fixture
@@ -290,7 +290,7 @@ class TestReglementAPI:
             company=self.company,
         )
         self.mode_paiement = ModePaiement.objects.create(nom="API Payment")
-        self.mode_reglement = ModeReglement.objects.create(nom="API Règlement")
+        self.mode_reglement = ModePaiement.objects.create(nom="API Règlement")
 
         self.article = Article.objects.create(
             company=self.company,
@@ -769,8 +769,8 @@ class TestReglementFilters:
             ville=self.ville,
         )
         self.mode_paiement = ModePaiement.objects.create(nom="FilterPay")
-        self.mode_reglement = ModeReglement.objects.create(nom="FilterReg")
-        self.mode_reglement2 = ModeReglement.objects.create(nom="FilterReg2")
+        self.mode_reglement = ModePaiement.objects.create(nom="FilterReg")
+        self.mode_reglement2 = ModePaiement.objects.create(nom="FilterReg2")
 
         self.article = Article.objects.create(
             company=self.company,
@@ -1329,7 +1329,7 @@ class TestReglementFactureStatusValidation:
             company=self.company,
         )
         self.mode_paiement = ModePaiement.objects.create(nom="Status Payment")
-        self.mode_reglement = ModeReglement.objects.create(nom="Status Règlement")
+        self.mode_reglement = ModePaiement.objects.create(nom="Status Règlement")
 
         self.article = Article.objects.create(
             company=self.company,

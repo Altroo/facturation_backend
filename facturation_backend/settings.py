@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework_simplejwt",
     "dj_rest_auth",
+    "simple_history",
     "account.apps.AccountConfig",
     "parameter.apps.ParameterConfig",
     "company.apps.CompanyConfig",
@@ -73,6 +74,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "corsheaders.middleware.CorsMiddleware",
+    "simple_history.middleware.HistoryRequestMiddleware",
 ]
 
 # Use WhiteNoise’s compressed static files storage

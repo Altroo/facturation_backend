@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from account.models import Membership
+from core.utils import format_number_with_dynamic_digits
 from facturation_backend.utils import CustomPagination
 from .filters import ArticleFilter
 from .models import Article
@@ -140,12 +141,14 @@ class ArticleDetailEditDeleteView(APIView):
 
 
 class GenerateArticleReferenceCodeView(APIView):
-    """Return the next available ``code_article`` (e.g. ``ART0012``)."""
+    """Return the next available ``code_article`` (e.g. ``ART0012``).
+    Automatically increases digit count when 9999 is reached."""
 
     permission_classes = (permissions.IsAuthenticated,)
 
     @staticmethod
     def get(request, *args, **kwargs):
+
         max_num = 0
         for ref in Article.objects.filter(reference__isnull=False).values_list(
             "reference", flat=True
@@ -168,7 +171,8 @@ class GenerateArticleReferenceCodeView(APIView):
                 max_num = value
 
         next_number = max_num + 1
-        new_ref = f"ART{next_number:04d}"
+        formatted_number = format_number_with_dynamic_digits(next_number, min_digits=4)
+        new_ref = f"ART{formatted_number}"
         return Response({"reference": new_ref}, status=status.HTTP_200_OK)
 
 

@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib import admin
 from django.contrib.auth.models import Group
+from simple_history.admin import SimpleHistoryAdmin
 
 from account.models import Membership
 from .models import Company
@@ -28,7 +29,7 @@ class MembershipInline(admin.TabularInline):
     verbose_name_plural = "Managers"
 
 
-class CompanyAdmin(admin.ModelAdmin):
+class CompanyAdmin(SimpleHistoryAdmin):
     list_display = (
         "id",
         "raison_sociale",
@@ -37,10 +38,11 @@ class CompanyAdmin(admin.ModelAdmin):
         "nom_responsable",
         "site_web",
         "ICE",
+        "suspended",
         "date_created",
         "date_updated",
     )
-    list_filter = ("civilite_responsable", "nbr_employe")
+    list_filter = ("civilite_responsable", "nbr_employe", "suspended")
     search_fields = (
         "raison_sociale",
         "email",

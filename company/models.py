@@ -4,6 +4,7 @@ from uuid import uuid4
 from django.core.validators import RegexValidator
 from django.db import models
 from django.utils import timezone
+from simple_history.models import HistoricalRecords
 
 
 def get_company_image_path(_, filename):
@@ -191,6 +192,15 @@ class Company(models.Model):
         verbose_name="Date de modification",
         db_index=True,
     )
+
+    # Suspension status
+    suspended = models.BooleanField(
+        default=False,
+        verbose_name="Suspendu",
+        db_index=True,
+    )
+
+    history = HistoricalRecords()
 
     class Meta:
         verbose_name = "Company"

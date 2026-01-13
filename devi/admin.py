@@ -1,4 +1,5 @@
 from django.contrib import admin
+from simple_history.admin import SimpleHistoryAdmin
 
 from core.admin import BaseDocumentAdmin, BaseDocumentLineInline
 from .models import Devi, DeviLine
@@ -93,7 +94,7 @@ class DeviAdmin(BaseDocumentAdmin):
     )
 
 
-class DeviLineAdmin(admin.ModelAdmin):
+class DeviLineAdmin(SimpleHistoryAdmin):
     """Admin configuration for the DeviLine model."""
 
     list_display = (

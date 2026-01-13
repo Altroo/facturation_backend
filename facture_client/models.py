@@ -1,6 +1,7 @@
 from django.db import models
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
+from simple_history.models import HistoricalRecords
 
 from account.models import CustomUser
 from article.models import Article
@@ -29,6 +30,8 @@ class FactureClient(BaseDeviFactureDocument):
         blank=True,
         null=True,
     )
+
+    history = HistoricalRecords()
 
     class Meta:
         verbose_name = "Facture Client"
@@ -86,6 +89,8 @@ class FactureClientLine(BaseDeviFactureLine):
     article = models.ForeignKey(
         Article, on_delete=models.CASCADE, verbose_name="Article"
     )
+
+    history = HistoricalRecords()
 
     class Meta:
         verbose_name = "Ligne de facture Client"

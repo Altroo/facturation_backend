@@ -3,6 +3,7 @@ from uuid import uuid4
 
 from django.db import models
 from django.utils import timezone
+from simple_history.models import HistoricalRecords
 
 
 def get_article_image_path(_, filename):
@@ -123,6 +124,8 @@ class Article(models.Model):
         verbose_name="Archivé",
         db_index=True,
     )
+
+    history = HistoricalRecords()
 
     class Meta:
         verbose_name = "Article"

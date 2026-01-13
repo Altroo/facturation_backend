@@ -36,6 +36,7 @@ class CompanyListCreateView(APIView):
         queryset = Company.objects.filter(
             memberships__user=request.user,
             memberships__role__name="Admin",
+            suspended=False,
         )
         if pagination:
             paginator = CustomPagination()
@@ -114,7 +115,9 @@ class CompanyDetailEditDeleteView(APIView):
 
     def delete(self, request, pk, *args, **kwargs):
         company = self.get_object(pk)
-        company.delete()
+        # Suspend the company instead of deleting
+        company.suspended = True
+        company.save(update_fields=["suspended"])
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -124,7 +127,7 @@ class CompaniesByUserView(APIView):
     @staticmethod
     def get(request, *args, **kwargs):
         queryset = (
-            Company.objects.filter(memberships__user=request.user)
+            Company.objects.filter(memberships__user=request.user, suspended=False)
             .annotate(_client_count=Count("clients"))
             .order_by("-_client_count")
         )

@@ -1,10 +1,15 @@
 from datetime import datetime
 from re import search
 
+from core.utils import format_number_with_dynamic_digits
 from .models import BonDeLivraison
 
 
 def get_next_numero_bon_livraison() -> str:
+    """
+    Return the next available numero_bon_livraison string like '0001/25'.
+    Automatically increases digit count when 9999 is reached.
+    """
     year_suffix = f"{datetime.now().year % 100:02d}"
     qs = BonDeLivraison.objects.filter(
         numero_bon_livraison__isnull=False,
@@ -13,7 +18,7 @@ def get_next_numero_bon_livraison() -> str:
 
     used_numbers = []
     for raw in qs:
-        m = search(r"^(\d{4})/\d{2}$", raw or "")
+        m = search(r"^(\d+)/\d{2}$", raw or "")
         if m:
             try:
                 used_numbers.append(int(m.group(1)))
@@ -27,4 +32,5 @@ def get_next_numero_bon_livraison() -> str:
             next_number = i
             break
 
-    return f"{next_number:04d}/{year_suffix}"
+    formatted_number = format_number_with_dynamic_digits(next_number, min_digits=4)
+    return f"{formatted_number}/{year_suffix}"

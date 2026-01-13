@@ -1,6 +1,7 @@
 from django.core.validators import RegexValidator
 from django.db import models
 from django.utils import timezone
+from simple_history.models import HistoricalRecords
 
 from company.models import Company
 from parameter.models import Ville
@@ -111,6 +112,8 @@ class Client(models.Model):
         verbose_name="Archivé",
         db_index=True,
     )
+
+    history = HistoricalRecords()
 
     class Meta:
         verbose_name = "Client"

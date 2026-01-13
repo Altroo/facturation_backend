@@ -3,9 +3,10 @@ from decimal import Decimal
 from django.db import models
 from django.db.models import Sum
 from django.utils import timezone
+from simple_history.models import HistoricalRecords
 
 from facture_client.models import FactureClient
-from parameter.models import ModeReglement
+from parameter.models import ModePaiement
 
 
 class Reglement(models.Model):
@@ -25,7 +26,7 @@ class Reglement(models.Model):
     )
 
     mode_reglement = models.ForeignKey(
-        ModeReglement,
+        ModePaiement,
         on_delete=models.SET_NULL,
         null=True,
         verbose_name="Mode de règlement",
@@ -73,6 +74,8 @@ class Reglement(models.Model):
         auto_now=True,
         verbose_name="Date de mise à jour",
     )
+
+    history = HistoricalRecords()
 
     class Meta:
         verbose_name = "Règlement"

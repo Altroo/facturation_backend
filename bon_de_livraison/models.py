@@ -1,6 +1,7 @@
 from django.db import models
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
+from simple_history.models import HistoricalRecords
 
 from article.models import Article
 from core.models import (
@@ -54,6 +55,8 @@ class BonDeLivraison(BaseDeviFactureDocument):
         verbose_name="Livré par",
     )
 
+    history = HistoricalRecords()
+
     class Meta:
         verbose_name = "Bon de Livraison"
         verbose_name_plural = "Bons de Livraison"
@@ -74,6 +77,8 @@ class BonDeLivraisonLine(BaseDeviFactureLine):
     article = models.ForeignKey(
         Article, on_delete=models.CASCADE, verbose_name="Article"
     )
+
+    history = HistoricalRecords()
 
     class Meta:
         verbose_name = "Ligne de bon de livraison"

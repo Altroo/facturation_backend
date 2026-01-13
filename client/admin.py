@@ -1,9 +1,10 @@
 from django.contrib import admin
+from simple_history.admin import SimpleHistoryAdmin
 
 from .models import Client
 
 
-class ClientAdmin(admin.ModelAdmin):
+class ClientAdmin(SimpleHistoryAdmin):
     """Admin configuration for the Client model."""
 
     list_display = (

@@ -11,7 +11,6 @@ from parameter.models import (
     Unite,
     Emplacement,
     ModePaiement,
-    ModeReglement,
     LivrePar,
 )
 
@@ -151,11 +150,6 @@ class TestModePaiementAPI(BaseAPITest):
     basename = "mode_paiement"
 
 
-class TestModeReglementAPI(BaseAPITest):
-    model = ModeReglement
-    basename = "mode_reglement"
-
-
 class TestLivreParAPI(BaseAPITest):
     model = LivrePar
     basename = "livre_par"
@@ -194,11 +188,6 @@ class TestParameterModelsExtra:
         """Test Emplacement __str__."""
         obj = Emplacement.objects.create(nom="Warehouse A Extra")
         assert str(obj) == "Warehouse A Extra"
-
-    def test_mode_reglement_str(self):
-        """Test ModeReglement __str__."""
-        obj = ModeReglement.objects.create(nom="By Check Extra")
-        assert str(obj) == "By Check Extra"
 
     def test_livre_par_str(self):
         """Test LivrePar __str__."""

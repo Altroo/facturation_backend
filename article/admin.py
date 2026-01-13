@@ -1,9 +1,10 @@
 from django.contrib import admin
+from simple_history.admin import SimpleHistoryAdmin
 
 from .models import Article
 
 
-class ArticleAdmin(admin.ModelAdmin):
+class ArticleAdmin(SimpleHistoryAdmin):
     """Admin configuration for the Article model."""
 
     list_display = (

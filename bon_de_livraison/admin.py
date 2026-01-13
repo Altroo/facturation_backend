@@ -1,4 +1,5 @@
 from django.contrib import admin
+from simple_history.admin import SimpleHistoryAdmin
 
 from core.admin import BaseDocumentAdmin, BaseDocumentLineInline
 from .models import BonDeLivraison, BonDeLivraisonLine
@@ -95,7 +96,7 @@ class BonDeLivraisonAdmin(BaseDocumentAdmin):
     )
 
 
-class BonDeLivraisonLineAdmin(admin.ModelAdmin):
+class BonDeLivraisonLineAdmin(SimpleHistoryAdmin):
     """Admin configuration for the BonDeLivraisonLine model."""
 
     list_display = (

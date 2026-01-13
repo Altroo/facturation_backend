@@ -1,4 +1,5 @@
 from django.contrib import admin
+from simple_history.admin import SimpleHistoryAdmin
 
 from core.admin import BaseDocumentAdmin, BaseDocumentLineInline
 from .models import FactureProForma, FactureProFormaLine
@@ -93,7 +94,7 @@ class FactureProFormaAdmin(BaseDocumentAdmin):
     )
 
 
-class FactureProFormaLineAdmin(admin.ModelAdmin):
+class FactureProFormaLineAdmin(SimpleHistoryAdmin):
     """Admin configuration for the FactureProFormaLine model."""
 
     list_display = (

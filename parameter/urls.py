@@ -8,7 +8,6 @@ from .views import (
     UniteViewSet,
     EmplacementViewSet,
     ModePaiementViewSet,
-    ModeReglementViewSet,
     LivreParViewSet,
 )
 
@@ -22,7 +21,6 @@ router.register(r"categorie", CategorieViewSet, basename="categorie")
 router.register(r"unite", UniteViewSet, basename="unite")
 router.register(r"emplacement", EmplacementViewSet, basename="emplacement")
 router.register(r"mode_paiement", ModePaiementViewSet, basename="mode_paiement")
-router.register(r"mode_reglement", ModeReglementViewSet, basename="mode_reglement")
 router.register(r"livre_par", LivreParViewSet, basename="livre_par")
 
 urlpatterns = [
