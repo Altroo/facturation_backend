@@ -34,10 +34,6 @@ class ClientAdmin(SimpleHistoryAdmin):
     readonly_fields = ("date_created", "date_updated")
 
 
-# Client
-admin.site.register(Client, ClientAdmin)
-
-
 # Historical Model Admin (Read-only)
 class HistoricalClientAdmin(admin.ModelAdmin):
     """Read-only admin for viewing historical Client records."""
@@ -91,4 +87,6 @@ class HistoricalClientAdmin(admin.ModelAdmin):
         return False
 
 
+# Client
+admin.site.register(Client, ClientAdmin)
 admin.site.register(Client.history.model, HistoricalClientAdmin)

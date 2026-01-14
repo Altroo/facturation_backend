@@ -26,9 +26,6 @@ class ArticleAdmin(SimpleHistoryAdmin):
     readonly_fields = ("date_created", "date_updated")
 
 
-admin.site.register(Article, ArticleAdmin)
-
-
 # Historical Model Admin (Read-only)
 class HistoricalArticleAdmin(admin.ModelAdmin):
     """Read-only admin for viewing historical Article records."""
@@ -79,4 +76,5 @@ class HistoricalArticleAdmin(admin.ModelAdmin):
         return False
 
 
+admin.site.register(Article, ArticleAdmin)
 admin.site.register(Article.history.model, HistoricalArticleAdmin)

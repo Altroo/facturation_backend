@@ -54,9 +54,6 @@ class CompanyAdmin(SimpleHistoryAdmin):
     inlines = [MembershipInline]
 
 
-admin.site.register(Company, CompanyAdmin)
-
-
 # Historical Model Admin (Read-only)
 class HistoricalCompanyAdmin(admin.ModelAdmin):
     """Read-only admin for viewing historical Company records."""
@@ -107,4 +104,5 @@ class HistoricalCompanyAdmin(admin.ModelAdmin):
         return False
 
 
+admin.site.register(Company, CompanyAdmin)
 admin.site.register(Company.history.model, HistoricalCompanyAdmin)

@@ -48,16 +48,6 @@ class LivreParAdmin(admin.ModelAdmin):
     search_fields = ("nom",)
 
 
-# Register models
-admin.site.register(Ville, VilleAdmin)
-admin.site.register(Marque, MarqueAdmin)
-admin.site.register(Categorie, CategorieAdmin)
-admin.site.register(Unite, UniteAdmin)
-admin.site.register(Emplacement, EmplacementAdmin)
-admin.site.register(ModePaiement, ModePaiementAdmin)
-admin.site.register(LivrePar, LivreParAdmin)
-
-
 # Historical Model Admins (Read-only)
 class HistoricalVilleAdmin(admin.ModelAdmin):
     """Read-only admin for viewing historical Ville records."""
@@ -318,6 +308,14 @@ class HistoricalLivreParAdmin(admin.ModelAdmin):
         return False
 
 
+# Register models
+admin.site.register(Ville, VilleAdmin)
+admin.site.register(Marque, MarqueAdmin)
+admin.site.register(Categorie, CategorieAdmin)
+admin.site.register(Unite, UniteAdmin)
+admin.site.register(Emplacement, EmplacementAdmin)
+admin.site.register(ModePaiement, ModePaiementAdmin)
+admin.site.register(LivrePar, LivreParAdmin)
 admin.site.register(Ville.history.model, HistoricalVilleAdmin)
 admin.site.register(Marque.history.model, HistoricalMarqueAdmin)
 admin.site.register(Categorie.history.model, HistoricalCategorieAdmin)

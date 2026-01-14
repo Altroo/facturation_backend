@@ -96,14 +96,6 @@ class RoleAdmin(ModelAdmin):
     ordering = ("-is_admin", "name")
 
 
-# Account
-admin.site.register(CustomUser, CustomUserAdmin)
-# Role
-admin.site.register(Role, RoleAdmin)
-# Membership
-admin.site.register(Membership, MembershipAdmin)
-
-
 # Historical Model Admins (Read-only)
 class HistoricalCustomUserAdmin(admin.ModelAdmin):
     """Read-only admin for viewing historical CustomUser records."""
@@ -202,5 +194,12 @@ class HistoricalMembershipAdmin(admin.ModelAdmin):
         return False
 
 
+# Account
+admin.site.register(CustomUser, CustomUserAdmin)
+# Role
+admin.site.register(Role, RoleAdmin)
+# Membership
+admin.site.register(Membership, MembershipAdmin)
+# Historical Models
 admin.site.register(CustomUser.history.model, HistoricalCustomUserAdmin)
 admin.site.register(Membership.history.model, HistoricalMembershipAdmin)
