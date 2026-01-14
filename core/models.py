@@ -168,8 +168,14 @@ class BaseDeviFactureDocument(models.Model):
             final_total_ht = raw_total_ht
 
         # Scale TVA proportionally to the HT change
-        ratio = (final_total_ht / raw_total_ht) if raw_total_ht > 0 else Decimal("0")
-        final_total_tva = raw_total_tva * ratio
+        # Handle zero division safely
+        if raw_total_ht > 0:
+            ratio = final_total_ht / raw_total_ht
+            final_total_tva = raw_total_tva * ratio
+        else:
+            # If raw_total_ht is 0, TVA should also be 0
+            final_total_tva = Decimal("0")
+
         final_total_ttc = final_total_ht + final_total_tva
 
         # Quantize to 2 decimal places and store directly

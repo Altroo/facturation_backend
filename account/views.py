@@ -8,6 +8,7 @@ from celery import current_app
 from dj_rest_auth.views import LoginView as Dj_rest_login
 from dj_rest_auth.views import LogoutView as Dj_rest_logout
 from django.core.exceptions import SuspiciousFileOperation
+from django.db import transaction
 from django.http import Http404
 from django.template.loader import render_to_string
 from django.utils.translation import gettext_lazy as _
@@ -124,24 +125,39 @@ class PasswordResetView(APIView):
             ):
                 serializer = PasswordResetSerializer(data=request.data)
                 if serializer.is_valid():
-                    # revoke 24h previous periodic task (default password_reset)
-                    if user.task_id_password_reset:
-                        task_id_password_reset = user.task_id_password_reset
-                        if platform == "win32":
-                            # Windows : signal POSIX
-                            current_app.control.revoke(
-                                task_id_password_reset, terminate=False
-                            )
-                        else:
-                            # Unix :
-                            current_app.control.revoke(
-                                task_id_password_reset, terminate=True, signal="SIGKILL"
-                            )
-                        user.task_id_password_reset = None
-                        user.save()
-                    user.set_password(serializer.data.get("new_password"))
-                    user.password_reset_code = None
-                    user.save()
+                    with transaction.atomic():
+                        # revoke 24h previous periodic task (default password_reset)
+                        if user.task_id_password_reset:
+                            task_id_password_reset = user.task_id_password_reset
+                            try:
+                                if platform == "win32":
+                                    # Windows : signal POSIX
+                                    current_app.control.revoke(
+                                        task_id_password_reset, terminate=False
+                                    )
+                                else:
+                                    # Unix :
+                                    current_app.control.revoke(
+                                        task_id_password_reset,
+                                        terminate=True,
+                                        signal="SIGKILL",
+                                    )
+                            except Exception as e:
+                                # Log but continue - task revocation failure shouldn't block password reset
+                                import logging
+
+                                logger = logging.getLogger(__name__)
+                                logger.warning(
+                                    f"Failed to revoke task {task_id_password_reset}: {e}"
+                                )
+
+                            user.task_id_password_reset = None
+                            user.save(update_fields=["task_id_password_reset"])
+
+                        user.set_password(serializer.data.get("new_password"))
+                        user.password_reset_code = None
+                        user.save(update_fields=["password", "password_reset_code"])
+
                     return Response(status=status.HTTP_204_NO_CONTENT)
                 raise ValidationError(serializer.errors)
 
@@ -165,48 +181,64 @@ class SendPasswordResetView(APIView):
             if user.email is not None:
                 serializer = UserEmailSerializer(data=request.data)
                 if serializer.is_valid():
-                    # revoke 24h previous periodic task (default password reset)
-                    task_id_password_reset = user.task_id_password_reset
-                    if task_id_password_reset:
-                        if platform == "win32":
-                            # Windows : signal POSIX
-                            current_app.control.revoke(
-                                task_id_password_reset, terminate=False
+                    with transaction.atomic():
+                        # revoke 24h previous periodic task (default password reset)
+                        task_id_password_reset = user.task_id_password_reset
+                        if task_id_password_reset:
+                            try:
+                                if platform == "win32":
+                                    # Windows : signal POSIX
+                                    current_app.control.revoke(
+                                        task_id_password_reset, terminate=False
+                                    )
+                                else:
+                                    # Unix :
+                                    current_app.control.revoke(
+                                        task_id_password_reset,
+                                        terminate=True,
+                                        signal="SIGKILL",
+                                    )
+                            except Exception as e:
+                                import logging
+
+                                logger = logging.getLogger(__name__)
+                                logger.warning(
+                                    f"Failed to revoke task {task_id_password_reset}: {e}"
+                                )
+
+                            user.task_id_password_reset = None
+                            user.save(update_fields=["task_id_password_reset"])
+
+                        mail_subject = "Renouvellement du mot de passe"
+                        mail_template = "password_reset.html"
+                        code = self.generate_random_code()
+                        message = render_to_string(
+                            mail_template,
+                            {
+                                "first_name": user.first_name,
+                                "code": code,
+                            },
+                        )
+                        send_email.apply_async(
+                            (
+                                user.pk,
+                                user.email,
+                                mail_subject,
+                                message,
+                                code,
+                                "password_reset_code",
+                            ),
+                        )
+                        date_now = datetime.now(timezone.utc)
+                        shift = date_now + timedelta(hours=24)
+                        task_id_password_reset = (
+                            start_deleting_expired_codes.apply_async(
+                                (user.pk, "password_reset"), eta=shift
                             )
-                        else:
-                            # Unix :
-                            current_app.control.revoke(
-                                task_id_password_reset, terminate=True, signal="SIGKILL"
-                            )
-                        user.task_id_password_reset = None
-                        user.save()
-                    mail_subject = "Renouvellement du mot de passe"
-                    mail_template = "password_reset.html"
-                    code = self.generate_random_code()
-                    message = render_to_string(
-                        mail_template,
-                        {
-                            "first_name": user.first_name,
-                            "code": code,
-                        },
-                    )
-                    send_email.apply_async(
-                        (
-                            user.pk,
-                            user.email,
-                            mail_subject,
-                            message,
-                            code,
-                            "password_reset_code",
-                        ),
-                    )
-                    date_now = datetime.now(timezone.utc)
-                    shift = date_now + timedelta(hours=24)
-                    task_id_password_reset = start_deleting_expired_codes.apply_async(
-                        (user.pk, "password_reset"), eta=shift
-                    )
-                    user.task_id_password_reset = str(task_id_password_reset)
-                    user.save()
+                        )
+                        user.task_id_password_reset = str(task_id_password_reset)
+                        user.save(update_fields=["task_id_password_reset"])
+
                     return Response(status=status.HTTP_204_NO_CONTENT)
                 raise ValidationError(serializer.errors)
             else:

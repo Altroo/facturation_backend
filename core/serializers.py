@@ -144,13 +144,13 @@ class BaseLineWriteSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         # Check if Commercial user is trying to modify prix_vente
-        request = self.context.get('request')
+        request = self.context.get("request")
         if request and request.user:
             from account.models import Membership
             from core.permissions import get_user_role
-            
+
             # Try to get company_id from parent serializer context
-            company_id = self.context.get('company_id')
+            company_id = self.context.get("company_id")
             if company_id:
                 role = get_user_role(request.user, company_id)
                 if role == "Commercial" and "prix_vente" in data:
@@ -168,7 +168,7 @@ class BaseLineWriteSerializer(serializers.ModelSerializer):
                             raise serializers.ValidationError(
                                 "Les utilisateurs Commercial ne peuvent pas définir un prix de vente personnalisé."
                             )
-        
+
         if data["prix_vente"] < data["prix_achat"]:
             raise serializers.ValidationError(
                 "Le prix de vente doit être supérieur ou égal au prix d'achat."
@@ -222,8 +222,8 @@ class BaseCreateSerializer(BaseDetailSerializer):
         """Add company_id to context for nested line serializers."""
         data = super().validate(data)
         # Store company_id in context for line serializers to access
-        if 'client' in data:
-            self.context['company_id'] = data['client'].company_id
+        if "client" in data:
+            self.context["company_id"] = data["client"].company_id
         return data
 
     def create(self, validated_data):
@@ -259,8 +259,8 @@ class BaseDetailUpdateSerializer(BaseCreateSerializer):
         """Add company_id to context for nested line serializers."""
         data = super().validate(data)
         # Store company_id in context for line serializers to access
-        if hasattr(self, 'instance') and self.instance:
-            self.context['company_id'] = self.instance.client.company_id
+        if hasattr(self, "instance") and self.instance:
+            self.context["company_id"] = self.instance.client.company_id
         return data
 
     def update(self, instance, validated_data):

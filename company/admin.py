@@ -60,7 +60,7 @@ admin.site.register(Company, CompanyAdmin)
 # Historical Model Admin (Read-only)
 class HistoricalCompanyAdmin(admin.ModelAdmin):
     """Read-only admin for viewing historical Company records."""
-    
+
     list_display = (
         "history_id",
         "id",
@@ -72,33 +72,37 @@ class HistoricalCompanyAdmin(admin.ModelAdmin):
         "history_date",
         "history_user",
     )
-    
+
     list_filter = (
         "history_type",
         "history_date",
         "suspended",
     )
-    
+
     search_fields = (
         "raison_sociale",
         "email",
         "ICE",
     )
-    
-    readonly_fields = [field.name for field in Company._meta.get_fields() if hasattr(field, 'name') and not field.many_to_many and not field.one_to_many] + [
+
+    readonly_fields = [
+        field.name
+        for field in Company._meta.get_fields()
+        if hasattr(field, "name") and not field.many_to_many and not field.one_to_many
+    ] + [
         "history_id",
         "history_date",
         "history_change_reason",
         "history_type",
         "history_user",
     ]
-    
+
     def has_add_permission(self, request):
         return False
-    
+
     def has_delete_permission(self, request, obj=None):
         return False
-    
+
     def has_change_permission(self, request, obj=None):
         return False
 

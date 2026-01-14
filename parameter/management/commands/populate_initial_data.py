@@ -3,10 +3,11 @@ Management command to populate initial parameter data.
 
 This command populates:
 - Catégories
-- Unités  
+- Unités
 - Marques
 - Modes de paiement
 """
+
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
@@ -31,7 +32,7 @@ class Command(BaseCommand):
                 "lighting",
                 "ameublement",
             ]
-            
+
             created_categories = 0
             for cat_name in categories:
                 obj, created = Categorie.objects.get_or_create(nom=cat_name)
@@ -44,7 +45,7 @@ class Command(BaseCommand):
                     self.stdout.write(
                         self.style.WARNING(f"  - Category already exists: {cat_name}")
                     )
-            
+
             self.stdout.write(
                 self.style.SUCCESS(f"Categories: {created_categories} created\n")
             )
@@ -56,7 +57,7 @@ class Command(BaseCommand):
                 "Kg",
                 "pièce",
             ]
-            
+
             created_units = 0
             for unit_name in units:
                 obj, created = Unite.objects.get_or_create(nom=unit_name)
@@ -69,10 +70,8 @@ class Command(BaseCommand):
                     self.stdout.write(
                         self.style.WARNING(f"  - Unit already exists: {unit_name}")
                     )
-            
-            self.stdout.write(
-                self.style.SUCCESS(f"Units: {created_units} created\n")
-            )
+
+            self.stdout.write(self.style.SUCCESS(f"Units: {created_units} created\n"))
 
             # Brands
             brands = [
@@ -90,7 +89,7 @@ class Command(BaseCommand):
                 "jacuzzi",
                 "Bonaldo",
             ]
-            
+
             created_brands = 0
             for brand_name in brands:
                 obj, created = Marque.objects.get_or_create(nom=brand_name)
@@ -103,10 +102,8 @@ class Command(BaseCommand):
                     self.stdout.write(
                         self.style.WARNING(f"  - Brand already exists: {brand_name}")
                     )
-            
-            self.stdout.write(
-                self.style.SUCCESS(f"Brands: {created_brands} created\n")
-            )
+
+            self.stdout.write(self.style.SUCCESS(f"Brands: {created_brands} created\n"))
 
             # Payment modes
             payment_modes = [
@@ -116,7 +113,7 @@ class Command(BaseCommand):
                 "Acompte",
                 "Carte bancaire",
             ]
-            
+
             created_payment_modes = 0
             for mode_name in payment_modes:
                 obj, created = ModePaiement.objects.get_or_create(nom=mode_name)
@@ -127,9 +124,11 @@ class Command(BaseCommand):
                     )
                 else:
                     self.stdout.write(
-                        self.style.WARNING(f"  - Payment mode already exists: {mode_name}")
+                        self.style.WARNING(
+                            f"  - Payment mode already exists: {mode_name}"
+                        )
                     )
-            
+
             self.stdout.write(
                 self.style.SUCCESS(f"Payment modes: {created_payment_modes} created\n")
             )

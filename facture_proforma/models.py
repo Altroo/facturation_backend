@@ -43,6 +43,16 @@ class FactureProForma(BaseDeviFactureDocument):
         """Convert this FactureProForma to a FactureClient."""
         from facture_client.models import FactureClient, FactureClientLine
 
+        # Validate document has lines
+        if not self.get_lines().exists():
+            raise ValueError("Impossible de convertir un document sans lignes")
+
+        # Validate document is in convertible state
+        if self.statut not in ["Envoyé", "Accepté"]:
+            raise ValueError(
+                f"Impossible de convertir un document avec le statut '{self.statut}'"
+            )
+
         facture_client = FactureClient.objects.create(
             numero_facture=numero_facture,
             client=self.client,

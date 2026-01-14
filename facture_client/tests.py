@@ -41,7 +41,9 @@ def fc_conv_company():
 
 
 def _create_fc_membership(user, company):
-    caissier_role, _ = Role.objects.get_or_create(name="Caissier", defaults={"is_admin": True})
+    caissier_role, _ = Role.objects.get_or_create(
+        name="Caissier", defaults={"is_admin": True}
+    )
     return Membership.objects.create(user=user, company=company, role=caissier_role)
 
 
@@ -85,7 +87,7 @@ def fc_conv_obj(fc_conv_client, fc_conv_mode_paiement, fc_conv_user):
         client=fc_conv_client,
         date_facture="2025-01-01",
         mode_paiement=fc_conv_mode_paiement,
-        statut="Brouillon",
+        statut="Envoyé",
         created_by_user=fc_conv_user,
         remise=Decimal("5.00"),
         remise_type="Pourcentage",

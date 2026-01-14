@@ -527,7 +527,11 @@ La commande ne sera traitée qu'après réception d'un acompte de 50% du montant
 
     def _get_pdf_title(self) -> str:
         """Get PDF document title for metadata."""
-        client_name = self.document.client.raison_sociale if self.document.client.raison_sociale else "Client"
+        client_name = (
+            self.document.client.raison_sociale
+            if self.document.client.raison_sociale
+            else "Client"
+        )
         return f"Devis {self.document.numero_devis} - {client_name}"
 
 

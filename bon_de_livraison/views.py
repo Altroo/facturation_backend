@@ -636,7 +636,11 @@ class BonDeLivraisonPDFGenerator(BasePDFGenerator):
 
     def _get_pdf_title(self) -> str:
         """Get PDF document title for metadata."""
-        client_name = self.document.client.raison_sociale if self.document.client.raison_sociale else "Client"
+        client_name = (
+            self.document.client.raison_sociale
+            if self.document.client.raison_sociale
+            else "Client"
+        )
         return f"Bon de Livraison {self.document.numero_bon_livraison} - {client_name}"
 
 

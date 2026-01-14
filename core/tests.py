@@ -84,13 +84,19 @@ def common_article(common_company):
 @pytest.fixture
 def common_membership(common_user, common_company):
     """Create a common membership between user and company."""
-    caissier_role, _ = Role.objects.get_or_create(name="Caissier", defaults={"is_admin": False})
-    return Membership.objects.create(user=common_user, company=common_company, role=caissier_role)
+    caissier_role, _ = Role.objects.get_or_create(
+        name="Caissier", defaults={"is_admin": False}
+    )
+    return Membership.objects.create(
+        user=common_user, company=common_company, role=caissier_role
+    )
 
 
 def _create_core_membership(user, company):
     """Helper to create membership with Caissier role."""
-    caissier_role, _ = Role.objects.get_or_create(name="Caissier", defaults={"is_admin": False})
+    caissier_role, _ = Role.objects.get_or_create(
+        name="Caissier", defaults={"is_admin": False}
+    )
     return Membership.objects.create(user=user, company=company, role=caissier_role)
 
 
@@ -1391,7 +1397,9 @@ class TestCoreViewsPermissions:
         )
         assert result is False
 
-        admin_group, _ = Role.objects.get_or_create(name="Caissier", defaults={"is_admin": True})
+        admin_group, _ = Role.objects.get_or_create(
+            name="Caissier", defaults={"is_admin": True}
+        )
         Membership.objects.create(
             user=test_user, company=extra_company, role=admin_group
         )
@@ -1539,7 +1547,9 @@ class TestBaseStatusUpdateViewPermissions:
         )
 
         # Create company, client, and document
-        admin_group, _ = Role.objects.get_or_create(name="Admin_status_test", defaults={"is_admin": True})
+        admin_group, _ = Role.objects.get_or_create(
+            name="Admin_status_test", defaults={"is_admin": True}
+        )
         company = Company.objects.create(raison_sociale="TestCo", ICE="123456782")
         # Only other_user is member
         Membership.objects.create(user=other_user, company=company, role=admin_group)
@@ -1607,7 +1617,9 @@ class TestBaseConversionViewPermissions:
         )
 
         # Create company, client, and document
-        admin_group, _ = Role.objects.get_or_create(name="Admin_conv_test", defaults={"is_admin": True})
+        admin_group, _ = Role.objects.get_or_create(
+            name="Admin_conv_test", defaults={"is_admin": True}
+        )
         company = Company.objects.create(raison_sociale="TestCo", ICE="123456783")
         # Only other_user is member
         Membership.objects.create(user=other_user, company=company, role=admin_group)
@@ -1688,7 +1700,9 @@ class TestBaseDocumentDetailEditDeleteViewPermissions:
         )
 
         # Create company, client, and document
-        admin_group, _ = Role.objects.get_or_create(name="Admin_put_test", defaults={"is_admin": True})
+        admin_group, _ = Role.objects.get_or_create(
+            name="Admin_put_test", defaults={"is_admin": True}
+        )
         company = Company.objects.create(raison_sociale="TestCo", ICE="123456784")
         # Only other_user is member
         Membership.objects.create(user=other_user, company=company, role=admin_group)
@@ -1733,7 +1747,9 @@ class TestBaseDocumentDetailEditDeleteViewPermissions:
         )
 
         # Create company, client, and document
-        admin_group, _ = Role.objects.get_or_create(name="Admin_del_test", defaults={"is_admin": True})
+        admin_group, _ = Role.objects.get_or_create(
+            name="Admin_del_test", defaults={"is_admin": True}
+        )
         company = Company.objects.create(raison_sociale="TestCo", ICE="123456785")
         # Only other_user is member
         Membership.objects.create(user=other_user, company=company, role=admin_group)
@@ -2835,7 +2851,9 @@ class TestAdditionalCoverageEdgeCases:
     @pytest.fixture
     def admin_group(self):
         """Create or get Caissier group."""
-        group, _ = Role.objects.get_or_create(name="Caissier", defaults={"is_admin": True})
+        group, _ = Role.objects.get_or_create(
+            name="Caissier", defaults={"is_admin": True}
+        )
         return group
 
     @pytest.fixture

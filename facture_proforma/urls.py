@@ -43,5 +43,7 @@ urlpatterns = [
         name="convert-to-facture-client",
     ),
     # GET : generate PDF
-    path("pdf/<int:pk>/", FactureProFormaPDFView.as_view(), name="facture-proforma-pdf"),
+    path(
+        "pdf/<int:pk>/", FactureProFormaPDFView.as_view(), name="facture-proforma-pdf"
+    ),
 ]

@@ -343,7 +343,7 @@ class TestAccountAPIExtras:
         url = reverse("account:profil")
         img_b64 = (
             "data:image/png;base64,"
-            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAASsJTYQAAAAASUVORK5CYII="
+            "iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAADklEQVR4nGNgGAWDEwAAAZoAAR2CVqgAAAAASUVORK5CYII="
         )
         response = self.auth_client.patch(url, {"avatar": img_b64})
 
@@ -359,7 +359,7 @@ class TestAccountAPIExtras:
         url = reverse("account:profil")
         img_b64 = (
             "data:image/png;base64,"
-            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAASsJTYQAAAAASUVORK5CYII="
+            "iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAADklEQVR4nGNgGAWDEwAAAZoAAR2CVqgAAAAASUVORK5CYII="
         )
 
         # Seed avatar/cropped; allow 400 based on current validation
@@ -433,7 +433,7 @@ class TestAccountAPIExtras:
         url = reverse("account:users")
         img_b64 = (
             "data:image/png;base64,"
-            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAASsJTYQAAAAASUVORK5CYII="
+            "iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAADklEQVR4nGNgGAWDEwAAAZoAAR2CVqgAAAAASUVORK5CYII="
         )
         payload = {
             "email": "NEWUSER@EXAMPLE.COM",
@@ -755,7 +755,7 @@ class TestFilters:
 
 IMG_B64 = (
     "data:image/png;base64,"
-    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAASsJTYQAAAAASUVORK5CYII="
+    "iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAADklEQVR4nGNgGAWDEwAAAZoAAR2CVqgAAAAASUVORK5CYII="
 )
 
 
@@ -784,11 +784,10 @@ class TestSerializers:
         # Now all images are converted to WebP
         assert getattr(cf, "name", "").endswith(".webp")
 
-        # Create a minimal valid 1x1 PNG image (complete, not just header)
+        # Create a minimal valid 10x10 PNG image
         minimal_png = (
-            b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01"
-            b"\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\nIDATx\x9cc\x00\x01"
-            b"\x00\x00\x05\x00\x01\r\n-\xb4\x00\x00\x00\x00IEND\xaeB`\x82"
+            b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\n\x00\x00\x00\n\x08\x06\x00\x00\x00\x8d2\xcf\xbd"
+            b"\x00\x00\x00\x0eIDATx\x9cc`\x18\x05\x83\x13\x00\x00\x01\x9a\x00\x01\x1d\x82V\xa8\x00\x00\x00\x00IEND\xaeB`\x82"
         )
         uploaded = SimpleUploadedFile(
             "avatar.png", minimal_png, content_type="image/png"
@@ -819,11 +818,11 @@ class TestSerializers:
         assert b is not None
         assert is_url is False
 
-        # Create a minimal valid 1x1 JPEG image (complete, not just header)
+        # Create a minimal valid 10x10 JPEG image (complete, not just header)
         from PIL import Image
         from io import BytesIO
 
-        img = Image.new("RGB", (1, 1), color="white")
+        img = Image.new("RGB", (10, 10), color="white")
         buf = BytesIO()
         img.save(buf, format="JPEG")
         minimal_jpeg = buf.getvalue()
@@ -1047,10 +1046,7 @@ class TestSerializers:
             assert True
 
 
-IMG_B64_EXTRA = (
-    "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4n"
-    "GNgYAAAAAMAASsJTYQAAAAASUVORK5CYII="
-)
+IMG_B64_EXTRA = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAADklEQVR4nGNgGAWDEwAAAZoAAR2CVqgAAAAASUVORK5CYII="
 
 
 @pytest.fixture

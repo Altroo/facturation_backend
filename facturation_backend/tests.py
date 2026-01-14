@@ -200,7 +200,7 @@ class TestImageProcessor:
         with pytest.raises(ValueError) as exc_info:
             ImageProcessor.convert_to_webp(invalid_data)
 
-        assert "Failed to convert image to WebP" in str(exc_info.value)
+        assert "Unrecognized image format" in str(exc_info.value)
 
     def test_resize_with_blurred_background_landscape(self):
         # Create a landscape image (wider than tall)

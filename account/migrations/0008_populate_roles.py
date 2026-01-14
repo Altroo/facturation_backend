@@ -8,49 +8,44 @@ def create_roles_and_migrate_data(apps, schema_editor):
     Role = apps.get_model("accounts", "Role")
     Membership = apps.get_model("accounts", "Membership")
     Group = apps.get_model("auth", "Group")
-    
+
     # Create new roles
     admin_role, _ = Role.objects.get_or_create(
-        name="Admin",
-        defaults={"is_admin": True}
+        name="Admin", defaults={"is_admin": True}
     )
-    
+
     caissier_role, _ = Role.objects.get_or_create(
-        name="Caissier",
-        defaults={"is_admin": False}
+        name="Caissier", defaults={"is_admin": False}
     )
-    
+
     comptable_role, _ = Role.objects.get_or_create(
-        name="Comptable",
-        defaults={"is_admin": False}
+        name="Comptable", defaults={"is_admin": False}
     )
-    
+
     commercial_role, _ = Role.objects.get_or_create(
-        name="Commercial",
-        defaults={"is_admin": False}
+        name="Commercial", defaults={"is_admin": False}
     )
-    
+
     lecture_role, _ = Role.objects.get_or_create(
-        name="Lecture",
-        defaults={"is_admin": False}
+        name="Lecture", defaults={"is_admin": False}
     )
-    
+
     # Map old Group names to new Roles
     role_mapping = {
         "Admin": admin_role,
         "Finance": comptable_role,  # Rename Finance to Comptable
         "Lecture": lecture_role,
     }
-    
+
     # Migrate existing memberships
-    for membership in Membership.objects.select_related('role').all():
+    for membership in Membership.objects.select_related("role").all():
         if membership.role:
             try:
                 old_group_name = membership.role.name
                 new_role = role_mapping.get(old_group_name)
                 if new_role:
                     membership.new_role = new_role
-                    membership.save(update_fields=['new_role'])
+                    membership.save(update_fields=["new_role"])
             except Exception:
                 pass
 

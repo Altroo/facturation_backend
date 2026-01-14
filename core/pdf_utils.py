@@ -1,3 +1,5 @@
+import logging
+import os
 from decimal import Decimal
 from io import BytesIO
 from typing import Optional
@@ -16,6 +18,8 @@ from reportlab.platypus import (
     Spacer,
     Image,
 )
+
+logger = logging.getLogger(__name__)
 
 
 def number_to_french_words(number: Decimal) -> str:
@@ -280,9 +284,16 @@ class BasePDFGenerator:
         if self.company.logo:
             try:
                 logo_path = self.company.logo.path
+                if not os.path.exists(logo_path):
+                    logger.warning(f"Logo file not found: {logo_path}")
+                    return None
                 img = Image(logo_path, width=width, height=height)
                 return img
-            except (FileNotFoundError, IOError, AttributeError):
+            except (FileNotFoundError, IOError, AttributeError) as e:
+                logger.warning(f"Failed to load logo: {e}")
+                return None
+            except Exception as e:
+                logger.error(f"Unexpected error loading logo: {e}")
                 return None
         return None
 
@@ -293,9 +304,16 @@ class BasePDFGenerator:
         if self.company.cachet:
             try:
                 cachet_path = self.company.cachet.path
+                if not os.path.exists(cachet_path):
+                    logger.warning(f"Cachet file not found: {cachet_path}")
+                    return None
                 img = Image(cachet_path, width=width, height=height)
                 return img
-            except (FileNotFoundError, IOError, AttributeError):
+            except (FileNotFoundError, IOError, AttributeError) as e:
+                logger.warning(f"Failed to load cachet: {e}")
+                return None
+            except Exception as e:
+                logger.error(f"Unexpected error loading cachet: {e}")
                 return None
         return None
 
@@ -315,7 +333,11 @@ class BasePDFGenerator:
             topMargin=self.MARGIN,
             bottomMargin=2 * cm,
             title=pdf_title,
-            author=self.company.raison_sociale if self.company.raison_sociale else "Facturation",
+            author=(
+                self.company.raison_sociale
+                if self.company.raison_sociale
+                else "Facturation"
+            ),
         )
 
         # Build content

@@ -87,7 +87,9 @@ class BonDeLivraisonLineSerializer(serializers.ModelSerializer):
 class BonDeLivraisonSerializer(BaseCreateSerializer):
     """Base serializer for BonDeLivraison create operations."""
 
-    lignes = BonDeLivraisonLineWriteSerializer(many=True, write_only=True, required=False)
+    lignes = BonDeLivraisonLineWriteSerializer(
+        many=True, write_only=True, required=False
+    )
 
     def get_numero_field_name(self):
         return "numero_bon_livraison"
@@ -151,7 +153,9 @@ class BonDeLivraisonSerializer(BaseCreateSerializer):
 class BonDeLivraisonDetailSerializer(BaseDetailUpdateSerializer):
     """Detailed serializer for retrieve/update with upsert semantics."""
 
-    lignes = BonDeLivraisonLineWriteSerializer(many=True, write_only=True, required=False)
+    lignes = BonDeLivraisonLineWriteSerializer(
+        many=True, write_only=True, required=False
+    )
 
     def get_line_model_class(self):
         return BonDeLivraisonLine

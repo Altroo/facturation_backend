@@ -13,11 +13,10 @@ from company.models import Company
 from parameter.models import Marque, Categorie, Unite, Emplacement
 from .filters import ArticleFilter
 
-# Minimal valid base64 PNG (1x1 transparent)
+# Minimal valid base64 PNG (10x10 transparent)
 BASE64_PNG = (
     "data:image/png;base64,"
-    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMA"
-    "ASsJTYQAAAAASUVORK5CYII="
+    "iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAADklEQVR4nGNgGAWDEwAAAZoAAR2CVqgAAAAASUVORK5CYII="
 )
 
 
@@ -55,8 +54,12 @@ class TestArticleAPI:
             nbr_employe="1 à 5",
         )
 
-        self.caissier_role, _ = Role.objects.get_or_create(name="Caissier", defaults={"is_admin": True})
-        Membership.objects.create(user=self.user, company=self.company, role=self.caissier_role)
+        self.caissier_role, _ = Role.objects.get_or_create(
+            name="Caissier", defaults={"is_admin": True}
+        )
+        Membership.objects.create(
+            user=self.user, company=self.company, role=self.caissier_role
+        )
 
         # Create parameter objects
         self.marque = Marque.objects.create(nom="TestMarque")
@@ -446,8 +449,12 @@ class TestArticleImagesAndPhotos:
             registre_de_commerce="RCIMG",
             nbr_employe="1 à 5",
         )
-        caissier_role, _ = Role.objects.get_or_create(name="Caissier", defaults={"is_admin": True})
-        Membership.objects.create(user=self.user, company=self.company, role=caissier_role)
+        caissier_role, _ = Role.objects.get_or_create(
+            name="Caissier", defaults={"is_admin": True}
+        )
+        Membership.objects.create(
+            user=self.user, company=self.company, role=caissier_role
+        )
 
     def test_create_article_with_base64_photo(self):
         url = reverse("article:article-list-create")
@@ -701,8 +708,12 @@ class TestArticleFilters:
             registre_de_commerce="RCFILT",
             nbr_employe="1 à 5",
         )
-        caissier_role, _ = Role.objects.get_or_create(name="Caissier", defaults={"is_admin": True})
-        Membership.objects.create(user=self.user, company=self.company, role=caissier_role)
+        caissier_role, _ = Role.objects.get_or_create(
+            name="Caissier", defaults={"is_admin": True}
+        )
+        Membership.objects.create(
+            user=self.user, company=self.company, role=caissier_role
+        )
 
         self.marque = Marque.objects.create(nom="BrandX")
         self.categorie = Categorie.objects.create(nom="CatX")
@@ -916,11 +927,11 @@ class TestArticleSerializerExtra:
         """Test _process_image_field with multipart file upload."""
         from django.core.files.uploadedfile import SimpleUploadedFile
 
-        # Create a minimal valid 1x1 PNG image (complete, not just header)
+        # Create a minimal valid 10x10 PNG image (complete, not just header)
         minimal_png = (
-            b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01"
-            b"\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\nIDATx\x9cc\x00\x01"
-            b"\x00\x00\x05\x00\x01\r\n-\xb4\x00\x00\x00\x00IEND\xaeB`\x82"
+            b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\n\x00\x00\x00\n"
+            b"\x08\x06\x00\x00\x00\x8d2\xcf\xbd\x00\x00\x00\x0eIDATx\x9cc`\x18\x05\x83\x13\x00\x00\x01\x9a\x00\x01\x1d\x82V\xa8"
+            b"\x00\x00\x00\x00IEND\xaeB`\x82"
         )
         uploaded_file = SimpleUploadedFile(
             "test.png", minimal_png, content_type="image/png"
@@ -936,11 +947,11 @@ class TestArticleSerializerExtra:
         """Test _process_image_field with multipart file without extension."""
         from django.core.files.uploadedfile import SimpleUploadedFile
 
-        # Create a minimal valid 1x1 PNG image (complete, not just header)
+        # Create a minimal valid 10x10 PNG image (complete, not just header)
         minimal_png = (
-            b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01"
-            b"\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\nIDATx\x9cc\x00\x01"
-            b"\x00\x00\x05\x00\x01\r\n-\xb4\x00\x00\x00\x00IEND\xaeB`\x82"
+            b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\n\x00\x00\x00\n"
+            b"\x08\x06\x00\x00\x00\x8d2\xcf\xbd\x00\x00\x00\x0eIDATx\x9cc`\x18\x05\x83\x13\x00\x00\x01\x9a\x00\x01\x1d\x82V\xa8"
+            b"\x00\x00\x00\x00IEND\xaeB`\x82"
         )
         uploaded_file = SimpleUploadedFile(
             "testfile", minimal_png, content_type="image/png"
@@ -956,8 +967,7 @@ class TestArticleSerializerExtra:
         """Test _process_image_field with base64 data."""
         base64_png = (
             "data:image/png;base64,"
-            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMA"
-            "ASsJTYQAAAAASUVORK5CYII="
+            "iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAADklEQVR4nGNgGAWDEwAAAZoAAR2CVqgAAAAASUVORK5CYII="
         )
         result = ArticleBaseSerializer._process_image_field(
             "photo", {"photo": base64_png}, None
@@ -1085,8 +1095,7 @@ class TestArticleSerializerExtra:
 
         base64_png = (
             "data:image/png;base64,"
-            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMA"
-            "ASsJTYQAAAAASUVORK5CYII="
+            "iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAADklEQVR4nGNgGAWDEwAAAZoAAR2CVqgAAAAASUVORK5CYII="
         )
         serializer = ArticleSerializer(
             instance=article,
@@ -1289,8 +1298,7 @@ class TestArticleSerializerExtra:
 
         base64_png = (
             "data:image/png;base64,"
-            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMA"
-            "ASsJTYQAAAAASUVORK5CYII="
+            "iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAADklEQVR4nGNgGAWDEwAAAZoAAR2CVqgAAAAASUVORK5CYII="
         )
 
         # Mock remove to raise error
@@ -1354,8 +1362,7 @@ class TestArticleSerializerExtra:
 
         base64_png = (
             "data:image/png;base64,"
-            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMA"
-            "ASsJTYQAAAAASUVORK5CYII="
+            "iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAADklEQVR4nGNgGAWDEwAAAZoAAR2CVqgAAAAASUVORK5CYII="
         )
 
         # Mock old_field.path to be None
@@ -1401,8 +1408,12 @@ class TestArticleViewsCoverage:
             registre_de_commerce="RC_VIEW",
             nbr_employe="1 à 5",
         )
-        caissier_role, _ = Role.objects.get_or_create(name="Caissier", defaults={"is_admin": True})
-        Membership.objects.create(user=self.user, company=self.company, role=caissier_role)
+        caissier_role, _ = Role.objects.get_or_create(
+            name="Caissier", defaults={"is_admin": True}
+        )
+        Membership.objects.create(
+            user=self.user, company=self.company, role=caissier_role
+        )
 
     def test_delete_article_no_membership(self):
         """Test delete article when user has no membership."""

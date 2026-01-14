@@ -510,7 +510,11 @@ Elle ne constitue pas une facture définitive et n'a pas de valeur comptable."""
 
     def _get_pdf_title(self) -> str:
         """Get PDF document title for metadata."""
-        client_name = self.document.client.raison_sociale if self.document.client.raison_sociale else "Client"
+        client_name = (
+            self.document.client.raison_sociale
+            if self.document.client.raison_sociale
+            else "Client"
+        )
         return f"Facture Pro-Forma {self.document.numero_facture} - {client_name}"
 
 

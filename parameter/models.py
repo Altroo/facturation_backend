@@ -87,9 +87,7 @@ class Emplacement(models.Model):
 
 
 class LivrePar(models.Model):
-    nom = models.CharField(
-        max_length=255, unique=True, verbose_name="Nom du livreur"
-    )
+    nom = models.CharField(max_length=255, unique=True, verbose_name="Nom du livreur")
 
     history = HistoricalRecords()
 

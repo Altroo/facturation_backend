@@ -231,6 +231,7 @@ class BaseConversionView(APIView):
 
     def post(self, request, pk, *args, **kwargs):
         object_ = self.get_object(pk)
+
         if not self._has_membership(request.user, object_.client.company_id):
             raise PermissionDenied(
                 _(f"Vous n'êtes pas autorisé à convertir ce {self.document_name}.")
@@ -242,10 +243,37 @@ class BaseConversionView(APIView):
                 _(f"Vous n'avez pas les droits pour convertir ce {self.document_name}.")
             )
 
-        numero = self.numero_generator()
-        conversion_func = getattr(object_, self.conversion_method)
-        converted = conversion_func(
-            **{self.numero_param_name: numero},
-            created_by_user=request.user,
-        )
-        return Response({"id": converted.id}, status=status.HTTP_201_CREATED)
+        # Validate conversion method exists
+        if not hasattr(object_, self.conversion_method):
+            raise ValidationError(
+                _(f"La méthode de conversion {self.conversion_method} n'existe pas.")
+            )
+
+        # Validate source document has lines
+        if not object_.get_lines().exists():
+            raise ValidationError(
+                _(f"Impossible de convertir un {self.document_name} sans lignes.")
+            )
+
+        # Validate source document status
+        if object_.statut not in ["Envoyé", "Accepté"]:
+            raise ValidationError(
+                _(
+                    f"Impossible de convertir un {self.document_name} avec le statut '{object_.statut}'."
+                )
+            )
+
+        try:
+            numero = self.numero_generator()
+            conversion_func = getattr(object_, self.conversion_method)
+            converted = conversion_func(
+                **{self.numero_param_name: numero},
+                created_by_user=request.user,
+            )
+            return Response({"id": converted.id}, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            import logging
+
+            logger = logging.getLogger(__name__)
+            logger.error(f"Échec de la conversion pour {self.document_name} {pk}: {e}")
+            raise ValidationError(_(f"Échec de la conversion: {str(e)}"))

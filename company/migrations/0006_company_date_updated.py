@@ -6,13 +6,15 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('company', '0005_alter_company_options'),
+        ("company", "0005_alter_company_options"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='company',
-            name='date_updated',
-            field=models.DateTimeField(auto_now=True, db_index=True, verbose_name='Date de modification'),
+            model_name="company",
+            name="date_updated",
+            field=models.DateTimeField(
+                auto_now=True, db_index=True, verbose_name="Date de modification"
+            ),
         ),
     ]

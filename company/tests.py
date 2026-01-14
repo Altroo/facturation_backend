@@ -14,8 +14,7 @@ from .filters import CompanyFilter
 # Minimal valid base64 PNG (1x1 transparent)
 BASE64_PNG = (
     "data:image/png;base64,"
-    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMA"
-    "ASsJTYQAAAAASUVORK5CYII="
+    "iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAADklEQVR4nGNgGAWDEwAAAZoAAR2CVqgAAAAASUVORK5CYII="
 )
 
 
@@ -47,7 +46,9 @@ class TestCompanyAPI:
             last_name="User",
             is_staff=True,
         )
-        self.admin_group, _ = Role.objects.update_or_create(name="Caissier", defaults={"is_admin": True})
+        self.admin_group, _ = Role.objects.update_or_create(
+            name="Caissier", defaults={"is_admin": True}
+        )
         self.company = Company.objects.create(
             raison_sociale="TestCorp",
             ICE="ICE123456",
@@ -166,8 +167,12 @@ class TestCompanyImagesAndMemberships:
             last_name="User",
             is_staff=True,
         )
-        self.admin_group, _ = Role.objects.update_or_create(name="Caissier", defaults={"is_admin": True})
-        self.editor_group, _ = Role.objects.get_or_create(name="Editor", defaults={"is_admin": False})
+        self.admin_group, _ = Role.objects.update_or_create(
+            name="Caissier", defaults={"is_admin": True}
+        )
+        self.editor_group, _ = Role.objects.get_or_create(
+            name="Editor", defaults={"is_admin": False}
+        )
 
         self.company = Company.objects.create(
             raison_sociale="ImgCorp",
@@ -535,7 +540,9 @@ class TestCompanySerializerExtra:
             last_name="Test",
             is_staff=True,
         )
-        self.admin_group, _ = Role.objects.update_or_create(name="Caissier", defaults={"is_admin": True})
+        self.admin_group, _ = Role.objects.update_or_create(
+            name="Caissier", defaults={"is_admin": True}
+        )
         self.company = Company.objects.create(
             raison_sociale="SerializerTestCorp",
             ICE="ICEST",
@@ -660,11 +667,10 @@ class TestCompanySerializerExtra:
         from company.serializers import CompanySerializer
         from django.core.files.uploadedfile import SimpleUploadedFile
 
-        # Create a minimal valid 1x1 PNG image (complete, not just header)
+        # Create a minimal valid 10x10 PNG image
         minimal_png = (
-            b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01"
-            b"\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\nIDATx\x9cc\x00\x01"
-            b"\x00\x00\x05\x00\x01\r\n-\xb4\x00\x00\x00\x00IEND\xaeB`\x82"
+            b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\n\x00\x00\x00\n\x08\x06\x00\x00\x00\x8d2\xcf\xbd"
+            b"\x00\x00\x00\x0eIDATx\x9cc`\x18\x05\x83\x13\x00\x00\x01\x9a\x00\x01\x1d\x82V\xa8\x00\x00\x00\x00IEND\xaeB`\x82"
         )
         file = SimpleUploadedFile(
             "test.png",
@@ -683,11 +689,10 @@ class TestCompanySerializerExtra:
         from company.serializers import CompanySerializer
         from django.core.files.uploadedfile import SimpleUploadedFile
 
-        # Create a minimal valid 1x1 PNG image (complete, not just header)
+        # Create a minimal valid 10x10 PNG image
         minimal_png = (
-            b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01"
-            b"\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\nIDATx\x9cc\x00\x01"
-            b"\x00\x00\x05\x00\x01\r\n-\xb4\x00\x00\x00\x00IEND\xaeB`\x82"
+            b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\n\x00\x00\x00\n\x08\x06\x00\x00\x00\x8d2\xcf\xbd"
+            b"\x00\x00\x00\x0eIDATx\x9cc`\x18\x05\x83\x13\x00\x00\x01\x9a\x00\x01\x1d\x82V\xa8\x00\x00\x00\x00IEND\xaeB`\x82"
         )
         file = SimpleUploadedFile(
             "testimage",  # No extension
@@ -752,7 +757,9 @@ class TestCompanyViewsExtra:
             last_name="Test",
             is_staff=True,
         )
-        self.admin_group, _ = Role.objects.update_or_create(name="Caissier", defaults={"is_admin": True})
+        self.admin_group, _ = Role.objects.update_or_create(
+            name="Caissier", defaults={"is_admin": True}
+        )
         self.company = Company.objects.create(
             raison_sociale="ViewsTestCorp",
             ICE="ICEVT",
@@ -901,7 +908,9 @@ class TestCompanySerializerCoverage:
 
         user_obj = get_user_model()
         user = user_obj.objects.create_user(email="rolefail@test.com", password="pass")
-        admin_group = Role.objects.get_or_create(name="Caissier", defaults={"is_admin": True})[0]
+        admin_group = Role.objects.get_or_create(
+            name="Caissier", defaults={"is_admin": True}
+        )[0]
 
         company = Company.objects.create(
             raison_sociale="Role Test Co",
@@ -974,7 +983,7 @@ class TestCompanySerializerCoverage:
         )
 
         # Create and save initial logo
-        img = Image.new("RGB", (1, 1), color="red")
+        img = Image.new("RGB", (10, 10), color="red")
         buffer = io.BytesIO()
         img.save(buffer, format="PNG")
         buffer.seek(0)
@@ -987,7 +996,7 @@ class TestCompanySerializerCoverage:
         old_logo_name = company.logo.name
 
         # Create new logo as base64
-        img2 = Image.new("RGB", (2, 2), color="blue")
+        img2 = Image.new("RGB", (10, 10), color="blue")
         buffer2 = io.BytesIO()
         img2.save(buffer2, format="PNG")
         buffer2.seek(0)
@@ -1065,8 +1074,12 @@ class TestCompanyViewsCoverage:
         )
 
         # Ensure groups exist
-        admin_group = Role.objects.get_or_create(name="Caissier", defaults={"is_admin": True})[0]
-        member_group = Role.objects.get_or_create(name="Member", defaults={"is_admin": False})[0]
+        admin_group = Role.objects.get_or_create(
+            name="Caissier", defaults={"is_admin": True}
+        )[0]
+        member_group = Role.objects.get_or_create(
+            name="Member", defaults={"is_admin": False}
+        )[0]
 
         client = APIClient()
         client.force_authenticate(user=admin_user)
@@ -1098,7 +1111,9 @@ class TestCompanyViewsCoverage:
 
         user_obj = get_user_model()
         user = user_obj.objects.create_user(email="byuser@test.com", password="pass")
-        admin_group = Role.objects.get_or_create(name="Caissier", defaults={"is_admin": True})[0]
+        admin_group = Role.objects.get_or_create(
+            name="Caissier", defaults={"is_admin": True}
+        )[0]
 
         # Create companies for the user
         company1 = Company.objects.create(
@@ -1120,5 +1135,3 @@ class TestCompanyViewsCoverage:
 
         assert response.status_code == status.HTTP_200_OK
         assert len(response.data) == 2
-
-

@@ -726,7 +726,11 @@ Tout retard de paiement entraînera des pénalités de retard."""
 
     def _get_pdf_title(self) -> str:
         """Get PDF document title for metadata."""
-        client_name = self.document.client.raison_sociale if self.document.client.raison_sociale else "Client"
+        client_name = (
+            self.document.client.raison_sociale
+            if self.document.client.raison_sociale
+            else "Client"
+        )
         return f"Facture {self.document.numero_facture} - {client_name}"
 
 

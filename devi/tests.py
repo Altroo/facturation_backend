@@ -27,7 +27,9 @@ pytestmark = pytest.mark.django_db
 
 def _create_devi_membership(user, company):
     """Helper to create membership with Caissier role."""
-    caissier_role, _ = Role.objects.get_or_create(name="Caissier", defaults={"is_admin": False})
+    caissier_role, _ = Role.objects.get_or_create(
+        name="Caissier", defaults={"is_admin": False}
+    )
     return Membership.objects.create(user=user, company=company, role=caissier_role)
 
 
@@ -86,7 +88,7 @@ def devi_conv_obj(devi_conv_client, devi_conv_mode_paiement, devi_conv_user):
         client=devi_conv_client,
         date_devis="2025-01-01",
         mode_paiement=devi_conv_mode_paiement,
-        statut="Brouillon",
+        statut="Envoyé",
         created_by_user=devi_conv_user,
         remise=Decimal("5.00"),
         remise_type="Pourcentage",
@@ -146,6 +148,7 @@ class TestDeviAPI(SharedDocumentAPITestsMixin):
             remise=0.00,
             remise_type="Pourcentage",
             created_by_user=self.user,
+            statut="Envoyé",
         )
 
         self.doc_line = DeviLine.objects.create(
@@ -393,6 +396,9 @@ class TestFactureProFormaConversionExtra:
         proforma = devi_conv_with_lines.convert_to_facture_proforma(
             "FP-004", devi_conv_user
         )
+        # Update proforma status to allow conversion
+        proforma.statut = "Envoyé"
+        proforma.save()
         facture = proforma.convert_to_facture_client("FC-002", devi_conv_user)
 
         assert facture is not None

@@ -41,7 +41,9 @@ def company():
 @pytest.fixture
 def membership(user, company):
     """Create membership linking user to company."""
-    caissier_role, _ = Role.objects.get_or_create(name="Caissier", defaults={"is_admin": False})
+    caissier_role, _ = Role.objects.get_or_create(
+        name="Caissier", defaults={"is_admin": False}
+    )
     return Membership.objects.create(user=user, company=company, role=caissier_role)
 
 

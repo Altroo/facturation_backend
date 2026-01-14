@@ -26,6 +26,8 @@ from six import string_types
 
 
 class ImageProcessor:
+    MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
+
     @staticmethod
     def load_image_from_io(bytes_: BytesIO):
         return cvtColor(imdecode(frombuffer(bytes_.read(), uint8), 1), COLOR_BGR2RGB)
@@ -46,13 +48,50 @@ class ImageProcessor:
             image_data: bytes or BytesIO object containing image data
         """
         try:
+            # Check file size first
+            if isinstance(image_data, BytesIO):
+                image_data.seek(0, 2)  # Seek to end
+                size = image_data.tell()
+                image_data.seek(0)  # Reset to start
+            else:
+                size = len(image_data)
+
+            if size > ImageProcessor.MAX_FILE_SIZE:
+                raise ValueError(
+                    f"File size {size} bytes exceeds maximum {ImageProcessor.MAX_FILE_SIZE} bytes"
+                )
+
             # Handle both bytes and BytesIO objects
             if isinstance(image_data, BytesIO):
-                image_data.seek(0)  # Ensure we're at the beginning
-                image = Image.open(image_data)
+                image_data.seek(0)
+                try:
+                    image = Image.open(image_data)
+                except UnidentifiedImageError:
+                    raise ValueError(
+                        "Unrecognized image format. Please upload a valid image file (PNG, JPG, GIF)."
+                    )
+                except Exception as e:
+                    raise ValueError(f"Failed to read image: {str(e)}")
             else:
-                # Assume its bytes
-                image = Image.open(BytesIO(image_data))
+                try:
+                    image = Image.open(BytesIO(image_data))
+                except UnidentifiedImageError:
+                    raise ValueError(
+                        "Unrecognized image format. Please upload a valid image file (PNG, JPG, GIF)."
+                    )
+                except Exception as e:
+                    raise ValueError(f"Failed to read image: {str(e)}")
+
+            # Validate image dimensions
+            width, height = image.size
+            if width < 10 or height < 10:
+                raise ValueError(
+                    f"Image too small: {width}x{height}. Minimum is 10x10 pixels."
+                )
+            if width > 10000 or height > 10000:
+                raise ValueError(
+                    f"Image too large: {width}x{height}. Maximum is 10000x10000 pixels."
+                )
 
             # Convert to RGB if necessary (WebP doesn't support some modes)
             if image.mode in ("RGBA", "LA", "P"):
@@ -74,12 +113,28 @@ class ImageProcessor:
             image.save(output, format="WEBP", quality=85)
             output.seek(0)
 
+            # Check output size
+            if output.getbuffer().nbytes > ImageProcessor.MAX_FILE_SIZE:
+                # Try with lower quality
+                output = BytesIO()
+                image.save(output, format="WEBP", quality=60)
+                output.seek(0)
+
+                if output.getbuffer().nbytes > ImageProcessor.MAX_FILE_SIZE:
+                    raise ValueError(
+                        f"Image too large even after compression: {output.getbuffer().nbytes} bytes. "
+                        f"Please upload a smaller image."
+                    )
+
             # Create a unique filename with .webp extension
             filename = f"{uuid4()}.webp"
             return ContentFile(output.read(), name=filename)
+        except ValueError:
+            raise
         except Exception as e:
-            # If conversion fails, raise an error
-            raise ValueError(f"Failed to convert image to WebP: {str(e)}")
+            raise ValueError(
+                f"Image processing failed: {str(e)}. Please ensure the file is a valid image."
+            )
 
     @staticmethod
     def data_url_to_uploaded_file(data):

@@ -86,29 +86,31 @@ class Reglement(models.Model):
         return f"Règlement {self.id} - {self.facture_client.numero_facture}"
 
     @staticmethod
-    def get_total_reglements_for_facture(facture_client_id: int, exclude_reglement_id: int = None) -> Decimal:
+    def get_total_reglements_for_facture(
+        facture_client_id: int, exclude_reglement_id: int = None
+    ) -> Decimal:
         """
         Get the total of all valid règlements for a specific facture client.
         Optionally exclude a specific reglement (useful for updates).
         """
         queryset = Reglement.objects.filter(
-            facture_client_id=facture_client_id,
-            statut="Valide"
+            facture_client_id=facture_client_id, statut="Valide"
         )
         if exclude_reglement_id:
             queryset = queryset.exclude(pk=exclude_reglement_id)
-        
+
         total = queryset.aggregate(total=Sum("montant"))["total"]
         return total or Decimal("0.00")
 
     @staticmethod
-    def get_reste_a_payer(facture_client: FactureClient, exclude_reglement_id: int = None) -> Decimal:
+    def get_reste_a_payer(
+        facture_client: FactureClient, exclude_reglement_id: int = None
+    ) -> Decimal:
         """
         Calculate the remaining amount to pay for a facture client.
         """
         montant_facture = facture_client.total_ttc_apres_remise
         total_reglements = Reglement.get_total_reglements_for_facture(
-            facture_client.id, 
-            exclude_reglement_id
+            facture_client.id, exclude_reglement_id
         )
         return montant_facture - total_reglements

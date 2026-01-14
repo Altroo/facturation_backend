@@ -29,7 +29,7 @@ class BaseModelViewSet(viewsets.ModelViewSet):
     """
     Base ViewSet with common configuration.
     Provides list, create, retrieve, update, and delete actions.
-    
+
     Permissions:
     - Caissier: Full access (CRUD)
     - Comptable: Read only (GET)
@@ -54,9 +54,11 @@ class BaseModelViewSet(viewsets.ModelViewSet):
         membership = Membership.objects.filter(user=user).first()
         if not membership:
             raise PermissionDenied(
-                _(f"Vous devez appartenir à une société pour {action_name} des paramètres.")
+                _(
+                    f"Vous devez appartenir à une société pour {action_name} des paramètres."
+                )
             )
-        
+
         role = get_user_role(user, membership.company_id)
         if role != "Caissier":
             raise PermissionDenied(

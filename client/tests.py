@@ -29,8 +29,12 @@ class TestClientAPI:
             nbr_employe=10,
         )
 
-        self.caissier_role, _ = Role.objects.get_or_create(name="Caissier", defaults={"is_admin": True})
-        Membership.objects.create(user=self.user, company=self.company, role=self.caissier_role)
+        self.caissier_role, _ = Role.objects.get_or_create(
+            name="Caissier", defaults={"is_admin": True}
+        )
+        Membership.objects.create(
+            user=self.user, company=self.company, role=self.caissier_role
+        )
 
         self.client_pm = Client.objects.create(
             code_client="CLT0001",
@@ -540,8 +544,12 @@ class TestClientFilters:
             nbr_employe=5,
         )
 
-        caissier_role, _ = Role.objects.get_or_create(name="Caissier", defaults={"is_admin": True})
-        Membership.objects.create(user=self.user, company=self.company1, role=caissier_role)
+        caissier_role, _ = Role.objects.get_or_create(
+            name="Caissier", defaults={"is_admin": True}
+        )
+        Membership.objects.create(
+            user=self.user, company=self.company1, role=caissier_role
+        )
 
         # Personne morale
         self.c1 = Client.objects.create(
@@ -863,7 +871,9 @@ class TestClientViewsCoverage:
             ICE="ICE_GEN",
             registre_de_commerce="RC_GEN",
         )
-        caissier_role, _ = Role.objects.get_or_create(name="Caissier", defaults={"is_admin": True})
+        caissier_role, _ = Role.objects.get_or_create(
+            name="Caissier", defaults={"is_admin": True}
+        )
         Membership.objects.create(user=user, company=company, role=caissier_role)
 
         # Create a client with non-standard code (no match for CLT pattern)
@@ -899,7 +909,9 @@ class TestClientViewsCoverage:
             ICE="ICE_GEN2",
             registre_de_commerce="RC_GEN2",
         )
-        caissier_role, _ = Role.objects.get_or_create(name="Caissier", defaults={"is_admin": True})
+        caissier_role, _ = Role.objects.get_or_create(
+            name="Caissier", defaults={"is_admin": True}
+        )
         Membership.objects.create(user=user, company=company, role=caissier_role)
 
         # Create a client with CLT pattern but update to very large number that could cause issues

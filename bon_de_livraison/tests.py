@@ -293,8 +293,12 @@ class TestBonDeLivraisonModels(SharedDocumentModelTestsMixin):
         )
         self.ville = Ville.objects.create(nom="ModelVille")
         self.company = Company.objects.create(raison_sociale="ModelCo", ICE="ICEMOD")
-        caissier_role, _ = Role.objects.get_or_create(name="Caissier", defaults={"is_admin": True})
-        Membership.objects.create(user=self.user, company=self.company, role=caissier_role)
+        caissier_role, _ = Role.objects.get_or_create(
+            name="Caissier", defaults={"is_admin": True}
+        )
+        Membership.objects.create(
+            user=self.user, company=self.company, role=caissier_role
+        )
 
         self.client_obj = Client.objects.create(
             code_client="CMOD",

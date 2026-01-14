@@ -75,8 +75,10 @@ class TestAwaitableUserExtra:
     @pytest.mark.asyncio
     async def test_getattr_raises_when_not_awaited(self):
         """Test that getattr raises when user is coroutine and not awaited."""
+
         async def coro():
             return MagicMock(email="coro@example.com")
+
         coroutine = coro()
         awaitable = _AwaitableUser(coroutine)
         with pytest.raises(AttributeError, match="not available until user is awaited"):
@@ -95,8 +97,10 @@ class TestAwaitableUserExtra:
     @pytest.mark.asyncio
     async def test_await_with_coroutine(self):
         """Test awaiting _AwaitableUser with a coroutine."""
+
         async def get_user():
             return MagicMock(email="async@example.com")
+
         awaitable = _AwaitableUser(get_user())
         result = await awaitable
         assert result.email == "async@example.com"
@@ -121,9 +125,9 @@ class TestSimpleJwtTokenAuthMiddlewareExtra:
         middleware = SimpleJwtTokenAuthMiddleware(inner)
         scope = {"type": "websocket", "query_string": b"\xff\xfe"}
         send = AsyncMock()
-        
+
         await middleware(scope, AsyncMock(), send)
-        
+
         send.assert_called()
         assert send.call_args[0][0]["type"] == "websocket.close"
         assert send.call_args[0][0]["code"] == 4001
@@ -135,9 +139,9 @@ class TestSimpleJwtTokenAuthMiddlewareExtra:
         middleware = SimpleJwtTokenAuthMiddleware(inner)
         scope = {"type": "websocket", "query_string": b""}
         send = AsyncMock()
-        
+
         await middleware(scope, AsyncMock(), send)
-        
+
         assert isinstance(scope["user"], _AwaitableUser)
         send.assert_called()
 
@@ -148,9 +152,9 @@ class TestSimpleJwtTokenAuthMiddlewareExtra:
         middleware = SimpleJwtTokenAuthMiddleware(inner)
         scope = {"type": "websocket", "query_string": b"token=invalid_jwt_token"}
         send = AsyncMock()
-        
+
         await middleware(scope, AsyncMock(), send)
-        
+
         send.assert_called()
         assert send.call_args[0][0]["type"] == "websocket.close"
 

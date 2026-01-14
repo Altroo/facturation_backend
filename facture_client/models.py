@@ -47,6 +47,16 @@ class FactureClient(BaseDeviFactureDocument):
         """Convert this FactureClient to a BonDeLivraison."""
         from bon_de_livraison.models import BonDeLivraison, BonDeLivraisonLine
 
+        # Validate document has lines
+        if not self.get_lines().exists():
+            raise ValueError("Impossible de convertir un document sans lignes")
+
+        # Validate document is in convertible state
+        if self.statut not in ["Envoyé", "Accepté"]:
+            raise ValueError(
+                f"Impossible de convertir un document avec le statut '{self.statut}'"
+            )
+
         bon_de_livraison = BonDeLivraison.objects.create(
             numero_bon_livraison=numero_bon_livraison,
             client=self.client,

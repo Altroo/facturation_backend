@@ -5,6 +5,7 @@ from pathlib import Path
 
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
+from rest_framework.exceptions import PermissionDenied
 
 from company.models import Company
 from company.serializers import MembershipCompanySerializer
@@ -37,21 +38,59 @@ class MembershipSerializer(serializers.ModelSerializer):
         try:
             return Role.objects.get(name=role_name)
         except Role.DoesNotExist:
-            raise serializers.ValidationError(f"Role '{role_name}' does not exist.")
+            raise serializers.ValidationError(f"The role '{role_name}' does not exist.")
 
     def create(self, validated_data):
         user = self.context["user"]
-        company = Company.objects.get(pk=validated_data.pop("company_id"))
-        role = self._get_role(validated_data.pop("role"))
+        company_id = validated_data.pop("company_id")
+        role_name = validated_data.pop("role")
+
+        # Check for existing membership
+        existing = Membership.objects.filter(user=user, company_id=company_id).first()
+
+        if existing:
+            raise serializers.ValidationError(
+                f"L'utilisateur a déjà une adhésion pour la société {company_id}"
+            )
+
+        # Validate role exists
+        role = self._get_role(role_name)
+
+        # Validate company exists
+        try:
+            company = Company.objects.get(pk=company_id)
+        except Company.DoesNotExist:
+            raise serializers.ValidationError(
+                f"The company {company_id} does not exist."
+            )
+
         return Membership.objects.create(
             user=user, company=company, role=role, **validated_data
         )
 
     def update(self, instance, validated_data):
+        user = self.context["user"]
         if "company_id" in validated_data:
-            instance.company = Company.objects.get(pk=validated_data.pop("company_id"))
+            new_company_id = validated_data.pop("company_id")
+
+            # Check for duplicate when changing company
+            existing = (
+                Membership.objects.filter(user=user, company_id=new_company_id)
+                .exclude(pk=instance.pk)
+                .first()
+            )
+
+            if existing:
+                raise serializers.ValidationError(
+                    f"L'utilisateur a déjà une adhésion pour la société {new_company_id}"
+                )
+
+            instance.company = Company.objects.get(pk=new_company_id)
+
         if "role" in validated_data:
-            instance.role = self._get_role(validated_data.pop("role"))
+            role_name = validated_data.pop("role")
+            instance.role = self._get_role(role_name)
+
         instance.save()
         return instance
 
@@ -81,7 +120,7 @@ class CreateAccountSerializer(serializers.ModelSerializer):
             return "F"
         else:
             raise serializers.ValidationError(
-                f"Invalid gender value: {value}. Must be 'Homme' or 'Femme'."
+                f"Valeur du sexe invalide : {value}. Doit être 'Homme' ou 'Femme'."
             )
 
     @staticmethod
@@ -299,7 +338,7 @@ class ProfilePutSerializer(serializers.ModelSerializer):
             return "F"
         else:
             raise serializers.ValidationError(
-                f"Invalid gender value: {value}. Must be 'Homme' or 'Femme'."
+                f"Valeur du sexe invalide : {value}. Doit être 'Homme' ou 'Femme'."
             )
 
     @staticmethod
@@ -540,6 +579,16 @@ class UserPatchSerializer(ProfilePutSerializer):
         processed_ids = set()
 
         for item in items:
+            # Validate required fields
+            if not item.get("company_id"):
+                raise serializers.ValidationError(
+                    "company_id est requis pour chaque adhésion"
+                )
+            if not item.get("role"):
+                raise serializers.ValidationError(
+                    "role est requis pour chaque adhésion"
+                )
+
             # Try to locate an existing membership:
             membership = None
             if item.get("membership_id"):
@@ -577,6 +626,15 @@ class UserPatchSerializer(ProfilePutSerializer):
     def update(self, instance, validated_data):
         memberships_data = validated_data.pop("memberships", None)
         companies_data = validated_data.pop("companies", None)
+
+        # Prevent users from modifying their own memberships (unless admin)
+        request = self.context.get("request")
+        if request:
+            request_user = request.user
+            if instance.pk != request_user.pk and not request_user.is_staff:
+                raise PermissionDenied(
+                    "Vous ne pouvez pas modifier les memberships d'autres utilisateurs."
+                )
 
         # Update basic profile fields (avatar, gender, …)
         instance = super().update(instance, validated_data)

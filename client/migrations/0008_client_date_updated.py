@@ -6,13 +6,15 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('client', '0007_alter_client_options'),
+        ("client", "0007_alter_client_options"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='client',
-            name='date_updated',
-            field=models.DateTimeField(auto_now=True, db_index=True, verbose_name='Date de modification'),
+            model_name="client",
+            name="date_updated",
+            field=models.DateTimeField(
+                auto_now=True, db_index=True, verbose_name="Date de modification"
+            ),
         ),
     ]
