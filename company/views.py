@@ -1,4 +1,3 @@
-from account.models import Role
 from django.db.models import Count
 from django.http import Http404
 from django.utils.translation import gettext_lazy as _
@@ -9,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from account.models import Membership
+from account.models import Role
 from facturation_backend.utils import CustomPagination
 from .filters import CompanyFilter
 from .models import Company
@@ -23,7 +23,7 @@ from .serializers import (
 def _is_admin_for_company(user, company):
     """Check if user has admin (isAdmin=True) membership for the company."""
     return Membership.objects.filter(
-        user=user, company=company, role__is_admin=True
+        user=user, company=company, user__is_staff=True
     ).exists()
 
 
@@ -36,7 +36,7 @@ class CompanyListCreateView(APIView):
         # Only show companies where user has isAdmin membership
         queryset = Company.objects.filter(
             memberships__user=request.user,
-            memberships__role__is_admin=True,
+            memberships__user__is_staff=True,
             suspended=False,
         )
         if pagination:
