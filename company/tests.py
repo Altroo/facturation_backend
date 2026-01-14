@@ -2,7 +2,7 @@ import os
 
 import pytest
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import Group
+from account.models import Role
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
@@ -43,11 +43,11 @@ class TestCompanyAPI:
         self.user = self.user_model.objects.create_user(
             email="admin@example.com",
             password="pass",
-            first_name="Admin",
+            first_name="Caissier",
             last_name="User",
             is_staff=True,
         )
-        self.admin_group = Group.objects.create(name="Admin")
+        self.admin_group, _ = Role.objects.update_or_create(name="Caissier", defaults={"is_admin": True})
         self.company = Company.objects.create(
             raison_sociale="TestCorp",
             ICE="ICE123456",
@@ -104,7 +104,9 @@ class TestCompanyAPI:
         url = reverse("company:company-detail", args=[self.company.id])
         response = self.client.delete(url)
         assert response.status_code == status.HTTP_204_NO_CONTENT
-        assert not Company.objects.filter(id=self.company.id).exists()
+        # Check company is soft-deleted (suspended=True)
+        self.company.refresh_from_db()
+        assert self.company.suspended is True
 
     def test_non_admin_cannot_access_company_detail(self):
         outsider = self.user_model.objects.create_user(
@@ -160,12 +162,12 @@ class TestCompanyImagesAndMemberships:
         self.admin = self.user_model.objects.create_user(
             email="admin@example.com",
             password="pass",
-            first_name="Admin",
+            first_name="Caissier",
             last_name="User",
             is_staff=True,
         )
-        self.admin_group = Group.objects.create(name="Admin")
-        self.editor_group = Group.objects.create(name="Editor")
+        self.admin_group, _ = Role.objects.update_or_create(name="Caissier", defaults={"is_admin": True})
+        self.editor_group, _ = Role.objects.get_or_create(name="Editor", defaults={"is_admin": False})
 
         self.company = Company.objects.create(
             raison_sociale="ImgCorp",
@@ -533,7 +535,7 @@ class TestCompanySerializerExtra:
             last_name="Test",
             is_staff=True,
         )
-        self.admin_group, _ = Group.objects.get_or_create(name="Admin")
+        self.admin_group, _ = Role.objects.update_or_create(name="Caissier", defaults={"is_admin": True})
         self.company = Company.objects.create(
             raison_sociale="SerializerTestCorp",
             ICE="ICEST",
@@ -573,7 +575,7 @@ class TestCompanySerializerExtra:
         serializer = CompanyBasicListSerializer(
             self.company, context={"request": request}
         )
-        assert serializer.data["role"] == "Admin"
+        assert serializer.data["role"] == "Caissier"
 
     def test_company_basic_list_serializer_no_request(self):
         """Test CompanyBasicListSerializer get_role without request."""
@@ -750,7 +752,7 @@ class TestCompanyViewsExtra:
             last_name="Test",
             is_staff=True,
         )
-        self.admin_group, _ = Group.objects.get_or_create(name="Admin")
+        self.admin_group, _ = Role.objects.update_or_create(name="Caissier", defaults={"is_admin": True})
         self.company = Company.objects.create(
             raison_sociale="ViewsTestCorp",
             ICE="ICEVT",
@@ -891,7 +893,7 @@ class TestCompanySerializerCoverage:
     def test_update_managed_by_invalid_role(self):
         """Test update with invalid role raises ValidationError (lines 296-297)."""
         from django.contrib.auth import get_user_model
-        from django.contrib.auth.models import Group
+        from account.models import Role
         from company.serializers import CompanyDetailSerializer
         from company.models import Company
         from account.models import Membership
@@ -899,7 +901,7 @@ class TestCompanySerializerCoverage:
 
         user_obj = get_user_model()
         user = user_obj.objects.create_user(email="rolefail@test.com", password="pass")
-        admin_group = Group.objects.get_or_create(name="Admin")[0]
+        admin_group = Role.objects.get_or_create(name="Caissier", defaults={"is_admin": True})[0]
 
         company = Company.objects.create(
             raison_sociale="Role Test Co",
@@ -1015,7 +1017,7 @@ class TestCompanyViewsCoverage:
     def test_create_company_without_admin_group(self):
         """Test create company when Admin group doesn't exist (lines 62-63)."""
         from django.contrib.auth import get_user_model
-        from django.contrib.auth.models import Group
+        from account.models import Role
         from django.urls import reverse
         from rest_framework import status
         from rest_framework.test import APIClient
@@ -1027,7 +1029,7 @@ class TestCompanyViewsCoverage:
         )
 
         # Delete the Admin group if it exists
-        Group.objects.filter(name="Admin").delete()
+        Role.objects.filter(name="Caissier").delete()
 
         client = APIClient()
         client.force_authenticate(user=user)
@@ -1040,10 +1042,10 @@ class TestCompanyViewsCoverage:
         response = client.post(url, payload)
 
         assert response.status_code == status.HTTP_403_FORBIDDEN
-        assert "Admin" in str(response.data)
+        assert "Caissier" in str(response.data)
 
         # Re-create Admin group for other tests
-        Group.objects.get_or_create(name="Admin")
+        Role.objects.get_or_create(name="Caissier", defaults={"is_admin": True})
 
     def test_create_company_with_managed_by(self):
         """Test create company with managed_by list (line 76)."""
@@ -1063,8 +1065,8 @@ class TestCompanyViewsCoverage:
         )
 
         # Ensure groups exist
-        admin_group = Group.objects.get_or_create(name="Admin")[0]
-        member_group = Group.objects.get_or_create(name="Member")[0]
+        admin_group = Role.objects.get_or_create(name="Caissier", defaults={"is_admin": True})[0]
+        member_group = Role.objects.get_or_create(name="Member", defaults={"is_admin": False})[0]
 
         client = APIClient()
         client.force_authenticate(user=admin_user)
@@ -1087,7 +1089,7 @@ class TestCompanyViewsCoverage:
     def test_companies_by_user(self):
         """Test CompaniesByUserView.get (lines 126-134)."""
         from django.contrib.auth import get_user_model
-        from django.contrib.auth.models import Group
+        from account.models import Role
         from django.urls import reverse
         from rest_framework import status
         from rest_framework.test import APIClient
@@ -1096,7 +1098,7 @@ class TestCompanyViewsCoverage:
 
         user_obj = get_user_model()
         user = user_obj.objects.create_user(email="byuser@test.com", password="pass")
-        admin_group = Group.objects.get_or_create(name="Admin")[0]
+        admin_group = Role.objects.get_or_create(name="Caissier", defaults={"is_admin": True})[0]
 
         # Create companies for the user
         company1 = Company.objects.create(
@@ -1118,3 +1120,5 @@ class TestCompanyViewsCoverage:
 
         assert response.status_code == status.HTTP_200_OK
         assert len(response.data) == 2
+
+

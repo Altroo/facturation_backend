@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from account.models import Membership
+from core.permissions import can_create, can_delete, can_update
 from core.utils import format_number_with_dynamic_digits
 from facturation_backend.utils import CustomPagination
 from .filters import ClientFilter
@@ -35,7 +36,7 @@ class ClientListCreateView(APIView):
             user=request.user, company_id=company_id
         ).exists():
             raise PermissionDenied(
-                detail=_("Seuls les Admins de cette société peuvent y accéder.")
+                detail=_("Seuls les Caissiers de cette société peuvent y accéder.")
             )
 
     def get(self, request, *args, **kwargs):
@@ -70,6 +71,13 @@ class ClientListCreateView(APIView):
             raise PermissionDenied(
                 _("Vous n'êtes pas autorisé à créer un client pour cette société.")
             )
+
+        # Check if user has created permission
+        if not can_create(request.user, company_id):
+            raise PermissionDenied(
+                _("Vous n'avez pas les droits pour créer un client.")
+            )
+
         serializer = ClientSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -102,6 +110,13 @@ class ClientDetailEditDeleteView(APIView):
         client = self.get_object(pk)
         if not self._has_membership(request.user, client.company_id):
             raise PermissionDenied(_("Vous n'êtes pas autorisé à modifier ce client."))
+
+        # Check if user has update permission
+        if not can_update(request.user, client.company_id):
+            raise PermissionDenied(
+                _("Vous n'avez pas les droits pour modifier ce client.")
+            )
+
         serializer = ClientDetailSerializer(client, data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -111,6 +126,13 @@ class ClientDetailEditDeleteView(APIView):
         client = self.get_object(pk)
         if not self._has_membership(request.user, client.company_id):
             raise PermissionDenied(_("Vous n'êtes pas autorisé à supprimer ce client."))
+
+        # Check if user has deleted permission
+        if not can_delete(request.user, client.company_id):
+            raise PermissionDenied(
+                _("Vous n'avez pas les droits pour supprimer ce client.")
+            )
+
         client.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -118,6 +140,13 @@ class ClientDetailEditDeleteView(APIView):
         client = self.get_object(pk)
         if not self._has_membership(request.user, client.company_id):
             raise PermissionDenied(_("Vous n'êtes pas autorisé à modifier ce client."))
+
+        # Check if user has update permission
+        if not can_update(request.user, client.company_id):
+            raise PermissionDenied(
+                _("Vous n'avez pas les droits pour modifier ce client.")
+            )
+
         serializer = ClientDetailSerializer(client, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -191,6 +220,13 @@ class ArchiveToggleClientView(APIView):
             raise PermissionDenied(
                 _("Vous n'êtes pas autorisé à modifier l'état de ce client.")
             )
+
+        # Check if user has update permission
+        if not can_update(request.user, client.company_id):
+            raise PermissionDenied(
+                _("Vous n'avez pas les droits pour modifier l'état de ce client.")
+            )
+
         # Determine the desired state
         if "archived" in request.data:
             new_state = self._to_bool(request.data["archived"])

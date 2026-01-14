@@ -739,6 +739,8 @@ class FactureClientPDFView(APIView):
     @staticmethod
     def get(request, pk: int):
         """Generate and return PDF for the facture client."""
+        from core.permissions import can_print
+
         company_id = request.query_params.get("company_id")
         pdf_type = request.query_params.get("type", "avec_remise")
 
@@ -750,6 +752,12 @@ class FactureClientPDFView(APIView):
 
         company = get_object_or_404(Company, pk=company_id)
         facture_client = get_object_or_404(FactureClient, pk=pk)
+
+        # Check if user has print permission
+        if not can_print(request.user, int(company_id)):
+            raise PermissionDenied(
+                _("Vous n'avez pas les droits pour imprimer ce document.")
+            )
 
         # Generate PDF
         pdf_generator = FactureClientPDFGenerator(facture_client, company, pdf_type)

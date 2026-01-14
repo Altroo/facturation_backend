@@ -7,6 +7,7 @@ from rest_framework.views import APIView
 
 from account.models import Membership
 from client.models import Client
+from core.permissions import can_create, can_update, can_delete
 from facturation_backend.utils import CustomPagination
 
 
@@ -32,7 +33,7 @@ class BaseDocumentListCreateView(APIView):
             user=request.user, company_id=company_id
         ).exists():
             raise PermissionDenied(
-                detail=_("Seuls les Admins de cette société peuvent y accéder.")
+                detail=_("Seuls les Caissiers de cette société peuvent y accéder.")
             )
 
     def get(self, request, *args, **kwargs):
@@ -75,6 +76,13 @@ class BaseDocumentListCreateView(APIView):
                     f"Vous n'êtes pas autorisé à créer {self.document_name} pour cette société."
                 )
             )
+
+        # Check if user has created permission
+        if not can_create(request.user, client_obj.company_id):
+            raise PermissionDenied(
+                _(f"Vous n'avez pas les droits pour créer ce {self.document_name}.")
+            )
+
         serializer = self.create_serializer_class(
             data=request.data, context={"request": request}
         )
@@ -119,6 +127,13 @@ class BaseDocumentDetailEditDeleteView(APIView):
             raise PermissionDenied(
                 _(f"Vous n'êtes pas autorisé à modifier ce {self.document_name}.")
             )
+
+        # Check if user has update permission
+        if not can_update(request.user, object_.client.company_id):
+            raise PermissionDenied(
+                _(f"Vous n'avez pas les droits pour modifier ce {self.document_name}.")
+            )
+
         serializer = self.detail_serializer_class(
             object_, data=request.data, context={"request": request}
         )
@@ -132,6 +147,13 @@ class BaseDocumentDetailEditDeleteView(APIView):
             raise PermissionDenied(
                 _(f"Vous n'êtes pas autorisé à supprimer ce {self.document_name}.")
             )
+
+        # Check if user has deleted permission
+        if not can_delete(request.user, object_.client.company_id):
+            raise PermissionDenied(
+                _(f"Vous n'avez pas les droits pour supprimer ce {self.document_name}.")
+            )
+
         object_.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -171,6 +193,13 @@ class BaseStatusUpdateView(APIView):
             raise PermissionDenied(
                 _(f"Vous n'êtes pas autorisé à modifier ce {self.document_name}.")
             )
+
+        # Check if user has update permission
+        if not can_update(request.user, object_.client.company_id):
+            raise PermissionDenied(
+                _(f"Vous n'avez pas les droits pour modifier ce {self.document_name}.")
+            )
+
         new_status = request.data.get("statut")
         valid_statuses = [choice[0] for choice in self.model.STATUT_CHOICES]
         if new_status not in valid_statuses:
@@ -206,6 +235,13 @@ class BaseConversionView(APIView):
             raise PermissionDenied(
                 _(f"Vous n'êtes pas autorisé à convertir ce {self.document_name}.")
             )
+
+        # Check if user has created permission for conversions
+        if not can_create(request.user, object_.client.company_id):
+            raise PermissionDenied(
+                _(f"Vous n'avez pas les droits pour convertir ce {self.document_name}.")
+            )
+
         numero = self.numero_generator()
         conversion_func = getattr(object_, self.conversion_method)
         converted = conversion_func(

@@ -4,7 +4,7 @@ import pytest
 from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 
-from account.models import CustomUser, Membership
+from account.models import CustomUser, Membership, Role
 from article.models import Article
 from client.models import Client
 from company.models import Company
@@ -293,7 +293,8 @@ class TestBonDeLivraisonModels(SharedDocumentModelTestsMixin):
         )
         self.ville = Ville.objects.create(nom="ModelVille")
         self.company = Company.objects.create(raison_sociale="ModelCo", ICE="ICEMOD")
-        Membership.objects.create(user=self.user, company=self.company)
+        caissier_role, _ = Role.objects.get_or_create(name="Caissier", defaults={"is_admin": True})
+        Membership.objects.create(user=self.user, company=self.company, role=caissier_role)
 
         self.client_obj = Client.objects.create(
             code_client="CMOD",
@@ -374,7 +375,12 @@ class TestBonDeLivraisonAdmin(SharedDocumentAdminTestsMixin):
         )
         self.ville = Ville.objects.create(nom="AdminVille")
         self.company = Company.objects.create(raison_sociale="AdminCo", ICE="ICEADM")
-        Membership.objects.create(user=self.user, company=self.company)
+        caissier_role, _ = Role.objects.get_or_create(
+            name="Caissier", defaults={"is_admin": True}
+        )
+        Membership.objects.create(
+            user=self.user, company=self.company, role=caissier_role
+        )
 
         self.client_obj = Client.objects.create(
             code_client="CADM",
@@ -659,8 +665,13 @@ class TestBonDeLivraisonPDFGeneration:
         from django.urls import reverse
         from rest_framework import status
 
+        caissier_role, _ = Role.objects.get_or_create(
+            name="Caissier", defaults={"is_admin": True}
+        )
         Membership.objects.create(
-            user=bon_de_livraison_user, company=bon_de_livraison_company
+            user=bon_de_livraison_user,
+            company=bon_de_livraison_company,
+            role=caissier_role,
         )
 
         client_api = APIClient()
@@ -689,8 +700,13 @@ class TestBonDeLivraisonPDFGeneration:
         from django.urls import reverse
         from rest_framework import status
 
+        caissier_role, _ = Role.objects.get_or_create(
+            name="Caissier", defaults={"is_admin": True}
+        )
         Membership.objects.create(
-            user=bon_de_livraison_user, company=bon_de_livraison_company
+            user=bon_de_livraison_user,
+            company=bon_de_livraison_company,
+            role=caissier_role,
         )
 
         client_api = APIClient()
@@ -709,8 +725,13 @@ class TestBonDeLivraisonPDFGeneration:
         from django.urls import reverse
         from rest_framework import status
 
+        caissier_role, _ = Role.objects.get_or_create(
+            name="Caissier", defaults={"is_admin": True}
+        )
         Membership.objects.create(
-            user=bon_de_livraison_user, company=bon_de_livraison_company
+            user=bon_de_livraison_user,
+            company=bon_de_livraison_company,
+            role=caissier_role,
         )
 
         client_api = APIClient()
@@ -734,8 +755,13 @@ class TestBonDeLivraisonPDFGeneration:
         from django.urls import reverse
         from rest_framework import status
 
+        caissier_role, _ = Role.objects.get_or_create(
+            name="Caissier", defaults={"is_admin": True}
+        )
         Membership.objects.create(
-            user=bon_de_livraison_user, company=bon_de_livraison_company
+            user=bon_de_livraison_user,
+            company=bon_de_livraison_company,
+            role=caissier_role,
         )
 
         client_api = APIClient()
@@ -763,8 +789,13 @@ class TestBonDeLivraisonPDFGeneration:
         from django.urls import reverse
         from rest_framework import status
 
+        caissier_role, _ = Role.objects.get_or_create(
+            name="Caissier", defaults={"is_admin": True}
+        )
         Membership.objects.create(
-            user=bon_de_livraison_user, company=bon_de_livraison_company
+            user=bon_de_livraison_user,
+            company=bon_de_livraison_company,
+            role=caissier_role,
         )
 
         client_api = APIClient()
@@ -792,8 +823,13 @@ class TestBonDeLivraisonPDFGeneration:
         from django.urls import reverse
         from rest_framework import status
 
+        caissier_role, _ = Role.objects.get_or_create(
+            name="Caissier", defaults={"is_admin": True}
+        )
         Membership.objects.create(
-            user=bon_de_livraison_user, company=bon_de_livraison_company
+            user=bon_de_livraison_user,
+            company=bon_de_livraison_company,
+            role=caissier_role,
         )
 
         client_api = APIClient()
@@ -823,8 +859,13 @@ class TestBonDeLivraisonUninvoicedListView:
         from django.urls import reverse
         from rest_framework import status
 
+        caissier_role, _ = Role.objects.get_or_create(
+            name="Caissier", defaults={"is_admin": True}
+        )
         Membership.objects.create(
-            user=bon_de_livraison_user, company=bon_de_livraison_company
+            user=bon_de_livraison_user,
+            company=bon_de_livraison_company,
+            role=caissier_role,
         )
 
         client_api = APIClient()
@@ -842,8 +883,13 @@ class TestBonDeLivraisonUninvoicedListView:
         from django.urls import reverse
         from rest_framework import status
 
+        caissier_role, _ = Role.objects.get_or_create(
+            name="Caissier", defaults={"is_admin": True}
+        )
         Membership.objects.create(
-            user=bon_de_livraison_user, company=bon_de_livraison_company
+            user=bon_de_livraison_user,
+            company=bon_de_livraison_company,
+            role=caissier_role,
         )
 
         # Create BLs with different statuses
@@ -888,8 +934,13 @@ class TestBonDeLivraisonUninvoicedListView:
         from django.urls import reverse
         from rest_framework import status
 
+        caissier_role, _ = Role.objects.get_or_create(
+            name="Caissier", defaults={"is_admin": True}
+        )
         Membership.objects.create(
-            user=bon_de_livraison_user, company=bon_de_livraison_company
+            user=bon_de_livraison_user,
+            company=bon_de_livraison_company,
+            role=caissier_role,
         )
 
         # Create multiple BLs
@@ -921,8 +972,13 @@ class TestBonDeLivraisonUninvoicedListView:
         from django.urls import reverse
         from rest_framework import status
 
+        caissier_role, _ = Role.objects.get_or_create(
+            name="Caissier", defaults={"is_admin": True}
+        )
         Membership.objects.create(
-            user=bon_de_livraison_user, company=bon_de_livraison_company
+            user=bon_de_livraison_user,
+            company=bon_de_livraison_company,
+            role=caissier_role,
         )
 
         client_api = APIClient()
@@ -1052,8 +1108,13 @@ class TestBonDeLivraisonViewsCoverage:
         bon_de_livraison_company.logo = logo_file
         bon_de_livraison_company.save()
 
+        caissier_role, _ = Role.objects.get_or_create(
+            name="Caissier", defaults={"is_admin": True}
+        )
         Membership.objects.create(
-            user=bon_de_livraison_user, company=bon_de_livraison_company
+            user=bon_de_livraison_user,
+            company=bon_de_livraison_company,
+            role=caissier_role,
         )
 
         # Create a BL
@@ -1092,8 +1153,13 @@ class TestBonDeLivraisonViewsCoverage:
         from django.urls import reverse
         from rest_framework import status
 
+        caissier_role, _ = Role.objects.get_or_create(
+            name="Caissier", defaults={"is_admin": True}
+        )
         Membership.objects.create(
-            user=bon_de_livraison_user, company=bon_de_livraison_company
+            user=bon_de_livraison_user,
+            company=bon_de_livraison_company,
+            role=caissier_role,
         )
 
         # Create a PP (Personne Physique) client
@@ -1142,8 +1208,13 @@ class TestBonDeLivraisonViewsCoverage:
         from django.urls import reverse
         from rest_framework import status
 
+        caissier_role, _ = Role.objects.get_or_create(
+            name="Caissier", defaults={"is_admin": True}
+        )
         Membership.objects.create(
-            user=bon_de_livraison_user, company=bon_de_livraison_company
+            user=bon_de_livraison_user,
+            company=bon_de_livraison_company,
+            role=caissier_role,
         )
 
         # Create a BL
@@ -1186,8 +1257,13 @@ class TestBonDeLivraisonViewsCoverage:
         from rest_framework import status
         from decimal import Decimal
 
+        caissier_role, _ = Role.objects.get_or_create(
+            name="Caissier", defaults={"is_admin": True}
+        )
         Membership.objects.create(
-            user=bon_de_livraison_user, company=bon_de_livraison_company
+            user=bon_de_livraison_user,
+            company=bon_de_livraison_company,
+            role=caissier_role,
         )
 
         # Create a BL with fixed remise
@@ -1235,8 +1311,13 @@ class TestBonDeLivraisonViewsCoverage:
         from rest_framework import status
         from decimal import Decimal
 
+        caissier_role, _ = Role.objects.get_or_create(
+            name="Caissier", defaults={"is_admin": True}
+        )
         Membership.objects.create(
-            user=bon_de_livraison_user, company=bon_de_livraison_company
+            user=bon_de_livraison_user,
+            company=bon_de_livraison_company,
+            role=caissier_role,
         )
 
         # Create a BL with percentage remise
@@ -1283,8 +1364,13 @@ class TestBonDeLivraisonViewsCoverage:
         from rest_framework import status
         from decimal import Decimal
 
+        caissier_role, _ = Role.objects.get_or_create(
+            name="Caissier", defaults={"is_admin": True}
+        )
         Membership.objects.create(
-            user=bon_de_livraison_user, company=bon_de_livraison_company
+            user=bon_de_livraison_user,
+            company=bon_de_livraison_company,
+            role=caissier_role,
         )
 
         # Create an article with a temporary reference

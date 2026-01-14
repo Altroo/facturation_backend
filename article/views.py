@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from account.models import Membership
+from core.permissions import can_create, can_update, can_delete
 from core.utils import format_number_with_dynamic_digits
 from facturation_backend.utils import CustomPagination
 from .filters import ArticleFilter
@@ -35,7 +36,7 @@ class ArticleListCreateView(APIView):
             user=request.user, company_id=company_id
         ).exists():
             raise PermissionDenied(
-                detail=_("Seuls les Admins de cette société peuvent y accéder.")
+                detail=_("Seuls les Caissiers de cette société peuvent y accéder.")
             )
 
     def get(self, request, *args, **kwargs):
@@ -74,6 +75,13 @@ class ArticleListCreateView(APIView):
             raise PermissionDenied(
                 _("Vous n'êtes pas autorisé à créer un article pour cette société.")
             )
+
+        # Check if user has created permission
+        if not can_create(request.user, company_id):
+            raise PermissionDenied(
+                _("Vous n'avez pas les droits pour créer un article.")
+            )
+
         serializer = ArticleSerializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -110,6 +118,21 @@ class ArticleDetailEditDeleteView(APIView):
             raise PermissionDenied(
                 _("Vous n'êtes pas autorisé à modifier cet article.")
             )
+
+        # Check if user has update permission
+        if not can_update(request.user, article.company_id):
+            raise PermissionDenied(
+                _("Vous n'avez pas les droits pour modifier cet article.")
+            )
+
+        # Check if Commercial is trying to update prix_vente
+        if "prix_vente" in request.data and not can_update(
+            request.user, article.company_id, "prix_vente"
+        ):
+            raise PermissionDenied(
+                _("Vous n'avez pas les droits pour modifier le prix de vente.")
+            )
+
         serializer = ArticleDetailSerializer(
             article, data=request.data, context={"request": request}
         )
@@ -123,6 +146,13 @@ class ArticleDetailEditDeleteView(APIView):
             raise PermissionDenied(
                 _("Vous n'êtes pas autorisé à supprimer cet article.")
             )
+
+        # Check if user has deleted permission
+        if not can_delete(request.user, article.company_id):
+            raise PermissionDenied(
+                _("Vous n'avez pas les droits pour supprimer cet article.")
+            )
+
         article.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -132,6 +162,21 @@ class ArticleDetailEditDeleteView(APIView):
             raise PermissionDenied(
                 _("Vous n'êtes pas autorisé à modifier cet article.")
             )
+
+        # Check if user has update permission
+        if not can_update(request.user, article.company_id):
+            raise PermissionDenied(
+                _("Vous n'avez pas les droits pour modifier cet article.")
+            )
+
+        # Check if Commercial is trying to update prix_vente
+        if "prix_vente" in request.data and not can_update(
+            request.user, article.company_id, "prix_vente"
+        ):
+            raise PermissionDenied(
+                _("Vous n'avez pas les droits pour modifier le prix de vente.")
+            )
+
         serializer = ArticleDetailSerializer(
             article, data=request.data, partial=True, context={"request": request}
         )

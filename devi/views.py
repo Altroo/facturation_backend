@@ -540,6 +540,10 @@ class DeviPDFView(APIView):
     @staticmethod
     def get(request, pk: int):
         """Generate and return PDF for the devis."""
+        from core.permissions import can_print
+        from rest_framework.exceptions import PermissionDenied
+        from django.utils.translation import gettext_lazy as _
+
         company_id = request.query_params.get("company_id")
         pdf_type = request.query_params.get("type", "avec_remise")
 
@@ -551,6 +555,12 @@ class DeviPDFView(APIView):
 
         company = get_object_or_404(Company, pk=company_id)
         devis = get_object_or_404(Devi, pk=pk)
+
+        # Check if user has print permission
+        if not can_print(request.user, int(company_id)):
+            raise PermissionDenied(
+                _("Vous n'avez pas les droits pour imprimer ce document.")
+            )
 
         # Generate PDF
         pdf_generator = DeviPDFGenerator(devis, company, pdf_type)

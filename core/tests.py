@@ -12,6 +12,7 @@ from urllib.parse import quote
 import pytest
 from django.contrib.admin.sites import AdminSite
 from django.contrib.auth import get_user_model
+from account.models import Role
 from django.urls import reverse
 from rest_framework import serializers as drf_serializers
 from rest_framework import status
@@ -21,7 +22,6 @@ from account.models import CustomUser, Membership
 from article.models import Article
 from client.models import Client
 from company.models import Company
-from django.contrib.auth.models import Group
 from devi.admin import DeviAdmin
 from devi.models import Devi, DeviLine
 from parameter.models import ModePaiement, Ville
@@ -34,20 +34,14 @@ from parameter.models import ModePaiement, Ville
 def common_user():
     """Create a common test user."""
     return CustomUser.objects.create_user(
-        email="user@test.com",
-        password="testpass",
-        first_name="Test",
-        last_name="User"
+        email="user@test.com", password="testpass", first_name="Test", last_name="User"
     )
 
 
 @pytest.fixture
 def common_company():
     """Create a common test company."""
-    return Company.objects.create(
-        raison_sociale="TestCompany",
-        ICE="ICE-TEST123"
-    )
+    return Company.objects.create(raison_sociale="TestCompany", ICE="ICE-TEST123")
 
 
 @pytest.fixture
@@ -90,10 +84,14 @@ def common_article(common_company):
 @pytest.fixture
 def common_membership(common_user, common_company):
     """Create a common membership between user and company."""
-    return Membership.objects.create(
-        user=common_user,
-        company=common_company
-    )
+    caissier_role, _ = Role.objects.get_or_create(name="Caissier", defaults={"is_admin": False})
+    return Membership.objects.create(user=common_user, company=common_company, role=caissier_role)
+
+
+def _create_core_membership(user, company):
+    """Helper to create membership with Caissier role."""
+    caissier_role, _ = Role.objects.get_or_create(name="Caissier", defaults={"is_admin": False})
+    return Membership.objects.create(user=user, company=company, role=caissier_role)
 
 
 # -----------------------------------------------------------------------------
@@ -204,7 +202,7 @@ class SharedDocumentAPITestsMixin:
         self.company = Company.objects.create(
             raison_sociale="TestCompany", ICE="ICE-1234"
         )
-        Membership.objects.create(user=self.user, company=self.company)
+        _create_core_membership(self.user, self.company)
 
         self.client_obj = Client.objects.create(
             code_client="CLT1000",
@@ -534,7 +532,7 @@ class SharedDocumentFilterTestsMixin:
 
         self.ville = Ville.objects.create(nom="SearchVille")
         self.company = Company.objects.create(raison_sociale="FilterCo", ICE="ICEFILT")
-        Membership.objects.create(user=self.user, company=self.company)
+        _create_core_membership(self.user, self.company)
 
         self.client_a = Client.objects.create(
             code_client="C001",
@@ -1381,7 +1379,7 @@ class TestCoreViewsPermissions:
         from core.views import BaseDocumentDetailEditDeleteView
         from account.models import Membership
         from django.contrib.auth import get_user_model
-        from django.contrib.auth.models import Group
+        from account.models import Role
 
         user_obj = get_user_model()
         test_user = user_obj.objects.create_user(
@@ -1393,7 +1391,7 @@ class TestCoreViewsPermissions:
         )
         assert result is False
 
-        admin_group, _ = Group.objects.get_or_create(name="Admin")
+        admin_group, _ = Role.objects.get_or_create(name="Caissier", defaults={"is_admin": True})
         Membership.objects.create(
             user=test_user, company=extra_company, role=admin_group
         )
@@ -1532,7 +1530,7 @@ class TestBaseStatusUpdateViewPermissions:
         """Test PATCH raises PermissionDenied when user is not member."""
         from core.views import BaseStatusUpdateView
         from rest_framework.test import APIRequestFactory
-        from django.contrib.auth.models import Group
+        from account.models import Role
 
         user_obj = get_user_model()
         user = user_obj.objects.create_user(email="test@test.com", password="testpass")
@@ -1541,7 +1539,7 @@ class TestBaseStatusUpdateViewPermissions:
         )
 
         # Create company, client, and document
-        admin_group = Group.objects.create(name="Admin_status_test")
+        admin_group, _ = Role.objects.get_or_create(name="Admin_status_test", defaults={"is_admin": True})
         company = Company.objects.create(raison_sociale="TestCo", ICE="123456782")
         # Only other_user is member
         Membership.objects.create(user=other_user, company=company, role=admin_group)
@@ -1600,7 +1598,7 @@ class TestBaseConversionViewPermissions:
         """Test POST raises PermissionDenied when user is not member."""
         from core.views import BaseConversionView
         from rest_framework.test import APIRequestFactory
-        from django.contrib.auth.models import Group
+        from account.models import Role
 
         user_obj = get_user_model()
         user = user_obj.objects.create_user(email="test@test.com", password="testpass")
@@ -1609,7 +1607,7 @@ class TestBaseConversionViewPermissions:
         )
 
         # Create company, client, and document
-        admin_group = Group.objects.create(name="Admin_conv_test")
+        admin_group, _ = Role.objects.get_or_create(name="Admin_conv_test", defaults={"is_admin": True})
         company = Company.objects.create(raison_sociale="TestCo", ICE="123456783")
         # Only other_user is member
         Membership.objects.create(user=other_user, company=company, role=admin_group)
@@ -1680,7 +1678,7 @@ class TestBaseDocumentDetailEditDeleteViewPermissions:
         """Test PUT raises PermissionDenied when user is not member."""
         from core.views import BaseDocumentDetailEditDeleteView
         from rest_framework.test import APIRequestFactory
-        from django.contrib.auth.models import Group
+        from account.models import Role
         from devi.serializers import DeviDetailSerializer
 
         user_obj = get_user_model()
@@ -1690,7 +1688,7 @@ class TestBaseDocumentDetailEditDeleteViewPermissions:
         )
 
         # Create company, client, and document
-        admin_group = Group.objects.create(name="Admin_put_test")
+        admin_group, _ = Role.objects.get_or_create(name="Admin_put_test", defaults={"is_admin": True})
         company = Company.objects.create(raison_sociale="TestCo", ICE="123456784")
         # Only other_user is member
         Membership.objects.create(user=other_user, company=company, role=admin_group)
@@ -1725,7 +1723,7 @@ class TestBaseDocumentDetailEditDeleteViewPermissions:
         """Test DELETE raises PermissionDenied when user is not member."""
         from core.views import BaseDocumentDetailEditDeleteView
         from rest_framework.test import APIRequestFactory
-        from django.contrib.auth.models import Group
+        from account.models import Role
         from devi.serializers import DeviDetailSerializer
 
         user_obj = get_user_model()
@@ -1735,7 +1733,7 @@ class TestBaseDocumentDetailEditDeleteViewPermissions:
         )
 
         # Create company, client, and document
-        admin_group = Group.objects.create(name="Admin_del_test")
+        admin_group, _ = Role.objects.get_or_create(name="Admin_del_test", defaults={"is_admin": True})
         company = Company.objects.create(raison_sociale="TestCo", ICE="123456785")
         # Only other_user is member
         Membership.objects.create(user=other_user, company=company, role=admin_group)
@@ -2836,8 +2834,8 @@ class TestAdditionalCoverageEdgeCases:
 
     @pytest.fixture
     def admin_group(self):
-        """Create or get Admin group."""
-        group, _ = Group.objects.get_or_create(name="Admin")
+        """Create or get Caissier group."""
+        group, _ = Role.objects.get_or_create(name="Caissier", defaults={"is_admin": True})
         return group
 
     @pytest.fixture
@@ -3258,13 +3256,12 @@ class TestFilterDatabaseErrorBranches:
         from reglement.filters import ReglementFilter
         from reglement.models import Reglement
         from facture_client.models import FactureClient
-        from parameter.models import ModeReglement
+        from parameter.models import ModePaiement
         from django.db import DatabaseError
         from django.contrib.postgres.search import SearchQuery
 
         company, client, _ = setup_company_client
         mode_paiement = ModePaiement.objects.create(nom="Regl Mode")
-        mode_reglement = ModeReglement.objects.create(nom="Reg Mode")
 
         user = get_user_model().objects.create_user(
             email="reglfilter@test.com",
@@ -3282,7 +3279,7 @@ class TestFilterDatabaseErrorBranches:
 
         reglement = Reglement.objects.create(
             facture_client=facture,
-            mode_reglement=mode_reglement,
+            mode_reglement=mode_paiement,
             montant=Decimal("100.00"),
             date_reglement="2026-01-01",
             libelle="Test Libelle",
@@ -3608,11 +3605,11 @@ class TestPDFGeneratorEdgeCases:
         from facture_client.models import FactureClient, FactureClientLine
         from reglement.models import Reglement
         from reglement.views import ReglementPDFGenerator
-        from parameter.models import ModeReglement
+        from parameter.models import ModePaiement
 
         company, client, mode, article, user, _ = setup_pdf
 
-        mode_reglement = ModeReglement.objects.create(nom="PDF Reglement Mode")
+        mode_reglement = ModePaiement.objects.create(nom="PDF Reglement Mode")
         from datetime import date
 
         facture = FactureClient.objects.create(

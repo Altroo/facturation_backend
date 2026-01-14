@@ -4,7 +4,7 @@ import pytest
 from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 
-from account.models import CustomUser, Membership
+from account.models import CustomUser, Membership, Role
 from article.models import Article
 from client.models import Client
 from company.models import Company
@@ -38,6 +38,11 @@ def fc_conv_user():
 @pytest.fixture
 def fc_conv_company():
     return Company.objects.create(raison_sociale="FC Conv Co", ICE="FCCONV")
+
+
+def _create_fc_membership(user, company):
+    caissier_role, _ = Role.objects.get_or_create(name="Caissier", defaults={"is_admin": True})
+    return Membership.objects.create(user=user, company=company, role=caissier_role)
 
 
 @pytest.fixture
@@ -593,7 +598,7 @@ class TestFactureClientPDFGeneration:
         from django.urls import reverse
         from rest_framework import status
 
-        Membership.objects.create(user=fc_conv_user, company=fc_conv_company)
+        _create_fc_membership(fc_conv_user, fc_conv_company)
 
         client_api = APIClient()
         client_api.force_authenticate(user=fc_conv_user)
@@ -613,7 +618,7 @@ class TestFactureClientPDFGeneration:
         from django.urls import reverse
         from rest_framework import status
 
-        Membership.objects.create(user=fc_conv_user, company=fc_conv_company)
+        _create_fc_membership(fc_conv_user, fc_conv_company)
 
         client_api = APIClient()
         client_api.force_authenticate(user=fc_conv_user)
@@ -628,7 +633,7 @@ class TestFactureClientPDFGeneration:
         from django.urls import reverse
         from rest_framework import status
 
-        Membership.objects.create(user=fc_conv_user, company=fc_conv_company)
+        _create_fc_membership(fc_conv_user, fc_conv_company)
 
         client_api = APIClient()
         client_api.force_authenticate(user=fc_conv_user)
@@ -648,7 +653,7 @@ class TestFactureClientPDFGeneration:
         from django.urls import reverse
         from rest_framework import status
 
-        Membership.objects.create(user=fc_conv_user, company=fc_conv_company)
+        _create_fc_membership(fc_conv_user, fc_conv_company)
 
         client_api = APIClient()
         client_api.force_authenticate(user=fc_conv_user)
@@ -669,7 +674,7 @@ class TestFactureClientPDFGeneration:
         from django.urls import reverse
         from rest_framework import status
 
-        Membership.objects.create(user=fc_conv_user, company=fc_conv_company)
+        _create_fc_membership(fc_conv_user, fc_conv_company)
 
         client_api = APIClient()
         client_api.force_authenticate(user=fc_conv_user)
@@ -693,7 +698,7 @@ class TestFactureClientUnpaidListView:
         from django.urls import reverse
         from rest_framework import status
 
-        Membership.objects.create(user=fc_conv_user, company=fc_conv_company)
+        _create_fc_membership(fc_conv_user, fc_conv_company)
 
         client_api = APIClient()
         client_api.force_authenticate(user=fc_conv_user)
@@ -708,7 +713,7 @@ class TestFactureClientUnpaidListView:
         from django.urls import reverse
         from rest_framework import status
 
-        Membership.objects.create(user=fc_conv_user, company=fc_conv_company)
+        _create_fc_membership(fc_conv_user, fc_conv_company)
 
         # Create factures
         FactureClient.objects.create(
@@ -742,7 +747,7 @@ class TestFactureClientUnpaidListView:
         from django.urls import reverse
         from rest_framework import status
 
-        Membership.objects.create(user=fc_conv_user, company=fc_conv_company)
+        _create_fc_membership(fc_conv_user, fc_conv_company)
 
         # Create multiple unpaid factures
         for i in range(5):
@@ -773,7 +778,7 @@ class TestFactureClientUnpaidListView:
         from django.urls import reverse
         from rest_framework import status
 
-        Membership.objects.create(user=fc_conv_user, company=fc_conv_company)
+        _create_fc_membership(fc_conv_user, fc_conv_company)
 
         client_api = APIClient()
         client_api.force_authenticate(user=fc_conv_user)
@@ -811,7 +816,7 @@ class TestFactureClientForPaymentView:
         from django.urls import reverse
         from rest_framework import status
 
-        Membership.objects.create(user=fc_conv_user, company=fc_conv_company)
+        _create_fc_membership(fc_conv_user, fc_conv_company)
 
         # Create facture with Accepté status
         FactureClient.objects.create(

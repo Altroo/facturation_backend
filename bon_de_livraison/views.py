@@ -649,6 +649,10 @@ class BonDeLivraisonPDFView(APIView):
     @staticmethod
     def get(request, pk: int):
         """Generate and return PDF for the bon de livraison."""
+        from core.permissions import can_print
+        from rest_framework.exceptions import PermissionDenied
+        from django.utils.translation import gettext_lazy as _
+
         company_id = request.query_params.get("company_id")
         pdf_type = request.query_params.get("type", "normal")
 
@@ -660,6 +664,12 @@ class BonDeLivraisonPDFView(APIView):
 
         company = get_object_or_404(Company, pk=company_id)
         bon_de_livraison = get_object_or_404(BonDeLivraison, pk=pk)
+
+        # Check if user has print permission
+        if not can_print(request.user, int(company_id)):
+            raise PermissionDenied(
+                _("Vous n'avez pas les droits pour imprimer ce document.")
+            )
 
         # Generate PDF
         pdf_generator = BonDeLivraisonPDFGenerator(bon_de_livraison, company, pdf_type)

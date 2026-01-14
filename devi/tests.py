@@ -4,7 +4,7 @@ import pytest
 from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 
-from account.models import CustomUser, Membership
+from account.models import CustomUser, Membership, Role
 from article.models import Article
 from client.models import Client
 from company.models import Company
@@ -23,6 +23,12 @@ from .models import Devi, DeviLine
 # Fixtures
 # -----------------------------------------------------------------------------
 pytestmark = pytest.mark.django_db
+
+
+def _create_devi_membership(user, company):
+    """Helper to create membership with Caissier role."""
+    caissier_role, _ = Role.objects.get_or_create(name="Caissier", defaults={"is_admin": False})
+    return Membership.objects.create(user=user, company=company, role=caissier_role)
 
 
 @pytest.fixture
@@ -611,7 +617,7 @@ class TestDeviPDFGeneration:
         from django.urls import reverse
         from rest_framework import status
 
-        Membership.objects.create(user=devi_conv_user, company=devi_conv_company)
+        _create_devi_membership(devi_conv_user, devi_conv_company)
 
         client_api = APIClient()
         client_api.force_authenticate(user=devi_conv_user)
@@ -633,7 +639,7 @@ class TestDeviPDFGeneration:
         from django.urls import reverse
         from rest_framework import status
 
-        Membership.objects.create(user=devi_conv_user, company=devi_conv_company)
+        _create_devi_membership(devi_conv_user, devi_conv_company)
 
         client_api = APIClient()
         client_api.force_authenticate(user=devi_conv_user)
@@ -648,7 +654,7 @@ class TestDeviPDFGeneration:
         from django.urls import reverse
         from rest_framework import status
 
-        Membership.objects.create(user=devi_conv_user, company=devi_conv_company)
+        _create_devi_membership(devi_conv_user, devi_conv_company)
 
         client_api = APIClient()
         client_api.force_authenticate(user=devi_conv_user)
@@ -668,7 +674,7 @@ class TestDeviPDFGeneration:
         from django.urls import reverse
         from rest_framework import status
 
-        Membership.objects.create(user=devi_conv_user, company=devi_conv_company)
+        _create_devi_membership(devi_conv_user, devi_conv_company)
 
         client_api = APIClient()
         client_api.force_authenticate(user=devi_conv_user)
@@ -689,7 +695,7 @@ class TestDeviPDFGeneration:
         from django.urls import reverse
         from rest_framework import status
 
-        Membership.objects.create(user=devi_conv_user, company=devi_conv_company)
+        _create_devi_membership(devi_conv_user, devi_conv_company)
 
         client_api = APIClient()
         client_api.force_authenticate(user=devi_conv_user)
@@ -715,7 +721,7 @@ class TestDeviSerializerCoverage:
         from django.urls import reverse
         from rest_framework import status
 
-        Membership.objects.create(user=devi_conv_user, company=devi_conv_company)
+        _create_devi_membership(devi_conv_user, devi_conv_company)
 
         client_api = APIClient()
         client_api.force_authenticate(user=devi_conv_user)
@@ -758,7 +764,7 @@ class TestCoreViewsCoverage:
         from django.urls import reverse
         from rest_framework import status
 
-        Membership.objects.create(user=devi_conv_user, company=devi_conv_company)
+        _create_devi_membership(devi_conv_user, devi_conv_company)
 
         client_api = APIClient()
         client_api.force_authenticate(user=devi_conv_user)
@@ -793,7 +799,7 @@ class TestCoreViewsCoverage:
         )
 
         # User has membership to devi_conv_company but not other_company
-        Membership.objects.create(user=devi_conv_user, company=devi_conv_company)
+        _create_devi_membership(devi_conv_user, devi_conv_company)
 
         client_api = APIClient()
         client_api.force_authenticate(user=devi_conv_user)
@@ -938,7 +944,7 @@ class TestCoreViewsCoverage:
         from rest_framework import status
 
         # User needs membership
-        Membership.objects.create(user=devi_conv_user, company=devi_conv_company)
+        _create_devi_membership(devi_conv_user, devi_conv_company)
 
         # Create a devi with user having membership
         devi = Devi.objects.create(
@@ -964,7 +970,7 @@ class TestCoreViewsCoverage:
         from rest_framework import status
 
         # User needs membership
-        Membership.objects.create(user=devi_conv_user, company=devi_conv_company)
+        _create_devi_membership(devi_conv_user, devi_conv_company)
 
         client_api = APIClient()
         client_api.force_authenticate(user=devi_conv_user)
@@ -1008,7 +1014,7 @@ class TestCoreViewsCoverage:
         from django.urls import reverse
         from rest_framework import status
 
-        Membership.objects.create(user=devi_conv_user, company=devi_conv_company)
+        _create_devi_membership(devi_conv_user, devi_conv_company)
 
         client_api = APIClient()
         client_api.force_authenticate(user=devi_conv_user)
@@ -1023,7 +1029,7 @@ class TestCoreViewsCoverage:
         from django.urls import reverse
         from rest_framework import status
 
-        Membership.objects.create(user=devi_conv_user, company=devi_conv_company)
+        _create_devi_membership(devi_conv_user, devi_conv_company)
 
         client_api = APIClient()
         client_api.force_authenticate(user=devi_conv_user)

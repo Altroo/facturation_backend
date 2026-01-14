@@ -6,7 +6,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from account.models import Membership
+from account.models import Membership, Role
 from article.models import Article
 from article.serializers import ArticleBaseSerializer, ArticleSerializer
 from company.models import Company
@@ -55,7 +55,8 @@ class TestArticleAPI:
             nbr_employe="1 à 5",
         )
 
-        Membership.objects.create(user=self.user, company=self.company)
+        self.caissier_role, _ = Role.objects.get_or_create(name="Caissier", defaults={"is_admin": True})
+        Membership.objects.create(user=self.user, company=self.company, role=self.caissier_role)
 
         # Create parameter objects
         self.marque = Marque.objects.create(nom="TestMarque")
@@ -445,7 +446,8 @@ class TestArticleImagesAndPhotos:
             registre_de_commerce="RCIMG",
             nbr_employe="1 à 5",
         )
-        Membership.objects.create(user=self.user, company=self.company)
+        caissier_role, _ = Role.objects.get_or_create(name="Caissier", defaults={"is_admin": True})
+        Membership.objects.create(user=self.user, company=self.company, role=caissier_role)
 
     def test_create_article_with_base64_photo(self):
         url = reverse("article:article-list-create")
@@ -699,7 +701,8 @@ class TestArticleFilters:
             registre_de_commerce="RCFILT",
             nbr_employe="1 à 5",
         )
-        Membership.objects.create(user=self.user, company=self.company)
+        caissier_role, _ = Role.objects.get_or_create(name="Caissier", defaults={"is_admin": True})
+        Membership.objects.create(user=self.user, company=self.company, role=caissier_role)
 
         self.marque = Marque.objects.create(nom="BrandX")
         self.categorie = Categorie.objects.create(nom="CatX")
@@ -1398,7 +1401,8 @@ class TestArticleViewsCoverage:
             registre_de_commerce="RC_VIEW",
             nbr_employe="1 à 5",
         )
-        Membership.objects.create(user=self.user, company=self.company)
+        caissier_role, _ = Role.objects.get_or_create(name="Caissier", defaults={"is_admin": True})
+        Membership.objects.create(user=self.user, company=self.company, role=caissier_role)
 
     def test_delete_article_no_membership(self):
         """Test delete article when user has no membership."""

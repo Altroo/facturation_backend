@@ -3,14 +3,13 @@ from io import BytesIO
 from os import remove
 from pathlib import Path
 
-from django.contrib.auth.models import Group
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 
 from company.models import Company
 from company.serializers import MembershipCompanySerializer
 from facturation_backend.utils import ImageProcessor
-from .models import CustomUser, Membership
+from .models import CustomUser, Membership, Role
 
 
 class MembershipSerializer(serializers.ModelSerializer):
@@ -22,7 +21,7 @@ class MembershipSerializer(serializers.ModelSerializer):
     # Company is sent as an integer id
     company_id = serializers.IntegerField(write_only=True)
 
-    # Role is sent as a string (e.g. "Admin")
+    # Role is sent as a string (e.g. "Caissier")
     role = serializers.CharField(write_only=True)
 
     # Returned for read‑only purposes
@@ -33,26 +32,26 @@ class MembershipSerializer(serializers.ModelSerializer):
         fields = ["membership_id", "company_id", "role", "raison_sociale"]
 
     @staticmethod
-    def _get_group(role_name: str) -> Group:
-        """Return the Group instance matching the supplied name."""
+    def _get_role(role_name: str) -> Role:
+        """Return the Role instance matching the supplied name."""
         try:
-            return Group.objects.get(name=role_name)
-        except Group.DoesNotExist:
+            return Role.objects.get(name=role_name)
+        except Role.DoesNotExist:
             raise serializers.ValidationError(f"Role '{role_name}' does not exist.")
 
     def create(self, validated_data):
         user = self.context["user"]
         company = Company.objects.get(pk=validated_data.pop("company_id"))
-        group = self._get_group(validated_data.pop("role"))
+        role = self._get_role(validated_data.pop("role"))
         return Membership.objects.create(
-            user=user, company=company, role=group, **validated_data
+            user=user, company=company, role=role, **validated_data
         )
 
     def update(self, instance, validated_data):
         if "company_id" in validated_data:
             instance.company = Company.objects.get(pk=validated_data.pop("company_id"))
         if "role" in validated_data:
-            instance.role = self._get_group(validated_data.pop("role"))
+            instance.role = self._get_role(validated_data.pop("role"))
         instance.save()
         return instance
 

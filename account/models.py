@@ -2,7 +2,7 @@ from io import BytesIO
 from os import path
 from uuid import uuid4
 
-from django.contrib.auth.models import AbstractBaseUser, Group
+from django.contrib.auth.models import AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
 from django.core.files.base import ContentFile
 from django.db import models
@@ -11,6 +11,25 @@ from django.utils.translation import gettext_lazy as _
 
 from facturation_backend.settings import API_URL
 from .managers import CustomUserManager
+
+
+class Role(models.Model):
+    """Custom role model to extend Django's Group with additional fields."""
+
+    name = models.CharField(max_length=150, unique=True, verbose_name="Role Name")
+    is_admin = models.BooleanField(
+        default=False,
+        verbose_name="Is Admin",
+        help_text="Designates whether users with this role can manage companies and users.",
+    )
+
+    class Meta:
+        verbose_name = "Role"
+        verbose_name_plural = "Roles"
+        ordering = ("-is_admin", "name")
+
+    def __str__(self):
+        return self.name
 
 
 def get_avatar_path(_, filename):
@@ -133,7 +152,7 @@ class Membership(models.Model):
         related_name="memberships",
         verbose_name="User",
     )
-    role = models.ForeignKey(Group, on_delete=models.PROTECT, null=True, blank=True)
+    role = models.ForeignKey(Role, on_delete=models.PROTECT, null=True, blank=True)
 
     class Meta:
         verbose_name = "Membership"

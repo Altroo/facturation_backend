@@ -6,7 +6,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from account.models import Membership
+from account.models import Membership, Role
 from article.models import Article
 from bon_de_livraison.models import BonDeLivraison, BonDeLivraisonLine
 from client.models import Client
@@ -41,7 +41,8 @@ def company():
 @pytest.fixture
 def membership(user, company):
     """Create membership linking user to company."""
-    return Membership.objects.create(user=user, company=company)
+    caissier_role, _ = Role.objects.get_or_create(name="Caissier", defaults={"is_admin": False})
+    return Membership.objects.create(user=user, company=company, role=caissier_role)
 
 
 @pytest.fixture
@@ -167,9 +168,9 @@ def bon_de_livraison(client_entity, mode_paiement, user):
 @pytest.fixture
 def mode_reglement():
     """Create a test mode reglement."""
-    from parameter.models import ModeReglement
+    from parameter.models import ModePaiement
 
-    return ModeReglement.objects.create(nom="Carte Bancaire")
+    return ModePaiement.objects.create(nom="Carte Bancaire")
 
 
 @pytest.fixture
@@ -1541,7 +1542,7 @@ class TestPaymentDelayFiltering:
         self, authenticated_client, client_entity, mode_paiement, user
     ):
         """Test payment delay without date_from (line 576)."""
-        from parameter.models import ModeReglement
+        from parameter.models import ModePaiement
 
         facture = FactureClient.objects.create(
             numero_facture="FC_PAYDELAY",
@@ -1553,7 +1554,7 @@ class TestPaymentDelayFiltering:
             total_ttc_apres_remise=Decimal("1000.00"),
         )
         # Create a mode reglement
-        mode_reglement = ModeReglement.objects.create(nom="Virement")
+        mode_reglement = ModePaiement.objects.create(nom="Virement")
         # Create a reglement
         Reglement.objects.create(
             facture_client=facture,

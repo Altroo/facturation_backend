@@ -143,6 +143,32 @@ class BaseLineWriteSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(required=False)
 
     def validate(self, data):
+        # Check if Commercial user is trying to modify prix_vente
+        request = self.context.get('request')
+        if request and request.user:
+            from account.models import Membership
+            from core.permissions import get_user_role
+            
+            # Try to get company_id from parent serializer context
+            company_id = self.context.get('company_id')
+            if company_id:
+                role = get_user_role(request.user, company_id)
+                if role == "Commercial" and "prix_vente" in data:
+                    # For updates, check if prix_vente is being changed
+                    if self.instance:
+                        if data.get("prix_vente") != self.instance.prix_vente:
+                            raise serializers.ValidationError(
+                                "Les utilisateurs Commercial ne peuvent pas modifier le prix de vente."
+                            )
+                    # For creates, Commercial cannot set custom prix_vente
+                    # They must use the article's default prix_vente
+                    elif "article" in data:
+                        article = data["article"]
+                        if data.get("prix_vente") != article.prix_vente:
+                            raise serializers.ValidationError(
+                                "Les utilisateurs Commercial ne peuvent pas définir un prix de vente personnalisé."
+                            )
+        
         if data["prix_vente"] < data["prix_achat"]:
             raise serializers.ValidationError(
                 "Le prix de vente doit être supérieur ou égal au prix d'achat."
@@ -192,6 +218,14 @@ class BaseCreateSerializer(BaseDetailSerializer):
             "Subclasses must implement get_line_serializer_class()"
         )
 
+    def validate(self, data):
+        """Add company_id to context for nested line serializers."""
+        data = super().validate(data)
+        # Store company_id in context for line serializers to access
+        if 'client' in data:
+            self.context['company_id'] = data['client'].company_id
+        return data
+
     def create(self, validated_data):
         lines_data = validated_data.pop("lignes", [])
         instance = super().create(validated_data)
@@ -220,6 +254,14 @@ class BaseCreateSerializer(BaseDetailSerializer):
 
 class BaseDetailUpdateSerializer(BaseCreateSerializer):
     """Abstract detail serializer with upsert update logic for nested lines."""
+
+    def validate(self, data):
+        """Add company_id to context for nested line serializers."""
+        data = super().validate(data)
+        # Store company_id in context for line serializers to access
+        if hasattr(self, 'instance') and self.instance:
+            self.context['company_id'] = self.instance.client.company_id
+        return data
 
     def update(self, instance, validated_data):
         lines_data = validated_data.pop("lignes", None)

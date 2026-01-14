@@ -7,16 +7,16 @@ from sys import platform
 from celery import current_app
 from dj_rest_auth.views import LoginView as Dj_rest_login
 from dj_rest_auth.views import LogoutView as Dj_rest_logout
-from django.contrib.auth.models import Group
 from django.core.exceptions import SuspiciousFileOperation
 from django.http import Http404
 from django.template.loader import render_to_string
 from django.utils.translation import gettext_lazy as _
 from rest_framework import permissions, status
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError, PermissionDenied
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from account.models import Membership, Role
 from facturation_backend.utils import CustomPagination
 from .filters import UsersFilter
 from .models import CustomUser
@@ -268,7 +268,7 @@ class GroupView(APIView):
 
     @staticmethod
     def get(request, *args, **kwargs):
-        titles = list(Group.objects.values_list("name", flat=True))
+        titles = list(Role.objects.values_list("name", flat=True))
         return Response({"group_titles": titles}, status=status.HTTP_200_OK)
 
 
@@ -296,6 +296,15 @@ class UsersListCreateView(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
+        # Check if user is Commercial - they cannot create users
+        existing_memberships = Membership.objects.filter(user=request.user)
+        if existing_memberships.exists():
+            for membership in existing_memberships:
+                if membership.role.name in ["Commercial", "Lecture", "Comptable"]:
+                    raise PermissionDenied(
+                        _("Vous n'avez pas les droits pour créer des utilisateurs.")
+                    )
+
         avatar = request.data.get("avatar")  # Can be base64, or file
         avatar_cropped = request.data.get("avatar_cropped")  # Can be base64, or file
         password = self.generate_random_password()
@@ -347,6 +356,15 @@ class UserDetailEditDeleteView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def put(self, request, *args, **kwargs):
+        # Check if user is Commercial - they cannot update users
+        existing_memberships = Membership.objects.filter(user=request.user)
+        if existing_memberships.exists():
+            for membership in existing_memberships:
+                if membership.role.name in ["Commercial", "Lecture", "Comptable"]:
+                    raise PermissionDenied(
+                        _("Vous n'avez pas les droits pour modifier des utilisateurs.")
+                    )
+
         pk = kwargs.get("pk")
         if pk == request.user.pk:
             raise Http404(
@@ -362,6 +380,15 @@ class UserDetailEditDeleteView(APIView):
         raise ValidationError(serializer.errors)
 
     def delete(self, request, *args, **kwargs):
+        # Check if user is Commercial - they cannot delete users
+        existing_memberships = Membership.objects.filter(user=request.user)
+        if existing_memberships.exists():
+            for membership in existing_memberships:
+                if membership.role.name in ["Commercial", "Lecture", "Comptable"]:
+                    raise PermissionDenied(
+                        _("Vous n'avez pas les droits pour supprimer des utilisateurs.")
+                    )
+
         pk = kwargs.get("pk")
         if pk == request.user.pk:
             raise Http404(_("Vous ne pouvez pas supprimer votre utilisateur."))

@@ -523,6 +523,10 @@ class FactureProFormaPDFView(APIView):
     @staticmethod
     def get(request, pk: int):
         """Generate and return PDF for the facture pro forma."""
+        from core.permissions import can_print
+        from rest_framework.exceptions import PermissionDenied
+        from django.utils.translation import gettext_lazy as _
+
         company_id = request.query_params.get("company_id")
         pdf_type = request.query_params.get("type", "avec_remise")
 
@@ -534,6 +538,12 @@ class FactureProFormaPDFView(APIView):
 
         company = get_object_or_404(Company, pk=company_id)
         facture_proforma = get_object_or_404(FactureProForma, pk=pk)
+
+        # Check if user has print permission
+        if not can_print(request.user, int(company_id)):
+            raise PermissionDenied(
+                _("Vous n'avez pas les droits pour imprimer ce document.")
+            )
 
         # Generate PDF
         pdf_generator = FactureProFormaPDFGenerator(facture_proforma, company, pdf_type)

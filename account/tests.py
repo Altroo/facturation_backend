@@ -8,7 +8,6 @@ import pytest
 from PIL import Image
 from django.conf import settings as app_settings
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import Group
 from django.core import mail
 from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -19,6 +18,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 
+from account.models import Role
 from account.serializers import (
     CreateAccountSerializer,
     ProfilePutSerializer,
@@ -401,13 +401,13 @@ class TestAccountAPIExtras:
 
     # Group titles
     def test_get_group_titles_populated(self):
-        Group.objects.create(name="Admin")
-        Group.objects.create(name="Editor")
+        Role.objects.get_or_create(name="Caissier", defaults={"is_admin": True})
+        Role.objects.get_or_create(name="Editor", defaults={"is_admin": False})
         url = reverse("account:group")
         response = self.auth_client.get(url)
         assert response.status_code == status.HTTP_200_OK
         assert "group_titles" in response.data
-        assert set(response.data["group_titles"]) >= {"Admin", "Editor"}
+        assert set(response.data["group_titles"]) >= {"Caissier", "Editor"}
 
     # Users list pagination
     def test_get_users_list_pagination_true(self):
@@ -453,7 +453,7 @@ class TestAccountAPIExtras:
     # Users create: with companies/memberships payload
     def test_post_users_create_with_companies_memberships(self):
         # Create role and company via company app if available, else just role
-        Group.objects.get_or_create(name="Editor")
+        Role.objects.get_or_create(name="Editor", defaults={"is_admin": False})
         url = reverse("account:users")
         payload = {
             "email": "member@example.com",
@@ -491,8 +491,8 @@ class TestAccountAPIExtras:
         other = self.user_model.objects.create_user(
             email="memberupdate@example.com", password="pass"
         )
-        Group.objects.get_or_create(name="Admin")
-        Group.objects.get_or_create(name="Editor")
+        Role.objects.get_or_create(name="Caissier", defaults={"is_admin": True})
+        Role.objects.get_or_create(name="Editor", defaults={"is_admin": False})
         url = reverse("account:users_detail", args=[other.pk])
         payload = {
             "memberships": [
@@ -854,12 +854,14 @@ class TestSerializers:
         assert ProfileGETSerializer.get_gender(u_h) == u_h.get_gender_display()
 
     def test_membershipserializer_get_group_found_and_notfound(self):
-        g = Group.objects.create(name="TesterRole")
-        found = MembershipSerializer._get_group("TesterRole")
+        g, _ = Role.objects.get_or_create(
+            name="TesterRole", defaults={"is_admin": False}
+        )
+        found = MembershipSerializer._get_role("TesterRole")
         assert found == g
 
         with pytest.raises(drf_serializers.ValidationError):
-            MembershipSerializer._get_group("NoSuchRole")
+            MembershipSerializer._get_role("NoSuchRole")
 
     def test_create_calls_create_memberships(self, monkeypatch):
         """Ensure _create_memberships is called during CreateAccountSerializer.create when memberships provided."""
@@ -1127,7 +1129,7 @@ class TestSerializersExtra:
     def test_membership_get_group_not_found(self):
         """Test _get_group raises for non-existent role."""
         with pytest.raises(drf_serializers.ValidationError, match="does not exist"):
-            MembershipSerializer._get_group("NonExistentRole")
+            MembershipSerializer._get_role("NonExistentRole")
 
     def test_change_password_validate(self):
         """Test password validation."""
@@ -1256,7 +1258,9 @@ class TestMembershipSerializerExtra:
 
     def test_membership_create(self, user_extra, company_extra):
         """Test MembershipSerializer.create method."""
-        role = Group.objects.create(name="MemberRole")
+        role, _ = Role.objects.get_or_create(
+            name="MemberRole", defaults={"is_admin": False}
+        )
         context = {"user": user_extra}
         serializer = MembershipSerializer(
             data={"company_id": company_extra.pk, "role": "MemberRole"},
@@ -1270,7 +1274,9 @@ class TestMembershipSerializerExtra:
 
     def test_membership_update_company(self, user_extra, company_extra):
         """Test MembershipSerializer.update changes company."""
-        role = Group.objects.create(name="UpdateRole")
+        role, _ = Role.objects.get_or_create(
+            name="UpdateRole", defaults={"is_admin": False}
+        )
         membership = Membership.objects.create(
             user=user_extra, company=company_extra, role=role
         )
@@ -1287,8 +1293,12 @@ class TestMembershipSerializerExtra:
 
     def test_membership_update_role(self, user_extra, company_extra):
         """Test MembershipSerializer.update changes role."""
-        old_role = Group.objects.create(name="OldRole")
-        new_role = Group.objects.create(name="NewRole")
+        old_role, _ = Role.objects.get_or_create(
+            name="OldRole", defaults={"is_admin": False}
+        )
+        new_role, _ = Role.objects.get_or_create(
+            name="NewRole", defaults={"is_admin": False}
+        )
         membership = Membership.objects.create(
             user=user_extra, company=company_extra, role=old_role
         )
@@ -1313,7 +1323,7 @@ class TestCreateAccountSerializerExtra:
             email="mem_test@example.com", password="pass"
         )
         company = Company.objects.create(raison_sociale="MemCo", ICE="MEM123")
-        Group.objects.create(name="MemTestRole")
+        Role.objects.get_or_create(name="MemTestRole", defaults={"is_admin": False})
 
         items = [{"membership_id": 0, "company_id": company.pk, "role": "MemTestRole"}]
         CreateAccountSerializer._create_memberships(user, items)
@@ -1394,7 +1404,7 @@ class TestUserPatchSerializerExtra:
 
     def test_update_with_memberships_creates_new(self, user_extra, company_extra):
         """Test UserPatchSerializer creates new memberships."""
-        Group.objects.create(name="PatchRole")
+        Role.objects.get_or_create(name="PatchRole", defaults={"is_admin": False})
         serializer = UserPatchSerializer(
             instance=user_extra,
             data={
@@ -1408,7 +1418,7 @@ class TestUserPatchSerializerExtra:
 
     def test_update_with_companies_alias(self, user_extra, company_extra):
         """Test UserPatchSerializer accepts companies as alias for memberships."""
-        Group.objects.create(name="AliasRole")
+        Role.objects.get_or_create(name="AliasRole", defaults={"is_admin": False})
         serializer = UserPatchSerializer(
             instance=user_extra,
             data={"companies": [{"company_id": company_extra.pk, "role": "AliasRole"}]},
@@ -1420,7 +1430,9 @@ class TestUserPatchSerializerExtra:
 
     def test_update_removes_missing_memberships(self, user_extra, company_extra):
         """Test UserPatchSerializer removes memberships not in payload."""
-        role = Group.objects.create(name="RemoveRole")
+        role, _ = Role.objects.get_or_create(
+            name="RemoveRole", defaults={"is_admin": False}
+        )
         # Create existing membership
         Membership.objects.create(user=user_extra, company=company_extra, role=role)
         assert user_extra.memberships.count() == 1
@@ -1437,8 +1449,12 @@ class TestUserPatchSerializerExtra:
 
     def test_update_existing_membership_by_id(self, user_extra, company_extra):
         """Test UserPatchSerializer updates existing membership by id."""
-        old_role = Group.objects.create(name="UpdateOldRole")
-        new_role = Group.objects.create(name="UpdateNewRole")
+        old_role, _ = Role.objects.get_or_create(
+            name="UpdateOldRole", defaults={"is_admin": False}
+        )
+        new_role, _ = Role.objects.get_or_create(
+            name="UpdateNewRole", defaults={"is_admin": False}
+        )
         membership = Membership.objects.create(
             user=user_extra, company=company_extra, role=old_role
         )
@@ -1463,8 +1479,12 @@ class TestUserPatchSerializerExtra:
 
     def test_update_existing_membership_by_company(self, user_extra, company_extra):
         """Test UserPatchSerializer finds existing membership by company_id."""
-        role = Group.objects.create(name="ByCompanyRole")
-        new_role = Group.objects.create(name="ByCompanyNewRole")
+        role, _ = Role.objects.get_or_create(
+            name="ByCompanyRole", defaults={"is_admin": False}
+        )
+        new_role, _ = Role.objects.get_or_create(
+            name="ByCompanyNewRole", defaults={"is_admin": False}
+        )
         Membership.objects.create(user=user_extra, company=company_extra, role=role)
 
         serializer = UserPatchSerializer(
@@ -1648,7 +1668,9 @@ class TestUserDetailSerializerExtra:
 
     def test_serializer_includes_companies(self, user_extra, company_extra):
         """Test serializer includes companies relationship."""
-        role = Group.objects.create(name="DetailRole")
+        role, _ = Role.objects.get_or_create(
+            name="DetailRole", defaults={"is_admin": False}
+        )
         Membership.objects.create(user=user_extra, company=company_extra, role=role)
 
         serializer = UserDetailSerializer(instance=user_extra)
@@ -1722,7 +1744,7 @@ class TestUserPatchSerializerMembershipNotFound:
 
     def test_process_membership_nonexistent_id(self, user_extra, company_extra):
         """Test membership_id that doesn't exist creates new membership."""
-        Group.objects.create(name="NonExistRole")
+        Role.objects.get_or_create(name="NonExistRole", defaults={"is_admin": False})
         serializer = UserPatchSerializer(
             instance=user_extra,
             data={
@@ -1742,7 +1764,7 @@ class TestUserPatchSerializerMembershipNotFound:
 
     def test_process_membership_nonexistent_company_id(self, user_extra, company_extra):
         """Test company_id lookup that doesn't find existing creates new."""
-        Group.objects.create(name="NewCompRole")
+        Role.objects.get_or_create(name="NewCompRole", defaults={"is_admin": False})
         # Create a different company
         other_company = Company.objects.create(raison_sociale="Other", ICE="OTHER")
 
@@ -1989,9 +2011,9 @@ class TestAccountViewsExtra:
     def test_group_view(self):
         """Test GroupView returns group titles."""
         from django.urls import reverse
-        from django.contrib.auth.models import Group
+        from account.models import Role
 
-        Group.objects.get_or_create(name="Admin")
+        Role.objects.get_or_create(name="Caissier", defaults={"is_admin": True})
         url = reverse("account:group")
         response = self.client.get(url)
         assert response.status_code == 200
@@ -2131,9 +2153,9 @@ class TestAccountViewsExtra:
     def test_users_create_post(self):
         """Test UsersListCreateView POST creates user."""
         from django.urls import reverse
-        from django.contrib.auth.models import Group
+        from account.models import Role
 
-        Group.objects.get_or_create(name="Admin")
+        Role.objects.get_or_create(name="Caissier", defaults={"is_admin": True})
         url = reverse("account:users")
         data = {
             "email": "newuser@test.com",
@@ -2448,7 +2470,9 @@ class TestAccountAdditionalCoverage:
         from company.models import Company
 
         company = Company.objects.create(raison_sociale="Membership Test Co")
-        group, _ = Group.objects.get_or_create(name="Admin")
+        group, _ = Role.objects.get_or_create(
+            name="Caissier", defaults={"is_admin": True}
+        )
 
         membership = Membership.objects.create(
             company=company,
@@ -2457,13 +2481,15 @@ class TestAccountAdditionalCoverage:
         )
         str_repr = str(membership)
         assert self.user.email in str_repr
-        assert "Admin" in str_repr
+        assert "Caissier" in str_repr
 
     def test_membership_str_no_company(self):
         """Test Membership __str__ without company."""
         from account.models import Membership
 
-        group, _ = Group.objects.get_or_create(name="Editor")
+        group, _ = Role.objects.get_or_create(
+            name="Editor", defaults={"is_admin": False}
+        )
         membership = Membership.objects.create(
             user=self.user,
             role=group,
@@ -2761,10 +2787,12 @@ class TestAccountSerializersCoverage:
         from account.serializers import UserPatchSerializer
         from account.models import Membership
         from company.models import Company
-        from django.contrib.auth.models import Group
+        from account.models import Role
 
         company = Company.objects.create(raison_sociale="Membership Update Co")
-        group, _ = Group.objects.get_or_create(name="Editor")
+        group, _ = Role.objects.get_or_create(
+            name="Editor", defaults={"is_admin": False}
+        )
 
         # Create existing membership
         membership = Membership.objects.create(
@@ -2773,7 +2801,9 @@ class TestAccountSerializersCoverage:
             role=group,
         )
 
-        new_group, _ = Group.objects.get_or_create(name="Viewer")
+        new_group, _ = Role.objects.get_or_create(
+            name="Viewer", defaults={"is_admin": False}
+        )
 
         request_mock = MagicMock()
         request_mock.user = self.user
@@ -2804,10 +2834,12 @@ class TestAccountSerializersCoverage:
         from account.serializers import UserPatchSerializer
         from account.models import Membership
         from company.models import Company
-        from django.contrib.auth.models import Group
+        from account.models import Role
 
         company = Company.objects.create(raison_sociale="New Membership Co")
-        group, _ = Group.objects.get_or_create(name="Admin")
+        group, _ = Role.objects.get_or_create(
+            name="Caissier", defaults={"is_admin": True}
+        )
 
         request_mock = MagicMock()
         request_mock.user = self.user
@@ -2819,7 +2851,7 @@ class TestAccountSerializersCoverage:
                 "memberships": [
                     {
                         "company_id": company.id,
-                        "role": "Admin",  # Use role name string
+                        "role": "Caissier",  # Use role name string
                     }
                 ],
             },
@@ -2836,10 +2868,12 @@ class TestAccountSerializersCoverage:
         """Test UserPatchSerializer with invalid membership_id."""
         from account.serializers import UserPatchSerializer
         from company.models import Company
-        from django.contrib.auth.models import Group
+        from account.models import Role
 
         company = Company.objects.create(raison_sociale="Invalid Membership Co")
-        group, _ = Group.objects.get_or_create(name="Admin")
+        group, _ = Role.objects.get_or_create(
+            name="Caissier", defaults={"is_admin": True}
+        )
 
         request_mock = MagicMock()
         request_mock.user = self.user
@@ -2852,7 +2886,7 @@ class TestAccountSerializersCoverage:
                     {
                         "membership_id": 99999,  # Non-existent
                         "company_id": company.id,
-                        "role": "Admin",  # Use role name string
+                        "role": "Caissier",  # Use role name string
                     }
                 ],
             },
@@ -2939,10 +2973,12 @@ class TestAccountSerializersCoverage:
         """Test CreateAccountSerializer creating memberships with membership_id=0."""
         from account.serializers import CreateAccountSerializer
         from company.models import Company
-        from django.contrib.auth.models import Group
+        from account.models import Role
 
         company = Company.objects.create(raison_sociale="Zero ID Co")
-        group, _ = Group.objects.get_or_create(name="Editor")
+        group, _ = Role.objects.get_or_create(
+            name="Editor", defaults={"is_admin": False}
+        )
 
         data = {
             "email": "newuser_zero@example.com",
@@ -3078,11 +3114,15 @@ class TestAccountSerializersCoverage:
         from account.serializers import UserPatchSerializer
         from account.models import Membership
         from company.models import Company
-        from django.contrib.auth.models import Group
+        from account.models import Role
 
         company = Company.objects.create(raison_sociale="Membership ID Update Co")
-        group, _ = Group.objects.get_or_create(name="Editor")
-        new_group, _ = Group.objects.get_or_create(name="Admin")
+        group, _ = Role.objects.get_or_create(
+            name="Editor", defaults={"is_admin": False}
+        )
+        new_group, _ = Role.objects.get_or_create(
+            name="Caissier", defaults={"is_admin": True}
+        )
 
         # Create existing membership
         membership = Membership.objects.create(
@@ -3102,7 +3142,7 @@ class TestAccountSerializersCoverage:
                     {
                         "membership_id": membership.id,  # Use actual membership ID
                         "company_id": company.id,
-                        "role": "Admin",
+                        "role": "Caissier",
                     }
                 ],
             },
@@ -3120,10 +3160,12 @@ class TestAccountSerializersCoverage:
         """Test CreateAccountSerializer with truthy membership_id (should not pop it)."""
         from account.serializers import CreateAccountSerializer
         from company.models import Company
-        from django.contrib.auth.models import Group
+        from account.models import Role
 
         company = Company.objects.create(raison_sociale="Truthy ID Co")
-        group, _ = Group.objects.get_or_create(name="Admin")
+        group, _ = Role.objects.get_or_create(
+            name="Caissier", defaults={"is_admin": True}
+        )
 
         data = {
             "email": "newuser_truthy@example.com",
@@ -3135,7 +3177,7 @@ class TestAccountSerializersCoverage:
                 {
                     "membership_id": 9999,  # Truthy but non-existent
                     "company_id": company.id,
-                    "role": "Admin",
+                    "role": "Caissier",
                 }
             ],
         }
@@ -3155,10 +3197,12 @@ class TestAccountSerializersCoverage:
         """Test _create_memberships with truthy membership_id directly."""
         from account.serializers import CreateAccountSerializer
         from company.models import Company
-        from django.contrib.auth.models import Group
+        from account.models import Role
 
         company = Company.objects.create(raison_sociale="Direct Truthy Co")
-        group, _ = Group.objects.get_or_create(name="Admin")
+        group, _ = Role.objects.get_or_create(
+            name="Caissier", defaults={"is_admin": True}
+        )
 
         # Create a new user
         new_user = self.user_model.objects.create_user(
@@ -3173,7 +3217,7 @@ class TestAccountSerializersCoverage:
             {
                 "membership_id": 12345,  # Truthy - should NOT be popped
                 "company_id": company.id,
-                "role": "Admin",
+                "role": "Caissier",
             }
         ]
 
@@ -3190,11 +3234,15 @@ class TestAccountSerializersCoverage:
         from account.serializers import UserPatchSerializer
         from account.models import Membership
         from company.models import Company
-        from django.contrib.auth.models import Group
+        from account.models import Role
 
         company = Company.objects.create(raison_sociale="Existing MID Co")
-        old_group, _ = Group.objects.get_or_create(name="Viewer")
-        new_group, _ = Group.objects.get_or_create(name="Admin")
+        old_group, _ = Role.objects.get_or_create(
+            name="Viewer", defaults={"is_admin": False}
+        )
+        new_group, _ = Role.objects.get_or_create(
+            name="Caissier", defaults={"is_admin": True}
+        )
 
         # Create existing membership
         membership = Membership.objects.create(
@@ -3215,7 +3263,7 @@ class TestAccountSerializersCoverage:
                     {
                         "membership_id": membership.id,  # Existing membership_id
                         "company_id": company.id,  # Required field
-                        "role": "Admin",
+                        "role": "Caissier",
                     }
                 ],
             },
@@ -3436,11 +3484,15 @@ class TestAccountSerializersCoverage:
         from account.serializers import UserPatchSerializer
         from account.models import Membership
         from company.models import Company
-        from django.contrib.auth.models import Group
+        from account.models import Role
 
         company = Company.objects.create(raison_sociale="Fallback Co")
-        old_group, _ = Group.objects.get_or_create(name="Viewer")
-        new_group, _ = Group.objects.get_or_create(name="Admin")
+        old_group, _ = Role.objects.get_or_create(
+            name="Viewer", defaults={"is_admin": False}
+        )
+        new_group, _ = Role.objects.get_or_create(
+            name="Caissier", defaults={"is_admin": True}
+        )
 
         # Create existing membership
         membership = Membership.objects.create(
@@ -3462,7 +3514,7 @@ class TestAccountSerializersCoverage:
                     {
                         "membership_id": 99999,  # Non-existent
                         "company_id": company.id,  # Exists
-                        "role": "Admin",
+                        "role": "Caissier",
                     }
                 ],
             },

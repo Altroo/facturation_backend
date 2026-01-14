@@ -18,6 +18,7 @@ from account.models import Membership
 from company.models import Company
 from core.authentication import JWTQueryParamAuthentication
 from core.pdf_utils import BasePDFGenerator, number_to_french_words
+from core.permissions import can_create, can_update, can_delete
 from facturation_backend.utils import CustomPagination
 from facture_client.models import FactureClient
 from .filters import ReglementFilter
@@ -54,7 +55,7 @@ class ReglementListCreateView(APIView):
             user=request.user, company_id=company_id
         ).exists():
             raise PermissionDenied(
-                detail=_("Seuls les Admins de cette société peuvent y accéder.")
+                detail=_("Seuls les Caissiers de cette société peuvent y accéder.")
             )
 
     def get(self, request, *args, **kwargs):
@@ -142,6 +143,12 @@ class ReglementListCreateView(APIView):
                 _("Vous n'êtes pas autorisé à créer un règlement pour cette société.")
             )
 
+        # Check if user has create permission
+        if not can_create(request.user, facture_client.client.company_id):
+            raise PermissionDenied(
+                _("Vous n'avez pas les droits pour créer un règlement.")
+            )
+
         serializer = ReglementCreateSerializer(
             data=request.data, context={"request": request}
         )
@@ -206,6 +213,12 @@ class ReglementDetailEditDeleteView(APIView):
                 _("Vous n'êtes pas autorisé à modifier ce règlement.")
             )
 
+        # Check if user has update permission
+        if not can_update(request.user, reglement.facture_client.client.company_id):
+            raise PermissionDenied(
+                _("Vous n'avez pas les droits pour modifier ce règlement.")
+            )
+
         serializer = ReglementUpdateSerializer(
             reglement, data=request.data, context={"request": request}
         )
@@ -222,6 +235,12 @@ class ReglementDetailEditDeleteView(APIView):
         ):
             raise PermissionDenied(
                 _("Vous n'êtes pas autorisé à supprimer ce règlement.")
+            )
+
+        # Check if user has delete permission
+        if not can_delete(request.user, reglement.facture_client.client.company_id):
+            raise PermissionDenied(
+                _("Vous n'avez pas les droits pour supprimer ce règlement.")
             )
 
         reglement.delete()
@@ -257,6 +276,12 @@ class ReglementStatusUpdateView(APIView):
         ):
             raise PermissionDenied(
                 _("Vous n'êtes pas autorisé à modifier ce règlement.")
+            )
+
+        # Check if user has update permission
+        if not can_update(request.user, reglement.facture_client.client.company_id):
+            raise PermissionDenied(
+                _("Vous n'avez pas les droits pour modifier ce règlement.")
             )
 
         new_status = request.data.get("statut")
@@ -550,7 +575,7 @@ class ReglementPDFGenerator(BasePDFGenerator):
         """Get PDF document title for metadata."""
         client_name = (
             self.document.facture_client.client.raison_sociale
-            if (self.document.facture_client.client.raison_sociale)
+            if self.document.facture_client.client.raison_sociale
             else "Client"
         )
         facture_numero = self.document.facture_client.numero_facture
@@ -566,6 +591,8 @@ class ReglementPDFView(APIView):
     @staticmethod
     def get(request, pk, *args, **kwargs):
         """Generate and return PDF receipt for the reglement."""
+        from core.permissions import can_print
+
         company_id = request.query_params.get("company_id")
 
         if not company_id:
@@ -576,6 +603,12 @@ class ReglementPDFView(APIView):
 
         company = get_object_or_404(Company, pk=company_id)
         reglement = get_object_or_404(Reglement, pk=pk)
+
+        # Check if user has print permission
+        if not can_print(request.user, int(company_id)):
+            raise PermissionDenied(
+                _("Vous n'avez pas les droits pour imprimer ce document.")
+            )
 
         # Generate PDF
         pdf_generator = ReglementPDFGenerator(reglement, company, "normal")

@@ -4,6 +4,8 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
+from account.models import Membership, Role
+from company.models import Company
 from parameter.models import (
     Ville,
     Marque,
@@ -26,6 +28,22 @@ class BaseAPITest:
         self.user = self.user_model.objects.create_user(
             email="test@example.com", password="pass"
         )
+        
+        # Create company and Caissier role membership
+        self.caissier_role, _ = Role.objects.get_or_create(
+            name="Caissier", defaults={"is_admin": True}
+        )
+        self.company = Company.objects.create(
+            raison_sociale="TestCompany",
+            ICE="ICE123",
+            nbr_employe="1 à 5"
+        )
+        Membership.objects.create(
+            user=self.user,
+            company=self.company,
+            role=self.caissier_role
+        )
+        
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
 

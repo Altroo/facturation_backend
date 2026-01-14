@@ -2,10 +2,9 @@ from base64 import b64decode
 from os import remove
 from pathlib import Path
 
-from django.contrib.auth.models import Group
 from rest_framework import serializers
 
-from account.models import Membership
+from account.models import Membership, Role
 from facturation_backend.utils import ImageProcessor
 from .models import Company
 
@@ -292,8 +291,8 @@ class CompanyDetailSerializer(CompanySerializer):
             user_id = item["pk"]
             role_name = item["role"]
             try:
-                role_group = Group.objects.get(name=role_name)
-            except Group.DoesNotExist:
+                role_group = Role.objects.get(name=role_name)
+            except Role.DoesNotExist:
                 raise serializers.ValidationError(f"Rôle '{role_name}' n'existe pas.")
             Membership.objects.create(
                 company=company,

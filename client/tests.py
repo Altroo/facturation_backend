@@ -4,7 +4,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from account.models import Membership
+from account.models import Membership, Role
 from client.models import Client
 from company.models import Company
 from parameter.models import Ville
@@ -29,7 +29,8 @@ class TestClientAPI:
             nbr_employe=10,
         )
 
-        Membership.objects.create(user=self.user, company=self.company)
+        self.caissier_role, _ = Role.objects.get_or_create(name="Caissier", defaults={"is_admin": True})
+        Membership.objects.create(user=self.user, company=self.company, role=self.caissier_role)
 
         self.client_pm = Client.objects.create(
             code_client="CLT0001",
@@ -539,7 +540,8 @@ class TestClientFilters:
             nbr_employe=5,
         )
 
-        Membership.objects.create(user=self.user, company=self.company1)
+        caissier_role, _ = Role.objects.get_or_create(name="Caissier", defaults={"is_admin": True})
+        Membership.objects.create(user=self.user, company=self.company1, role=caissier_role)
 
         # Personne morale
         self.c1 = Client.objects.create(
@@ -861,7 +863,8 @@ class TestClientViewsCoverage:
             ICE="ICE_GEN",
             registre_de_commerce="RC_GEN",
         )
-        Membership.objects.create(user=user, company=company)
+        caissier_role, _ = Role.objects.get_or_create(name="Caissier", defaults={"is_admin": True})
+        Membership.objects.create(user=user, company=company, role=caissier_role)
 
         # Create a client with non-standard code (no match for CLT pattern)
         Client.objects.create(
@@ -896,7 +899,8 @@ class TestClientViewsCoverage:
             ICE="ICE_GEN2",
             registre_de_commerce="RC_GEN2",
         )
-        Membership.objects.create(user=user, company=company)
+        caissier_role, _ = Role.objects.get_or_create(name="Caissier", defaults={"is_admin": True})
+        Membership.objects.create(user=user, company=company, role=caissier_role)
 
         # Create a client with CLT pattern but update to very large number that could cause issues
         Client.objects.create(
