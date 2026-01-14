@@ -3,6 +3,8 @@ from re import match
 from django.db import transaction
 from rest_framework import serializers
 
+from core.permissions import get_user_role
+
 
 class BaseListSerializer(serializers.ModelSerializer):
     """Abstract list serializer with common total fields and helpers."""
@@ -146,8 +148,6 @@ class BaseLineWriteSerializer(serializers.ModelSerializer):
         # Check if Commercial user is trying to modify prix_vente
         request = self.context.get("request")
         if request and request.user:
-            from account.models import Membership
-            from core.permissions import get_user_role
 
             # Try to get company_id from parent serializer context
             company_id = self.context.get("company_id")

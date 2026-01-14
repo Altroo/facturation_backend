@@ -8,9 +8,8 @@ This command creates the following groups:
 - Lecture: View only, no print/create/delete/edit
 """
 
+from django.contrib.auth.models import Group
 from django.core.management.base import BaseCommand
-from django.contrib.auth.models import Group, Permission
-from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
 
 
