@@ -156,5 +156,93 @@ class BonDeLivraisonLineAdmin(SimpleHistoryAdmin):
         return obj.article.designation
 
 
+# Historical Model Admins (Read-only)
+class HistoricalBonDeLivraisonAdmin(admin.ModelAdmin):
+    """Read-only admin for viewing historical BonDeLivraison records."""
+    
+    list_display = (
+        "history_id",
+        "id",
+        "numero_bon_livraison",
+        "client",
+        "statut",
+        "history_type",
+        "history_date",
+        "history_user",
+    )
+    
+    list_filter = (
+        "history_type",
+        "history_date",
+        "statut",
+    )
+    
+    search_fields = (
+        "numero_bon_livraison",
+        "client__raison_sociale",
+    )
+    
+    readonly_fields = [field.name for field in BonDeLivraison._meta.get_fields() if hasattr(field, 'name') and not field.many_to_many and not field.one_to_many] + [
+        "history_id",
+        "history_date",
+        "history_change_reason",
+        "history_type",
+        "history_user",
+    ]
+    
+    def has_add_permission(self, request):
+        return False
+    
+    def has_delete_permission(self, request, obj=None):
+        return False
+    
+    def has_change_permission(self, request, obj=None):
+        return False
+
+
+class HistoricalBonDeLivraisonLineAdmin(admin.ModelAdmin):
+    """Read-only admin for viewing historical BonDeLivraisonLine records."""
+    
+    list_display = (
+        "history_id",
+        "id",
+        "bon_de_livraison",
+        "article",
+        "quantity",
+        "history_type",
+        "history_date",
+        "history_user",
+    )
+    
+    list_filter = (
+        "history_type",
+        "history_date",
+    )
+    
+    search_fields = (
+        "bon_de_livraison__numero_bon_livraison",
+        "article__reference",
+    )
+    
+    readonly_fields = [field.name for field in BonDeLivraisonLine._meta.get_fields() if hasattr(field, 'name') and not field.many_to_many and not field.one_to_many] + [
+        "history_id",
+        "history_date",
+        "history_change_reason",
+        "history_type",
+        "history_user",
+    ]
+    
+    def has_add_permission(self, request):
+        return False
+    
+    def has_delete_permission(self, request, obj=None):
+        return False
+    
+    def has_change_permission(self, request, obj=None):
+        return False
+
+
 admin.site.register(BonDeLivraison, BonDeLivraisonAdmin)
 admin.site.register(BonDeLivraisonLine, BonDeLivraisonLineAdmin)
+admin.site.register(BonDeLivraison.history.model, HistoricalBonDeLivraisonAdmin)
+admin.site.register(BonDeLivraisonLine.history.model, HistoricalBonDeLivraisonLineAdmin)

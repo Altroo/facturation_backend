@@ -151,5 +151,93 @@ class DeviLineAdmin(SimpleHistoryAdmin):
         return obj.article.designation
 
 
+# Historical Model Admins (Read-only)
+class HistoricalDeviAdmin(admin.ModelAdmin):
+    """Read-only admin for viewing historical Devi records."""
+    
+    list_display = (
+        "history_id",
+        "id",
+        "numero_devis",
+        "client",
+        "statut",
+        "history_type",
+        "history_date",
+        "history_user",
+    )
+    
+    list_filter = (
+        "history_type",
+        "history_date",
+        "statut",
+    )
+    
+    search_fields = (
+        "numero_devis",
+        "client__raison_sociale",
+    )
+    
+    readonly_fields = [field.name for field in Devi._meta.get_fields() if hasattr(field, 'name') and not field.many_to_many and not field.one_to_many] + [
+        "history_id",
+        "history_date",
+        "history_change_reason",
+        "history_type",
+        "history_user",
+    ]
+    
+    def has_add_permission(self, request):
+        return False
+    
+    def has_delete_permission(self, request, obj=None):
+        return False
+    
+    def has_change_permission(self, request, obj=None):
+        return False
+
+
+class HistoricalDeviLineAdmin(admin.ModelAdmin):
+    """Read-only admin for viewing historical DeviLine records."""
+    
+    list_display = (
+        "history_id",
+        "id",
+        "devis",
+        "article",
+        "quantity",
+        "history_type",
+        "history_date",
+        "history_user",
+    )
+    
+    list_filter = (
+        "history_type",
+        "history_date",
+    )
+    
+    search_fields = (
+        "devis__numero_devis",
+        "article__reference",
+    )
+    
+    readonly_fields = [field.name for field in DeviLine._meta.get_fields() if hasattr(field, 'name') and not field.many_to_many and not field.one_to_many] + [
+        "history_id",
+        "history_date",
+        "history_change_reason",
+        "history_type",
+        "history_user",
+    ]
+    
+    def has_add_permission(self, request):
+        return False
+    
+    def has_delete_permission(self, request, obj=None):
+        return False
+    
+    def has_change_permission(self, request, obj=None):
+        return False
+
+
 admin.site.register(Devi, DeviAdmin)
 admin.site.register(DeviLine, DeviLineAdmin)
+admin.site.register(Devi.history.model, HistoricalDeviAdmin)
+admin.site.register(DeviLine.history.model, HistoricalDeviLineAdmin)

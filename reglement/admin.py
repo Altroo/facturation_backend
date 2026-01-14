@@ -159,5 +159,51 @@ class ReglementAdmin(SimpleHistoryAdmin):
     statut_badge.admin_order_field = "statut"
 
 
+# Historical Model Admin (Read-only)
+class HistoricalReglementAdmin(admin.ModelAdmin):
+    """Read-only admin for viewing historical Reglement records."""
+    
+    list_display = (
+        "history_id",
+        "id",
+        "facture_client",
+        "montant",
+        "statut",
+        "history_type",
+        "history_date",
+        "history_user",
+    )
+    
+    list_filter = (
+        "history_type",
+        "history_date",
+        "statut",
+    )
+    
+    search_fields = (
+        "id",
+        "libelle",
+        "facture_client__numero_facture",
+    )
+    
+    readonly_fields = [field.name for field in Reglement._meta.get_fields() if not field.many_to_many and not field.one_to_many] + [
+        "history_id",
+        "history_date",
+        "history_change_reason",
+        "history_type",
+        "history_user",
+    ]
+    
+    def has_add_permission(self, request):
+        return False
+    
+    def has_delete_permission(self, request, obj=None):
+        return False
+    
+    def has_change_permission(self, request, obj=None):
+        return False
+
+
 # Register models
 admin.site.register(Reglement, ReglementAdmin)
+admin.site.register(Reglement.history.model, HistoricalReglementAdmin)

@@ -102,3 +102,97 @@ admin.site.register(CustomUser, CustomUserAdmin)
 admin.site.register(Role, RoleAdmin)
 # Membership
 admin.site.register(Membership, MembershipAdmin)
+
+
+# Historical Model Admins (Read-only)
+class HistoricalCustomUserAdmin(admin.ModelAdmin):
+    """Read-only admin for viewing historical CustomUser records."""
+    
+    list_display = (
+        "history_id",
+        "id",
+        "email",
+        "first_name",
+        "last_name",
+        "is_active",
+        "history_type",
+        "history_date",
+        "history_user",
+    )
+    
+    list_filter = (
+        "history_type",
+        "history_date",
+        "is_active",
+        "is_staff",
+    )
+    
+    search_fields = (
+        "email",
+        "first_name",
+        "last_name",
+    )
+    
+    readonly_fields = [field.name for field in CustomUser._meta.get_fields() if hasattr(field, 'name') and not field.many_to_many and not field.one_to_many] + [
+        "history_id",
+        "history_date",
+        "history_change_reason",
+        "history_type",
+        "history_user",
+    ]
+    
+    def has_add_permission(self, request):
+        return False
+    
+    def has_delete_permission(self, request, obj=None):
+        return False
+    
+    def has_change_permission(self, request, obj=None):
+        return False
+
+
+class HistoricalMembershipAdmin(admin.ModelAdmin):
+    """Read-only admin for viewing historical Membership records."""
+    
+    list_display = (
+        "history_id",
+        "id",
+        "user",
+        "company",
+        "role",
+        "history_type",
+        "history_date",
+        "history_user",
+    )
+    
+    list_filter = (
+        "history_type",
+        "history_date",
+        "role",
+    )
+    
+    search_fields = (
+        "user__email",
+        "company__raison_sociale",
+    )
+    
+    readonly_fields = [field.name for field in Membership._meta.get_fields() if hasattr(field, 'name') and not field.many_to_many and not field.one_to_many] + [
+        "history_id",
+        "history_date",
+        "history_change_reason",
+        "history_type",
+        "history_user",
+    ]
+    
+    def has_add_permission(self, request):
+        return False
+    
+    def has_delete_permission(self, request, obj=None):
+        return False
+    
+    def has_change_permission(self, request, obj=None):
+        return False
+
+
+admin.site.register(CustomUser.history.model, HistoricalCustomUserAdmin)
+admin.site.register(Membership.history.model, HistoricalMembershipAdmin)

@@ -1,8 +1,11 @@
 from django.db import models
+from simple_history.models import HistoricalRecords
 
 
 class Ville(models.Model):
     nom = models.CharField(max_length=100, verbose_name="Nom de la ville", unique=True)
+
+    history = HistoricalRecords()
 
     class Meta:
         verbose_name = "Ville"
@@ -17,6 +20,8 @@ class ModePaiement(models.Model):
         max_length=255, unique=True, verbose_name="Nom du mode de paiement"
     )
 
+    history = HistoricalRecords()
+
     class Meta:
         verbose_name = "Mode de paiement"
         verbose_name_plural = "Modes de paiement"
@@ -27,6 +32,8 @@ class ModePaiement(models.Model):
 
 class Marque(models.Model):
     nom = models.CharField(max_length=255, unique=True, verbose_name="Nom de la marque")
+
+    history = HistoricalRecords()
 
     class Meta:
         verbose_name = "Marque"
@@ -41,6 +48,8 @@ class Categorie(models.Model):
         max_length=255, unique=True, verbose_name="Nom de la catégorie"
     )
 
+    history = HistoricalRecords()
+
     class Meta:
         verbose_name = "Catégorie"
         verbose_name_plural = "Catégories"
@@ -51,6 +60,8 @@ class Categorie(models.Model):
 
 class Unite(models.Model):
     nom = models.CharField(max_length=255, unique=True, verbose_name="Nom de l'unité")
+
+    history = HistoricalRecords()
 
     class Meta:
         verbose_name = "Unité"
@@ -65,6 +76,8 @@ class Emplacement(models.Model):
         max_length=255, unique=True, verbose_name="Nom de l'emplacement"
     )
 
+    history = HistoricalRecords()
+
     class Meta:
         verbose_name = "Emplacement"
         verbose_name_plural = "Emplacements"
@@ -77,6 +90,8 @@ class LivrePar(models.Model):
     nom = models.CharField(
         max_length=255, unique=True, verbose_name="Nom du livreur"
     )
+
+    history = HistoricalRecords()
 
     class Meta:
         verbose_name = "Livré par"

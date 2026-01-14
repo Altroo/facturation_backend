@@ -153,5 +153,93 @@ class FactureProFormaLineAdmin(SimpleHistoryAdmin):
         return obj.article.designation
 
 
+# Historical Model Admins (Read-only)
+class HistoricalFactureProFormaAdmin(admin.ModelAdmin):
+    """Read-only admin for viewing historical FactureProForma records."""
+    
+    list_display = (
+        "history_id",
+        "id",
+        "numero_facture",
+        "client",
+        "statut",
+        "history_type",
+        "history_date",
+        "history_user",
+    )
+    
+    list_filter = (
+        "history_type",
+        "history_date",
+        "statut",
+    )
+    
+    search_fields = (
+        "numero_facture",
+        "client__raison_sociale",
+    )
+    
+    readonly_fields = [field.name for field in FactureProForma._meta.get_fields() if hasattr(field, 'name') and not field.many_to_many and not field.one_to_many] + [
+        "history_id",
+        "history_date",
+        "history_change_reason",
+        "history_type",
+        "history_user",
+    ]
+    
+    def has_add_permission(self, request):
+        return False
+    
+    def has_delete_permission(self, request, obj=None):
+        return False
+    
+    def has_change_permission(self, request, obj=None):
+        return False
+
+
+class HistoricalFactureProFormaLineAdmin(admin.ModelAdmin):
+    """Read-only admin for viewing historical FactureProFormaLine records."""
+    
+    list_display = (
+        "history_id",
+        "id",
+        "facture_pro_forma",
+        "article",
+        "quantity",
+        "history_type",
+        "history_date",
+        "history_user",
+    )
+    
+    list_filter = (
+        "history_type",
+        "history_date",
+    )
+    
+    search_fields = (
+        "facture_pro_forma__numero_facture",
+        "article__reference",
+    )
+    
+    readonly_fields = [field.name for field in FactureProFormaLine._meta.get_fields() if hasattr(field, 'name') and not field.many_to_many and not field.one_to_many] + [
+        "history_id",
+        "history_date",
+        "history_change_reason",
+        "history_type",
+        "history_user",
+    ]
+    
+    def has_add_permission(self, request):
+        return False
+    
+    def has_delete_permission(self, request, obj=None):
+        return False
+    
+    def has_change_permission(self, request, obj=None):
+        return False
+
+
 admin.site.register(FactureProForma, FactureProFormaAdmin)
 admin.site.register(FactureProFormaLine, FactureProFormaLineAdmin)
+admin.site.register(FactureProForma.history.model, HistoricalFactureProFormaAdmin)
+admin.site.register(FactureProFormaLine.history.model, HistoricalFactureProFormaLineAdmin)

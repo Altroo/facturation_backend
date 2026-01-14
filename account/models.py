@@ -8,6 +8,7 @@ from django.core.files.base import ContentFile
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from simple_history.models import HistoricalRecords
 
 from facturation_backend.settings import API_URL
 from .managers import CustomUserManager
@@ -108,9 +109,11 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     REQUIRED_FIELDS = []
 
     objects = CustomUserManager()
+    history = HistoricalRecords()
 
     def __str__(self):
-        return "{} {}".format(self.first_name, self.last_name)
+        full_name = "{} {}".format(self.first_name, self.last_name).strip()
+        return full_name if full_name else self.email
 
     @property
     def get_absolute_avatar_img(self):
@@ -153,6 +156,8 @@ class Membership(models.Model):
         verbose_name="User",
     )
     role = models.ForeignKey(Role, on_delete=models.PROTECT, null=True, blank=True)
+
+    history = HistoricalRecords()
 
     class Meta:
         verbose_name = "Membership"
