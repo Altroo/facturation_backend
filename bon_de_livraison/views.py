@@ -114,7 +114,7 @@ class BonDeLivraisonPDFGenerator(BasePDFGenerator):
 
     def _create_articles_table_quantity_only(self):
         """Create a simplified articles table showing only designation and quantity."""
-        headers = ["Désignation", "Qté"]
+        headers = [self._("Designation"), self._("Quantity")]
         col_widths = [14 * cm, 4 * cm]
 
         # Create header row - Designation left, Qté centered
@@ -192,11 +192,11 @@ class BonDeLivraisonPDFGenerator(BasePDFGenerator):
 
         # Document number and date together (line 1 and line 2, no space)
         doc_number = Paragraph(
-            f"<b>BON DE LIVRAISON N° {self.document.numero_bon_livraison}</b>",
+            f"<b>{self._('Delivery_Number')} {self.document.numero_bon_livraison}</b>",
             self.styles["DocTitle"],
         )
         date_text = Paragraph(
-            f"DATE DU BON DE LIVRAISON: {self.document.date_bon_livraison.strftime('%d/%m/%Y')}",
+            f"{self._('Delivery_Date')} {self.document.date_bon_livraison.strftime('%d/%m/%Y')}",
             self.styles["DocDate"],
         )
 
@@ -242,7 +242,7 @@ class BonDeLivraisonPDFGenerator(BasePDFGenerator):
 
         # ===== COMPANY / CLIENT INFO GRID =====
         left_header = Paragraph(
-            "<b>BON DE LIVRAISON ÉMIS PAR</b>", self.styles["SectionHeader"]
+            f"<b>{self._('Delivery_Issued_By')}</b>", self.styles["SectionHeader"]
         )
 
         company_lines = []
@@ -251,11 +251,13 @@ class BonDeLivraisonPDFGenerator(BasePDFGenerator):
         company_lines.append(Paragraph(f"<b>{raison}</b>", self.styles["CustomNormal"]))
         # ICE
         ice = self.company.ICE if self.company.ICE else "-"
-        company_lines.append(Paragraph(f"ICE: {ice}", self.styles["CustomSmall"]))
+        company_lines.append(
+            Paragraph(f"{self._('ICE')}: {ice}", self.styles["CustomSmall"])
+        )
         # Adresse
         adresse = self.company.adresse if self.company.adresse else "-"
         company_lines.append(
-            Paragraph(f"Adresse: {adresse}", self.styles["CustomSmall"])
+            Paragraph(f"{self._('Address')}: {adresse}", self.styles["CustomSmall"])
         )
 
         # RC, IF, CNSS on one line - always show with - if empty
@@ -270,27 +272,31 @@ class BonDeLivraisonPDFGenerator(BasePDFGenerator):
         cnss = self.company.CNSS if self.company.CNSS else "-"
         company_lines.append(
             Paragraph(
-                f"RC: {rc} - IF: {if_val} - CNSS: {cnss}", self.styles["CustomSmall"]
+                f"{self._('RC')}: {rc} - {self._('IF')}: {if_val} - "
+                f"{self._('CNSS')}: {cnss}",
+                self.styles["CustomSmall"],
             )
         )
 
         # RIB Compte on separate line
         rib = self.company.numero_du_compte if self.company.numero_du_compte else "-"
         company_lines.append(
-            Paragraph(f"RIB Compte: {rib}", self.styles["CustomSmall"])
+            Paragraph(f"{self._('RIB_Account')}: {rib}", self.styles["CustomSmall"])
         )
 
         # Livré par
         if self.document.livre_par:
             company_lines.append(
                 Paragraph(
-                    f"Livré par: {self.document.livre_par.nom}",
+                    f"{self._('Delivered_By')}: {self.document.livre_par.nom}",
                     self.styles["CustomSmall"],
                 )
             )
 
         # Right column - Client info
-        right_header = Paragraph("<b>DESTINATAIRE</b>", self.styles["SectionHeader"])
+        right_header = Paragraph(
+            f"<b>{self._('Recipient')}</b>", self.styles["SectionHeader"]
+        )
 
         client = self.document.client
         client_lines = []
@@ -312,11 +318,15 @@ class BonDeLivraisonPDFGenerator(BasePDFGenerator):
 
         # ICE
         client_ice = client.ICE if client.ICE else "-"
-        client_lines.append(Paragraph(f"ICE: {client_ice}", self.styles["CustomSmall"]))
+        client_lines.append(
+            Paragraph(f"{self._('ICE')}: {client_ice}", self.styles["CustomSmall"])
+        )
         # Adresse
         client_adresse = client.adresse if client.adresse else "-"
         client_lines.append(
-            Paragraph(f"Adresse: {client_adresse}", self.styles["CustomSmall"])
+            Paragraph(
+                f"{self._('Address')}: {client_adresse}", self.styles["CustomSmall"]
+            )
         )
 
         # Build left column content
@@ -385,7 +395,7 @@ class BonDeLivraisonPDFGenerator(BasePDFGenerator):
             # ===== PRICE IN WORDS SECTION =====
             elements.append(
                 Paragraph(
-                    "<b>ARRÊTÉ LE PRÉSENT BON DE LIVRAISON À LA SOMME DE</b>",
+                    f"<b>{self._('Delivery_Amount_Words')}</b>",
                     self.styles["SectionHeader"],
                 )
             )
@@ -399,7 +409,13 @@ class BonDeLivraisonPDFGenerator(BasePDFGenerator):
                 if self.document.remise_type
                 else self.document.total_ttc
             )
-            price_in_words = number_to_french_words(total_price)
+            from core.pdf_utils import number_to_english_words
+
+            price_in_words = (
+                number_to_english_words(total_price)
+                if self.language == "en"
+                else number_to_french_words(total_price)
+            )
             elements.append(
                 Paragraph(f"{price_in_words} TTC", self.styles["PriceWords"])
             )
@@ -414,13 +430,13 @@ class BonDeLivraisonPDFGenerator(BasePDFGenerator):
         # Define columns based on options
         if show_remise and show_unite:
             headers = [
-                "Désignation",
-                "Qté",
-                "TVA",
-                "PRIX UNIT. HT",
-                "Unité",
-                "Remise",
-                "Total HT",
+                self._("Designation"),
+                self._("Quantity"),
+                self._("TVA"),
+                self._("Unit_Price_HT"),
+                self._("Unit"),
+                self._("Discount"),
+                self._("Total_HT"),
             ]
             col_widths = [
                 5.5 * cm,
@@ -433,26 +449,32 @@ class BonDeLivraisonPDFGenerator(BasePDFGenerator):
             ]
         elif show_remise:
             headers = [
-                "Désignation",
-                "Qté",
-                "TVA",
-                "PRIX UNIT. HT",
-                "Remise",
-                "Total HT",
+                self._("Designation"),
+                self._("Quantity"),
+                self._("TVA"),
+                self._("Unit_Price_HT"),
+                self._("Discount"),
+                self._("Total_HT"),
             ]
             col_widths = [6.5 * cm, 1.8 * cm, 1.5 * cm, 2.5 * cm, 2.5 * cm, 3.2 * cm]
         elif show_unite:
             headers = [
-                "Désignation",
-                "Qté",
-                "TVA",
-                "PRIX UNIT. HT",
-                "Unité",
-                "Total HT",
+                self._("Designation"),
+                self._("Quantity"),
+                self._("TVA"),
+                self._("Unit_Price_HT"),
+                self._("Unit"),
+                self._("Total_HT"),
             ]
             col_widths = [6.5 * cm, 1.8 * cm, 1.5 * cm, 2.7 * cm, 2 * cm, 3.5 * cm]
         else:
-            headers = ["Désignation", "Qté", "TVA", "PRIX UNIT. HT", "Total HT"]
+            headers = [
+                self._("Designation"),
+                self._("Quantity"),
+                self._("TVA"),
+                self._("Unit_Price_HT"),
+                self._("Total_HT"),
+            ]
             col_widths = [7.5 * cm, 2 * cm, 1.8 * cm, 3 * cm, 3.7 * cm]
 
         # Create header row - Designation left, others centered
@@ -524,7 +546,9 @@ class BonDeLivraisonPDFGenerator(BasePDFGenerator):
         # Add totals rows (aligned to right columns) - NO MAD text
         # Total HT
         total_ht_row = [Paragraph("", self.styles["CustomSmall"])] * num_cols
-        total_ht_row[-2] = Paragraph("<b>Total HT</b>", self.styles["CustomSmall"])
+        total_ht_row[-2] = Paragraph(
+            f"<b>{self._('Total_HT_Label')}</b>", self.styles["CustomSmall"]
+        )
         total_ht_row[-1] = Paragraph(
             f"{self.document.total_ht:.2f}", self.styles["CustomSmallCenter"]
         )
@@ -532,7 +556,9 @@ class BonDeLivraisonPDFGenerator(BasePDFGenerator):
 
         # TVA
         tva_row = [Paragraph("", self.styles["CustomSmall"])] * num_cols
-        tva_row[-2] = Paragraph("<b>TVA</b>", self.styles["CustomSmall"])
+        tva_row[-2] = Paragraph(
+            f"<b>{self._('Total_TVA_Label')}</b>", self.styles["CustomSmall"]
+        )
         tva_row[-1] = Paragraph(
             f"{self.document.total_tva:.2f}", self.styles["CustomSmallCenter"]
         )
@@ -540,7 +566,9 @@ class BonDeLivraisonPDFGenerator(BasePDFGenerator):
 
         # Total TTC
         total_ttc_row = [Paragraph("", self.styles["CustomSmall"])] * num_cols
-        total_ttc_row[-2] = Paragraph("<b>Total TTC</b>", self.styles["CustomSmall"])
+        total_ttc_row[-2] = Paragraph(
+            f"<b>{self._('Total_TTC_Label')}</b>", self.styles["CustomSmall"]
+        )
         total_ttc_row[-1] = Paragraph(
             f"{self.document.total_ttc:.2f}", self.styles["CustomSmallCenter"]
         )
@@ -553,8 +581,13 @@ class BonDeLivraisonPDFGenerator(BasePDFGenerator):
                 remise_text = f"{self.document.remise:.2f}%"
             else:
                 remise_text = f"{self.document.remise:.2f}"
+            remise_type_label = (
+                self._("Percentage")
+                if self.document.remise_type == "Pourcentage"
+                else self._("Fixed")
+            )
             remise_row[-2] = Paragraph(
-                f"<b>Remise ({self.document.remise_type})</b>",
+                f"<b>{self._('Discount_Label')} ({remise_type_label})</b>",
                 self.styles["CustomSmall"],
             )
             remise_row[-1] = Paragraph(remise_text, self.styles["CustomSmallCenter"])
@@ -563,7 +596,8 @@ class BonDeLivraisonPDFGenerator(BasePDFGenerator):
             # Total TTC après remise
             final_row = [Paragraph("", self.styles["CustomSmall"])] * num_cols
             final_row[-2] = Paragraph(
-                "<b>Total TTC après remise</b>", self.styles["CustomSmall"]
+                f"<b>{self._('Total_TTC_After_Discount')}</b>",
+                self.styles["CustomSmall"],
             )
             final_row[-1] = Paragraph(
                 f"{self.document.total_ttc_apres_remise:.2f}",
@@ -630,18 +664,18 @@ class BonDeLivraisonPDFGenerator(BasePDFGenerator):
 
     def _get_filename(self) -> str:
         """Get PDF filename for bon de livraison."""
-        return (
-            f"bon_livraison_{self.document.numero_bon_livraison.replace('/', '_')}.pdf"
-        )
+        return f"{self._('delivery')}_{self.document.numero_bon_livraison.replace('/', '_')}.pdf"
 
     def _get_pdf_title(self) -> str:
         """Get PDF document title for metadata."""
         client_name = (
             self.document.client.raison_sociale
             if self.document.client.raison_sociale
-            else "Client"
+            else self._("Client")
         )
-        return f"Bon de Livraison {self.document.numero_bon_livraison} - {client_name}"
+        return (
+            f"{self._('Delivery')} {self.document.numero_bon_livraison} - {client_name}"
+        )
 
 
 class BonDeLivraisonPDFView(APIView):
@@ -651,7 +685,7 @@ class BonDeLivraisonPDFView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
     @staticmethod
-    def get(request, pk: int):
+    def get(request, pk: int, language: str = "fr"):
         """Generate and return PDF for the bon de livraison."""
         from core.permissions import can_print
         from rest_framework.exceptions import PermissionDenied
@@ -676,5 +710,7 @@ class BonDeLivraisonPDFView(APIView):
             )
 
         # Generate PDF
-        pdf_generator = BonDeLivraisonPDFGenerator(bon_de_livraison, company, pdf_type)
+        pdf_generator = BonDeLivraisonPDFGenerator(
+            bon_de_livraison, company, pdf_type, language
+        )
         return pdf_generator.generate_pdf()

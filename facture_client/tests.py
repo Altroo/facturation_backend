@@ -605,7 +605,9 @@ class TestFactureClientPDFGeneration:
         client_api.force_authenticate(user=fc_conv_user)
 
         url = (
-            reverse("facture_client:facture-client-pdf", args=[fc_conv_with_lines.id])
+            reverse(
+                "facture_client:facture-client-pdf-fr", args=[fc_conv_with_lines.id]
+            )
             + f"?company_id={fc_conv_company.id}"
         )
         response = client_api.get(url)
@@ -624,7 +626,9 @@ class TestFactureClientPDFGeneration:
         client_api = APIClient()
         client_api.force_authenticate(user=fc_conv_user)
 
-        url = reverse("facture_client:facture-client-pdf", args=[fc_conv_with_lines.id])
+        url = reverse(
+            "facture_client:facture-client-pdf-fr", args=[fc_conv_with_lines.id]
+        )
         response = client_api.get(url)
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -640,7 +644,7 @@ class TestFactureClientPDFGeneration:
         client_api.force_authenticate(user=fc_conv_user)
 
         url = (
-            reverse("facture_client:facture-client-pdf", args=[99999])
+            reverse("facture_client:facture-client-pdf-fr", args=[99999])
             + f"?company_id={fc_conv_company.id}"
         )
         response = client_api.get(url)
@@ -660,7 +664,9 @@ class TestFactureClientPDFGeneration:
         client_api.force_authenticate(user=fc_conv_user)
 
         url = (
-            reverse("facture_client:facture-client-pdf", args=[fc_conv_with_lines.id])
+            reverse(
+                "facture_client:facture-client-pdf-fr", args=[fc_conv_with_lines.id]
+            )
             + f"?company_id={fc_conv_company.id}&type=sans_remise"
         )
         response = client_api.get(url)
@@ -681,7 +687,9 @@ class TestFactureClientPDFGeneration:
         client_api.force_authenticate(user=fc_conv_user)
 
         url = (
-            reverse("facture_client:facture-client-pdf", args=[fc_conv_with_lines.id])
+            reverse(
+                "facture_client:facture-client-pdf-fr", args=[fc_conv_with_lines.id]
+            )
             + f"?company_id={fc_conv_company.id}&type=avec_unite"
         )
         response = client_api.get(url)

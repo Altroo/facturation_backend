@@ -1,7 +1,6 @@
 from decimal import Decimal
 
 import pytest
-from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 
 from account.models import CustomUser, Membership, Role
@@ -683,7 +682,7 @@ class TestBonDeLivraisonPDFGeneration:
 
         url = (
             reverse(
-                "bon_de_livraison:bon-de-livraison-pdf",
+                "bon_de_livraison:bon-de-livraison-pdf-fr",
                 args=[bon_de_livraison_with_lines.id],
             )
             + f"?company_id={bon_de_livraison_company.id}"
@@ -717,7 +716,7 @@ class TestBonDeLivraisonPDFGeneration:
         client_api.force_authenticate(user=bon_de_livraison_user)
 
         url = reverse(
-            "bon_de_livraison:bon-de-livraison-pdf",
+            "bon_de_livraison:bon-de-livraison-pdf-fr",
             args=[bon_de_livraison_with_lines.id],
         )
         response = client_api.get(url)
@@ -742,7 +741,7 @@ class TestBonDeLivraisonPDFGeneration:
         client_api.force_authenticate(user=bon_de_livraison_user)
 
         url = (
-            reverse("bon_de_livraison:bon-de-livraison-pdf", args=[99999])
+            reverse("bon_de_livraison:bon-de-livraison-pdf-fr", args=[99999])
             + f"?company_id={bon_de_livraison_company.id}"
         )
         response = client_api.get(url)
@@ -773,7 +772,7 @@ class TestBonDeLivraisonPDFGeneration:
 
         url = (
             reverse(
-                "bon_de_livraison:bon-de-livraison-pdf",
+                "bon_de_livraison:bon-de-livraison-pdf-fr",
                 args=[bon_de_livraison_with_lines.id],
             )
             + f"?company_id={bon_de_livraison_company.id}&type=quantity_only"
@@ -807,7 +806,7 @@ class TestBonDeLivraisonPDFGeneration:
 
         url = (
             reverse(
-                "bon_de_livraison:bon-de-livraison-pdf",
+                "bon_de_livraison:bon-de-livraison-pdf-fr",
                 args=[bon_de_livraison_with_lines.id],
             )
             + f"?company_id={bon_de_livraison_company.id}&type=avec_remise"
@@ -841,7 +840,7 @@ class TestBonDeLivraisonPDFGeneration:
 
         url = (
             reverse(
-                "bon_de_livraison:bon-de-livraison-pdf",
+                "bon_de_livraison:bon-de-livraison-pdf-fr",
                 args=[bon_de_livraison_with_lines.id],
             )
             + f"?company_id={bon_de_livraison_company.id}&type=avec_unite"
@@ -1140,7 +1139,7 @@ class TestBonDeLivraisonViewsCoverage:
         client_api = APIClient()
         client_api.force_authenticate(user=bon_de_livraison_user)
 
-        url = reverse("bon_de_livraison:bon-de-livraison-pdf", args=[bl.pk])
+        url = reverse("bon_de_livraison:bon-de-livraison-pdf-fr", args=[bl.pk])
         response = client_api.get(url + f"?company_id={bon_de_livraison_company.id}")
 
         assert response.status_code == status.HTTP_200_OK
@@ -1195,7 +1194,7 @@ class TestBonDeLivraisonViewsCoverage:
         client_api = APIClient()
         client_api.force_authenticate(user=bon_de_livraison_user)
 
-        url = reverse("bon_de_livraison:bon-de-livraison-pdf", args=[bl.pk])
+        url = reverse("bon_de_livraison:bon-de-livraison-pdf-fr", args=[bl.pk])
         response = client_api.get(url + f"?company_id={bon_de_livraison_company.id}")
 
         assert response.status_code == status.HTTP_200_OK
@@ -1241,7 +1240,7 @@ class TestBonDeLivraisonViewsCoverage:
         client_api.force_authenticate(user=bon_de_livraison_user)
 
         # Request PDF with type=avec_unite to show unite column
-        url = reverse("bon_de_livraison:bon-de-livraison-pdf", args=[bl.pk])
+        url = reverse("bon_de_livraison:bon-de-livraison-pdf-fr", args=[bl.pk])
         response = client_api.get(
             url + f"?company_id={bon_de_livraison_company.id}&type=avec_unite"
         )
@@ -1295,7 +1294,7 @@ class TestBonDeLivraisonViewsCoverage:
         client_api.force_authenticate(user=bon_de_livraison_user)
 
         # Request PDF with type=avec_remise to show remise columns
-        url = reverse("bon_de_livraison:bon-de-livraison-pdf", args=[bl.pk])
+        url = reverse("bon_de_livraison:bon-de-livraison-pdf-fr", args=[bl.pk])
         response = client_api.get(
             url + f"?company_id={bon_de_livraison_company.id}&type=avec_remise"
         )
@@ -1349,7 +1348,7 @@ class TestBonDeLivraisonViewsCoverage:
         client_api.force_authenticate(user=bon_de_livraison_user)
 
         # Request PDF with type=avec_remise to show remise columns
-        url = reverse("bon_de_livraison:bon-de-livraison-pdf", args=[bl.pk])
+        url = reverse("bon_de_livraison:bon-de-livraison-pdf-fr", args=[bl.pk])
         response = client_api.get(
             url + f"?company_id={bon_de_livraison_company.id}&type=avec_remise"
         )
@@ -1408,7 +1407,7 @@ class TestBonDeLivraisonViewsCoverage:
 
         client_api = APIClient()
         client_api.force_authenticate(user=bon_de_livraison_user)
-        url = reverse("bon_de_livraison:bon-de-livraison-pdf", args=[bl.pk])
+        url = reverse("bon_de_livraison:bon-de-livraison-pdf-fr", args=[bl.pk])
 
         # Request quantity_only PDF - this covers branch 136->140 in _create_articles_table_quantity_only
         response = client_api.get(

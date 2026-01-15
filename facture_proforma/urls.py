@@ -44,6 +44,9 @@ urlpatterns = [
     ),
     # GET : generate PDF
     path(
-        "pdf/<int:pk>/", FactureProFormaPDFView.as_view(), name="facture-proforma-pdf"
+        "pdf/fr/<int:pk>/", FactureProFormaPDFView.as_view(), {"language": "fr"}, name="facture-proforma-pdf-fr"
+    ),
+    path(
+        "pdf/en/<int:pk>/", FactureProFormaPDFView.as_view(), {"language": "en"}, name="facture-proforma-pdf-en"
     ),
 ]

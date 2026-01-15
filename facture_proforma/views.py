@@ -76,11 +76,11 @@ class FactureProFormaPDFGenerator(BasePDFGenerator):
 
         # Document number and date together (line 1 and line 2, no space)
         doc_number = Paragraph(
-            f"<b>FACTURE PRO-FORMA N° {self.document.numero_facture}</b>",
+            f"<b>{self._('Proforma_Number')} {self.document.numero_facture}</b>",
             self.styles["DocTitle"],
         )
         date_text = Paragraph(
-            f"DATE DE LA FACTURE PRO-FORMA: {self.document.date_facture.strftime('%d/%m/%Y')}",
+            f"{self._('Proforma_Date')} {self.document.date_facture.strftime('%d/%m/%Y')}",
             self.styles["DocDate"],
         )
 
@@ -126,7 +126,7 @@ class FactureProFormaPDFGenerator(BasePDFGenerator):
 
         # ===== COMPANY / CLIENT INFO GRID =====
         left_header = Paragraph(
-            "<b>FACTURE PRO-FORMA ÉMISE PAR</b>", self.styles["SectionHeader"]
+            f"<b>{self._('Proforma_Issued_By')}</b>", self.styles["SectionHeader"]
         )
 
         company_lines = []
@@ -135,11 +135,13 @@ class FactureProFormaPDFGenerator(BasePDFGenerator):
         company_lines.append(Paragraph(f"<b>{raison}</b>", self.styles["CustomNormal"]))
         # ICE
         ice = self.company.ICE if self.company.ICE else "-"
-        company_lines.append(Paragraph(f"ICE: {ice}", self.styles["CustomSmall"]))
+        company_lines.append(
+            Paragraph(f"{self._('ICE')}: {ice}", self.styles["CustomSmall"])
+        )
         # Adresse
         adresse = self.company.adresse if self.company.adresse else "-"
         company_lines.append(
-            Paragraph(f"Adresse: {adresse}", self.styles["CustomSmall"])
+            Paragraph(f"{self._('Address')}: {adresse}", self.styles["CustomSmall"])
         )
 
         # RC, IF, CNSS on one line - always show with - if empty
@@ -154,18 +156,22 @@ class FactureProFormaPDFGenerator(BasePDFGenerator):
         cnss = self.company.CNSS if self.company.CNSS else "-"
         company_lines.append(
             Paragraph(
-                f"RC: {rc} - IF: {if_val} - CNSS: {cnss}", self.styles["CustomSmall"]
+                f"{self._('RC')}: {rc} - {self._('IF')}: {if_val} - "
+                f"{self._('CNSS')}: {cnss}",
+                self.styles["CustomSmall"],
             )
         )
 
         # RIB Compte on separate line
         rib = self.company.numero_du_compte if self.company.numero_du_compte else "-"
         company_lines.append(
-            Paragraph(f"RIB Compte: {rib}", self.styles["CustomSmall"])
+            Paragraph(f"{self._('RIB_Account')}: {rib}", self.styles["CustomSmall"])
         )
 
         # Right column - Client info
-        right_header = Paragraph("<b>DESTINATAIRE</b>", self.styles["SectionHeader"])
+        right_header = Paragraph(
+            f"<b>{self._('Recipient')}</b>", self.styles["SectionHeader"]
+        )
 
         client = self.document.client
         client_lines = []
@@ -187,11 +193,15 @@ class FactureProFormaPDFGenerator(BasePDFGenerator):
 
         # ICE
         client_ice = client.ICE if client.ICE else "-"
-        client_lines.append(Paragraph(f"ICE: {client_ice}", self.styles["CustomSmall"]))
+        client_lines.append(
+            Paragraph(f"{self._('ICE')}: {client_ice}", self.styles["CustomSmall"])
+        )
         # Adresse
         client_adresse = client.adresse if client.adresse else "-"
         client_lines.append(
-            Paragraph(f"Adresse: {client_adresse}", self.styles["CustomSmall"])
+            Paragraph(
+                f"{self._('Address')}: {client_adresse}", self.styles["CustomSmall"]
+            )
         )
 
         # Build left column content
@@ -255,7 +265,7 @@ class FactureProFormaPDFGenerator(BasePDFGenerator):
         # ===== PRICE IN WORDS SECTION =====
         elements.append(
             Paragraph(
-                "<b>ARRÊTÉE LA PRÉSENTE FACTURE PRO-FORMA À LA SOMME DE</b>",
+                f"<b>{self._('Proforma_Amount_Words')}</b>",
                 self.styles["SectionHeader"],
             )
         )
@@ -267,14 +277,21 @@ class FactureProFormaPDFGenerator(BasePDFGenerator):
             if self.document.remise_type
             else self.document.total_ttc
         )
-        price_in_words = number_to_french_words(total_price)
+        from core.pdf_utils import number_to_english_words
+
+        price_in_words = (
+            number_to_english_words(total_price)
+            if (self.language == "en")
+            else number_to_french_words(total_price)
+        )
         elements.append(Paragraph(f"{price_in_words} TTC", self.styles["PriceWords"]))
         elements.append(Spacer(1, 0.5 * cm))
 
         # ===== REMARKS SECTION =====
-        elements.append(Paragraph("<b>Remarques :</b>", self.styles["SectionHeader"]))
-        remarks_text = """Cette facture pro-forma est valable 30 jours à compter de sa date d'émission.
-Elle ne constitue pas une facture définitive et n'a pas de valeur comptable."""
+        elements.append(
+            Paragraph(f"<b>{self._('Remarks')} :</b>", self.styles["SectionHeader"])
+        )
+        remarks_text = self._("Proforma_Default_Remarks")
         if self.document.remarque:
             remarks_text = self.document.remarque + "\n\n" + remarks_text
         elements.append(
@@ -506,16 +523,18 @@ Elle ne constitue pas une facture définitive et n'a pas de valeur comptable."""
 
     def _get_filename(self) -> str:
         """Get PDF filename for facture pro-forma."""
-        return f"facture_proforma_{self.document.numero_facture.replace('/', '_')}.pdf"
+        return (
+            f"{self._('proforma')}_{self.document.numero_facture.replace('/', '_')}.pdf"
+        )
 
     def _get_pdf_title(self) -> str:
         """Get PDF document title for metadata."""
         client_name = (
             self.document.client.raison_sociale
             if self.document.client.raison_sociale
-            else "Client"
+            else self._("Client")
         )
-        return f"Facture Pro-Forma {self.document.numero_facture} - {client_name}"
+        return f"{self._('Proforma')} {self.document.numero_facture} - {client_name}"
 
 
 class FactureProFormaPDFView(APIView):
@@ -525,7 +544,7 @@ class FactureProFormaPDFView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
     @staticmethod
-    def get(request, pk: int):
+    def get(request, pk: int, language: str = "fr"):
         """Generate and return PDF for the facture pro forma."""
         from core.permissions import can_print
         from rest_framework.exceptions import PermissionDenied
@@ -550,5 +569,7 @@ class FactureProFormaPDFView(APIView):
             )
 
         # Generate PDF
-        pdf_generator = FactureProFormaPDFGenerator(facture_proforma, company, pdf_type)
+        pdf_generator = FactureProFormaPDFGenerator(
+            facture_proforma, company, pdf_type, language
+        )
         return pdf_generator.generate_pdf()

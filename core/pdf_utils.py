@@ -138,13 +138,82 @@ def number_to_french_words(number: Decimal) -> str:
     return result
 
 
+def number_to_english_words(number: Decimal) -> str:
+    """Convert a number to English words."""
+    units = [
+        "", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
+        "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen",
+        "seventeen", "eighteen", "nineteen"
+    ]
+    tens = ["", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"]
+
+    def convert_below_100(n: int) -> str:
+        if n < 20:
+            return units[n]
+        ten, unit = divmod(n, 10)
+        if unit == 0:
+            return tens[ten]
+        return f"{tens[ten]}-{units[unit]}"
+
+    def convert_below_1000(n: int) -> str:
+        if n < 100:
+            return convert_below_100(n)
+        hundred, remainder = divmod(n, 100)
+        if remainder == 0:
+            return f"{units[hundred]} hundred"
+        return f"{units[hundred]} hundred {convert_below_100(remainder)}"
+
+    def convert_full(n: int) -> str:
+        if n == 0:
+            return "zero"
+
+        result_parts = []
+
+        # Millions
+        if n >= 1_000_000:
+            millions, n = divmod(n, 1_000_000)
+            if millions == 1:
+                result_parts.append("one million")
+            else:
+                result_parts.append(f"{convert_below_1000(millions)} million")
+
+        # Thousands
+        if n >= 1000:
+            thousands, n = divmod(n, 1000)
+            if thousands == 1:
+                result_parts.append("one thousand")
+            else:
+                result_parts.append(f"{convert_below_1000(thousands)} thousand")
+
+        # Hundreds and below
+        if n > 0:
+            result_parts.append(convert_below_1000(n))
+
+        return " ".join(result_parts)
+
+    # Convert to integer (whole dirhams)
+    int_part = int(number)
+    # Get centimes
+    centimes = int((number - int_part) * 100)
+
+    result = convert_full(int_part).upper()
+    if centimes > 0:
+        result += f" DIRHAMS AND {convert_full(centimes).upper()} CENTIMES"
+    else:
+        result += " DIRHAMS"
+
+    return result
+
+
 class BasePDFGenerator:
     """Base class for generating PDF documents."""
 
     PAGE_WIDTH, PAGE_HEIGHT = A4
     MARGIN = 1.5 * cm
 
-    def __init__(self, document, company, pdf_type: str = "normal"):
+    def __init__(
+        self, document, company, pdf_type: str = "normal", language: str = "fr"
+    ):
         """
         Initialize PDF generator.
 
@@ -152,15 +221,156 @@ class BasePDFGenerator:
             document: The document model instance (Devi, FactureClient, etc.)
             company: The Company model instance
             pdf_type: Type of PDF to generate (avec_remise, sans_remise, avec_unite, etc.)
+            language: Language for PDF generation ('fr' or 'en')
         """
         self.total_pages = 1
         self.document = document
         self.company = company
         self.pdf_type = pdf_type
+        self.language = language
         self.buffer = BytesIO()
         self.styles = getSampleStyleSheet()
         self.total_pages = 1  # Initialize total_pages attribute
+        self._setup_translations()
         self._setup_custom_styles()
+
+    def _setup_translations(self) -> None:
+        """Setup translation dictionary for French and English."""
+        self.translations = {
+            "fr": {
+                # Common terms
+                "Date": "DATE",
+                "ICE": "ICE",
+                "Address": "Adresse",
+                "RC": "RC",
+                "IF": "IF",
+                "CNSS": "CNSS",
+                "RIB_Account": "RIB Compte",
+                "Delivered_By": "Livré par",
+                "Recipient": "DESTINATAIRE",
+                "Remarks": "Remarques",
+                "Page": "Page",
+                "On": "sur",
+                "Phone": "Tél",
+                "Website": "Site web",
+                # Table headers
+                "Designation": "Désignation",
+                "Quantity": "Qté",
+                "TVA": "TVA",
+                "Unit_Price_HT": "PRIX UNIT. HT",
+                "Unit": "Unité",
+                "Discount": "Remise",
+                "Total_HT": "Total HT",
+                # Totals
+                "Total_HT_Label": "Total HT",
+                "Total_TVA_Label": "TVA",
+                "Total_TTC_Label": "Total TTC",
+                "Discount_Label": "Remise",
+                "Total_TTC_After_Discount": "Total TTC après remise",
+                "Percentage": "Pourcentage",
+                "Fixed": "Fixe",
+                # Devis specific
+                "Quote_Number": "DEVIS N°",
+                "Quote_Date": "DATE DU DEVIS:",
+                "Quote_Issued_By": "DEVIS ÉMIS PAR",
+                "Quote_Amount_Words": "ARRÊTÉ LE PRÉSENT DEVIS À LA SOMME DE",
+                "Quote": "Devis",
+                "quote": "devis",
+                # Facture Client specific
+                "Invoice_Number": "FACTURE CLIENT N°",
+                "Invoice_Date": "DATE DE LA FACTURE:",
+                "Invoice_Issued_By": "FACTURE CLIENT ÉMISE PAR",
+                "Invoice_Amount_Words": "ARRÊTÉE LA PRÉSENTE FACTURE CLIENT À LA SOMME DE",
+                "Invoice": "Facture",
+                "invoice": "facture",
+                "Client": "Client",
+                # Facture Pro Forma specific
+                "Proforma_Number": "FACTURE PRO-FORMA N°",
+                "Proforma_Date": "DATE DE LA FACTURE PRO-FORMA:",
+                "Proforma_Issued_By": "FACTURE PRO-FORMA ÉMISE PAR",
+                "Proforma_Amount_Words": "ARRÊTÉE LA PRÉSENTE FACTURE PRO-FORMA À LA SOMME DE",
+                "Proforma": "Facture Pro-Forma",
+                "proforma": "facture_pro_forma",
+                # Bon de Livraison specific
+                "Delivery_Number": "BON DE LIVRAISON N°",
+                "Delivery_Date": "DATE DU BON DE LIVRAISON:",
+                "Delivery_Issued_By": "BON DE LIVRAISON ÉMIS PAR",
+                "Delivery_Amount_Words": "ARRÊTÉ LE PRÉSENT BON DE LIVRAISON À LA SOMME DE",
+                "Delivery": "Bon de Livraison",
+                "delivery": "bon_de_livraison",
+                # Default remarks
+                "Quote_Default_Remarks": "Ce devis est valable 30 jours à compter de sa date d'émission.\nSon approbation doit être confirmée par un accord écrit du client.\nLa commande ne sera traitée qu'après réception d'un acompte de 50% du montant total.",
+                "Invoice_Default_Remarks": "Cette facture est payable à réception.\nTout retard de paiement entraînera des pénalités de retard.",
+                "Proforma_Default_Remarks": "Cette facture pro-forma est valable 30 jours à compter de sa date d'émission.\nElle ne constitue pas une facture définitive et n'a pas de valeur comptable.",
+            },
+            "en": {
+                # Common terms
+                "Date": "DATE",
+                "ICE": "TAX ID",
+                "Address": "Address",
+                "RC": "RC",
+                "IF": "IF",
+                "CNSS": "CNSS",
+                "RIB_Account": "Bank Account",
+                "Delivered_By": "Delivered By",
+                "Recipient": "RECIPIENT",
+                "Remarks": "Remarks",
+                "Page": "Page",
+                "On": "of",
+                "Phone": "Phone",
+                "Website": "Website",
+                # Table headers
+                "Designation": "Description",
+                "Quantity": "Qty",
+                "TVA": "VAT",
+                "Unit_Price_HT": "UNIT PRICE (ET)",
+                "Unit": "Unit",
+                "Discount": "Discount",
+                "Total_HT": "Total (ET)",
+                # Totals
+                "Total_HT_Label": "Total (ET)",
+                "Total_TVA_Label": "VAT",
+                "Total_TTC_Label": "Total (IT)",
+                "Discount_Label": "Discount",
+                "Total_TTC_After_Discount": "Total (IT) After Discount",
+                "Percentage": "Percentage",
+                "Fixed": "Fixed",
+                # Devis specific
+                "Quote_Number": "QUOTE NO.",
+                "Quote_Date": "QUOTE DATE:",
+                "Quote_Issued_By": "QUOTE ISSUED BY",
+                "Quote_Amount_Words": "THIS QUOTE IS SET AT THE AMOUNT OF",
+                # Facture Client specific
+                "Invoice_Number": "INVOICE NO.",
+                "Invoice_Date": "INVOICE DATE:",
+                "Invoice_Issued_By": "INVOICE ISSUED BY",
+                "Invoice_Amount_Words": "THIS INVOICE IS SET AT THE AMOUNT OF",
+                # Facture Pro Forma specific
+                "Proforma_Number": "PRO-FORMA INVOICE NO.",
+                "Proforma_Date": "PRO-FORMA INVOICE DATE:",
+                "Proforma_Issued_By": "PRO-FORMA INVOICE ISSUED BY",
+                "Proforma_Amount_Words": "THIS PRO-FORMA INVOICE IS SET AT THE AMOUNT OF",
+                # Bon de Livraison specific
+                "Delivery_Number": "DELIVERY NOTE NO.",
+                "Delivery_Date": "DELIVERY NOTE DATE:",
+                "Delivery_Issued_By": "DELIVERY NOTE ISSUED BY",
+                "Delivery_Amount_Words": "THIS DELIVERY NOTE IS SET AT THE AMOUNT OF",                # Default remarks
+                "Quote_Default_Remarks": "This quote is valid for 30 days from its date of issue.\nIts approval must be confirmed by a written agreement from the client.\nThe order will only be processed after receipt of a 50% deposit of the total amount.",
+                "Invoice_Default_Remarks": "This invoice is payable upon receipt.\nAny delay in payment will result in late payment penalties.",
+                "Proforma_Default_Remarks": "This pro-forma invoice is valid for 30 days from its date of issue.\nIt does not constitute a final invoice and has no accounting value.",            },
+        }
+
+    def _(self, key: str) -> str:
+        """
+        Get translated string for the current language.
+
+        Args:
+            key: Translation key
+
+        Returns:
+            Translated string, or key if not found
+        """
+        return self.translations.get(self.language, {}).get(key, key)
 
     def _setup_custom_styles(self) -> None:
         """Setup custom paragraph styles."""
@@ -391,11 +601,11 @@ class BasePDFGenerator:
         tel = self.company.telephone if self.company.telephone else "-"
         site = self.company.site_web if self.company.site_web else "-"
 
-        footer_text = f"{raison} - Tél: {tel} - Site web: {site}"
+        footer_text = f"{raison} - {self._('Phone')}: {tel} - {self._('Website')}: {site}"
 
         page_num = canvas.getPageNumber()
         total = getattr(self, "total_pages", 1)
-        page_text = f"Page {page_num} sur {total}"
+        page_text = f"{self._('Page')} {page_num} {self._('On')} {total}"
 
         canvas.setFont("Helvetica", 8)
         canvas.setFillColor(colors.HexColor("#666666"))
@@ -576,21 +786,21 @@ class BasePDFGenerator:
         # Define columns
         if show_unite:
             headers = [
-                "Désignation",
-                "Quantité",
-                "TVA (%)",
-                "Prix Unit. HT",
-                "Unité",
-                "Total HT",
+                self._("Designation"),
+                self._("Quantity"),
+                f"{self._('TVA')} (%)",
+                self._("Unit_Price_HT"),
+                self._("Unit"),
+                self._("Total_HT"),
             ]
             col_widths = [5.5 * cm, 1.8 * cm, 1.5 * cm, 2.5 * cm, 2 * cm, 2.7 * cm]
         else:
             headers = [
-                "Désignation",
-                "Quantité",
-                "TVA (%)",
-                "Prix Unit. HT",
-                "Total HT",
+                self._("Designation"),
+                self._("Quantity"),
+                f"{self._('TVA')} (%)",
+                self._("Unit_Price_HT"),
+                self._("Total_HT"),
             ]
             col_widths = [7 * cm, 2 * cm, 1.8 * cm, 2.7 * cm, 2.5 * cm]
 
@@ -644,21 +854,21 @@ class BasePDFGenerator:
 
         # Totals rows
         total_ht_row = [Paragraph("", self.styles["CustomSmall"])] * num_cols
-        total_ht_row[-2] = Paragraph("<b>Total HT</b>", self.styles["CustomSmall"])
+        total_ht_row[-2] = Paragraph(f"<b>{self._('Total_HT_Label')}</b>", self.styles["CustomSmall"])
         total_ht_row[-1] = Paragraph(
             f"{self.document.total_ht:.2f} MAD", self.styles["CustomSmall"]
         )
         table_data.append(total_ht_row)
 
         tva_row = [Paragraph("", self.styles["CustomSmall"])] * num_cols
-        tva_row[-2] = Paragraph("<b>TVA</b>", self.styles["CustomSmall"])
+        tva_row[-2] = Paragraph(f"<b>{self._('Total_TVA_Label')}</b>", self.styles["CustomSmall"])
         tva_row[-1] = Paragraph(
             f"{self.document.total_tva:.2f} MAD", self.styles["CustomSmall"]
         )
         table_data.append(tva_row)
 
         total_ttc_row = [Paragraph("", self.styles["CustomSmall"])] * num_cols
-        total_ttc_row[-2] = Paragraph("<b>Total TTC</b>", self.styles["CustomSmall"])
+        total_ttc_row[-2] = Paragraph(f"<b>{self._('Total_TTC_Label')}</b>", self.styles["CustomSmall"])
         total_ttc_row[-1] = Paragraph(
             f"{self.document.total_ttc:.2f} MAD", self.styles["CustomSmall"]
         )
@@ -671,8 +881,9 @@ class BasePDFGenerator:
                 remise_text = f"{self.document.remise:.2f}%"
             else:
                 remise_text = f"{self.document.remise:.2f} MAD"
+            remise_type_label = self._("Percentage") if self.document.remise_type == "Pourcentage" else self._("Fixed")
             remise_row[-2] = Paragraph(
-                f"<b>Remise ({self.document.remise_type})</b>",
+                f"<b>{self._('Discount_Label')} ({remise_type_label})</b>",
                 self.styles["CustomSmall"],
             )
             remise_row[-1] = Paragraph(remise_text, self.styles["CustomSmall"])
@@ -680,7 +891,7 @@ class BasePDFGenerator:
 
             final_row = [Paragraph("", self.styles["CustomSmall"])] * num_cols
             final_row[-2] = Paragraph(
-                "<b>Total TTC après remise</b>", self.styles["CustomSmall"]
+                f"<b>{self._('Total_TTC_After_Discount')}</b>", self.styles["CustomSmall"]
             )
             final_row[-1] = Paragraph(
                 f"{self.document.total_ttc_apres_remise:.2f} MAD",

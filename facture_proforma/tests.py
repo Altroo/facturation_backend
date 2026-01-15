@@ -1,7 +1,6 @@
 from decimal import Decimal
 
 import pytest
-from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 
 from account.models import CustomUser, Membership, Role
@@ -568,7 +567,7 @@ class TestFactureProFormaPDFGeneration:
 
         url = (
             reverse(
-                "facture_proforma:facture-proforma-pdf", args=[pf_conv_with_lines.id]
+                "facture_proforma:facture-proforma-pdf-fr", args=[pf_conv_with_lines.id]
             )
             + f"?company_id={pf_conv_company.id}"
         )
@@ -589,7 +588,7 @@ class TestFactureProFormaPDFGeneration:
         client_api.force_authenticate(user=pf_conv_user)
 
         url = reverse(
-            "facture_proforma:facture-proforma-pdf", args=[pf_conv_with_lines.id]
+            "facture_proforma:facture-proforma-pdf-fr", args=[pf_conv_with_lines.id]
         )
         response = client_api.get(url)
 
@@ -606,7 +605,7 @@ class TestFactureProFormaPDFGeneration:
         client_api.force_authenticate(user=pf_conv_user)
 
         url = (
-            reverse("facture_proforma:facture-proforma-pdf", args=[99999])
+            reverse("facture_proforma:facture-proforma-pdf-fr", args=[99999])
             + f"?company_id={pf_conv_company.id}"
         )
         response = client_api.get(url)
@@ -627,7 +626,7 @@ class TestFactureProFormaPDFGeneration:
 
         url = (
             reverse(
-                "facture_proforma:facture-proforma-pdf", args=[pf_conv_with_lines.id]
+                "facture_proforma:facture-proforma-pdf-fr", args=[pf_conv_with_lines.id]
             )
             + f"?company_id={pf_conv_company.id}&type=sans_remise"
         )
@@ -650,7 +649,7 @@ class TestFactureProFormaPDFGeneration:
 
         url = (
             reverse(
-                "facture_proforma:facture-proforma-pdf", args=[pf_conv_with_lines.id]
+                "facture_proforma:facture-proforma-pdf-fr", args=[pf_conv_with_lines.id]
             )
             + f"?company_id={pf_conv_company.id}&type=avec_unite"
         )

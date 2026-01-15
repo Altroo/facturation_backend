@@ -1611,7 +1611,7 @@ class TestReglementPDFGeneration:
         client_api.force_authenticate(user=reglement_user)
 
         url = (
-            reverse("reglement:reglement-pdf", args=[reglement.id])
+            reverse("reglement:reglement-pdf-fr", args=[reglement.id])
             + f"?company_id={reglement_company.id}"
         )
         response = client_api.get(url)
@@ -1645,7 +1645,7 @@ class TestReglementPDFGeneration:
         client_api = APIClient()
         client_api.force_authenticate(user=reglement_user)
 
-        url = reverse("reglement:reglement-pdf", args=[reglement.id])
+        url = reverse("reglement:reglement-pdf-fr", args=[reglement.id])
         response = client_api.get(url)
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -1663,7 +1663,7 @@ class TestReglementPDFGeneration:
         client_api.force_authenticate(user=reglement_user)
 
         url = (
-            reverse("reglement:reglement-pdf", args=[99999])
+            reverse("reglement:reglement-pdf-fr", args=[99999])
             + f"?company_id={reglement_company.id}"
         )
         response = client_api.get(url)

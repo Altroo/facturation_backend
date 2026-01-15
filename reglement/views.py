@@ -143,7 +143,7 @@ class ReglementListCreateView(APIView):
                 _("Vous n'êtes pas autorisé à créer un règlement pour cette société.")
             )
 
-        # Check if user has create permission
+        # Check if user has created permission
         if not can_create(request.user, facture_client.client.company_id):
             raise PermissionDenied(
                 _("Vous n'avez pas les droits pour créer un règlement.")
@@ -237,7 +237,7 @@ class ReglementDetailEditDeleteView(APIView):
                 _("Vous n'êtes pas autorisé à supprimer ce règlement.")
             )
 
-        # Check if user has delete permission
+        # Check if user has deleted permission
         if not can_delete(request.user, reglement.facture_client.client.company_id):
             raise PermissionDenied(
                 _("Vous n'avez pas les droits pour supprimer ce règlement.")
@@ -589,7 +589,7 @@ class ReglementPDFView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
     @staticmethod
-    def get(request, pk, *args, **kwargs):
+    def get(request, pk: int, language: str = "fr", *args, **kwargs):
         """Generate and return PDF receipt for the reglement."""
         from core.permissions import can_print
 
@@ -611,5 +611,5 @@ class ReglementPDFView(APIView):
             )
 
         # Generate PDF
-        pdf_generator = ReglementPDFGenerator(reglement, company, "normal")
+        pdf_generator = ReglementPDFGenerator(reglement, company, "normal", language)
         return pdf_generator.generate_pdf()

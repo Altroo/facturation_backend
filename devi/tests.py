@@ -628,7 +628,7 @@ class TestDeviPDFGeneration:
         client_api.force_authenticate(user=devi_conv_user)
 
         url = (
-            reverse("devi:devi-pdf", args=[devi_conv_with_lines.id])
+            reverse("devi:devi-pdf-fr", args=[devi_conv_with_lines.id])
             + f"?company_id={devi_conv_company.id}"
         )
         response = client_api.get(url)
@@ -649,7 +649,7 @@ class TestDeviPDFGeneration:
         client_api = APIClient()
         client_api.force_authenticate(user=devi_conv_user)
 
-        url = reverse("devi:devi-pdf", args=[devi_conv_with_lines.id])
+        url = reverse("devi:devi-pdf-fr", args=[devi_conv_with_lines.id])
         response = client_api.get(url)
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -665,7 +665,7 @@ class TestDeviPDFGeneration:
         client_api.force_authenticate(user=devi_conv_user)
 
         url = (
-            reverse("devi:devi-pdf", args=[99999])
+            reverse("devi:devi-pdf-fr", args=[99999])
             + f"?company_id={devi_conv_company.id}"
         )
         response = client_api.get(url)
@@ -685,7 +685,7 @@ class TestDeviPDFGeneration:
         client_api.force_authenticate(user=devi_conv_user)
 
         url = (
-            reverse("devi:devi-pdf", args=[devi_conv_with_lines.id])
+            reverse("devi:devi-pdf-fr", args=[devi_conv_with_lines.id])
             + f"?company_id={devi_conv_company.id}&type=sans_remise"
         )
         response = client_api.get(url)
@@ -706,7 +706,7 @@ class TestDeviPDFGeneration:
         client_api.force_authenticate(user=devi_conv_user)
 
         url = (
-            reverse("devi:devi-pdf", args=[devi_conv_with_lines.id])
+            reverse("devi:devi-pdf-fr", args=[devi_conv_with_lines.id])
             + f"?company_id={devi_conv_company.id}&type=avec_unite"
         )
         response = client_api.get(url)
