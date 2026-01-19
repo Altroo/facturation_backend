@@ -17,7 +17,11 @@ from rest_framework.views import APIView
 from account.models import Membership
 from company.models import Company
 from core.authentication import JWTQueryParamAuthentication
-from core.pdf_utils import BasePDFGenerator, number_to_french_words
+from core.pdf_utils import (
+    BasePDFGenerator,
+    number_to_french_words,
+    number_to_english_words,
+)
 from core.permissions import can_create, can_update, can_delete
 from facturation_backend.utils import CustomPagination
 from facture_client.models import FactureClient
@@ -342,7 +346,7 @@ class ReglementPDFGenerator(BasePDFGenerator):
             textColor=colors.black,
             alignment=TA_CENTER,  # type: ignore[arg-type]
         )
-        title_para = Paragraph("REÇU DE RÈGLEMENT", title_style)
+        title_para = Paragraph(self._("PAYMENT RECEIPT"), title_style)
         title_box = Table([[title_para]], colWidths=[5.5 * cm])
         title_box.setStyle(
             TableStyle(
@@ -403,27 +407,32 @@ class ReglementPDFGenerator(BasePDFGenerator):
 
         # Amount and price in words
         amount = self.document.montant
-        price_in_words = number_to_french_words(amount)
+        if self.language == "en":
+            price_in_words = number_to_english_words(amount)
+        else:
+            price_in_words = number_to_french_words(amount)
 
         # Create info table
         info_data = [
             [
-                Paragraph("<b>Date :</b>", self.styles["CustomNormal"]),
+                Paragraph(f"<b>{self._('Date')} :</b>", self.styles["CustomNormal"]),
                 Paragraph(date_text, self.styles["CustomNormal"]),
             ],
             [
-                Paragraph("<b>Reçu de :</b>", self.styles["CustomNormal"]),
+                Paragraph(
+                    f"<b>{self._('Received from')} :</b>", self.styles["CustomNormal"]
+                ),
                 Paragraph(client_name, self.styles["CustomNormal"]),
             ],
             [
-                Paragraph("<b>Pour :</b>", self.styles["CustomNormal"]),
+                Paragraph(f"<b>{self._('For')} :</b>", self.styles["CustomNormal"]),
                 Paragraph(
-                    f"Règlement de la facture N° {facture_ref}",
+                    f"{self._('Payment of invoice')} N° {facture_ref}",
                     self.styles["CustomNormal"],
                 ),
             ],
             [
-                Paragraph("<b>La somme de :</b>", self.styles["CustomNormal"]),
+                Paragraph(f"<b>{self._('Amount')} :</b>", self.styles["CustomNormal"]),
                 Paragraph(f"{amount:.2f} MAD", self.styles["CustomNormal"]),
             ],
         ]
@@ -433,7 +442,8 @@ class ReglementPDFGenerator(BasePDFGenerator):
             info_data.append(
                 [
                     Paragraph(
-                        "<b>Mode de règlement :</b>", self.styles["CustomNormal"]
+                        f"<b>{self._('Payment method')} :</b>",
+                        self.styles["CustomNormal"],
                     ),
                     Paragraph(
                         self.document.mode_reglement.nom, self.styles["CustomNormal"]
@@ -463,7 +473,7 @@ class ReglementPDFGenerator(BasePDFGenerator):
         price_box_data = [
             [
                 Paragraph(
-                    f"<b>Soit :</b> {price_in_words}",
+                    f"<b>{self._('Being')} :</b> {price_in_words}",
                     self.styles["PriceWords"],
                 )
             ]
@@ -488,7 +498,11 @@ class ReglementPDFGenerator(BasePDFGenerator):
 
         # Libellé
         if self.document.libelle:
-            elements.append(Paragraph("<b>Libellé :</b>", self.styles["CustomNormal"]))
+            elements.append(
+                Paragraph(
+                    f"<b>{self._('Description')} :</b>", self.styles["CustomNormal"]
+                )
+            )
             elements.append(
                 Paragraph(self.document.libelle, self.styles["CustomSmall"])
             )
@@ -502,7 +516,10 @@ class ReglementPDFGenerator(BasePDFGenerator):
             signature_data = [
                 [
                     "",
-                    Paragraph("<b>Signature et cachet</b>", self.styles["CustomRight"]),
+                    Paragraph(
+                        f"<b>{self._('Signature and stamp')}</b>",
+                        self.styles["CustomRight"],
+                    ),
                 ],
                 ["", cachet_img],
             ]
@@ -523,7 +540,10 @@ class ReglementPDFGenerator(BasePDFGenerator):
             signature_data = [
                 [
                     "",
-                    Paragraph("<b>Signature et cachet</b>", self.styles["CustomRight"]),
+                    Paragraph(
+                        f"<b>{self._('Signature and stamp')}</b>",
+                        self.styles["CustomRight"],
+                    ),
                 ],
                 ["", Spacer(1, 2 * cm)],
             ]
@@ -569,17 +589,17 @@ class ReglementPDFGenerator(BasePDFGenerator):
 
     def _get_filename(self) -> str:
         """Get PDF filename for reglement receipt."""
-        return f"recu_reglement_{self.document.id}.pdf"
+        return f"{self._('receipt')}_{self.document.id}.pdf"
 
     def _get_pdf_title(self) -> str:
         """Get PDF document title for metadata."""
         client_name = (
             self.document.facture_client.client.raison_sociale
             if self.document.facture_client.client.raison_sociale
-            else "Client"
+            else self._("Client")
         )
         facture_numero = self.document.facture_client.numero_facture
-        return f"Reçu de Règlement - Facture {facture_numero} - {client_name}"
+        return f"{self._('Payment Receipt')} - {self._('Invoice')} {facture_numero} - {client_name}"
 
 
 class ReglementPDFView(APIView):

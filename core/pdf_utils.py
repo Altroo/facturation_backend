@@ -141,11 +141,39 @@ def number_to_french_words(number: Decimal) -> str:
 def number_to_english_words(number: Decimal) -> str:
     """Convert a number to English words."""
     units = [
-        "", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
-        "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen",
-        "seventeen", "eighteen", "nineteen"
+        "",
+        "one",
+        "two",
+        "three",
+        "four",
+        "five",
+        "six",
+        "seven",
+        "eight",
+        "nine",
+        "ten",
+        "eleven",
+        "twelve",
+        "thirteen",
+        "fourteen",
+        "fifteen",
+        "sixteen",
+        "seventeen",
+        "eighteen",
+        "nineteen",
     ]
-    tens = ["", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"]
+    tens = [
+        "",
+        "",
+        "twenty",
+        "thirty",
+        "forty",
+        "fifty",
+        "sixty",
+        "seventy",
+        "eighty",
+        "ninety",
+    ]
 
     def convert_below_100(n: int) -> str:
         if n < 20:
@@ -298,10 +326,28 @@ class BasePDFGenerator:
                 "Delivery_Amount_Words": "ARRÊTÉ LE PRÉSENT BON DE LIVRAISON À LA SOMME DE",
                 "Delivery": "Bon de Livraison",
                 "delivery": "bon_de_livraison",
+                # Reglement specific
+                "PAYMENT RECEIPT": "REÇU DE RÈGLEMENT",
+                "Received from": "Reçu de",
+                "For": "Pour",
+                "Payment of invoice": "Règlement de la facture",
+                "Amount": "La somme de",
+                "Payment method": "Mode de règlement",
+                "Being": "Soit",
+                "Description": "Libellé",
+                "Signature and stamp": "Signature et cachet",
+                "Payment Receipt": "Reçu de Règlement",
+                "receipt": "recu_reglement",
                 # Default remarks
-                "Quote_Default_Remarks": "Ce devis est valable 30 jours à compter de sa date d'émission.\nSon approbation doit être confirmée par un accord écrit du client.\nLa commande ne sera traitée qu'après réception d'un acompte de 50% du montant total.",
-                "Invoice_Default_Remarks": "Cette facture est payable à réception.\nTout retard de paiement entraînera des pénalités de retard.",
-                "Proforma_Default_Remarks": "Cette facture pro-forma est valable 30 jours à compter de sa date d'émission.\nElle ne constitue pas une facture définitive et n'a pas de valeur comptable.",
+                "Quote_Default_Remarks": "Ce devis est valable 30 jours à compter de sa date d'émission.\n"
+                "Son approbation doit être confirmée par un accord écrit du client.\n"
+                "La commande ne sera traitée qu'après réception d'un acompte de 50% "
+                "du montant total.",
+                "Invoice_Default_Remarks": "Cette facture est payable à réception.\nTout retard de paiement "
+                "entraînera des pénalités de retard.",
+                "Proforma_Default_Remarks": "Cette facture pro-forma est valable 30 jours à compter de sa date "
+                "d'émission.\nElle ne constitue pas une facture définitive et n'a "
+                "pas de valeur comptable.",
             },
             "en": {
                 # Common terms
@@ -354,10 +400,28 @@ class BasePDFGenerator:
                 "Delivery_Number": "DELIVERY NOTE NO.",
                 "Delivery_Date": "DELIVERY NOTE DATE:",
                 "Delivery_Issued_By": "DELIVERY NOTE ISSUED BY",
-                "Delivery_Amount_Words": "THIS DELIVERY NOTE IS SET AT THE AMOUNT OF",                # Default remarks
-                "Quote_Default_Remarks": "This quote is valid for 30 days from its date of issue.\nIts approval must be confirmed by a written agreement from the client.\nThe order will only be processed after receipt of a 50% deposit of the total amount.",
-                "Invoice_Default_Remarks": "This invoice is payable upon receipt.\nAny delay in payment will result in late payment penalties.",
-                "Proforma_Default_Remarks": "This pro-forma invoice is valid for 30 days from its date of issue.\nIt does not constitute a final invoice and has no accounting value.",            },
+                "Delivery_Amount_Words": "THIS DELIVERY NOTE IS SET AT THE AMOUNT OF",  # Reglement specific
+                "PAYMENT RECEIPT": "PAYMENT RECEIPT",
+                "Received from": "Received from",
+                "For": "For",
+                "Payment of invoice": "Payment of invoice",
+                "Amount": "Amount",
+                "Payment method": "Payment method",
+                "Being": "Being",
+                "Description": "Description",
+                "Signature and stamp": "Signature and stamp",
+                "Payment Receipt": "Payment Receipt",
+                "receipt": "payment_receipt",
+                # Default remarks
+                "Quote_Default_Remarks": "This quote is valid for 30 days from its date of issue.\n"
+                "Its approval must be confirmed by a written agreement "
+                "from the client.\nThe order will only be processed after "
+                "receipt of a 50% deposit of the total amount.",
+                "Invoice_Default_Remarks": "This invoice is payable upon receipt.\n"
+                "Any delay in payment will result in late payment penalties.",
+                "Proforma_Default_Remarks": "This pro-forma invoice is valid for 30 days from its date of issue.\n"
+                "It does not constitute a final invoice and has no accounting value.",
+            },
         }
 
     def _(self, key: str) -> str:
@@ -488,7 +552,7 @@ class BasePDFGenerator:
         )
 
     def _get_logo_image(
-        self, width: float = 3.5 * cm, height: float = 2 * cm
+        self, width: float = 4 * cm, height: float = 4 * cm
     ) -> Optional[Image]:
         """Get company logo as reportlab Image."""
         if self.company.logo:
@@ -601,7 +665,9 @@ class BasePDFGenerator:
         tel = self.company.telephone if self.company.telephone else "-"
         site = self.company.site_web if self.company.site_web else "-"
 
-        footer_text = f"{raison} - {self._('Phone')}: {tel} - {self._('Website')}: {site}"
+        footer_text = (
+            f"{raison} - {self._('Phone')}: {tel} - {self._('Website')}: {site}"
+        )
 
         page_num = canvas.getPageNumber()
         total = getattr(self, "total_pages", 1)
@@ -854,21 +920,27 @@ class BasePDFGenerator:
 
         # Totals rows
         total_ht_row = [Paragraph("", self.styles["CustomSmall"])] * num_cols
-        total_ht_row[-2] = Paragraph(f"<b>{self._('Total_HT_Label')}</b>", self.styles["CustomSmall"])
+        total_ht_row[-2] = Paragraph(
+            f"<b>{self._('Total_HT_Label')}</b>", self.styles["CustomSmall"]
+        )
         total_ht_row[-1] = Paragraph(
             f"{self.document.total_ht:.2f} MAD", self.styles["CustomSmall"]
         )
         table_data.append(total_ht_row)
 
         tva_row = [Paragraph("", self.styles["CustomSmall"])] * num_cols
-        tva_row[-2] = Paragraph(f"<b>{self._('Total_TVA_Label')}</b>", self.styles["CustomSmall"])
+        tva_row[-2] = Paragraph(
+            f"<b>{self._('Total_TVA_Label')}</b>", self.styles["CustomSmall"]
+        )
         tva_row[-1] = Paragraph(
             f"{self.document.total_tva:.2f} MAD", self.styles["CustomSmall"]
         )
         table_data.append(tva_row)
 
         total_ttc_row = [Paragraph("", self.styles["CustomSmall"])] * num_cols
-        total_ttc_row[-2] = Paragraph(f"<b>{self._('Total_TTC_Label')}</b>", self.styles["CustomSmall"])
+        total_ttc_row[-2] = Paragraph(
+            f"<b>{self._('Total_TTC_Label')}</b>", self.styles["CustomSmall"]
+        )
         total_ttc_row[-1] = Paragraph(
             f"{self.document.total_ttc:.2f} MAD", self.styles["CustomSmall"]
         )
@@ -881,7 +953,11 @@ class BasePDFGenerator:
                 remise_text = f"{self.document.remise:.2f}%"
             else:
                 remise_text = f"{self.document.remise:.2f} MAD"
-            remise_type_label = self._("Percentage") if self.document.remise_type == "Pourcentage" else self._("Fixed")
+            remise_type_label = (
+                self._("Percentage")
+                if self.document.remise_type == "Pourcentage"
+                else self._("Fixed")
+            )
             remise_row[-2] = Paragraph(
                 f"<b>{self._('Discount_Label')} ({remise_type_label})</b>",
                 self.styles["CustomSmall"],
@@ -891,7 +967,8 @@ class BasePDFGenerator:
 
             final_row = [Paragraph("", self.styles["CustomSmall"])] * num_cols
             final_row[-2] = Paragraph(
-                f"<b>{self._('Total_TTC_After_Discount')}</b>", self.styles["CustomSmall"]
+                f"<b>{self._('Total_TTC_After_Discount')}</b>",
+                self.styles["CustomSmall"],
             )
             final_row[-1] = Paragraph(
                 f"{self.document.total_ttc_apres_remise:.2f} MAD",
