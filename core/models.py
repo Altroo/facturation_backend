@@ -26,7 +26,7 @@ class BaseDeviFactureDocument(models.Model):
         ("Expiré", "Expiré"),
     ]
 
-    client = models.ForeignKey(Client, on_delete=models.CASCADE, verbose_name="Client")
+    client = models.ForeignKey(Client, on_delete=models.PROTECT, verbose_name="Client")
 
     mode_paiement = models.ForeignKey(
         ModePaiement,

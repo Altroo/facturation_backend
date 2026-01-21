@@ -40,6 +40,16 @@ class BaseListSerializer(serializers.ModelSerializer):
     def get_lignes_count(obj):
         return obj.lignes.count()
 
+    def to_representation(self, instance):
+        """Handle None related objects gracefully."""
+        representation = super().to_representation(instance)
+
+        # Handle None mode_paiement
+        if instance.mode_paiement is None:
+            representation["mode_paiement_name"] = None
+
+        return representation
+
     class Meta:
         abstract = True
 
@@ -75,6 +85,20 @@ class BaseDetailSerializer(serializers.ModelSerializer):
                 or obj.created_by_user.email
             )
         return None
+
+    def to_representation(self, instance):
+        """Handle None related objects gracefully."""
+        representation = super().to_representation(instance)
+
+        # Handle None mode_paiement
+        if instance.mode_paiement is None:
+            representation["mode_paiement_name"] = None
+
+        # Handle None created_by_user
+        if instance.created_by_user is None:
+            representation["created_by_user_id"] = None
+
+        return representation
 
     def validate(self, data):
         """

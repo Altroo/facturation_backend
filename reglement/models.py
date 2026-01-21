@@ -19,7 +19,7 @@ class Reglement(models.Model):
 
     facture_client = models.ForeignKey(
         FactureClient,
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         related_name="reglements",
         verbose_name="Facture Client",
         db_index=True,
