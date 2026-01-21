@@ -26,7 +26,7 @@ class BaseDeviFactureDocument(models.Model):
         ("Expiré", "Expiré"),
     ]
 
-    client = models.ForeignKey(Client, on_delete=models.CASCADE, verbose_name="Client")
+    client = models.ForeignKey(Client, on_delete=models.PROTECT, verbose_name="Client")
 
     mode_paiement = models.ForeignKey(
         ModePaiement,
@@ -283,3 +283,36 @@ def create_line_signal_receiver(parent_field_name):
             )
 
     return handler
+
+
+class DocumentNumberSequence(models.Model):
+    """
+    Tracks document number sequences per type and year.
+    Ensures atomic, race-condition-free document number generation.
+    """
+    document_type = models.CharField(
+        max_length=20,
+        verbose_name="Type de document",
+        help_text="Type: devis, facture_proforma, facture_client, bon_de_livraison"
+    )
+    year = models.IntegerField(
+        verbose_name="Année",
+        help_text="Année complète (ex: 2025)"
+    )
+    last_number = models.IntegerField(
+        default=0,
+        verbose_name="Dernier numéro",
+        help_text="Dernier numéro séquentiel généré"
+    )
+
+    class Meta:
+        db_table = 'core_document_number_sequence'
+        verbose_name = "Séquence de numérotation"
+        verbose_name_plural = "Séquences de numérotation"
+        unique_together = [('document_type', 'year')]
+        indexes = [
+            models.Index(fields=['document_type', 'year']),
+        ]
+
+    def __str__(self):
+        return f"{self.document_type}/{self.year}: {self.last_number}"

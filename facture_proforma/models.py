@@ -93,7 +93,7 @@ class FactureProFormaLine(BaseDeviFactureLine):
     )
 
     article = models.ForeignKey(
-        Article, on_delete=models.CASCADE, verbose_name="Article"
+        Article, on_delete=models.PROTECT, verbose_name="Article"
     )
 
     history = HistoricalRecords()
