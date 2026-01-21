@@ -7,8 +7,7 @@ from sys import platform
 from celery import current_app
 from dj_rest_auth.views import LoginView as Dj_rest_login
 from dj_rest_auth.views import LogoutView as Dj_rest_logout
-from django.core.exceptions import SuspiciousFileOperation, ValidationError as DjangoValidationError
-from django.core.validators import validate_email
+from django.core.exceptions import SuspiciousFileOperation
 from django.db import transaction
 from django.http import Http404
 from django.template.loader import render_to_string
@@ -47,17 +46,7 @@ class CheckEmailView(APIView):
     }
 
     def post(self, request, *args, **kwargs):
-        email = request.data.get("email")
-        if not email:
-            raise ValidationError({"email": ["L'adresse électronique est requise."]})
-
-        email = str(email).strip().lower()
-
-        try:
-            validate_email(email)
-        except DjangoValidationError:
-            raise ValidationError({"email": ["Entrez une adresse électronique valide."]})
-
+        email = str(request.data.get("email")).lower()
         try:
             CustomUser.objects.get(email=email)
             raise ValidationError(self.errors)
@@ -113,17 +102,7 @@ class PasswordResetView(APIView):
     errors = {"error": ["Utilisateur ou code verification invalide."]}
 
     def get(self, request, *args, **kwargs):
-        email = kwargs.get("email")
-        if not email:
-            raise ValidationError({"email": ["L'adresse électronique est requise."]})
-
-        email = str(email).strip().lower()
-
-        try:
-            validate_email(email)
-        except DjangoValidationError:
-            raise ValidationError({"email": ["Entrez une adresse électronique valide."]})
-
+        email = str(kwargs.get("email")).lower()
         code = kwargs.get("code")
 
         try:
@@ -192,24 +171,11 @@ class SendPasswordResetView(APIView):
     errors = {"email": ["Aucun compte existant utilisant cette adresse éléctronique."]}
 
     @staticmethod
-    def generate_random_code(length=8):
-        # Use alphanumeric for 62^8 = 218 trillion combinations
-        # vs previous 10^4 = 10,000 combinations
-        characters = digits + ascii_letters
-        return "".join(choice(characters) for _ in range(length))
+    def generate_random_code(length=4):
+        return "".join(choice(digits) for _ in range(length))
 
     def post(self, request, *args, **kwargs):
-        email = request.data.get("email")
-        if not email:
-            raise ValidationError({"email": ["L'adresse électronique est requise."]})
-
-        email = str(email).strip().lower()
-
-        try:
-            validate_email(email)
-        except DjangoValidationError:
-            raise ValidationError({"email": ["Entrez une adresse électronique valide."]})
-
+        email = str(request.data.get("email")).lower()
         try:
             user = CustomUser.objects.get(email=email)
             if user.email is not None:
@@ -393,7 +359,7 @@ class UsersListCreateView(APIView):
             mail_subject = "Invitation (Facturation Casa Di Lusso)"
             mail_template = "new_account.html"
             message = render_to_string(
-                mail_template, {"first_name": user.first_name, "password": password}
+                mail_template, {"fist_name": user.first_name, "password": password}
             )
             send_email.apply_async(
                 (user.pk, user.email, mail_subject, message),

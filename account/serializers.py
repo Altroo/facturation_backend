@@ -32,16 +32,6 @@ class MembershipSerializer(serializers.ModelSerializer):
         model = Membership
         fields = ["membership_id", "company_id", "role", "raison_sociale"]
 
-    def to_representation(self, instance):
-        """Handle None company gracefully."""
-        representation = super().to_representation(instance)
-
-        # Handle None company
-        if instance.company is None:
-            representation["raison_sociale"] = None
-
-        return representation
-
     @staticmethod
     def _get_role(role_name: str) -> Role:
         """Return the Role instance matching the supplied name."""
@@ -173,51 +163,15 @@ class CreateAccountSerializer(serializers.ModelSerializer):
         # If it's base64 data, process it
         if isinstance(field_value, str) and field_value.startswith("data:image"):
             try:
-                # Validate format before splitting
-                if ";base64," not in field_value:
-                    raise serializers.ValidationError(
-                        f"Format d'image base64 invalide pour {field_name}"
-                    )
-
-                # Use maxsplit=1 to handle edge cases
-                parts = field_value.split(";base64,", 1)
-                if len(parts) != 2:
-                    raise serializers.ValidationError(
-                        f"Données base64 mal formées pour {field_name}"
-                    )
-
-                format_, imgstr = parts
-
-                # Validate MIME type
-                if not format_.startswith("data:image/"):
-                    raise serializers.ValidationError(
-                        f"Type MIME d'image invalide pour {field_name}"
-                    )
-
-                # Validate base64 size before decoding (15MB limit)
-                max_base64_length = 15 * 1024 * 1024  # 15MB base64 ≈ 11MB decoded
-                if len(imgstr) > max_base64_length:
-                    raise serializers.ValidationError(
-                        f"Image trop grande pour {field_name}: {len(imgstr)} octets (max {max_base64_length}). "
-                        "Veuillez télécharger une image plus petite."
-                    )
-
+                # Extract format and base64 data
+                format_, imgstr = field_value.split(";base64,")
                 # Decode base64
-                try:
-                    data = b64decode(imgstr)
-                except Exception as decode_error:
-                    raise serializers.ValidationError(
-                        f"Encodage base64 invalide pour {field_name}: {str(decode_error)}"
-                    )
-
+                data = b64decode(imgstr)
                 # Convert to WebP (pass as bytes)
                 return ImageProcessor.convert_to_webp(data)
-
-            except serializers.ValidationError:
-                raise  # Re-raise validation errors
             except Exception as e:
                 raise serializers.ValidationError(
-                    f"Données d'image base64 invalides pour {field_name}: {str(e)}"
+                    f"Invalid base64 image data for {field_name}: {str(e)}"
                 )
         # If we get here, it's an unexpected format
         raise serializers.ValidationError(f"Invalid image format for {field_name}")
@@ -415,56 +369,18 @@ class ProfilePutSerializer(serializers.ModelSerializer):
         # Base64 data
         if isinstance(field_value, str) and field_value.startswith("data:image"):
             try:
-                # Validate format before splitting
-                if ";base64," not in field_value:
-                    raise serializers.ValidationError(
-                        f"Format d'image base64 invalide pour {field_name}"
-                    )
-
-                # Use maxsplit=1 to handle edge cases
-                parts = field_value.split(";base64,", 1)
-                if len(parts) != 2:
-                    raise serializers.ValidationError(
-                        f"Données base64 mal formées pour {field_name}"
-                    )
-
-                format_, imgstr = parts
-
-                # Validate MIME type
-                if not format_.startswith("data:image/"):
-                    raise serializers.ValidationError(
-                        f"Type MIME d'image invalide pour {field_name}"
-                    )
-
-                # Validate base64 size before decoding (15MB limit)
-                max_base64_length = 15 * 1024 * 1024  # 15MB base64 ≈ 11MB decoded
-                if len(imgstr) > max_base64_length:
-                    raise serializers.ValidationError(
-                        f"Image trop grande pour {field_name}: {len(imgstr)} octets (max {max_base64_length}). "
-                        "Veuillez télécharger une image plus petite."
-                    )
-
-                # Decode base64
-                try:
-                    data = b64decode(imgstr)
-                except Exception as decode_error:
-                    raise serializers.ValidationError(
-                        f"Encodage base64 invalide pour {field_name}: {str(decode_error)}"
-                    )
-
+                format_, imgstr = field_value.split(";base64,")
+                data = b64decode(imgstr)
                 # Convert to WebP
                 webp_file = ImageProcessor.convert_to_webp(data)
                 # Return WebP file and original bytes for Celery processing
                 return webp_file, BytesIO(data), False
-
-            except serializers.ValidationError:
-                raise  # Re-raise validation errors
             except Exception as e:
                 raise serializers.ValidationError(
-                    f"Données d'image base64 invalides pour {field_name}: {str(e)}"
+                    f"Invalid base64 image data for {field_name}: {str(e)}"
                 )
 
-        raise serializers.ValidationError(f"Format d'image invalide pour {field_name}")
+        raise serializers.ValidationError(f"Invalid image format for {field_name}")
 
     def update(self, instance, validated_data):
         """Handle avatar/avatar_cropped upload and removal."""
