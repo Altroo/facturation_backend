@@ -17,6 +17,11 @@ COPY . .
 # Collect static files for WhiteNoise
 RUN python manage.py collectstatic --noinput
 
+# Create non-root user
+RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
+
+USER appuser
+
 EXPOSE 8000
 
 CMD ["daphne", "-b", "0.0.0.0", "-p" , "8000", "facturation_backend.asgi:application"]
