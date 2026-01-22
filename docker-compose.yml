@@ -53,7 +53,7 @@ services:
   celery:
     build: .
     restart: always
-    command: celery -A facturation_backend worker --loglevel=info -E -P gevent
+    command: celery -A facturation_backend worker --loglevel=info --concurrency=32 -E -P gevent
     depends_on:
       - db
       - redis
