@@ -1,10 +1,13 @@
 services:
   redis:
     image: redis:latest
-    ports:
-      - "6379:6379"
+    restart: always
+    expose:
+      - "6379"
     volumes:
       - redis_data:/data
+    networks:
+      - backend
     healthcheck:
       test: [ "CMD", "redis-cli", "ping" ]
       interval: 10s
@@ -13,19 +16,22 @@ services:
 
   web:
     build: .
+    restart: always
     command: daphne -b 0.0.0.0 -p 8000 facturation_backend.asgi:application
     volumes:
-      - .:/app
       - static_volume:/app/static
-    ports:
-      - "8000:8000"
+      - media_volume:/app/media
+    expose:
+      - "8000"
     env_file:
       - .env
     depends_on:
       - db
       - redis
+    networks:
+      - backend
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8000/" ]
+      test: [ "CMD-SHELL", "python -c 'import urllib.request; urllib.request.urlopen(\"http://localhost:8000\")'" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -33,48 +39,39 @@ services:
 
   db:
     image: postgres:18
+    restart: always
+    expose:
+      - "5432"
     env_file:
       - .env
     volumes:
-      - postgres_data:/var/lib/postgresql
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - backend
 
   celery:
     build: .
+    restart: always
     command: celery -A facturation_backend worker --loglevel=info -E -P gevent
-    volumes:
-      - .:/app
     depends_on:
       - db
       - redis
     env_file:
       - .env
+    networks:
+      - backend
     environment:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
 
-  makemigrations:
-    build: .
-    command: python manage.py makemigrations --noinput
-    depends_on:
-      - db
-    env_file:
-      - .env
-    volumes:
-      - .:/app
-
-  migrate:
-    build: .
-    command: python manage.py migrate --noinput
-    depends_on:
-      - db
-    env_file:
-      - .env
-    volumes:
-      - .:/app
-
 volumes:
   static_volume:
+  media_volume:
   postgres_data:
   redis_data:
+
+networks:
+  backend:
+    driver: bridge
 
 
