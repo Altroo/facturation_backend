@@ -1,4 +1,5 @@
 # Production docker-compose configuration
+
 services:
   redis:
     image: redis:latest
