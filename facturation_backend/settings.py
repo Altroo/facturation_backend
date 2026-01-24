@@ -36,6 +36,9 @@ CSRF_TRUSTED_ORIGINS = config(
     default="http://127.0.0.1,http://localhost"
 ).split(",")
 
+# Trust proxy headers for HTTPS detection (required for proper media URLs behind reverse proxy)
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -247,7 +250,7 @@ ACCOUNT_AUTHENTICATION_METHOD = "email"
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_EMAIL_VERIFICATION = "none"
 ACCOUNT_MAX_EMAIL_ADDRESSES = 1
-ACCOUNT_DEFAULT_HTTP_PROTOCOL = "http"
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = config("ACCOUNT_DEFAULT_HTTP_PROTOCOL", default="https")
 
 # Email settings
 EMAIL_BACKEND = config("EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend")
