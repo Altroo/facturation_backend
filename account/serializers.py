@@ -2,7 +2,7 @@ from base64 import b64decode
 from io import BytesIO
 from os import remove
 from pathlib import Path
-
+from django.conf import settings
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied
@@ -195,7 +195,7 @@ class CreateAccountSerializer(serializers.ModelSerializer):
                     )
 
                 # Validate base64 size before decoding (15MB limit)
-                max_base64_length = 15 * 1024 * 1024  # 15MB base64 ≈ 11MB decoded
+                max_base64_length = getattr(settings, 'MAX_BASE64_IMAGE_SIZE', 15 * 1024 * 1024)
                 if len(imgstr) > max_base64_length:
                     raise serializers.ValidationError(
                         f"Image trop grande pour {field_name}: {len(imgstr)} octets (max {max_base64_length}). "
@@ -437,7 +437,7 @@ class ProfilePutSerializer(serializers.ModelSerializer):
                     )
 
                 # Validate base64 size before decoding (15MB limit)
-                max_base64_length = 15 * 1024 * 1024  # 15MB base64 ≈ 11MB decoded
+                max_base64_length = getattr(settings, 'MAX_BASE64_IMAGE_SIZE', 15 * 1024 * 1024)
                 if len(imgstr) > max_base64_length:
                     raise serializers.ValidationError(
                         f"Image trop grande pour {field_name}: {len(imgstr)} octets (max {max_base64_length}). "
