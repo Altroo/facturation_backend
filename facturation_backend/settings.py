@@ -104,7 +104,11 @@ TEMPLATES = [
     },
 ]
 
-CORS_ORIGIN_WHITELIST = ("http://localhost:3000",)
+CORS_ALLOWED_ORIGINS = config(
+    "CORS_ALLOWED_ORIGINS",
+    default="http://localhost:3000"
+).split(",")
+CORS_ALLOW_CREDENTIALS = True
 
 ASGI_APPLICATION = "facturation_backend.asgi.application"
 WSGI_APPLICATION = "facturation_backend.wsgi.application"
