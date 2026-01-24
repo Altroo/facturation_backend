@@ -35,7 +35,6 @@ class CompanyListCreateView(APIView):
         pagination = request.query_params.get("pagination", "false").lower() == "true"
         # Only show companies where user has isAdmin membership
         queryset = Company.objects.filter(
-            memberships__user=request.user,
             memberships__user__is_staff=True,
             suspended=False,
         )
