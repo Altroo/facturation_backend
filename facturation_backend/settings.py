@@ -30,6 +30,12 @@ DEBUG = config("DEBUG", cast=bool, default=False)
 
 ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="127.0.0.1,localhost").split(",")
 
+# CSRF trusted origins for production
+CSRF_TRUSTED_ORIGINS = config(
+    "CSRF_TRUSTED_ORIGINS",
+    default="http://127.0.0.1,http://localhost"
+).split(",")
+
 # Application definition
 
 INSTALLED_APPS = [
