@@ -20,13 +20,18 @@ class Devi(BaseDeviFactureDocument):
         help_text="Format ex: 0001/25",
     )
 
-    date_devis = models.DateField(verbose_name="Date du devis", db_index=True)
+    date_devis = models.DateField(
+        verbose_name="Date du devis",
+        db_index=True,
+        help_text="Date d'émission du devis",
+    )
 
     numero_demande_prix_client = models.CharField(
         max_length=50,
         verbose_name="Numéro de la demande de prix du client",
         blank=True,
         null=True,
+        help_text="Numéro de la demande de prix du client (optionnel)",
     )
 
     history = HistoricalRecords()
@@ -130,11 +135,18 @@ class Devi(BaseDeviFactureDocument):
 
 class DeviLine(BaseDeviFactureLine):
     devis = models.ForeignKey(
-        Devi, on_delete=models.CASCADE, related_name="lignes", verbose_name="Devis"
+        Devi,
+        on_delete=models.CASCADE,
+        related_name="lignes",
+        verbose_name="Devis",
+        help_text="Document Devis parent associé à cette ligne",
     )
 
     article = models.ForeignKey(
-        Article, on_delete=models.PROTECT, verbose_name="Article"
+        Article,
+        on_delete=models.PROTECT,
+        verbose_name="Article",
+        help_text="Article associé à cette ligne de devis",
     )
 
     history = HistoricalRecords()

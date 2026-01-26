@@ -42,7 +42,7 @@ class Migration(migrations.Migration):
             options={
                 "verbose_name": "Role",
                 "verbose_name_plural": "Roles",
-                "ordering": ("-is_admin", "name"),
+                "ordering": ("name",),
             },
         ),
         # Step 2: Add nullable new_role field to Membership

@@ -127,7 +127,7 @@ def reglement_obj(reglement_facture_with_lines, reglement_mode_reglement):
 @pytest.fixture
 def reglement_membership(reglement_user, reglement_company):
     caissier_role, _ = Role.objects.get_or_create(
-        name="Caissier", defaults={"is_admin": True}
+        name="Caissier",
     )
     return Membership.objects.create(
         user=reglement_user, company=reglement_company, role=caissier_role
@@ -285,7 +285,7 @@ class TestReglementAPI:
             raison_sociale="API Company", ICE="API-1234"
         )
         self.caissier_role, _ = Role.objects.get_or_create(
-            name="Caissier", defaults={"is_admin": True}
+            name="Caissier",
         )
         Membership.objects.create(
             user=self.user, company=self.company, role=self.caissier_role
@@ -770,7 +770,7 @@ class TestReglementFilters:
         self.ville = Ville.objects.create(nom="FilterVille")
         self.company = Company.objects.create(raison_sociale="FilterCo", ICE="FILTCO")
         self.caissier_role, _ = Role.objects.get_or_create(
-            name="Caissier", defaults={"is_admin": True}
+            name="Caissier",
         )
         Membership.objects.create(
             user=self.user, company=self.company, role=self.caissier_role
@@ -1335,7 +1335,7 @@ class TestReglementFactureStatusValidation:
             raison_sociale="Status Company", ICE="STATUS-1234"
         )
         self.caissier_role, _ = Role.objects.get_or_create(
-            name="Caissier", defaults={"is_admin": True}
+            name="Caissier",
         )
         Membership.objects.create(
             user=self.user, company=self.company, role=self.caissier_role
@@ -1591,7 +1591,7 @@ class TestReglementPDFGeneration:
     ):
         """Test generating PDF for a règlement."""
         caissier_role, _ = Role.objects.get_or_create(
-            name="Caissier", defaults={"is_admin": True}
+            name="Caissier",
         )
         Membership.objects.create(
             user=reglement_user, company=reglement_company, role=caissier_role
@@ -1629,7 +1629,7 @@ class TestReglementPDFGeneration:
     ):
         """Test PDF fails without company_id."""
         caissier_role, _ = Role.objects.get_or_create(
-            name="Caissier", defaults={"is_admin": True}
+            name="Caissier",
         )
         Membership.objects.create(
             user=reglement_user, company=reglement_company, role=caissier_role
@@ -1653,7 +1653,7 @@ class TestReglementPDFGeneration:
     def test_pdf_not_found(self, reglement_user, reglement_company):
         """Test PDF fails for non-existent règlement."""
         caissier_role, _ = Role.objects.get_or_create(
-            name="Caissier", defaults={"is_admin": True}
+            name="Caissier",
         )
         Membership.objects.create(
             user=reglement_user, company=reglement_company, role=caissier_role

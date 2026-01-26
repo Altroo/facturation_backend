@@ -31,7 +31,7 @@ class BaseAPITest:
 
         # Create company and Caissier role membership
         self.caissier_role, _ = Role.objects.get_or_create(
-            name="Caissier", defaults={"is_admin": True}
+            name="Caissier",
         )
         self.company = Company.objects.create(
             raison_sociale="TestCompany", ICE="ICE123", nbr_employe="1 à 5"

@@ -11,23 +11,23 @@ def create_roles_and_migrate_data(apps, schema_editor):
 
     # Create new roles
     admin_role, _ = role_obj.objects.get_or_create(
-        name="Admin", defaults={"is_admin": True}
+        name="Admin",
     )
 
     caissier_role, _ = role_obj.objects.get_or_create(
-        name="Caissier", defaults={"is_admin": False}
+        name="Caissier",
     )
 
     comptable_role, _ = role_obj.objects.get_or_create(
-        name="Comptable", defaults={"is_admin": False}
+        name="Comptable",
     )
 
     commercial_role, _ = role_obj.objects.get_or_create(
-        name="Commercial", defaults={"is_admin": False}
+        name="Commercial",
     )
 
     lecture_role, _ = role_obj.objects.get_or_create(
-        name="Lecture", defaults={"is_admin": False}
+        name="Lecture",
     )
 
     # Map old Group names to new Roles

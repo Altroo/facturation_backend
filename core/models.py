@@ -26,22 +26,34 @@ class BaseDeviFactureDocument(models.Model):
         ("Expiré", "Expiré"),
     ]
 
-    client = models.ForeignKey(Client, on_delete=models.PROTECT, verbose_name="Client")
+    client = models.ForeignKey(
+        Client,
+        on_delete=models.PROTECT,
+        verbose_name="Client",
+        help_text="Client associé au document",
+    )
 
     mode_paiement = models.ForeignKey(
         ModePaiement,
         on_delete=models.SET_NULL,
         null=True,
         verbose_name="Mode de paiement",
+        help_text="Mode de paiement préféré pour le document",
     )
 
-    remarque = models.TextField(verbose_name="Remarque", blank=True, null=True)
+    remarque = models.TextField(
+        verbose_name="Remarque",
+        help_text="Remarque ou note supplémentaire pour le document",
+        blank=True,
+        null=True
+    )
 
     statut = models.CharField(
         max_length=10,
         choices=STATUT_CHOICES,
         default="Brouillon",
         verbose_name="Statut",
+        help_text="Statut du document (ex: Brouillon, Envoyé)",
     )
 
     total_ht = models.DecimalField(
@@ -99,11 +111,15 @@ class BaseDeviFactureDocument(models.Model):
     )
 
     date_created = models.DateTimeField(
-        auto_now_add=True, verbose_name="Date de création"
+        auto_now_add=True,
+        verbose_name="Date de création",
+        help_text="Horodatage de la création du document",
     )
 
     date_updated = models.DateTimeField(
-        auto_now=True, verbose_name="Date de mise à jour"
+        auto_now=True,
+        verbose_name="Date de mise à jour",
+        help_text="Horodatage de la dernière modification du document",
     )
 
     created_by_user = models.ForeignKey(
@@ -112,6 +128,7 @@ class BaseDeviFactureDocument(models.Model):
         null=True,
         blank=True,
         verbose_name="Créé par l'utilisateur",
+        help_text="Utilisateur ayant créé le document",
     )
 
     def get_lines(self) -> QuerySet:

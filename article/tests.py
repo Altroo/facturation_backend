@@ -55,7 +55,7 @@ class TestArticleAPI:
         )
 
         self.caissier_role, _ = Role.objects.get_or_create(
-            name="Caissier", defaults={"is_admin": True}
+            name="Caissier",
         )
         Membership.objects.create(
             user=self.user, company=self.company, role=self.caissier_role
@@ -450,7 +450,7 @@ class TestArticleImagesAndPhotos:
             nbr_employe="1 à 5",
         )
         caissier_role, _ = Role.objects.get_or_create(
-            name="Caissier", defaults={"is_admin": True}
+            name="Caissier",
         )
         Membership.objects.create(
             user=self.user, company=self.company, role=caissier_role
@@ -709,7 +709,7 @@ class TestArticleFilters:
             nbr_employe="1 à 5",
         )
         caissier_role, _ = Role.objects.get_or_create(
-            name="Caissier", defaults={"is_admin": True}
+            name="Caissier",
         )
         Membership.objects.create(
             user=self.user, company=self.company, role=caissier_role
@@ -1409,7 +1409,7 @@ class TestArticleViewsCoverage:
             nbr_employe="1 à 5",
         )
         caissier_role, _ = Role.objects.get_or_create(
-            name="Caissier", defaults={"is_admin": True}
+            name="Caissier",
         )
         Membership.objects.create(
             user=self.user, company=self.company, role=caissier_role

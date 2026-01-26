@@ -16,25 +16,41 @@ class Client(models.Model):
     ]
 
     code_client = models.CharField(
-        max_length=50, unique=True, verbose_name="Code client"
+        max_length=50,
+        unique=True,
+        verbose_name="Code client",
+        help_text="Code unique identifiant le client",
     )
     client_type = models.CharField(
-        max_length=2, choices=TYPE_CHOICES, verbose_name="Type de client"
+        max_length=2,
+        choices=TYPE_CHOICES,
+        verbose_name="Type de client",
+        help_text="Type : Personne morale (PM) ou physique (PP)",
     )
     company = models.ForeignKey(
         Company,
         on_delete=models.SET_NULL,
         verbose_name="Entreprise",
+        help_text="Entreprise associée au client (si personne morale)",
         blank=True,
         null=True,
         related_name="clients",
     )
     # Champs communs
     adresse = models.CharField(
-        max_length=255, verbose_name="Adresse", blank=True, null=True
+        max_length=255,
+        verbose_name="Adresse",
+        help_text="Adresse postale du client",
+        blank=True,
+        null=True,
     )
     ville = models.ForeignKey(
-        Ville, on_delete=models.SET_NULL, verbose_name="Ville", blank=True, null=True
+        Ville,
+        on_delete=models.SET_NULL,
+        verbose_name="Ville",
+        help_text="Ville du client",
+        blank=True,
+        null=True,
     )
     phone_validator = RegexValidator(
         regex=r"^\+?\d{7,15}$",
@@ -44,6 +60,7 @@ class Client(models.Model):
         max_length=20,
         validators=[phone_validator],
         verbose_name="Téléphone",
+        help_text="Numéro de téléphone principal",
         blank=True,
         null=True,
     )
@@ -51,34 +68,77 @@ class Client(models.Model):
         blank=True,
         null=True,
         verbose_name="E‑mail",
+        help_text="Adresse e‑mail du client",
     )
     delai_de_paiement = models.PositiveIntegerField(
-        verbose_name="Délai de paiement", blank=True, null=True, default=60
+        verbose_name="Délai de paiement",
+        help_text="Délai de paiement en jours",
+        blank=True,
+        null=True,
+        default=60,
     )
-    remarque = models.TextField(verbose_name="Remarque", blank=True, null=True)
+    remarque = models.TextField(
+        verbose_name="Remarque",
+        help_text="Remarque ou note concernant le client",
+        blank=True,
+        null=True,
+    )
 
     # Champs spécifiques à la personne morale
     raison_sociale = models.CharField(
-        max_length=255, verbose_name="Raison sociale", blank=True, null=True
+        max_length=255,
+        verbose_name="Raison sociale",
+        help_text="Raison sociale pour les personnes morales",
+        blank=True,
+        null=True,
     )
     numero_du_compte = models.CharField(
-        max_length=100, verbose_name="Numéro du compte", blank=True, null=True
+        max_length=100,
+        verbose_name="Numéro du compte",
+        help_text="Numéro de compte bancaire du client",
+        blank=True,
+        null=True,
     )
-    ICE = models.CharField(max_length=100, verbose_name="ICE", blank=True, null=True)
+    ICE = models.CharField(
+        max_length=100,
+        verbose_name="ICE",
+        help_text="Identifiant Commun de l'Entreprise (ICE)",
+        blank=True,
+        null=True,
+    )
     registre_de_commerce = models.CharField(
-        max_length=100, verbose_name="Registre de commerce", blank=True, null=True
+        max_length=100,
+        verbose_name="Registre de commerce",
+        help_text="Numéro du registre de commerce",
+        blank=True,
+        null=True,
     )
     identifiant_fiscal = models.CharField(
-        max_length=100, verbose_name="Identifiant fiscal", blank=True, null=True
+        max_length=100,
+        verbose_name="Identifiant fiscal",
+        help_text="Identifiant fiscal (IF)",
+        blank=True,
+        null=True,
     )
     taxe_professionnelle = models.CharField(
-        max_length=100, verbose_name="Taxe professionnelle", blank=True, null=True
+        max_length=100,
+        verbose_name="Taxe professionnelle",
+        help_text="Référence de la taxe professionnelle",
+        blank=True,
+        null=True,
     )
-    CNSS = models.CharField(max_length=100, verbose_name="CNSS", blank=True, null=True)
+    CNSS = models.CharField(
+        max_length=100,
+        verbose_name="CNSS",
+        help_text="Numéro CNSS",
+        blank=True,
+        null=True,
+    )
     fax = models.CharField(
         max_length=20,
         validators=[phone_validator],
         verbose_name="Fax",
+        help_text="Numéro de fax (optionnel)",
         blank=True,
         null=True,
     )
@@ -86,30 +146,35 @@ class Client(models.Model):
     nom = models.CharField(
         max_length=100,
         verbose_name="Nom",
+        help_text="Nom (pour personne physique)",
         blank=True,
         null=True,
     )
     prenom = models.CharField(
         max_length=100,
         verbose_name="Prénom",
+        help_text="Prénom (pour personne physique)",
         blank=True,
         null=True,
     )
     # DATES
     date_created = models.DateTimeField(
         verbose_name="Date de création",
+        help_text="Horodatage de la création du client",
         default=timezone.now,
         db_index=True,
     )
     date_updated = models.DateTimeField(
         auto_now=True,
         verbose_name="Date de modification",
+        help_text="Horodatage de la dernière modification",
         db_index=True,
     )
     # Archive status
     archived = models.BooleanField(
         default=False,
         verbose_name="Archivé",
+        help_text="Indique si le client est archivé",
         db_index=True,
     )
 

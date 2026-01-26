@@ -27,6 +27,7 @@ class BonDeLivraison(BaseDeviFactureDocument):
         choices=STATUT_CHOICES,
         default="Brouillon",
         verbose_name="Statut",
+        help_text="Statut du bon de livraison",
     )
 
     numero_bon_livraison = models.CharField(
@@ -37,7 +38,9 @@ class BonDeLivraison(BaseDeviFactureDocument):
     )
 
     date_bon_livraison = models.DateField(
-        verbose_name="Date du bon de livraison", db_index=True
+        verbose_name="Date du bon de livraison",
+        help_text="Date d'émission du bon de livraison",
+        db_index=True,
     )
 
     numero_bon_commande_client = models.CharField(
@@ -45,6 +48,7 @@ class BonDeLivraison(BaseDeviFactureDocument):
         verbose_name="Numéro de bon de commande client",
         blank=True,
         null=True,
+        help_text="Numéro du bon de commande client (optionnel)",
     )
 
     livre_par = models.ForeignKey(
@@ -53,6 +57,7 @@ class BonDeLivraison(BaseDeviFactureDocument):
         null=True,
         blank=True,
         verbose_name="Livré par",
+        help_text="Livreur ayant effectué la livraison",
     )
 
     history = HistoricalRecords()
@@ -72,10 +77,12 @@ class BonDeLivraisonLine(BaseDeviFactureLine):
         on_delete=models.CASCADE,
         related_name="lignes",
         verbose_name="Bon de Livraison",
+        help_text="Bon de livraison parent associé à cette ligne",
     )
 
     article = models.ForeignKey(
-        Article, on_delete=models.PROTECT, verbose_name="Article"
+        Article, on_delete=models.PROTECT, verbose_name="Article",
+        help_text="Article livré",
     )
 
     history = HistoricalRecords()

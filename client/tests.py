@@ -30,7 +30,7 @@ class TestClientAPI:
         )
 
         self.caissier_role, _ = Role.objects.get_or_create(
-            name="Caissier", defaults={"is_admin": True}
+            name="Caissier",
         )
         Membership.objects.create(
             user=self.user, company=self.company, role=self.caissier_role
@@ -545,7 +545,7 @@ class TestClientFilters:
         )
 
         caissier_role, _ = Role.objects.get_or_create(
-            name="Caissier", defaults={"is_admin": True}
+            name="Caissier",
         )
         Membership.objects.create(
             user=self.user, company=self.company1, role=caissier_role
@@ -872,7 +872,7 @@ class TestClientViewsCoverage:
             registre_de_commerce="RC_GEN",
         )
         caissier_role, _ = Role.objects.get_or_create(
-            name="Caissier", defaults={"is_admin": True}
+            name="Caissier",
         )
         Membership.objects.create(user=user, company=company, role=caissier_role)
 
@@ -910,7 +910,7 @@ class TestClientViewsCoverage:
             registre_de_commerce="RC_GEN2",
         )
         caissier_role, _ = Role.objects.get_or_create(
-            name="Caissier", defaults={"is_admin": True}
+            name="Caissier",
         )
         Membership.objects.create(user=user, company=company, role=caissier_role)
 

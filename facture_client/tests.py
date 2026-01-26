@@ -41,7 +41,7 @@ def fc_conv_company():
 
 def _create_fc_membership(user, company):
     caissier_role, _ = Role.objects.get_or_create(
-        name="Caissier", defaults={"is_admin": True}
+        name="Caissier",
     )
     return Membership.objects.create(user=user, company=company, role=caissier_role)
 

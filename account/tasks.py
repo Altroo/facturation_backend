@@ -11,7 +11,6 @@ from django.core.mail import EmailMessage
 
 from account.models import CustomUser
 from facturation_backend.celery_conf import app
-from facturation_backend.settings import STATIC_PATH
 from facturation_backend.utils import ImageProcessor
 
 logger = get_task_logger(__name__)
@@ -121,7 +120,7 @@ def generate_avatar(last_name, first_name):
     color = colors.pop()
     fill = get_text_fill_color(color)
     avatar = Image.new("RGB", (600, 600), color=color)
-    font_avatar = ImageFont.truetype(STATIC_PATH + "/fonts/Poppins-Bold.ttf", 240)
+    font_avatar = ImageFont.load_default()
     drawn_avatar = ImageDraw.Draw(avatar)
     drawn_avatar.text(
         (100, 136), "{}.{}".format(first_name, last_name), font=font_avatar, fill=fill

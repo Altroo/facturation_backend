@@ -3,7 +3,12 @@ from simple_history.models import HistoricalRecords
 
 
 class Ville(models.Model):
-    nom = models.CharField(max_length=100, verbose_name="Nom de la ville", unique=True)
+    nom = models.CharField(
+        max_length=100,
+        verbose_name="Nom de la ville",
+        unique=True,
+        help_text="Nom unique de la ville",
+    )
 
     history = HistoricalRecords()
 
@@ -17,7 +22,10 @@ class Ville(models.Model):
 
 class ModePaiement(models.Model):
     nom = models.CharField(
-        max_length=255, unique=True, verbose_name="Nom du mode de paiement"
+        max_length=255,
+        unique=True,
+        verbose_name="Nom du mode de paiement",
+        help_text="Nom unique du mode de paiement (ex: Espèces, Virement)",
     )
 
     history = HistoricalRecords()
@@ -31,7 +39,12 @@ class ModePaiement(models.Model):
 
 
 class Marque(models.Model):
-    nom = models.CharField(max_length=255, unique=True, verbose_name="Nom de la marque")
+    nom = models.CharField(
+        max_length=255,
+        unique=True,
+        verbose_name="Nom de la marque",
+        help_text="Nom unique de la marque",
+    )
 
     history = HistoricalRecords()
 
@@ -45,7 +58,10 @@ class Marque(models.Model):
 
 class Categorie(models.Model):
     nom = models.CharField(
-        max_length=255, unique=True, verbose_name="Nom de la catégorie"
+        max_length=255,
+        unique=True,
+        verbose_name="Nom de la catégorie",
+        help_text="Nom unique de la catégorie",
     )
 
     history = HistoricalRecords()
@@ -59,7 +75,12 @@ class Categorie(models.Model):
 
 
 class Unite(models.Model):
-    nom = models.CharField(max_length=255, unique=True, verbose_name="Nom de l'unité")
+    nom = models.CharField(
+        max_length=255,
+        unique=True,
+        verbose_name="Nom de l'unité",
+        help_text="Nom unique de l'unité (ex: pièce, kg)",
+    )
 
     history = HistoricalRecords()
 
@@ -73,7 +94,10 @@ class Unite(models.Model):
 
 class Emplacement(models.Model):
     nom = models.CharField(
-        max_length=255, unique=True, verbose_name="Nom de l'emplacement"
+        max_length=255,
+        unique=True,
+        verbose_name="Nom de l'emplacement",
+        help_text="Nom unique de l'emplacement (ex: Entrepôt A)",
     )
 
     history = HistoricalRecords()
@@ -87,7 +111,12 @@ class Emplacement(models.Model):
 
 
 class LivrePar(models.Model):
-    nom = models.CharField(max_length=255, unique=True, verbose_name="Nom du livreur")
+    nom = models.CharField(
+        max_length=255,
+        unique=True,
+        verbose_name="Nom du livreur",
+        help_text="Nom unique du livreur",
+    )
 
     history = HistoricalRecords()
 

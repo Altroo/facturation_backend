@@ -47,7 +47,7 @@ class TestCompanyAPI:
             is_staff=True,
         )
         self.admin_group, _ = Role.objects.update_or_create(
-            name="Caissier", defaults={"is_admin": True}
+            name="Caissier",
         )
         self.company = Company.objects.create(
             raison_sociale="TestCorp",
@@ -168,10 +168,10 @@ class TestCompanyImagesAndMemberships:
             is_staff=True,
         )
         self.admin_group, _ = Role.objects.update_or_create(
-            name="Caissier", defaults={"is_admin": True}
+            name="Caissier",
         )
         self.editor_group, _ = Role.objects.get_or_create(
-            name="Editor", defaults={"is_admin": False}
+            name="Editor",
         )
 
         self.company = Company.objects.create(
@@ -541,7 +541,7 @@ class TestCompanySerializerExtra:
             is_staff=True,
         )
         self.admin_group, _ = Role.objects.update_or_create(
-            name="Caissier", defaults={"is_admin": True}
+            name="Caissier",
         )
         self.company = Company.objects.create(
             raison_sociale="SerializerTestCorp",
@@ -758,7 +758,7 @@ class TestCompanyViewsExtra:
             is_staff=True,
         )
         self.admin_group, _ = Role.objects.update_or_create(
-            name="Caissier", defaults={"is_admin": True}
+            name="Caissier",
         )
         self.company = Company.objects.create(
             raison_sociale="ViewsTestCorp",
@@ -909,7 +909,7 @@ class TestCompanySerializerCoverage:
         user_obj = get_user_model()
         user = user_obj.objects.create_user(email="rolefail@test.com", password="pass")
         admin_group = Role.objects.get_or_create(
-            name="Caissier", defaults={"is_admin": True}
+            name="Caissier",
         )[0]
 
         company = Company.objects.create(
@@ -1054,7 +1054,7 @@ class TestCompanyViewsCoverage:
         assert "Caissier" in str(response.data)
 
         # Re-create Admin group for other tests
-        Role.objects.get_or_create(name="Caissier", defaults={"is_admin": True})
+        Role.objects.get_or_create(name="Caissier", )
 
     def test_create_company_with_managed_by(self):
         """Test create company with managed_by list (line 76)."""
@@ -1075,10 +1075,10 @@ class TestCompanyViewsCoverage:
 
         # Ensure groups exist
         admin_group = Role.objects.get_or_create(
-            name="Caissier", defaults={"is_admin": True}
+            name="Caissier",
         )[0]
         member_group = Role.objects.get_or_create(
-            name="Member", defaults={"is_admin": False}
+            name="Member",
         )[0]
 
         client = APIClient()
@@ -1112,7 +1112,7 @@ class TestCompanyViewsCoverage:
         user_obj = get_user_model()
         user = user_obj.objects.create_user(email="byuser@test.com", password="pass")
         admin_group = Role.objects.get_or_create(
-            name="Caissier", defaults={"is_admin": True}
+            name="Caissier",
         )[0]
 
         # Create companies for the user

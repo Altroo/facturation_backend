@@ -293,7 +293,7 @@ class TestBonDeLivraisonModels(SharedDocumentModelTestsMixin):
         self.ville = Ville.objects.create(nom="ModelVille")
         self.company = Company.objects.create(raison_sociale="ModelCo", ICE="ICEMOD")
         caissier_role, _ = Role.objects.get_or_create(
-            name="Caissier", defaults={"is_admin": True}
+            name="Caissier",
         )
         Membership.objects.create(
             user=self.user, company=self.company, role=caissier_role
@@ -379,7 +379,7 @@ class TestBonDeLivraisonAdmin(SharedDocumentAdminTestsMixin):
         self.ville = Ville.objects.create(nom="AdminVille")
         self.company = Company.objects.create(raison_sociale="AdminCo", ICE="ICEADM")
         caissier_role, _ = Role.objects.get_or_create(
-            name="Caissier", defaults={"is_admin": True}
+            name="Caissier",
         )
         Membership.objects.create(
             user=self.user, company=self.company, role=caissier_role
@@ -669,7 +669,7 @@ class TestBonDeLivraisonPDFGeneration:
         from rest_framework import status
 
         caissier_role, _ = Role.objects.get_or_create(
-            name="Caissier", defaults={"is_admin": True}
+            name="Caissier",
         )
         Membership.objects.create(
             user=bon_de_livraison_user,
@@ -704,7 +704,7 @@ class TestBonDeLivraisonPDFGeneration:
         from rest_framework import status
 
         caissier_role, _ = Role.objects.get_or_create(
-            name="Caissier", defaults={"is_admin": True}
+            name="Caissier",
         )
         Membership.objects.create(
             user=bon_de_livraison_user,
@@ -729,7 +729,7 @@ class TestBonDeLivraisonPDFGeneration:
         from rest_framework import status
 
         caissier_role, _ = Role.objects.get_or_create(
-            name="Caissier", defaults={"is_admin": True}
+            name="Caissier",
         )
         Membership.objects.create(
             user=bon_de_livraison_user,
@@ -759,7 +759,7 @@ class TestBonDeLivraisonPDFGeneration:
         from rest_framework import status
 
         caissier_role, _ = Role.objects.get_or_create(
-            name="Caissier", defaults={"is_admin": True}
+            name="Caissier",
         )
         Membership.objects.create(
             user=bon_de_livraison_user,
@@ -793,7 +793,7 @@ class TestBonDeLivraisonPDFGeneration:
         from rest_framework import status
 
         caissier_role, _ = Role.objects.get_or_create(
-            name="Caissier", defaults={"is_admin": True}
+            name="Caissier",
         )
         Membership.objects.create(
             user=bon_de_livraison_user,
@@ -827,7 +827,7 @@ class TestBonDeLivraisonPDFGeneration:
         from rest_framework import status
 
         caissier_role, _ = Role.objects.get_or_create(
-            name="Caissier", defaults={"is_admin": True}
+            name="Caissier",
         )
         Membership.objects.create(
             user=bon_de_livraison_user,
@@ -863,7 +863,7 @@ class TestBonDeLivraisonUninvoicedListView:
         from rest_framework import status
 
         caissier_role, _ = Role.objects.get_or_create(
-            name="Caissier", defaults={"is_admin": True}
+            name="Caissier",
         )
         Membership.objects.create(
             user=bon_de_livraison_user,
@@ -887,7 +887,7 @@ class TestBonDeLivraisonUninvoicedListView:
         from rest_framework import status
 
         caissier_role, _ = Role.objects.get_or_create(
-            name="Caissier", defaults={"is_admin": True}
+            name="Caissier",
         )
         Membership.objects.create(
             user=bon_de_livraison_user,
@@ -938,7 +938,7 @@ class TestBonDeLivraisonUninvoicedListView:
         from rest_framework import status
 
         caissier_role, _ = Role.objects.get_or_create(
-            name="Caissier", defaults={"is_admin": True}
+            name="Caissier",
         )
         Membership.objects.create(
             user=bon_de_livraison_user,
@@ -976,7 +976,7 @@ class TestBonDeLivraisonUninvoicedListView:
         from rest_framework import status
 
         caissier_role, _ = Role.objects.get_or_create(
-            name="Caissier", defaults={"is_admin": True}
+            name="Caissier",
         )
         Membership.objects.create(
             user=bon_de_livraison_user,
@@ -1112,7 +1112,7 @@ class TestBonDeLivraisonViewsCoverage:
         bon_de_livraison_company.save()
 
         caissier_role, _ = Role.objects.get_or_create(
-            name="Caissier", defaults={"is_admin": True}
+            name="Caissier",
         )
         Membership.objects.create(
             user=bon_de_livraison_user,
@@ -1157,7 +1157,7 @@ class TestBonDeLivraisonViewsCoverage:
         from rest_framework import status
 
         caissier_role, _ = Role.objects.get_or_create(
-            name="Caissier", defaults={"is_admin": True}
+            name="Caissier",
         )
         Membership.objects.create(
             user=bon_de_livraison_user,
@@ -1212,7 +1212,7 @@ class TestBonDeLivraisonViewsCoverage:
         from rest_framework import status
 
         caissier_role, _ = Role.objects.get_or_create(
-            name="Caissier", defaults={"is_admin": True}
+            name="Caissier",
         )
         Membership.objects.create(
             user=bon_de_livraison_user,
@@ -1261,7 +1261,7 @@ class TestBonDeLivraisonViewsCoverage:
         from decimal import Decimal
 
         caissier_role, _ = Role.objects.get_or_create(
-            name="Caissier", defaults={"is_admin": True}
+            name="Caissier",
         )
         Membership.objects.create(
             user=bon_de_livraison_user,
@@ -1315,7 +1315,7 @@ class TestBonDeLivraisonViewsCoverage:
         from decimal import Decimal
 
         caissier_role, _ = Role.objects.get_or_create(
-            name="Caissier", defaults={"is_admin": True}
+            name="Caissier",
         )
         Membership.objects.create(
             user=bon_de_livraison_user,
@@ -1368,7 +1368,7 @@ class TestBonDeLivraisonViewsCoverage:
         from decimal import Decimal
 
         caissier_role, _ = Role.objects.get_or_create(
-            name="Caissier", defaults={"is_admin": True}
+            name="Caissier",
         )
         Membership.objects.create(
             user=bon_de_livraison_user,

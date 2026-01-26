@@ -401,8 +401,8 @@ class TestAccountAPIExtras:
 
     # Group titles
     def test_get_group_titles_populated(self):
-        Role.objects.get_or_create(name="Caissier", defaults={"is_admin": True})
-        Role.objects.get_or_create(name="Editor", defaults={"is_admin": False})
+        Role.objects.get_or_create(name="Caissier")
+        Role.objects.get_or_create(name="Editor")
         url = reverse("account:group")
         response = self.auth_client.get(url)
         assert response.status_code == status.HTTP_200_OK
@@ -453,7 +453,7 @@ class TestAccountAPIExtras:
     # Users create: with companies/memberships payload
     def test_post_users_create_with_companies_memberships(self):
         # Create role and company via company app if available, else just role
-        Role.objects.get_or_create(name="Editor", defaults={"is_admin": False})
+        Role.objects.get_or_create(name="Editor")
         url = reverse("account:users")
         payload = {
             "email": "member@example.com",
@@ -491,8 +491,8 @@ class TestAccountAPIExtras:
         other = self.user_model.objects.create_user(
             email="memberupdate@example.com", password="pass"
         )
-        Role.objects.get_or_create(name="Caissier", defaults={"is_admin": True})
-        Role.objects.get_or_create(name="Editor", defaults={"is_admin": False})
+        Role.objects.get_or_create(name="Caissier")
+        Role.objects.get_or_create(name="Editor")
         url = reverse("account:users_detail", args=[other.pk])
         payload = {
             "memberships": [
@@ -854,7 +854,7 @@ class TestSerializers:
 
     def test_membershipserializer_get_group_found_and_notfound(self):
         g, _ = Role.objects.get_or_create(
-            name="TesterRole", defaults={"is_admin": False}
+            name="TesterRole"
         )
         found = MembershipSerializer._get_role("TesterRole")
         assert found == g
@@ -1255,7 +1255,7 @@ class TestMembershipSerializerExtra:
     def test_membership_create(self, user_extra, company_extra):
         """Test MembershipSerializer.create method."""
         role, _ = Role.objects.get_or_create(
-            name="MemberRole", defaults={"is_admin": False}
+            name="MemberRole"
         )
         context = {"user": user_extra}
         serializer = MembershipSerializer(
@@ -1271,7 +1271,7 @@ class TestMembershipSerializerExtra:
     def test_membership_update_company(self, user_extra, company_extra):
         """Test MembershipSerializer.update changes company."""
         role, _ = Role.objects.get_or_create(
-            name="UpdateRole", defaults={"is_admin": False}
+            name="UpdateRole"
         )
         membership = Membership.objects.create(
             user=user_extra, company=company_extra, role=role
@@ -1290,10 +1290,10 @@ class TestMembershipSerializerExtra:
     def test_membership_update_role(self, user_extra, company_extra):
         """Test MembershipSerializer.update changes role."""
         old_role, _ = Role.objects.get_or_create(
-            name="OldRole", defaults={"is_admin": False}
+            name="OldRole"
         )
         new_role, _ = Role.objects.get_or_create(
-            name="NewRole", defaults={"is_admin": False}
+            name="NewRole"
         )
         membership = Membership.objects.create(
             user=user_extra, company=company_extra, role=old_role
@@ -1319,7 +1319,7 @@ class TestCreateAccountSerializerExtra:
             email="mem_test@example.com", password="pass"
         )
         company = Company.objects.create(raison_sociale="MemCo", ICE="MEM123")
-        Role.objects.get_or_create(name="MemTestRole", defaults={"is_admin": False})
+        Role.objects.get_or_create(name="MemTestRole")
 
         items = [{"membership_id": 0, "company_id": company.pk, "role": "MemTestRole"}]
         CreateAccountSerializer._create_memberships(user, items)
@@ -1401,7 +1401,7 @@ class TestUserPatchSerializerExtra:
 
     def test_update_with_memberships_creates_new(self, user_extra, company_extra):
         """Test UserPatchSerializer creates new memberships."""
-        Role.objects.get_or_create(name="PatchRole", defaults={"is_admin": False})
+        Role.objects.get_or_create(name="PatchRole")
         serializer = UserPatchSerializer(
             instance=user_extra,
             data={
@@ -1415,7 +1415,7 @@ class TestUserPatchSerializerExtra:
 
     def test_update_with_companies_alias(self, user_extra, company_extra):
         """Test UserPatchSerializer accepts companies as alias for memberships."""
-        Role.objects.get_or_create(name="AliasRole", defaults={"is_admin": False})
+        Role.objects.get_or_create(name="AliasRole")
         serializer = UserPatchSerializer(
             instance=user_extra,
             data={"companies": [{"company_id": company_extra.pk, "role": "AliasRole"}]},
@@ -1428,7 +1428,7 @@ class TestUserPatchSerializerExtra:
     def test_update_removes_missing_memberships(self, user_extra, company_extra):
         """Test UserPatchSerializer removes memberships not in payload."""
         role, _ = Role.objects.get_or_create(
-            name="RemoveRole", defaults={"is_admin": False}
+            name="RemoveRole"
         )
         # Create existing membership
         Membership.objects.create(user=user_extra, company=company_extra, role=role)
@@ -1447,10 +1447,10 @@ class TestUserPatchSerializerExtra:
     def test_update_existing_membership_by_id(self, user_extra, company_extra):
         """Test UserPatchSerializer updates existing membership by id."""
         old_role, _ = Role.objects.get_or_create(
-            name="UpdateOldRole", defaults={"is_admin": False}
+            name="UpdateOldRole"
         )
         new_role, _ = Role.objects.get_or_create(
-            name="UpdateNewRole", defaults={"is_admin": False}
+            name="UpdateNewRole"
         )
         membership = Membership.objects.create(
             user=user_extra, company=company_extra, role=old_role
@@ -1477,10 +1477,10 @@ class TestUserPatchSerializerExtra:
     def test_update_existing_membership_by_company(self, user_extra, company_extra):
         """Test UserPatchSerializer finds existing membership by company_id."""
         role, _ = Role.objects.get_or_create(
-            name="ByCompanyRole", defaults={"is_admin": False}
+            name="ByCompanyRole"
         )
         new_role, _ = Role.objects.get_or_create(
-            name="ByCompanyNewRole", defaults={"is_admin": False}
+            name="ByCompanyNewRole"
         )
         Membership.objects.create(user=user_extra, company=company_extra, role=role)
 
@@ -1667,7 +1667,7 @@ class TestUserDetailSerializerExtra:
     def test_serializer_includes_companies(self, user_extra, company_extra):
         """Test serializer includes companies relationship."""
         role, _ = Role.objects.get_or_create(
-            name="DetailRole", defaults={"is_admin": False}
+            name="DetailRole"
         )
         Membership.objects.create(user=user_extra, company=company_extra, role=role)
 
@@ -1744,7 +1744,7 @@ class TestUserPatchSerializerMembershipNotFound:
 
     def test_process_membership_nonexistent_id(self, user_extra, company_extra):
         """Test membership_id that doesn't exist creates new membership."""
-        Role.objects.get_or_create(name="NonExistRole", defaults={"is_admin": False})
+        Role.objects.get_or_create(name="NonExistRole")
         serializer = UserPatchSerializer(
             instance=user_extra,
             data={
@@ -1764,7 +1764,7 @@ class TestUserPatchSerializerMembershipNotFound:
 
     def test_process_membership_nonexistent_company_id(self, user_extra, company_extra):
         """Test company_id lookup that doesn't find existing creates new."""
-        Role.objects.get_or_create(name="NewCompRole", defaults={"is_admin": False})
+        Role.objects.get_or_create(name="NewCompRole")
         # Create a different company
         other_company = Company.objects.create(raison_sociale="Other", ICE="OTHER")
 
@@ -2013,7 +2013,7 @@ class TestAccountViewsExtra:
         from django.urls import reverse
         from account.models import Role
 
-        Role.objects.get_or_create(name="Caissier", defaults={"is_admin": True})
+        Role.objects.get_or_create(name="Caissier")
         url = reverse("account:group")
         response = self.client.get(url)
         assert response.status_code == 200
@@ -2155,7 +2155,7 @@ class TestAccountViewsExtra:
         from django.urls import reverse
         from account.models import Role
 
-        Role.objects.get_or_create(name="Caissier", defaults={"is_admin": True})
+        Role.objects.get_or_create(name="Caissier")
         url = reverse("account:users")
         data = {
             "email": "newuser@test.com",

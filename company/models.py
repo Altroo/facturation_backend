@@ -19,6 +19,7 @@ class Company(models.Model):
         max_length=255,
         blank=True,
         verbose_name="Raison sociale",
+        help_text="Raison sociale de l'entreprise",
         db_index=True,
     )
     email = models.EmailField(
@@ -26,6 +27,7 @@ class Company(models.Model):
         null=True,
         default=None,
         verbose_name="E‑mail",
+        help_text="Adresse e‑mail de contact de l'entreprise",
     )
     logo = models.ImageField(
         upload_to=get_company_image_path,
@@ -33,6 +35,7 @@ class Company(models.Model):
         null=True,
         default=None,
         verbose_name="Logo",
+        help_text="Logo de l'entreprise (image)",
         max_length=1000,
     )
     logo_cropped = models.ImageField(
@@ -40,7 +43,8 @@ class Company(models.Model):
         blank=True,
         null=True,
         default=None,
-        verbose_name="Logo cropped",
+        verbose_name="Logo recadré",
+        help_text="Version recadrée du logo",
         max_length=1000,
     )
 
@@ -50,6 +54,7 @@ class Company(models.Model):
         null=True,
         default=None,
         verbose_name="Cachet",
+        help_text="Image du cachet de l'entreprise",
         max_length=1000,
     )
 
@@ -58,7 +63,8 @@ class Company(models.Model):
         blank=True,
         null=True,
         default=None,
-        verbose_name="Cachet cropped",
+        verbose_name="Cachet recadré",
+        help_text="Version recadrée du cachet",
         max_length=1000,
     )
 
@@ -75,6 +81,7 @@ class Company(models.Model):
         choices=NBR_EMPLOYE_CHOICES,
         default=1,
         verbose_name="Nombre d'employés",
+        help_text="Tranche du nombre d'employés",
     )
 
     # Responsable details
@@ -89,6 +96,7 @@ class Company(models.Model):
         choices=CIVILITE_CHOICES,
         default="",
         verbose_name="Civilité du responsable",
+        help_text="Civilité du responsable (Mme, M., ...)",
     )
     nom_responsable = models.CharField(
         max_length=255,
@@ -96,6 +104,7 @@ class Company(models.Model):
         blank=True,
         null=True,
         verbose_name="Nom du responsable",
+        help_text="Nom complet du responsable",
     )
 
     phone_validator = RegexValidator(
@@ -109,12 +118,14 @@ class Company(models.Model):
         blank=True,
         null=True,
         verbose_name="GSM du responsable",
+        help_text="Numéro mobile du responsable (format international recommandé)",
     )
     adresse = models.TextField(
         default=None,
         blank=True,
         null=True,
         verbose_name="Adresse",
+        help_text="Adresse postale complète de l'entreprise",
     )
     telephone = models.CharField(
         max_length=20,
@@ -123,6 +134,7 @@ class Company(models.Model):
         blank=True,
         null=True,
         verbose_name="Téléphone",
+        help_text="Numéro de téléphone principal",
     )
     fax = models.CharField(
         max_length=20,
@@ -131,12 +143,14 @@ class Company(models.Model):
         blank=True,
         null=True,
         verbose_name="Fax",
+        help_text="Numéro de fax (optionnel)",
     )
     site_web = models.URLField(
         default="",
         blank=True,
         null=True,
         verbose_name="Site web",
+        help_text="URL du site web de l'entreprise",
     )
 
     # Administrative identifiers
@@ -146,11 +160,13 @@ class Company(models.Model):
         blank=True,
         null=True,
         verbose_name="Numéro du compte",
+        help_text="Numéro de compte bancaire ou interne",
     )
     ICE = models.CharField(
         max_length=100,
         unique=True,
         verbose_name="ICE",
+        help_text="Identifiant Commun de l'Entreprise (ICE)",
     )
     registre_de_commerce = models.CharField(
         max_length=100,
@@ -158,6 +174,7 @@ class Company(models.Model):
         blank=True,
         null=True,
         verbose_name="Registre de commerce",
+        help_text="Numéro du registre de commerce",
     )
     identifiant_fiscal = models.CharField(
         max_length=100,
@@ -165,6 +182,7 @@ class Company(models.Model):
         blank=True,
         null=True,
         verbose_name="Identifiant fiscal",
+        help_text="Identifiant fiscal de l'entreprise",
     )
     tax_professionnelle = models.CharField(
         max_length=100,
@@ -172,6 +190,7 @@ class Company(models.Model):
         blank=True,
         null=True,
         verbose_name="Taxe professionnelle",
+        help_text="Numéro / référence de la taxe professionnelle",
     )
     CNSS = models.CharField(
         max_length=100,
@@ -179,17 +198,20 @@ class Company(models.Model):
         blank=True,
         null=True,
         verbose_name="CNSS",
+        help_text="Numéro CNSS de l'entreprise",
     )
 
     # DATES
     date_created = models.DateTimeField(
         verbose_name="Date de création",
+        help_text="Horodatage de la création de l'enregistrement",
         default=timezone.now,
         db_index=True,
     )
     date_updated = models.DateTimeField(
         auto_now=True,
         verbose_name="Date de modification",
+        help_text="Horodatage de la dernière modification",
         db_index=True,
     )
 
@@ -197,14 +219,15 @@ class Company(models.Model):
     suspended = models.BooleanField(
         default=False,
         verbose_name="Suspendu",
+        help_text="Indique si l'entreprise est suspendue",
         db_index=True,
     )
 
     history = HistoricalRecords()
 
     class Meta:
-        verbose_name = "Company"
-        verbose_name_plural = "Companies"
+        verbose_name = "Société"
+        verbose_name_plural = "Sociétés"
         ordering = ("-date_created",)
 
     def __str__(self):

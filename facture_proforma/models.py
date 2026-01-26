@@ -20,13 +20,18 @@ class FactureProForma(BaseDeviFactureDocument):
         help_text="Format ex: 0001/25",
     )
 
-    date_facture = models.DateField(verbose_name="Date de facture", db_index=True)
+    date_facture = models.DateField(
+        verbose_name="Date de facture",
+        help_text="Date d'émission de la facture pro forma",
+        db_index=True,
+    )
 
     numero_bon_commande_client = models.CharField(
         max_length=50,
         verbose_name="Numéro de bon de commande client",
         blank=True,
         null=True,
+        help_text="Numéro du bon de commande client (optionnel)",
     )
 
     history = HistoricalRecords()
@@ -90,10 +95,12 @@ class FactureProFormaLine(BaseDeviFactureLine):
         on_delete=models.CASCADE,
         related_name="lignes",
         verbose_name="Facture Pro Forma",
+        help_text="Facture pro forma associée à cette ligne",
     )
 
     article = models.ForeignKey(
-        Article, on_delete=models.PROTECT, verbose_name="Article"
+        Article, on_delete=models.PROTECT, verbose_name="Article",
+        help_text="Article associé à cette ligne de facture pro forma",
     )
 
     history = HistoricalRecords()

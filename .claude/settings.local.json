@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir \"C:\\\\Users\\\\asus_\\\\Desktop\" /s /b)",
+      "Bash(findstr:*)",
+      "Bash(ls:*)",
+      "Bash(python:*)",
+      "mcp__plugin_serena_serena__read_file",
+      "mcp__plugin_serena_serena__activate_project",
+      "mcp__plugin_serena_serena__find_file",
+      "mcp__plugin_serena_serena__search_for_pattern",
+      "mcp__plugin_serena_serena__insert_after_symbol",
+      "mcp__plugin_serena_serena__replace_content",
+      "Bash(pytest:*)",
+      "mcp__plugin_serena_serena__list_memories",
+      "mcp__plugin_serena_serena__list_dir",
+      "mcp__plugin_serena_serena__check_onboarding_performed"
+    ]
+  }
+}

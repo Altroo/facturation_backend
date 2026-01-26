@@ -1,10 +1,8 @@
-from django import forms
 from django.contrib import admin
 from django.contrib.admin import ModelAdmin
 from django.contrib.auth.admin import UserAdmin
 
-from account.models import CustomUser, Membership, Role
-from company.models import Company
+from account.models import CustomUser, Membership
 from .forms import CustomAuthShopChangeForm, CustomAuthShopCreationForm
 
 
@@ -65,35 +63,10 @@ class CustomUserAdmin(UserAdmin):
     ordering = ("-id",)
 
 
-class MembershipAdminForm(forms.ModelForm):
-    company = forms.ModelChoiceField(
-        queryset=Company.objects.all(),
-        required=False,
-        label="Company",
-    )
-    role = forms.ModelChoiceField(
-        queryset=Role.objects.all(),
-        required=False,
-        label="Role",
-    )
-
-    class Meta:
-        model = Membership
-        fields = "__all__"
-
-
 class MembershipAdmin(ModelAdmin):
-    form = MembershipAdminForm
     list_display = ("id", "user", "company", "role")
     list_filter = ("role", "company")
     search_fields = ("user__email", "company__raison_sociale", "role__name")
-
-
-class RoleAdmin(ModelAdmin):
-    list_display = ("id", "name", "is_admin")
-    list_filter = ("is_admin",)
-    search_fields = ("name",)
-    ordering = ("-is_admin", "name")
 
 
 # Historical Model Admins (Read-only)
@@ -196,8 +169,6 @@ class HistoricalMembershipAdmin(admin.ModelAdmin):
 
 # Account
 admin.site.register(CustomUser, CustomUserAdmin)
-# Role
-admin.site.register(Role, RoleAdmin)
 # Membership
 admin.site.register(Membership, MembershipAdmin)
 # Historical Models

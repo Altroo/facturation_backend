@@ -7,7 +7,6 @@ from django.contrib.auth.models import PermissionsMixin
 from django.core.files.base import ContentFile
 from django.db import models
 from django.utils import timezone
-from django.utils.translation import gettext_lazy as _
 from simple_history.models import HistoricalRecords
 
 from facturation_backend.settings import API_URL
@@ -17,17 +16,13 @@ from .managers import CustomUserManager
 class Role(models.Model):
     """Custom role model to extend Django's Group with additional fields."""
 
-    name = models.CharField(max_length=150, unique=True, verbose_name="Role Name")
-    is_admin = models.BooleanField(
-        default=False,
-        verbose_name="Is Admin",
-        help_text="Designates whether users with this role can manage companies and users.",
-    )
+    name = models.CharField(max_length=150, unique=True, verbose_name="Nom rôle")
+    name.help_text = "Nom unique du rôle"
 
     class Meta:
-        verbose_name = "Role"
-        verbose_name_plural = "Roles"
-        ordering = ("-is_admin", "name")
+        verbose_name = "Rôle"
+        verbose_name_plural = "Rôles"
+        ordering = ("name",)
 
     def __str__(self):
         return self.name
@@ -40,69 +35,76 @@ def get_avatar_path(_, filename):
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
     # Password (hidden)
-    email = models.EmailField(_("email address"), unique=True)
-    first_name = models.CharField(_("first name"), max_length=30, blank=True)
-    last_name = models.CharField(_("last name"), max_length=30, blank=True)
+    email = models.EmailField("Adresse e‑mail", unique=True, help_text="Adresse e‑mail de l'utilisateur")
+    first_name = models.CharField("Prénom", max_length=30, blank=True, help_text="Prénom de l'utilisateur")
+    last_name = models.CharField("Nom", max_length=30, blank=True, help_text="Nom de famille de l'utilisateur")
     GENDER_CHOICES = (("", "Unset"), ("H", "Homme"), ("F", "Femme"))
     gender = models.CharField(
+        verbose_name="Sexe",
         max_length=1,
         choices=GENDER_CHOICES,
         default="",
+        help_text="Sexe de l'utilisateur",
     )
     avatar = models.ImageField(
-        verbose_name="User Avatar",
+        verbose_name="Photo de profil",
         upload_to=get_avatar_path,
         blank=True,
         null=True,
         default=None,
+        help_text="Image de profil de l'utilisateur (format recommandé: WebP)",
     )
     avatar_cropped = models.ImageField(
         upload_to=get_avatar_path,
         blank=True,
         null=True,
         default=None,
-        verbose_name="Avatar cropped",
+        verbose_name="Photo de profil recadrée",
         max_length=1000,
+        help_text="Version recadrée de la photo de profil",
     )
     # permissions
     is_staff = models.BooleanField(
-        _("staff status"),
+        "Statut personnel",
         default=False,
-        help_text=_("Designates whether the user can log into this admin site."),
+        help_text="Indique si l'utilisateur peut se connecter au panneau d'administration.",
         db_index=True,
     )
     is_active = models.BooleanField(
-        _("active"),
+        "Actif",
         default=True,
-        help_text=_(
-            "Designates whether this user should be treated as active. "
-            "Unselect this instead of deleting accounts."
-        ),
+        help_text="Indique si ce compte doit être considéré comme actif.",
         db_index=True,
     )
     # DATES
     date_joined = models.DateTimeField(
-        _("date joined"), default=timezone.now, db_index=True
+        "Date d'inscription",
+        default=timezone.now,
+        help_text="Horodatage de l'inscription de l'utilisateur",
+        db_index=True,
     )
     date_updated = models.DateTimeField(
         auto_now=True,
         verbose_name="Date de modification",
+        help_text="Horodatage de la dernière modification du compte",
         db_index=True,
     )
     # Codes
     password_reset_code = models.CharField(
-        verbose_name="Password Reset Code",
+        verbose_name="Mot de passe - Code de réinitialisation",
+        help_text="Code envoyé pour la réinitialisation du mot de passe",
         blank=True,
         null=True,
         db_index=True,
     )
     # Task ids for Codes
     task_id_password_reset = models.CharField(
-        verbose_name="Task ID password reset",
+        verbose_name="Mot de passe - Task ID de réinitialisation",
         max_length=40,
         default=None,
         null=True,
         blank=True,
+        help_text="Identifiant de la tâche de réinitialisation du mot de passe",
         db_index=True,
     )
     USERNAME_FIELD = "email"
@@ -128,8 +130,8 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         return None
 
     class Meta:
-        verbose_name = "User"
-        verbose_name_plural = "Users"
+        verbose_name = "Utilisateur"
+        verbose_name_plural = "Utilisateurs"
         ordering = ("-date_joined",)
 
     def save_image(self, file_name, image):
@@ -147,21 +149,29 @@ class Membership(models.Model):
         null=True,
         blank=True,
         related_name="memberships",
-        verbose_name="Company",
+        verbose_name="Société",
+        help_text="Société à laquelle l'utilisateur est rattaché",
     )
     user = models.ForeignKey(
         CustomUser,
         on_delete=models.CASCADE,
         related_name="memberships",
-        verbose_name="User",
+        verbose_name="Utilisateur",
+        help_text="Utilisateur membre",
     )
-    role = models.ForeignKey(Role, on_delete=models.PROTECT, null=True, blank=True)
+    role = models.ForeignKey(
+        Role,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        help_text="Rôle assigné à l'utilisateur dans l'entreprise",
+    )
 
     history = HistoricalRecords()
 
     class Meta:
-        verbose_name = "Membership"
-        verbose_name_plural = "Memberships"
+        verbose_name = "Membre"
+        verbose_name_plural = "Membres"
         ordering = ("role",)
         indexes = [
             models.Index(fields=["user", "role"]),

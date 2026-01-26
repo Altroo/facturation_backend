@@ -16,7 +16,6 @@ COLOR_BGR2RGB: Any = cv2.COLOR_BGR2RGB
 GaussianBlur: Any = cv2.GaussianBlur
 
 from django.core.files.base import ContentFile
-from django.utils.translation import gettext_lazy as _
 from numpy import uint8, frombuffer
 from rest_framework import serializers
 from rest_framework.pagination import PageNumberPagination
@@ -228,12 +227,12 @@ def api_exception_handler(exc, context):
     if response is not None:
         # French translations for HTTP status descriptions
         http_code_to_message = {
-            400: _("Requête invalide"),
-            401: _("Non autorisé"),
-            403: _("Accès refusé"),
-            404: _("Aucune correspondance avec l’URI donnée"),
-            405: _("Méthode non autorisée"),
-            500: _("Erreur interne du serveur"),
+            400: "Requête invalide",
+            401: "Non autorisé",
+            403: "Accès refusé",
+            404: "Aucune correspondance avec l’URI donnée",
+            405: "Méthode non autorisée",
+            500: "Erreur interne du serveur",
             # fallback to English for others
             **{
                 v.value: v.description

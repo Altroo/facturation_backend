@@ -2,6 +2,9 @@ from django.contrib import admin
 from django.db import transaction
 from django.utils.html import format_html
 from simple_history.admin import SimpleHistoryAdmin
+from django.contrib.auth.models import Group
+from django.contrib.sites.models import Site
+from django.contrib.admin.sites import NotRegistered
 
 
 class BaseDocumentLineInline(admin.TabularInline):
@@ -155,3 +158,10 @@ class BaseDocumentAdmin(SimpleHistoryAdmin):
 
     class Meta:
         abstract = True
+
+
+for model in (Group, Site):
+    try:
+        admin.site.unregister(model)
+    except NotRegistered:
+        pass
