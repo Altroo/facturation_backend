@@ -36,7 +36,10 @@ class FactureClient(BaseDeviFactureDocument):
         help_text="Numéro du bon de commande client (optionnel)",
     )
 
-    history = HistoricalRecords()
+    history = HistoricalRecords(
+        verbose_name="Historique Facture Client",
+        verbose_name_plural="Historiques Factures Client"
+    )
 
     class Meta:
         verbose_name = "Facture Client"
@@ -107,7 +110,10 @@ class FactureClientLine(BaseDeviFactureLine):
         help_text="Article associé à cette ligne de facture",
     )
 
-    history = HistoricalRecords()
+    history = HistoricalRecords(
+        verbose_name="Historique Facture Client",
+        verbose_name_plural="Historiques Factures Client"
+    )
 
     class Meta:
         verbose_name = "Ligne de facture Client"

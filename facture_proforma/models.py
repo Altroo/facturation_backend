@@ -34,7 +34,10 @@ class FactureProForma(BaseDeviFactureDocument):
         help_text="Numéro du bon de commande client (optionnel)",
     )
 
-    history = HistoricalRecords()
+    history = HistoricalRecords(
+        verbose_name="Historique Facture Pro-Forma",
+        verbose_name_plural="Historiques Factures Pro-Forma"
+    )
 
     class Meta:
         verbose_name = "Facture Pro-Forma"
@@ -103,7 +106,10 @@ class FactureProFormaLine(BaseDeviFactureLine):
         help_text="Article associé à cette ligne de facture pro forma",
     )
 
-    history = HistoricalRecords()
+    history = HistoricalRecords(
+        verbose_name="Historique Facture Pro-Forma",
+        verbose_name_plural="Historiques Factures Pro-Forma"
+    )
 
     class Meta:
         verbose_name = "Ligne de facture Pro-forma"

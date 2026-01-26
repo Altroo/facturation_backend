@@ -60,7 +60,10 @@ class BonDeLivraison(BaseDeviFactureDocument):
         help_text="Livreur ayant effectué la livraison",
     )
 
-    history = HistoricalRecords()
+    history = HistoricalRecords(
+        verbose_name="Historique Bon de Livraison",
+        verbose_name_plural="Historiques Bons de Livraison"
+    )
 
     class Meta:
         verbose_name = "Bon de Livraison"
@@ -85,7 +88,10 @@ class BonDeLivraisonLine(BaseDeviFactureLine):
         help_text="Article livré",
     )
 
-    history = HistoricalRecords()
+    history = HistoricalRecords(
+        verbose_name="Historique Ligne de bon de livraison",
+        verbose_name_plural="Historiques Lignes de bons de livraison"
+    )
 
     class Meta:
         verbose_name = "Ligne de bon de livraison"

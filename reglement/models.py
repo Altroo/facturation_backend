@@ -83,7 +83,10 @@ class Reglement(models.Model):
         help_text="Horodatage de la dernière modification du règlement",
     )
 
-    history = HistoricalRecords()
+    history = HistoricalRecords(
+        verbose_name="Historique Règlement",
+        verbose_name_plural="Historiques Règlements"
+    )
 
     class Meta:
         verbose_name = "Règlement"

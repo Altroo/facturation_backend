@@ -141,7 +141,10 @@ class Article(models.Model):
         db_index=True,
     )
 
-    history = HistoricalRecords()
+    history = HistoricalRecords(
+        verbose_name="Historique Article",
+        verbose_name_plural="Historiques Articles"
+    )
 
     class Meta:
         verbose_name = "Article"

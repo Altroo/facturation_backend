@@ -223,7 +223,10 @@ class Company(models.Model):
         db_index=True,
     )
 
-    history = HistoricalRecords()
+    history = HistoricalRecords(
+        verbose_name="Historique Société",
+        verbose_name_plural="Historiques Sociétés"
+    )
 
     class Meta:
         verbose_name = "Société"

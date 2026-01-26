@@ -141,13 +141,14 @@ class ArticleSerializer(ArticleBaseSerializer):
         # Remove from validated_data (we'll set it directly)
         validated_data.pop("photo", None)
 
-        # Create instance
-        instance = Article.objects.create(**validated_data)
+        # Create instance without saving yet
+        instance = Article(**validated_data)
 
         # Set photo field
         if photo:
             instance.photo.save(photo.name, photo, save=False)
 
+        # Save once - creates only one history entry as "created"
         instance.save()
         return instance
 

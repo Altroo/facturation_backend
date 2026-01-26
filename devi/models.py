@@ -34,7 +34,10 @@ class Devi(BaseDeviFactureDocument):
         help_text="Numéro de la demande de prix du client (optionnel)",
     )
 
-    history = HistoricalRecords()
+    history = HistoricalRecords(
+        verbose_name="Historique Devis",
+        verbose_name_plural="Historiques Devis"
+    )
 
     class Meta:
         verbose_name = "Devis"
@@ -149,7 +152,10 @@ class DeviLine(BaseDeviFactureLine):
         help_text="Article associé à cette ligne de devis",
     )
 
-    history = HistoricalRecords()
+    history = HistoricalRecords(
+        verbose_name="Historique Ligne de devis",
+        verbose_name_plural="Historiques Lignes de devis"
+    )
 
     class Meta:
         verbose_name = "Ligne de devis"

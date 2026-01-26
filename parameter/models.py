@@ -10,7 +10,10 @@ class Ville(models.Model):
         help_text="Nom unique de la ville",
     )
 
-    history = HistoricalRecords()
+    history = HistoricalRecords(
+        verbose_name="Historique Ville",
+        verbose_name_plural="Historiques Villes"
+    )
 
     class Meta:
         verbose_name = "Ville"
@@ -28,7 +31,10 @@ class ModePaiement(models.Model):
         help_text="Nom unique du mode de paiement (ex: Espèces, Virement)",
     )
 
-    history = HistoricalRecords()
+    history = HistoricalRecords(
+        verbose_name="Historique Mode de paiement",
+        verbose_name_plural="Historiques Modes de paiement"
+    )
 
     class Meta:
         verbose_name = "Mode de paiement"
@@ -46,7 +52,10 @@ class Marque(models.Model):
         help_text="Nom unique de la marque",
     )
 
-    history = HistoricalRecords()
+    history = HistoricalRecords(
+        verbose_name="Historique Marque",
+        verbose_name_plural="Historiques Marques"
+    )
 
     class Meta:
         verbose_name = "Marque"
@@ -64,7 +73,10 @@ class Categorie(models.Model):
         help_text="Nom unique de la catégorie",
     )
 
-    history = HistoricalRecords()
+    history = HistoricalRecords(
+        verbose_name="Historique Catégorie",
+        verbose_name_plural="Historiques Catégories"
+    )
 
     class Meta:
         verbose_name = "Catégorie"
@@ -82,7 +94,10 @@ class Unite(models.Model):
         help_text="Nom unique de l'unité (ex: pièce, kg)",
     )
 
-    history = HistoricalRecords()
+    history = HistoricalRecords(
+        verbose_name="Historique Unité",
+        verbose_name_plural="Historiques Unités"
+    )
 
     class Meta:
         verbose_name = "Unité"
@@ -100,7 +115,10 @@ class Emplacement(models.Model):
         help_text="Nom unique de l'emplacement (ex: Entrepôt A)",
     )
 
-    history = HistoricalRecords()
+    history = HistoricalRecords(
+        verbose_name="Historique Emplacement",
+        verbose_name_plural="Historiques Emplacements"
+    )
 
     class Meta:
         verbose_name = "Emplacement"
@@ -118,7 +136,10 @@ class LivrePar(models.Model):
         help_text="Nom unique du livreur",
     )
 
-    history = HistoricalRecords()
+    history = HistoricalRecords(
+        verbose_name="Historique Livré par",
+        verbose_name_plural="Historiques Livré par"
+    )
 
     class Meta:
         verbose_name = "Livré par"

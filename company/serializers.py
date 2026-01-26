@@ -157,8 +157,8 @@ class CompanySerializer(serializers.ModelSerializer):
         validated_data.pop("cachet", None)
         validated_data.pop("cachet_cropped", None)
 
-        # Create instance
-        instance = Company.objects.create(**validated_data)
+        # Create instance without saving yet
+        instance = Company(**validated_data)
 
         # Set image fields
         if logo:
@@ -172,6 +172,7 @@ class CompanySerializer(serializers.ModelSerializer):
                 cachet_cropped.name, cachet_cropped, save=False
             )
 
+        # Save once - creates only one history entry as "created"
         instance.save()
         return instance
 

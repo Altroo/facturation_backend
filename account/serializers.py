@@ -232,8 +232,8 @@ class CreateAccountSerializer(serializers.ModelSerializer):
         validated_data.pop("avatar", None)
         validated_data.pop("avatar_cropped", None)
 
-        # Create the user instance
-        instance = CustomUser.objects.create(**validated_data)
+        # Create the user instance without saving yet
+        instance = CustomUser(**validated_data)
 
         if avatar:
             instance.avatar.save(avatar.name, avatar, save=False)
@@ -241,6 +241,8 @@ class CreateAccountSerializer(serializers.ModelSerializer):
             instance.avatar_cropped.save(
                 avatar_cropped.name, avatar_cropped, save=False
             )
+
+        # Save once - creates only one history entry as "created"
         instance.save()
 
         # Create memberships (companies) if any were sent

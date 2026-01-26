@@ -118,7 +118,10 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     REQUIRED_FIELDS = []
 
     objects = CustomUserManager()
-    history = HistoricalRecords()
+    history = HistoricalRecords(
+        verbose_name="Historique Utilisateur",
+        verbose_name_plural="Historiques Utilisateurs"
+    )
 
     def __str__(self):
         full_name = "{} {}".format(self.first_name, self.last_name).strip()
@@ -174,7 +177,10 @@ class Membership(models.Model):
         help_text="Rôle assigné à l'utilisateur dans l'entreprise",
     )
 
-    history = HistoricalRecords()
+    history = HistoricalRecords(
+        verbose_name="Historique Membre",
+        verbose_name_plural="Historiques Membres"
+    )
 
     class Meta:
         verbose_name = "Membre"
