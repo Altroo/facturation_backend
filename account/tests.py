@@ -537,7 +537,7 @@ def test_send_email_task_updates_user_and_sends_mail():
 
     user = CustomUser.objects.create(email="test@example.com", password="1234")
 
-    send_email.delay(
+    send_email.apply_async(
         user.pk,
         user.email,
         "Reset",

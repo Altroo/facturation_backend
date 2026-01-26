@@ -1,9 +1,13 @@
 from django.contrib import admin
 from django.contrib.admin import ModelAdmin
 from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.forms import AdminPasswordChangeForm
+from django.template.loader import render_to_string
+from django.utils.html import escape
 
 from account.models import CustomUser, Membership
 from .forms import CustomAuthShopChangeForm, CustomAuthShopCreationForm
+from .tasks import send_email
 
 
 class CustomUserAdmin(UserAdmin):
@@ -62,6 +66,39 @@ class CustomUserAdmin(UserAdmin):
     )
     search_fields = ("email",)
     ordering = ("-id",)
+
+    def user_change_password(self, request, id, form_url=""):
+        """Override the password change view to send an email with the new password."""
+        user = self.get_object(request, id)
+        if request.method == "POST":
+            form = self.change_password_form(user, request.POST)
+            if form.is_valid():
+                # Get the new password before it's hashed
+                new_password = form.cleaned_data.get("password1")
+
+                # Save the password using the parent method
+                form.save()
+
+                # Send email to user with new password
+                message = render_to_string(
+                    "new_password.html",
+                    {
+                        "first_name": user.first_name or user.email.split("@")[0],
+                        "password": new_password,
+                    },
+                )
+                send_email.delay(
+                    user_pk=user.pk,
+                    email_=user.email,
+                    mail_subject="Casa Di Lusso - Changement de mot de passe",
+                    message=message,
+                )
+
+                # Continue with the default behavior (redirect, message, etc.)
+                return super().user_change_password(request, id, form_url)
+
+        # If not POST or form is invalid, use default behavior
+        return super().user_change_password(request, id, form_url)
 
 
 class MembershipAdmin(ModelAdmin):
