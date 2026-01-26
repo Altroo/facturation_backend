@@ -2,7 +2,7 @@ Django==6.0.1
 django-filter==25.2
 python-decouple==3.8
 psycopg2-binary==2.9.11
-gunicorn==23.0.0
+gunicorn==24.1.1
 whitenoise==6.11.0
 djangorestframework==3.16.1
 djangorestframework-simplejwt==5.5.1
