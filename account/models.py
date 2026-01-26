@@ -107,6 +107,13 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         help_text="Identifiant de la tâche de réinitialisation du mot de passe",
         db_index=True,
     )
+    # Password tracking
+    default_password_set = models.BooleanField(
+        verbose_name="Mot de passe par défaut défini",
+        default=False,
+        help_text="Indique si l'utilisateur utilise encore le mot de passe par défaut envoyé par e-mail",
+        db_index=True,
+    )
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
 

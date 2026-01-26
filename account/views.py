@@ -108,6 +108,7 @@ class PasswordChangeView(APIView):
                 }
                 raise ValidationError(errors)
             user.set_password(serializer.data.get("new_password"))
+            user.default_password_set = False
             user.save()
             return Response(status=status.HTTP_204_NO_CONTENT)
         raise ValidationError(serializer.errors)
@@ -184,7 +185,8 @@ class PasswordResetView(APIView):
 
                         user.set_password(serializer.data.get("new_password"))
                         user.password_reset_code = None
-                        user.save(update_fields=["password", "password_reset_code"])
+                        user.default_password_set = False
+                        user.save(update_fields=["password", "password_reset_code", "default_password_set"])
 
                     return Response(status=status.HTTP_204_NO_CONTENT)
                 raise ValidationError(serializer.errors)
@@ -387,6 +389,7 @@ class UsersListCreateView(APIView):
         data = request.data.copy()
         data["password"] = password
         data["email"] = str(data.get("email", "")).lower()
+        data["default_password_set"] = True
 
         serializer = CreateAccountSerializer(
             data=data,

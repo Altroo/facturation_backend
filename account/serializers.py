@@ -261,10 +261,12 @@ class CreateAccountSerializer(serializers.ModelSerializer):
             "avatar_cropped",
             "is_staff",
             "is_active",
+            "default_password_set",
             "companies",
         ]
         extra_kwargs = {
             "password": {"write_only": True},
+            "default_password_set": {"default": False},
         }
 
     def to_representation(self, instance):
@@ -355,6 +357,7 @@ class ProfileGETSerializer(serializers.ModelSerializer):
             "avatar",
             "avatar_cropped",
             "is_staff",
+            "default_password_set",
             "date_joined",
             "last_login",
         ]

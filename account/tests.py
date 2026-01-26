@@ -113,6 +113,10 @@ class TestAccountAPI:
     # Password Change
     def test_password_change_success(self):
         url = reverse("account:password_change")
+        # Ensure default_password_set is True initially (user has default password)
+        self.user.default_password_set = True
+        self.user.save()
+
         response = self.auth_client.put(
             url,
             {
@@ -122,6 +126,10 @@ class TestAccountAPI:
             },
         )
         assert response.status_code == status.HTTP_204_NO_CONTENT
+
+        # Verify default_password_set is now False (user changed password)
+        self.user.refresh_from_db()
+        assert self.user.default_password_set is False
 
     def test_password_change_invalid_old(self):
         url = reverse("account:password_change")
@@ -166,6 +174,7 @@ class TestAccountAPI:
 
     def test_password_reset_put_valid(self):
         self.user.password_reset_code = "1234"
+        self.user.default_password_set = True
         self.user.save()
         url = reverse("account:password_reset")
         response = self.client.put(
@@ -178,6 +187,10 @@ class TestAccountAPI:
             },
         )
         assert response.status_code == status.HTTP_204_NO_CONTENT
+
+        # Verify default_password_set is now False (user reset password)
+        self.user.refresh_from_db()
+        assert self.user.default_password_set is False
 
     def test_password_reset_put_invalid_code(self):
         self.user.password_reset_code = "1234"
@@ -449,6 +462,8 @@ class TestAccountAPIExtras:
         created = self.user_model.objects.get(email="newuser@example.com")
         assert created.first_name == "New"
         assert created.avatar and created.avatar_cropped
+        # Verify default_password_set is True since a random password was sent
+        assert created.default_password_set is True
 
     # Users create: with companies/memberships payload
     def test_post_users_create_with_companies_memberships(self):
@@ -1215,7 +1230,6 @@ class TestTasksExtra:
         result = from_img_to_io(img, "PNG")
         assert isinstance(result, BytesIO)
 
-    @patch("account.tasks.STATIC_PATH", "/fake")
     @patch("account.tasks.ImageDraw.Draw")
     @patch("account.tasks.ImageFont.truetype")
     def test_generate_avatar(self, mock_font, mock_draw):
@@ -2007,6 +2021,7 @@ class TestAccountViewsExtra:
         assert response.status_code == 200
         assert response.data["first_name"] == self.user.first_name
         assert "is_staff" in response.data
+        assert "default_password_set" in response.data
 
     def test_group_view(self):
         """Test GroupView returns group titles."""
