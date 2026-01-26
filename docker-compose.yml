@@ -21,8 +21,8 @@ services:
     restart: always
     command: daphne -b 0.0.0.0 -p 8000 facturation_backend.asgi:application
     volumes:
-      - static_volume:/app/static
-      - media_volume:/app/media
+      - ./static:/app/static
+      - ./media:/app/media
     ports:
       - "8000:8000"
     env_file:
@@ -65,15 +65,14 @@ services:
     environment:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    volumes:
+      - ./media:/app/media
+      - ./static:/app/static
 
 volumes:
-  static_volume:
-  media_volume:
   postgres_data:
   redis_data:
 
 networks:
   backend:
     driver: bridge
-
-
