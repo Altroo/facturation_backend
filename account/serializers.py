@@ -627,6 +627,7 @@ class UserDetailSerializer(serializers.ModelSerializer):
             "email",
             "gender",
             "is_active",
+            "is_staff",
             "date_joined",
             "date_updated",
             "last_login",
