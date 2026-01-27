@@ -3,6 +3,22 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
+    # Monthly Objectives CRUD
+    path(
+        "objectives/",
+        views.MonthlyObjectivesListCreateView.as_view(),
+        name="objectives-list-create",
+    ),
+    path(
+        "objectives/<int:pk>/",
+        views.MonthlyObjectivesDetailView.as_view(),
+        name="objectives-detail",
+    ),
+    path(
+        "objectives/by-company/<int:company_id>/",
+        views.MonthlyObjectivesByCompanyView.as_view(),
+        name="objectives-by-company",
+    ),
     # Financial Overview
     path(
         "financial/monthly-revenue/",

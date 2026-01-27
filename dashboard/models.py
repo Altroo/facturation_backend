@@ -1,0 +1,71 @@
+from django.db import models
+from django.utils import timezone
+from simple_history.models import HistoricalRecords
+
+from company.models import Company
+
+
+class MonthlyObjectives(models.Model):
+    """
+    Monthly objectives for a company.
+    Stores target values for revenue (CA), invoices count, and conversion rate.
+    """
+
+    company = models.OneToOneField(
+        Company,
+        on_delete=models.CASCADE,
+        related_name="monthly_objectives",
+        verbose_name="Société",
+        help_text="Société concernée par ces objectifs",
+    )
+
+    # Target values
+    objectif_ca = models.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        default=0,
+        verbose_name="Objectif CA",
+        help_text="Objectif de chiffre d'affaires mensuel (MAD)",
+    )
+
+    objectif_factures = models.IntegerField(
+        default=0,
+        verbose_name="Objectif Factures",
+        help_text="Objectif de nombre de factures mensuelles",
+    )
+
+    objectif_conversion = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=0,
+        verbose_name="Objectif Conversion",
+        help_text="Objectif de taux de conversion des devis (%)",
+    )
+
+    # Metadata
+    date_created = models.DateTimeField(
+        verbose_name="Date de création",
+        help_text="Horodatage de la création de l'enregistrement",
+        default=timezone.now,
+        db_index=True,
+    )
+
+    date_updated = models.DateTimeField(
+        auto_now=True,
+        verbose_name="Date de modification",
+        help_text="Horodatage de la dernière modification",
+        db_index=True,
+    )
+
+    history = HistoricalRecords(
+        verbose_name="Historique Objectifs Mensuels",
+        verbose_name_plural="Historiques Objectifs Mensuels",
+    )
+
+    class Meta:
+        verbose_name = "Objectifs Mensuels"
+        verbose_name_plural = "Objectifs Mensuels"
+        ordering = ("-date_created",)
+
+    def __str__(self):
+        return f"Objectifs mensuels - {self.company.raison_sociale}"

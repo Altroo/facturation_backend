@@ -4,6 +4,7 @@ from decimal import Decimal
 from django.db.models import Sum, Count, F, Avg
 from django.db.models.functions import TruncMonth, TruncDate
 from django.utils import timezone
+from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -14,6 +15,8 @@ from devi.models import Devi, DeviLine
 from facture_client.models import FactureClient, FactureClientLine
 from facture_proforma.models import FactureProForma, FactureProFormaLine
 from reglement.models import Reglement
+from .models import MonthlyObjectives
+from .serializers import MonthlyObjectivesSerializer
 
 
 def make_aware_datetime_start(d):
@@ -1015,10 +1018,25 @@ class MonthlyObjectivesView(APIView):
             (accepted_quotes / total_quotes * 100) if total_quotes > 0 else 0
         )
 
-        # Mock objectives
-        revenue_objective = 500000  # 500k MAD
-        invoice_objective = 50
-        conversion_objective = 60  # 60%
+        # Get objectives from database
+        try:
+            if company_id:
+                objectives = MonthlyObjectives.objects.get(company_id=company_id)
+                revenue_objective = float(objectives.objectif_ca)
+                invoice_objective = objectives.objectif_factures
+                conversion_objective = float(objectives.objectif_conversion)
+                objectives_set = True
+            else:
+                # Default values if no company specified
+                revenue_objective = 0
+                invoice_objective = 0
+                conversion_objective = 0
+                objectives_set = False
+        except MonthlyObjectives.DoesNotExist:
+            revenue_objective = 0
+            invoice_objective = 0
+            conversion_objective = 0
+            objectives_set = False
 
         result = {
             "revenue": {
@@ -1048,6 +1066,7 @@ class MonthlyObjectivesView(APIView):
                     else 0
                 ),
             },
+            "objectives_set": objectives_set,
         }
 
         return Response(result)
@@ -1364,3 +1383,99 @@ class SectionMicroTrendsView(APIView):
         }
 
         return Response(result)
+
+
+class MonthlyObjectivesListCreateView(APIView):
+    """List all monthly objectives or create a new one."""
+
+    permission_classes = [IsAuthenticated]
+
+    @staticmethod
+    def get(request):
+        objectives = MonthlyObjectives.objects.all()
+        serializer = MonthlyObjectivesSerializer(objectives, many=True)
+        return Response(serializer.data)
+
+    @staticmethod
+    def post(request):
+        serializer = MonthlyObjectivesSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class MonthlyObjectivesDetailView(APIView):
+    """Retrieve, update or delete a monthly objective."""
+
+    permission_classes = [IsAuthenticated]
+
+    @staticmethod
+    def get_object(pk):
+        try:
+            return MonthlyObjectives.objects.get(pk=pk)
+        except MonthlyObjectives.DoesNotExist:
+            return None
+
+    def get(self, request, pk):
+        objectives = self.get_object(pk)
+        if not objectives:
+            return Response(
+                {"detail": "Objectifs non trouvés"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        serializer = MonthlyObjectivesSerializer(objectives)
+        return Response(serializer.data)
+
+    def put(self, request, pk):
+        objectives = self.get_object(pk)
+        if not objectives:
+            return Response(
+                {"detail": "Objectifs non trouvés"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        serializer = MonthlyObjectivesSerializer(objectives, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
+    def patch(self, request, pk):
+        objectives = self.get_object(pk)
+        if not objectives:
+            return Response(
+                {"detail": "Objectifs non trouvés"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        serializer = MonthlyObjectivesSerializer(
+            objectives, data=request.data, partial=True
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
+    def delete(self, request, pk):
+        objectives = self.get_object(pk)
+        if not objectives:
+            return Response(
+                {"detail": "Objectifs non trouvés"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        objectives.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class MonthlyObjectivesByCompanyView(APIView):
+    """Retrieve monthly objectives for a specific company."""
+
+    permission_classes = [IsAuthenticated]
+
+    @staticmethod
+    def get(request, company_id):
+        try:
+            objectives = MonthlyObjectives.objects.get(company_id=company_id)
+            serializer = MonthlyObjectivesSerializer(objectives)
+            return Response(serializer.data)
+        except MonthlyObjectives.DoesNotExist:
+            return Response(
+                {"detail": "Objectifs non trouvés pour cette société"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
