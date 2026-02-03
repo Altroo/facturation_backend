@@ -201,11 +201,8 @@ class SendPasswordResetView(APIView):
     errors = {"email": ["Aucun compte existant utilisant cette adresse éléctronique."]}
 
     @staticmethod
-    def generate_random_code(length=8):
-        # Use alphanumeric for 62^8 = 218 trillion combinations
-        # vs previous 10^4 = 10,000 combinations
-        characters = digits + ascii_letters
-        return "".join(choice(characters) for _ in range(length))
+    def generate_random_code(length=4):
+        return "".join(choice(digits) for _ in range(length))
 
     def post(self, request, *args, **kwargs):
         email = request.data.get("email")
