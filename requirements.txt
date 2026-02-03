@@ -2,11 +2,11 @@ Django==6.0.1
 django-filter==25.2
 python-decouple==3.8
 psycopg2-binary==2.9.11
-gunicorn==24.1.1
+gunicorn==25.0.1
 whitenoise==6.11.0
 djangorestframework==3.16.1
 djangorestframework-simplejwt==5.5.1
-PyJWT==2.10.1
+PyJWT==2.11.0
 django-cors-headers==4.9.0
 dj-rest-auth==7.0.2
 redis==7.1.0
