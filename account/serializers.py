@@ -226,6 +226,9 @@ class CreateAccountSerializer(serializers.ModelSerializer):
         # Extract the companies/memberships payload
         memberships_data = validated_data.pop("memberships", None)
 
+        # Extract and hash the password
+        password = validated_data.pop("password", None)
+
         # Process avatar fields
         avatar = self._process_image_field("avatar", validated_data)
         avatar_cropped = self._process_image_field("avatar_cropped", validated_data)
@@ -234,6 +237,10 @@ class CreateAccountSerializer(serializers.ModelSerializer):
 
         # Create the user instance without saving yet
         instance = CustomUser(**validated_data)
+
+        # Set the hashed password
+        if password:
+            instance.set_password(password)
 
         if avatar:
             instance.avatar.save(avatar.name, avatar, save=False)
