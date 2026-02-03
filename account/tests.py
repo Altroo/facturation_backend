@@ -802,7 +802,8 @@ class TestSerializers:
         # Create a minimal valid 10x10 PNG image
         minimal_png = (
             b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\n\x00\x00\x00\n\x08\x06\x00\x00\x00\x8d2\xcf\xbd"
-            b"\x00\x00\x00\x0eIDATx\x9cc`\x18\x05\x83\x13\x00\x00\x01\x9a\x00\x01\x1d\x82V\xa8\x00\x00\x00\x00IEND\xaeB`\x82"
+            b"\x00\x00\x00\x0eIDATx\x9cc`\x18\x05\x83\x13\x00\x00\x01\x9a\x00\x01\x1d\x82V\xa8\x00\x00\x00\
+            x00IEND\xaeB`\x82"
         )
         uploaded = SimpleUploadedFile(
             "avatar.png", minimal_png, content_type="image/png"
@@ -1061,7 +1062,8 @@ class TestSerializers:
             assert True
 
 
-IMG_B64_EXTRA = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAADklEQVR4nGNgGAWDEwAAAZoAAR2CVqgAAAAASUVORK5CYII="
+IMG_B64_EXTRA = ("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+"
+                 "9AAAADklEQVR4nGNgGAWDEwAAAZoAAR2CVqgAAAAASUVORK5CYII=")
 
 
 @pytest.fixture
