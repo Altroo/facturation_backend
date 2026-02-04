@@ -223,6 +223,13 @@ class Company(models.Model):
         db_index=True,
     )
 
+    # Foreign currency
+    uses_foreign_currency = models.BooleanField(
+        default=False,
+        verbose_name="Utilise une devise étrangère",
+        help_text="Si activé, les sélecteurs de devise sont affichés dans les articles et les documents",
+    )
+
     history = HistoricalRecords(
         verbose_name="Historique Société",
         verbose_name_plural="Historiques Sociétés"

@@ -13,6 +13,12 @@ REMISE_TYPE_CHOICES = [
     ("Fixe", "Fixe"),
 ]
 
+CURRENCY_CHOICES = [
+    ("MAD", "MAD – Dirham Marocain"),
+    ("EUR", "EUR – Euro"),
+    ("USD", "USD – Dollar Américain"),
+]
+
 
 class BaseDeviFactureDocument(models.Model):
     """Abstract base for Devis, FactureProForma, and FactureClient."""
@@ -239,6 +245,14 @@ class BaseDeviFactureLine(models.Model):
         decimal_places=2,
         verbose_name="Prix d'achat",
         help_text="Prix d'achat unitaire (ex: en MAD)",
+    )
+
+    devise_prix_achat = models.CharField(
+        max_length=3,
+        choices=CURRENCY_CHOICES,
+        default="MAD",
+        verbose_name="Devise prix d'achat",
+        help_text="Devise utilisée pour le prix d'achat",
     )
 
     prix_vente = models.DecimalField(

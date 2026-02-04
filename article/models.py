@@ -83,8 +83,6 @@ class Article(models.Model):
         ("MAD", "MAD – Dirham Marocain"),
         ("EUR", "EUR – Euro"),
         ("USD", "USD – Dollar Américain"),
-        ("GBP", "GBP – Livre Sterling"),
-        ("CHF", "CHF – Franc Suisse"),
     ]
     prix_achat = models.DecimalField(
         max_digits=10,

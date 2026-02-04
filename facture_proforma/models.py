@@ -83,6 +83,7 @@ class FactureProForma(BaseDeviFactureDocument):
                 facture_client=facture_client,
                 article=line.article,
                 prix_achat=line.prix_achat,
+                devise_prix_achat=line.devise_prix_achat,
                 prix_vente=line.prix_vente,
                 quantity=line.quantity,
                 remise_type=line.remise_type,
