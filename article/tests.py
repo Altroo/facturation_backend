@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
+from django.core.files.uploadedfile import SimpleUploadedFile
 
 from account.models import Membership, Role
 from article.models import Article
@@ -1614,3 +1615,270 @@ class TestArticleViewsCoverage:
         response = self.client.patch(url, {"archived": True})
 
         assert response.status_code == 404
+
+
+@pytest.mark.django_db
+class TestArticleImport:
+    def setup_method(self):
+        self.user_model = get_user_model()
+        self.user = self.user_model.objects.create_user(
+            email="import_test@example.com", password="pass"
+        )
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
+
+        self.company = Company.objects.create(
+            raison_sociale="ImportCorp",
+            ICE="ICE_IMPORT",
+            registre_de_commerce="RC_IMPORT",
+            nbr_employe="1 à 5",
+        )
+
+        self.caissier_role, _ = Role.objects.get_or_create(name="Caissier")
+        self.lecture_role, _ = Role.objects.get_or_create(name="Lecture")
+        Membership.objects.create(
+            user=self.user, company=self.company, role=self.caissier_role
+        )
+
+        self.url = reverse("article:article-import")
+
+    @staticmethod
+    def _csv_file(content: str) -> SimpleUploadedFile:
+        return SimpleUploadedFile(
+            "import.csv", content.encode("utf-8"), content_type="text/csv"
+        )
+
+    # ------------------------------------------------------------------
+    # Happy-path
+    # ------------------------------------------------------------------
+    def test_import_success_full(self):
+        """Full import with all fields populates every column."""
+        csv_content = (
+            "reference,type_article,designation,prix_achat,prix_vente,tva,"
+            "remarque,marque,categorie,emplacement,unite\n"
+            "ART9001,Produit,Bureau,150.00,200.00,20,Un bureau,"
+            "TestMarque,TestCategorie,Entrepôt,Pièce\n"
+            "ART9002,Service,Consultation,50.00,100.00,10,Service pro,,,,\n"
+        )
+        response = self.client.post(
+            self.url,
+            {"file": self._csv_file(csv_content), "company_id": self.company.id},
+            format="multipart",
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["total"] == 2
+        assert data["created"] == 2
+        assert data["errors"] == []
+        assert Article.objects.filter(
+            reference="ART9001", company=self.company
+        ).exists()
+        assert Article.objects.filter(
+            reference="ART9002", company=self.company
+        ).exists()
+
+    def test_import_fk_auto_creation(self):
+        """FK fields that do not exist yet are created via get_or_create."""
+        csv_content = (
+            "designation,marque,categorie,emplacement,unite\n"
+            "TestArticle,NouvMarque,NouvCategorie,NouvEmplacement,NouvUnite\n"
+        )
+        response = self.client.post(
+            self.url,
+            {"file": self._csv_file(csv_content), "company_id": self.company.id},
+            format="multipart",
+        )
+
+        assert response.status_code == 200
+        assert response.json()["created"] == 1
+        assert Marque.objects.filter(nom="NouvMarque").exists()
+        assert Categorie.objects.filter(nom="NouvCategorie").exists()
+        assert Emplacement.objects.filter(nom="NouvEmplacement").exists()
+        assert Unite.objects.filter(nom="NouvUnite").exists()
+
+    def test_import_fk_reuse_existing(self):
+        """Existing FK objects are reused — no duplicate created."""
+        marque = Marque.objects.create(nom="ExistingMarque")
+        csv_content = "designation,marque\nTestArticle,ExistingMarque\n"
+        response = self.client.post(
+            self.url,
+            {"file": self._csv_file(csv_content), "company_id": self.company.id},
+            format="multipart",
+        )
+
+        assert response.status_code == 200
+        assert response.json()["created"] == 1
+        article = Article.objects.get(designation="TestArticle", company=self.company)
+        assert article.marque == marque
+        assert Marque.objects.filter(nom="ExistingMarque").count() == 1
+
+    def test_import_reference_auto_generation(self):
+        """Empty reference fields get an auto-generated ART#### code."""
+        Article.objects.create(
+            reference="ART0001",
+            designation="Existing",
+            type_article="Produit",
+            company=self.company,
+        )
+        csv_content = "designation\nArticle Sans Ref\n"
+        response = self.client.post(
+            self.url,
+            {"file": self._csv_file(csv_content), "company_id": self.company.id},
+            format="multipart",
+        )
+
+        assert response.status_code == 200
+        assert response.json()["created"] == 1
+        assert Article.objects.filter(
+            reference="ART0002",
+            designation="Article Sans Ref",
+            company=self.company,
+        ).exists()
+
+    def test_import_french_decimal_format(self):
+        """Semicolon-delimited CSV with European decimals (French Excel default)."""
+        csv_content = (
+            "designation;prix_achat;prix_vente\n" "Article;1 500,50;2 000,00\n"
+        )
+        response = self.client.post(
+            self.url,
+            {"file": self._csv_file(csv_content), "company_id": self.company.id},
+            format="multipart",
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["created"] == 1
+        assert data["errors"] == []
+        article = Article.objects.get(designation="Article", company=self.company)
+        assert article.prix_achat == 1500.50
+        assert article.prix_vente == 2000.00
+
+    # ------------------------------------------------------------------
+    # Per-row validation errors (HTTP 200 + errors list)
+    # ------------------------------------------------------------------
+    def test_import_invalid_type_article(self):
+        """Invalid type_article produces a per-row error."""
+        csv_content = "designation,type_article\nTest,InvalidType\n"
+        response = self.client.post(
+            self.url,
+            {"file": self._csv_file(csv_content), "company_id": self.company.id},
+            format="multipart",
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["created"] == 0
+        assert len(data["errors"]) == 1
+        assert data["errors"][0]["row"] == 2
+        assert "InvalidType" in data["errors"][0]["message"]
+
+    def test_import_missing_designation(self):
+        """Missing designation produces a per-row error."""
+        csv_content = "designation,type_article\n,Produit\n"
+        response = self.client.post(
+            self.url,
+            {"file": self._csv_file(csv_content), "company_id": self.company.id},
+            format="multipart",
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["created"] == 0
+        assert len(data["errors"]) == 1
+        assert "désignation" in data["errors"][0]["message"].lower()
+
+    def test_import_duplicate_reference(self):
+        """A reference that already exists in DB produces a per-row error."""
+        Article.objects.create(
+            reference="ART5555",
+            designation="Existing",
+            type_article="Produit",
+            company=self.company,
+        )
+        csv_content = "reference,designation\nART5555,DuplicateTry\n"
+        response = self.client.post(
+            self.url,
+            {"file": self._csv_file(csv_content), "company_id": self.company.id},
+            format="multipart",
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["created"] == 0
+        assert len(data["errors"]) == 1
+        assert "ART5555" in data["errors"][0]["message"]
+
+    def test_import_invalid_decimal(self):
+        """A non-numeric prix_achat produces a per-row error."""
+        csv_content = "designation,prix_achat\nTest,not_a_number\n"
+        response = self.client.post(
+            self.url,
+            {"file": self._csv_file(csv_content), "company_id": self.company.id},
+            format="multipart",
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["created"] == 0
+        assert len(data["errors"]) == 1
+        assert "prix_achat" in data["errors"][0]["message"]
+
+    # ------------------------------------------------------------------
+    # Permission / access errors (HTTP 400 / 403)
+    # ------------------------------------------------------------------
+    def test_import_no_membership(self):
+        """User with no membership in the target company gets 403."""
+        other_company = Company.objects.create(
+            raison_sociale="OtherCorp",
+            ICE="ICE_OTHER",
+            registre_de_commerce="RC_OTHER",
+            nbr_employe="1 à 5",
+        )
+        csv_content = "designation\nTest\n"
+        response = self.client.post(
+            self.url,
+            {"file": self._csv_file(csv_content), "company_id": other_company.id},
+            format="multipart",
+        )
+
+        assert response.status_code == 403
+
+    def test_import_no_create_permission(self):
+        """Lecture role cannot import — gets 403."""
+        Membership.objects.filter(user=self.user, company=self.company).delete()
+        Membership.objects.create(
+            user=self.user, company=self.company, role=self.lecture_role
+        )
+        csv_content = "designation\nTest\n"
+        response = self.client.post(
+            self.url,
+            {"file": self._csv_file(csv_content), "company_id": self.company.id},
+            format="multipart",
+        )
+
+        assert response.status_code == 403
+
+    def test_import_no_file(self):
+        """POST without a file attachment returns 400."""
+        response = self.client.post(
+            self.url,
+            {"company_id": self.company.id},
+            format="multipart",
+        )
+
+        assert response.status_code == 400
+        assert "fichier" in response.json()["detail"].lower()
+
+    def test_import_empty_csv(self):
+        """CSV that contains only a header row (no data) returns 400."""
+        csv_content = "reference,designation,type_article\n"
+        response = self.client.post(
+            self.url,
+            {"file": self._csv_file(csv_content), "company_id": self.company.id},
+            format="multipart",
+        )
+
+        assert response.status_code == 400
+        assert "vide" in response.json()["detail"].lower()

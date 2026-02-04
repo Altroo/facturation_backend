@@ -5,6 +5,7 @@ from .views import (
     ArticleDetailEditDeleteView,
     GenerateArticleReferenceCodeView,
     ArchiveToggleArticleView,
+    ImportArticlesView,
 )
 
 app_name = "article"
@@ -24,4 +25,6 @@ urlpatterns = [
     path(
         "archive/<int:pk>/", ArchiveToggleArticleView.as_view(), name="article-archive"
     ),
+    # POST importer des articles depuis un fichier CSV
+    path("import/", ImportArticlesView.as_view(), name="article-import"),
 ]
