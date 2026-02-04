@@ -1,15 +1,14 @@
 from django import forms
 from django.contrib import admin
-from django.contrib.auth.models import Group
 from simple_history.admin import SimpleHistoryAdmin
 
-from account.models import Membership
+from account.models import Membership, Role
 from .models import Company
 
 
 class MembershipInlineForm(forms.ModelForm):
     role = forms.ModelChoiceField(
-        queryset=Group.objects.all(),
+        queryset=Role.objects.all(),
         required=False,
         label="Role",
     )

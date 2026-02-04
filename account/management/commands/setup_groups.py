@@ -8,66 +8,67 @@ This command creates the following groups:
 - Lecture: View only, no print/create/delete/edit
 """
 
-from django.contrib.auth.models import Group
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
+from models import Role
+
 
 class Command(BaseCommand):
-    help = "Set up permission groups (Caissier, Comptable, Commercial, Lecture)"
+    help = "Set up permission Roles (Caissier, Comptable, Commercial, Lecture)"
 
     def handle(self, *args, **options):
-        self.stdout.write(self.style.MIGRATE_HEADING("Setting up permission groups..."))
+        self.stdout.write(self.style.MIGRATE_HEADING("Setting up permission Roles..."))
 
         with transaction.atomic():
             # Create groups
-            caissier, created = Group.objects.get_or_create(name="Caissier")
+            caissier, created = Role.objects.get_or_create(name="Caissier")
             if created:
                 self.stdout.write(
-                    self.style.SUCCESS("  ✓ Created group: Caissier (full access)")
+                    self.style.SUCCESS("  ✓ Created Role: Caissier (full access)")
                 )
             else:
                 self.stdout.write(
-                    self.style.WARNING("  - Group already exists: Caissier")
+                    self.style.WARNING("  - Group Role exists: Caissier")
                 )
 
-            comptable, created = Group.objects.get_or_create(name="Comptable")
+            comptable, created = Role.objects.get_or_create(name="Comptable")
             if created:
                 self.stdout.write(
                     self.style.SUCCESS(
-                        "  ✓ Created group: Comptable (read & print only)"
+                        "  ✓ Created Role: Comptable (read & print only)"
                     )
                 )
             else:
                 self.stdout.write(
-                    self.style.WARNING("  - Group already exists: Comptable")
+                    self.style.WARNING("  - Role already exists: Comptable")
                 )
 
-            commercial, created = Group.objects.get_or_create(name="Commercial")
+            commercial, created = Role.objects.get_or_create(name="Commercial")
             if created:
                 self.stdout.write(
                     self.style.SUCCESS(
-                        "  ✓ Created group: Commercial (create documents)"
+                        "  ✓ Created Role: Commercial (create documents)"
                     )
                 )
             else:
                 self.stdout.write(
-                    self.style.WARNING("  - Group already exists: Commercial")
+                    self.style.WARNING("  - Role already exists: Commercial")
                 )
 
-            lecture, created = Group.objects.get_or_create(name="Lecture")
+            lecture, created = Role.objects.get_or_create(name="Lecture")
             if created:
                 self.stdout.write(
-                    self.style.SUCCESS("  ✓ Created group: Lecture (view only)")
+                    self.style.SUCCESS("  ✓ Created Role: Lecture (view only)")
                 )
             else:
                 self.stdout.write(
-                    self.style.WARNING("  - Group already exists: Lecture")
+                    self.style.WARNING("  - Role already exists: Lecture")
                 )
 
         self.stdout.write(
             self.style.MIGRATE_HEADING(
-                "\nDone! All permission groups have been set up."
+                "\nDone! All permission Role have been set up."
             )
         )
         self.stdout.write(

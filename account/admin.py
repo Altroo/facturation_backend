@@ -1,9 +1,7 @@
 from django.contrib import admin
 from django.contrib.admin import ModelAdmin
 from django.contrib.auth.admin import UserAdmin
-from django.contrib.auth.forms import AdminPasswordChangeForm
 from django.template.loader import render_to_string
-from django.utils.html import escape
 
 from account.models import CustomUser, Membership
 from .forms import CustomAuthShopChangeForm, CustomAuthShopCreationForm
