@@ -491,6 +491,22 @@ class ImportArticlesView(APIView):
 
             remarque = normalized_row.get("remarque", "") or None
 
+            # --- devise_prix_achat -------------------------------------------
+            valid_currencies = {c[0] for c in Article.CURRENCY_CHOICES}
+            devise_raw = normalized_row.get("devise_prix_achat", "").strip().upper()
+            if devise_raw and devise_raw not in valid_currencies:
+                errors.append(
+                    {
+                        "row": idx,
+                        "message": (
+                            f"devise_prix_achat invalide : '{devise_raw}'."
+                            f" Utilisez l'une de : {', '.join(sorted(valid_currencies))}."
+                        ),
+                    }
+                )
+                continue
+            devise_prix_achat = devise_raw or "MAD"
+
             # --- foreign keys ------------------------------------------------
             marque = self._resolve_fk(Marque, normalized_row.get("marque"))
             categorie = self._resolve_fk(Categorie, normalized_row.get("categorie"))
@@ -507,6 +523,7 @@ class ImportArticlesView(APIView):
                     designation=designation,
                     type_article=type_article,
                     prix_achat=decimal_values["prix_achat"],
+                    devise_prix_achat=devise_prix_achat,
                     prix_vente=decimal_values["prix_vente"],
                     tva=decimal_values["tva"],
                     remarque=remarque,

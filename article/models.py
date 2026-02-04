@@ -79,12 +79,26 @@ class Article(models.Model):
     )
 
     # Pricing
+    CURRENCY_CHOICES = [
+        ("MAD", "MAD – Dirham Marocain"),
+        ("EUR", "EUR – Euro"),
+        ("USD", "USD – Dollar Américain"),
+        ("GBP", "GBP – Livre Sterling"),
+        ("CHF", "CHF – Franc Suisse"),
+    ]
     prix_achat = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         default=0,
         verbose_name="Prix d'achat",
         help_text="Prix d'achat unitaire",
+    )
+    devise_prix_achat = models.CharField(
+        max_length=3,
+        choices=CURRENCY_CHOICES,
+        default="MAD",
+        verbose_name="Devise prix d'achat",
+        help_text="Devise utilisée pour le prix d'achat",
     )
     prix_vente = models.DecimalField(
         max_digits=10,
@@ -142,8 +156,7 @@ class Article(models.Model):
     )
 
     history = HistoricalRecords(
-        verbose_name="Historique Article",
-        verbose_name_plural="Historiques Articles"
+        verbose_name="Historique Article", verbose_name_plural="Historiques Articles"
     )
 
     class Meta:
