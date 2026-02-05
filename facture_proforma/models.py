@@ -36,7 +36,7 @@ class FactureProForma(BaseDeviFactureDocument):
 
     history = HistoricalRecords(
         verbose_name="Historique Facture Pro-Forma",
-        verbose_name_plural="Historiques Factures Pro-Forma"
+        verbose_name_plural="Historiques Factures Pro-Forma",
     )
 
     class Meta:
@@ -75,6 +75,7 @@ class FactureProForma(BaseDeviFactureDocument):
             remise_type=self.remise_type,
             remise=self.remise,
             total_ttc_apres_remise=self.total_ttc_apres_remise,
+            devise=self.devise,
             created_by_user=created_by_user,
         )
 
@@ -85,6 +86,7 @@ class FactureProForma(BaseDeviFactureDocument):
                 prix_achat=line.prix_achat,
                 devise_prix_achat=line.devise_prix_achat,
                 prix_vente=line.prix_vente,
+                devise_prix_vente=line.devise_prix_vente,
                 quantity=line.quantity,
                 remise_type=line.remise_type,
                 remise=line.remise,
@@ -103,13 +105,15 @@ class FactureProFormaLine(BaseDeviFactureLine):
     )
 
     article = models.ForeignKey(
-        Article, on_delete=models.PROTECT, verbose_name="Article",
+        Article,
+        on_delete=models.PROTECT,
+        verbose_name="Article",
         help_text="Article associé à cette ligne de facture pro forma",
     )
 
     history = HistoricalRecords(
         verbose_name="Historique Facture Pro-Forma",
-        verbose_name_plural="Historiques Factures Pro-Forma"
+        verbose_name_plural="Historiques Factures Pro-Forma",
     )
 
     class Meta:

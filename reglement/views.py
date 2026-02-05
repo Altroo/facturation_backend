@@ -84,25 +84,66 @@ class ReglementListCreateView(APIView):
         filterset = ReglementFilter(request.GET, queryset=base_queryset)
         ordered_qs = filterset.qs.order_by("-id")
 
-        # Calculate aggregated stats for the company
-        # Chiffre d'affaire total = sum of all factures' total_ttc_apres_remise
+        # Calculate aggregated stats per currency for the company
         factures = FactureClient.objects.filter(client__company_id=company_id)
-        chiffre_affaire_total = factures.aggregate(total=Sum("total_ttc_apres_remise"))[
-            "total"
-        ] or Decimal("0.00")
 
-        # Total des règlements = sum of all valid règlements
-        total_reglements = Reglement.objects.filter(
-            facture_client__client__company_id=company_id, statut="Valide"
-        ).aggregate(total=Sum("montant"))["total"] or Decimal("0.00")
+        # Get company to check uses_foreign_currency flag
+        company = Company.objects.get(id=company_id)
 
-        # Total des impayés = CA - règlements
-        total_impayes = chiffre_affaire_total - total_reglements
+        # Group by currency
+        stats_by_currency = {}
+        if company.uses_foreign_currency:
+            # Send stats for all currencies if company uses foreign currency
+            for devise in ["MAD", "EUR", "USD"]:
+                factures_devise = factures.filter(devise=devise)
+                chiffre_affaire = factures_devise.aggregate(
+                    total=Sum("total_ttc_apres_remise")
+                )["total"] or Decimal("0.00")
+
+                reglements = Reglement.objects.filter(
+                    facture_client__client__company_id=company_id,
+                    facture_client__devise=devise,
+                    statut="Valide",
+                ).aggregate(total=Sum("montant"))["total"] or Decimal("0.00")
+
+                impayes = chiffre_affaire - reglements
+
+                stats_by_currency[devise] = {
+                    "chiffre_affaire_total": str(chiffre_affaire),
+                    "total_reglements": str(reglements),
+                    "total_impayes": str(impayes),
+                }
+        else:
+            # Only send MAD stats if company doesn't use foreign currency
+            chiffre_affaire = factures.aggregate(total=Sum("total_ttc_apres_remise"))[
+                "total"
+            ] or Decimal("0.00")
+
+            reglements = Reglement.objects.filter(
+                facture_client__client__company_id=company_id, statut="Valide"
+            ).aggregate(total=Sum("montant"))["total"] or Decimal("0.00")
+
+            impayes = chiffre_affaire - reglements
+
+            stats_by_currency["MAD"] = {
+                "chiffre_affaire_total": str(chiffre_affaire),
+                "total_reglements": str(reglements),
+                "total_impayes": str(impayes),
+            }
+            # Initialize EUR and USD to zeros for consistency
+            stats_by_currency["EUR"] = {
+                "chiffre_affaire_total": "0.00",
+                "total_reglements": "0.00",
+                "total_impayes": "0.00",
+            }
+            stats_by_currency["USD"] = {
+                "chiffre_affaire_total": "0.00",
+                "total_reglements": "0.00",
+                "total_impayes": "0.00",
+            }
 
         extra_stats = {
-            "chiffre_affaire_total": str(chiffre_affaire_total),
-            "total_reglements": str(total_reglements),
-            "total_impayes": str(total_impayes),
+            "stats_by_currency": stats_by_currency,
         }
 
         if pagination:
@@ -407,10 +448,11 @@ class ReglementPDFGenerator(BasePDFGenerator):
 
         # Amount and price in words
         amount = self.document.montant
+        devise = self.document.facture_client.devise
         if self.language == "en":
-            price_in_words = number_to_english_words(amount)
+            price_in_words = number_to_english_words(amount, currency=devise)
         else:
-            price_in_words = number_to_french_words(amount)
+            price_in_words = number_to_french_words(amount, currency=devise)
 
         # Create info table
         info_data = [
@@ -433,7 +475,7 @@ class ReglementPDFGenerator(BasePDFGenerator):
             ],
             [
                 Paragraph(f"<b>{self._('Amount')} :</b>", self.styles["CustomNormal"]),
-                Paragraph(f"{amount:.2f} MAD", self.styles["CustomNormal"]),
+                Paragraph(f"{amount:.2f} {devise}", self.styles["CustomNormal"]),
             ],
         ]
 

@@ -22,8 +22,8 @@ from reportlab.platypus import (
 logger = logging.getLogger(__name__)
 
 
-def number_to_french_words(number: Decimal) -> str:
-    """Convert a number to French words."""
+def number_to_french_words(number: Decimal, currency: str = "MAD") -> str:
+    """Convert a number to French words with currency."""
     units = [
         "",
         "un",
@@ -124,22 +124,30 @@ def number_to_french_words(number: Decimal) -> str:
 
         return " ".join(result_parts)
 
-    # Convert to integer (whole dirhams)
+    # Convert to integer (whole units)
     int_part = int(number)
     # Get centimes
     centimes = int((number - int_part) * 100)
 
+    # Map currency to names
+    currency_names = {
+        "MAD": ("DIRHAMS", "CENTIMES"),
+        "EUR": ("EUROS", "CENTIMES"),
+        "USD": ("DOLLARS", "CENTS"),
+    }
+    main_unit, sub_unit = currency_names.get(currency, ("DIRHAMS", "CENTIMES"))
+
     result = convert_full(int_part).upper()
     if centimes > 0:
-        result += f" DIRHAMS ET {convert_full(centimes).upper()} CENTIMES"
+        result += f" {main_unit} ET {convert_full(centimes).upper()} {sub_unit}"
     else:
-        result += " DIRHAMS"
+        result += f" {main_unit}"
 
     return result
 
 
-def number_to_english_words(number: Decimal) -> str:
-    """Convert a number to English words."""
+def number_to_english_words(number: Decimal, currency: str = "MAD") -> str:
+    """Convert a number to English words with currency."""
     units = [
         "",
         "one",
@@ -219,16 +227,24 @@ def number_to_english_words(number: Decimal) -> str:
 
         return " ".join(result_parts)
 
-    # Convert to integer (whole dirhams)
+    # Convert to integer (whole units)
     int_part = int(number)
-    # Get centimes
+    # Get centimes/cents
     centimes = int((number - int_part) * 100)
+
+    # Map currency to names
+    currency_names = {
+        "MAD": ("DIRHAMS", "CENTIMES"),
+        "EUR": ("EUROS", "CENTS"),
+        "USD": ("DOLLARS", "CENTS"),
+    }
+    main_unit, sub_unit = currency_names.get(currency, ("DIRHAMS", "CENTIMES"))
 
     result = convert_full(int_part).upper()
     if centimes > 0:
-        result += f" DIRHAMS AND {convert_full(centimes).upper()} CENTIMES"
+        result += f" {main_unit} AND {convert_full(centimes).upper()} {sub_unit}"
     else:
-        result += " DIRHAMS"
+        result += f" {main_unit}"
 
     return result
 
@@ -924,7 +940,8 @@ class BasePDFGenerator:
             f"<b>{self._('Total_HT_Label')}</b>", self.styles["CustomSmall"]
         )
         total_ht_row[-1] = Paragraph(
-            f"{self.document.total_ht:.2f} MAD", self.styles["CustomSmall"]
+            f"{self.document.total_ht:.2f} {self.document.devise}",
+            self.styles["CustomSmall"],
         )
         table_data.append(total_ht_row)
 
@@ -933,7 +950,8 @@ class BasePDFGenerator:
             f"<b>{self._('Total_TVA_Label')}</b>", self.styles["CustomSmall"]
         )
         tva_row[-1] = Paragraph(
-            f"{self.document.total_tva:.2f} MAD", self.styles["CustomSmall"]
+            f"{self.document.total_tva:.2f} {self.document.devise}",
+            self.styles["CustomSmall"],
         )
         table_data.append(tva_row)
 
@@ -942,7 +960,8 @@ class BasePDFGenerator:
             f"<b>{self._('Total_TTC_Label')}</b>", self.styles["CustomSmall"]
         )
         total_ttc_row[-1] = Paragraph(
-            f"{self.document.total_ttc:.2f} MAD", self.styles["CustomSmall"]
+            f"{self.document.total_ttc:.2f} {self.document.devise}",
+            self.styles["CustomSmall"],
         )
         table_data.append(total_ttc_row)
 
@@ -952,7 +971,7 @@ class BasePDFGenerator:
             if self.document.remise_type == "Pourcentage":
                 remise_text = f"{self.document.remise:.2f}%"
             else:
-                remise_text = f"{self.document.remise:.2f} MAD"
+                remise_text = f"{self.document.remise:.2f} {self.document.devise}"
             remise_type_label = (
                 self._("Percentage")
                 if self.document.remise_type == "Pourcentage"
@@ -971,7 +990,7 @@ class BasePDFGenerator:
                 self.styles["CustomSmall"],
             )
             final_row[-1] = Paragraph(
-                f"{self.document.total_ttc_apres_remise:.2f} MAD",
+                f"{self.document.total_ttc_apres_remise:.2f} {self.document.devise}",
                 self.styles["CustomSmall"],
             )
             table_data.append(final_row)
@@ -1053,7 +1072,7 @@ class BasePDFGenerator:
             if self.document.remise_type == "Pourcentage":
                 remise_text = f"{self.document.remise:.2f}%"
             else:
-                remise_text = f"{self.document.remise:.2f} MAD"
+                remise_text = f"{self.document.remise:.2f} {self.document.devise}"
             totals_data.append(
                 [
                     Paragraph(
@@ -1069,7 +1088,7 @@ class BasePDFGenerator:
                         "<b>Total TTC après remise:</b>", self.styles["CustomNormal"]
                     ),
                     Paragraph(
-                        f"{self.document.total_ttc_apres_remise:.2f} MAD",
+                        f"{self.document.total_ttc_apres_remise:.2f} {self.document.devise}",
                         self.styles["CustomRight"],
                     ),
                 ]
@@ -1110,7 +1129,13 @@ class BasePDFGenerator:
             if hasattr(self.document, "remise_type") and self.document.remise_type
             else self.document.total_ttc
         )
-        price_in_words = number_to_french_words(total_price)
+
+        # Use appropriate function based on language and currency
+        if self.language == "fr":
+            price_in_words = number_to_french_words(total_price, self.document.devise)
+        else:
+            price_in_words = number_to_english_words(total_price, self.document.devise)
+
         elements.append(Paragraph(f"{price_in_words} TTC", self.styles["PriceWords"]))
         elements.append(Spacer(1, 0.5 * cm))
 

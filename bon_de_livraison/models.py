@@ -62,7 +62,7 @@ class BonDeLivraison(BaseDeviFactureDocument):
 
     history = HistoricalRecords(
         verbose_name="Historique Bon de Livraison",
-        verbose_name_plural="Historiques Bons de Livraison"
+        verbose_name_plural="Historiques Bons de Livraison",
     )
 
     class Meta:
@@ -84,13 +84,15 @@ class BonDeLivraisonLine(BaseDeviFactureLine):
     )
 
     article = models.ForeignKey(
-        Article, on_delete=models.PROTECT, verbose_name="Article",
+        Article,
+        on_delete=models.PROTECT,
+        verbose_name="Article",
         help_text="Article livré",
     )
 
     history = HistoricalRecords(
         verbose_name="Historique Ligne de bon de livraison",
-        verbose_name_plural="Historiques Lignes de bons de livraison"
+        verbose_name_plural="Historiques Lignes de bons de livraison",
     )
 
     class Meta:

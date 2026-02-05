@@ -5,6 +5,8 @@ from core.serializers import (
     BaseDetailUpdateSerializer,
     BaseLineWriteSerializer,
     BaseListSerializer,
+    validate_line_currency,
+    update_document_devise_on_first_line,
 )
 from .models import FactureProForma, FactureProFormaLine
 
@@ -35,6 +37,7 @@ class FactureProformaListSerializer(BaseListSerializer):
             "total_tva",
             "total_ttc",
             "total_ttc_apres_remise",
+            "devise",
         ]
         read_only_fields = fields
 
@@ -50,6 +53,7 @@ class FactureProformaLineWriteSerializer(BaseLineWriteSerializer):
             "prix_achat",
             "devise_prix_achat",
             "prix_vente",
+            "devise_prix_vente",
             "quantity",
             "remise_type",
             "remise",
@@ -65,6 +69,20 @@ class FactureProFormaLineSerializer(serializers.ModelSerializer):
     designation = serializers.CharField(source="article.designation", read_only=True)
     reference = serializers.CharField(source="article.reference", read_only=True)
 
+    def validate(self, data):
+        """Validate that line currency matches parent document currency."""
+        validate_line_currency(data, self.instance, "facture_pro_forma")
+        return data
+
+    def create(self, validated_data):
+        """Create line and set document devise if it's the first line."""
+        facture_pro_forma = validated_data.get("facture_pro_forma")
+        devise_prix_vente = validated_data.get("devise_prix_vente", "MAD")
+
+        update_document_devise_on_first_line(facture_pro_forma, devise_prix_vente)
+
+        return super().create(validated_data)
+
     class Meta:
         model = FactureProFormaLine
         fields = [
@@ -76,6 +94,7 @@ class FactureProFormaLineSerializer(serializers.ModelSerializer):
             "prix_achat",
             "devise_prix_achat",
             "prix_vente",
+            "devise_prix_vente",
             "quantity",
             "remise_type",
             "remise",
@@ -128,6 +147,7 @@ class FactureProformaSerializer(BaseCreateSerializer):
             "total_tva",
             "total_ttc",
             "total_ttc_apres_remise",
+            "devise",
             "date_created",
             "date_updated",
         ]

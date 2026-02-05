@@ -12,6 +12,8 @@ class MonthlyObjectivesSerializer(serializers.ModelSerializer):
             "id",
             "company",
             "objectif_ca",
+            "objectif_ca_eur",
+            "objectif_ca_usd",
             "objectif_factures",
             "objectif_conversion",
             "date_created",

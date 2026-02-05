@@ -27,6 +27,10 @@ class ReglementListSerializer(serializers.ModelSerializer):
         source="mode_reglement.nom",
         read_only=True,
     )
+    devise = serializers.CharField(
+        source="facture_client.devise",
+        read_only=True,
+    )
 
     class Meta:
         model = Reglement
@@ -40,6 +44,7 @@ class ReglementListSerializer(serializers.ModelSerializer):
             "mode_reglement_name",
             "libelle",
             "montant",
+            "devise",
             "date_reglement",
             "date_echeance",
             "statut",
@@ -68,6 +73,10 @@ class ReglementDetailSerializer(serializers.ModelSerializer):
         source="mode_reglement.nom",
         read_only=True,
     )
+    devise = serializers.CharField(
+        source="facture_client.devise",
+        read_only=True,
+    )
 
     # Invoice-specific financial fields
     montant_facture = serializers.SerializerMethodField()
@@ -86,6 +95,7 @@ class ReglementDetailSerializer(serializers.ModelSerializer):
             "mode_reglement_name",
             "libelle",
             "montant",
+            "devise",
             "date_reglement",
             "date_echeance",
             "statut",

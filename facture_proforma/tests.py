@@ -26,9 +26,7 @@ pytestmark = pytest.mark.django_db
 
 def _create_pf_membership(user, company):
     """Helper to create membership with Caissier role."""
-    caissier_role, _ = Role.objects.get_or_create(
-        name="Caissier"
-    )
+    caissier_role, _ = Role.objects.get_or_create(name="Caissier")
     return Membership.objects.create(user=user, company=company, role=caissier_role)
 
 

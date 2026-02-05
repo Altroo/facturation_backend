@@ -519,10 +519,14 @@ class TestKPIEndpoints:
         """Test KPI cards with trends endpoint."""
         response = authenticated_client.get("/api/dashboard/kpi/cards-with-trends/")
         assert response.status_code == status.HTTP_200_OK
-        assert "current_month_revenue" in response.data
-        assert "outstanding_receivables" in response.data
-        assert "average_invoice_amount" in response.data
-        assert "active_clients" in response.data
+        assert "currency_data" in response.data
+        assert "MAD" in response.data["currency_data"]
+        assert "EUR" in response.data["currency_data"]
+        assert "USD" in response.data["currency_data"]
+        assert "current_month_revenue" in response.data["currency_data"]["MAD"]
+        assert "outstanding_receivables" in response.data["currency_data"]["MAD"]
+        assert "average_invoice_amount" in response.data["currency_data"]["MAD"]
+        assert "active_clients" in response.data["currency_data"]["MAD"]
 
     def test_kpi_cards_with_date_filters(
         self, authenticated_client, facture_client, reglement
@@ -748,7 +752,9 @@ class TestEmptyDataHandling:
         """Test KPI cards return zeros when no data."""
         response = authenticated_client.get("/api/dashboard/kpi/cards-with-trends/")
         assert response.status_code == status.HTTP_200_OK
-        assert "current_month_revenue" in response.data
+        assert "currency_data" in response.data
+        assert "MAD" in response.data["currency_data"]
+        assert "current_month_revenue" in response.data["currency_data"]["MAD"]
 
 
 class TestDocumentLinesAggregation:

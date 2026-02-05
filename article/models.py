@@ -105,6 +105,13 @@ class Article(models.Model):
         verbose_name="Prix de vente",
         help_text="Prix de vente unitaire",
     )
+    devise_prix_vente = models.CharField(
+        max_length=3,
+        choices=CURRENCY_CHOICES,
+        default="MAD",
+        verbose_name="Devise prix de vente",
+        help_text="Devise utilisée pour le prix de vente",
+    )
     tva = models.DecimalField(
         max_digits=5,
         decimal_places=2,

@@ -57,6 +57,16 @@ urlpatterns = [
         name="convert-to-bon-de-livraison",
     ),
     # GET : generate PDF
-    path("pdf/fr/<int:pk>/", FactureClientPDFView.as_view(), {"language": "fr"}, name="facture-client-pdf-fr"),
-    path("pdf/en/<int:pk>/", FactureClientPDFView.as_view(), {"language": "en"}, name="facture-client-pdf-en"),
+    path(
+        "pdf/fr/<int:pk>/",
+        FactureClientPDFView.as_view(),
+        {"language": "fr"},
+        name="facture-client-pdf-fr",
+    ),
+    path(
+        "pdf/en/<int:pk>/",
+        FactureClientPDFView.as_view(),
+        {"language": "en"},
+        name="facture-client-pdf-en",
+    ),
 ]

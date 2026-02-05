@@ -5,6 +5,8 @@ from core.serializers import (
     BaseDetailUpdateSerializer,
     BaseLineWriteSerializer,
     BaseListSerializer,
+    validate_line_currency,
+    update_document_devise_on_first_line,
 )
 from .models import Devi, DeviLine
 
@@ -35,6 +37,7 @@ class DeviListSerializer(BaseListSerializer):
             "total_tva",
             "total_ttc",
             "total_ttc_apres_remise",
+            "devise",
         ]
         read_only_fields = fields
 
@@ -50,6 +53,7 @@ class DeviLineWriteSerializer(BaseLineWriteSerializer):
             "prix_achat",
             "devise_prix_achat",
             "prix_vente",
+            "devise_prix_vente",
             "quantity",
             "remise_type",
             "remise",
@@ -63,6 +67,20 @@ class DeviLineSerializer(serializers.ModelSerializer):
     designation = serializers.CharField(source="article.designation", read_only=True)
     reference = serializers.CharField(source="article.reference", read_only=True)
 
+    def validate(self, data):
+        """Validate that line currency matches parent document currency."""
+        validate_line_currency(data, self.instance, "devis")
+        return data
+
+    def create(self, validated_data):
+        """Create line and set document devise if it's the first line."""
+        devis = validated_data.get("devis")
+        devise_prix_vente = validated_data.get("devise_prix_vente", "MAD")
+
+        update_document_devise_on_first_line(devis, devise_prix_vente)
+
+        return super().create(validated_data)
+
     class Meta:
         model = DeviLine
         fields = [
@@ -74,6 +92,7 @@ class DeviLineSerializer(serializers.ModelSerializer):
             "prix_achat",
             "devise_prix_achat",
             "prix_vente",
+            "devise_prix_vente",
             "quantity",
             "remise_type",
             "remise",
@@ -124,6 +143,7 @@ class DeviSerializer(BaseCreateSerializer):
             "total_tva",
             "total_ttc",
             "total_ttc_apres_remise",
+            "devise",
             "date_created",
             "date_updated",
         ]

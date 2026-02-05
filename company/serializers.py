@@ -65,7 +65,7 @@ class CompanyBasicListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Company
-        fields = ["id", "raison_sociale", "role"]
+        fields = ["id", "raison_sociale", "role", "uses_foreign_currency"]
         read_only_fields = fields
 
     def get_role(self, obj):

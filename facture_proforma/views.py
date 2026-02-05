@@ -279,10 +279,13 @@ class FactureProFormaPDFGenerator(BasePDFGenerator):
         )
         from core.pdf_utils import number_to_english_words
 
+        # Get the currency from the document
+        currency = self.document.devise
+
         price_in_words = (
-            number_to_english_words(total_price)
+            number_to_english_words(total_price, currency)
             if (self.language == "en")
-            else number_to_french_words(total_price)
+            else number_to_french_words(total_price, currency)
         )
         elements.append(Paragraph(f"{price_in_words} TTC", self.styles["PriceWords"]))
         elements.append(Spacer(1, 0.5 * cm))

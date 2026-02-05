@@ -365,9 +365,11 @@ class TestReglementAPI:
         response = self.client_api.get(url)
         assert response.status_code == status.HTTP_200_OK
         assert "results" in response.data
-        assert "chiffre_affaire_total" in response.data
-        assert "total_reglements" in response.data
-        assert "total_impayes" in response.data
+        assert "stats_by_currency" in response.data
+        assert "MAD" in response.data["stats_by_currency"]
+        assert "chiffre_affaire_total" in response.data["stats_by_currency"]["MAD"]
+        assert "total_reglements" in response.data["stats_by_currency"]["MAD"]
+        assert "total_impayes" in response.data["stats_by_currency"]["MAD"]
 
     def test_list_reglements_with_pagination(self):
         """Test listing règlements with pagination."""
@@ -376,7 +378,9 @@ class TestReglementAPI:
         assert response.status_code == status.HTTP_200_OK
         assert "results" in response.data
         assert "count" in response.data
-        assert "chiffre_affaire_total" in response.data
+        assert "stats_by_currency" in response.data
+        assert "MAD" in response.data["stats_by_currency"]
+        assert "chiffre_affaire_total" in response.data["stats_by_currency"]["MAD"]
 
     def test_list_aggregated_stats(self):
         """Test that aggregated stats are correct."""
@@ -384,9 +388,10 @@ class TestReglementAPI:
         response = self.client_api.get(url)
 
         # Facture total = 1200 TTC, reglement = 300
-        assert Decimal(response.data["chiffre_affaire_total"]) == Decimal("1200.00")
-        assert Decimal(response.data["total_reglements"]) == Decimal("300.00")
-        assert Decimal(response.data["total_impayes"]) == Decimal("900.00")
+        mad_stats = response.data["stats_by_currency"]["MAD"]
+        assert Decimal(mad_stats["chiffre_affaire_total"]) == Decimal("1200.00")
+        assert Decimal(mad_stats["total_reglements"]) == Decimal("300.00")
+        assert Decimal(mad_stats["total_impayes"]) == Decimal("900.00")
 
     def test_create_reglement(self):
         """Test creating a règlement."""

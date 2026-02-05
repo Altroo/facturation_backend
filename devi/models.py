@@ -35,8 +35,7 @@ class Devi(BaseDeviFactureDocument):
     )
 
     history = HistoricalRecords(
-        verbose_name="Historique Devis",
-        verbose_name_plural="Historiques Devis"
+        verbose_name="Historique Devis", verbose_name_plural="Historiques Devis"
     )
 
     class Meta:
@@ -75,6 +74,7 @@ class Devi(BaseDeviFactureDocument):
             remise_type=self.remise_type,
             remise=self.remise,
             total_ttc_apres_remise=self.total_ttc_apres_remise,
+            devise=self.devise,
             created_by_user=created_by_user,
         )
 
@@ -85,6 +85,7 @@ class Devi(BaseDeviFactureDocument):
                 prix_achat=line.prix_achat,
                 devise_prix_achat=line.devise_prix_achat,
                 prix_vente=line.prix_vente,
+                devise_prix_vente=line.devise_prix_vente,
                 quantity=line.quantity,
                 remise_type=line.remise_type,
                 remise=line.remise,
@@ -120,6 +121,7 @@ class Devi(BaseDeviFactureDocument):
             remise_type=self.remise_type,
             remise=self.remise,
             total_ttc_apres_remise=self.total_ttc_apres_remise,
+            devise=self.devise,
             created_by_user=created_by_user,
         )
 
@@ -130,6 +132,7 @@ class Devi(BaseDeviFactureDocument):
                 prix_achat=line.prix_achat,
                 devise_prix_achat=line.devise_prix_achat,
                 prix_vente=line.prix_vente,
+                devise_prix_vente=line.devise_prix_vente,
                 quantity=line.quantity,
                 remise_type=line.remise_type,
                 remise=line.remise,
@@ -156,7 +159,7 @@ class DeviLine(BaseDeviFactureLine):
 
     history = HistoricalRecords(
         verbose_name="Historique Ligne de devis",
-        verbose_name_plural="Historiques Lignes de devis"
+        verbose_name_plural="Historiques Lignes de devis",
     )
 
     class Meta:

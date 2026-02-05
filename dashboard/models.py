@@ -24,8 +24,28 @@ class MonthlyObjectives(models.Model):
         max_digits=15,
         decimal_places=2,
         default=0,
-        verbose_name="Objectif CA",
+        verbose_name="Objectif CA (MAD)",
         help_text="Objectif de chiffre d'affaires mensuel (MAD)",
+    )
+
+    objectif_ca_eur = models.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        default=0,
+        verbose_name="Objectif CA (EUR)",
+        help_text="Objectif de chiffre d'affaires mensuel (EUR)",
+        blank=True,
+        null=True,
+    )
+
+    objectif_ca_usd = models.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        default=0,
+        verbose_name="Objectif CA (USD)",
+        help_text="Objectif de chiffre d'affaires mensuel (USD)",
+        blank=True,
+        null=True,
     )
 
     objectif_factures = models.IntegerField(

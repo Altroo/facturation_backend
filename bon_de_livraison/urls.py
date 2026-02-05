@@ -41,6 +41,16 @@ urlpatterns = [
         name="bon-de-livraison-statut-update",
     ),
     # GET : generate PDF
-    path("pdf/fr/<int:pk>/", BonDeLivraisonPDFView.as_view(), {"language": "fr"}, name="bon-de-livraison-pdf-fr"),
-    path("pdf/en/<int:pk>/", BonDeLivraisonPDFView.as_view(), {"language": "en"}, name="bon-de-livraison-pdf-en"),
+    path(
+        "pdf/fr/<int:pk>/",
+        BonDeLivraisonPDFView.as_view(),
+        {"language": "fr"},
+        name="bon-de-livraison-pdf-fr",
+    ),
+    path(
+        "pdf/en/<int:pk>/",
+        BonDeLivraisonPDFView.as_view(),
+        {"language": "en"},
+        name="bon-de-livraison-pdf-en",
+    ),
 ]

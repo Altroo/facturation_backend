@@ -46,7 +46,7 @@ class Reglement(models.Model):
         max_digits=10,
         decimal_places=2,
         verbose_name="Montant",
-        help_text="Montant du règlement (en MAD)",
+        help_text="Montant du règlement (devise héritée de la facture client)",
     )
 
     date_reglement = models.DateField(
@@ -85,7 +85,7 @@ class Reglement(models.Model):
 
     history = HistoricalRecords(
         verbose_name="Historique Règlement",
-        verbose_name_plural="Historiques Règlements"
+        verbose_name_plural="Historiques Règlements",
     )
 
     class Meta:

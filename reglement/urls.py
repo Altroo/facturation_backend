@@ -29,6 +29,16 @@ urlpatterns = [
         name="reglement-statut-update",
     ),
     # GET : generate PDF receipt
-    path("pdf/fr/<int:pk>/", ReglementPDFView.as_view(), {"language": "fr"}, name="reglement-pdf-fr"),
-    path("pdf/en/<int:pk>/", ReglementPDFView.as_view(), {"language": "en"}, name="reglement-pdf-en"),
+    path(
+        "pdf/fr/<int:pk>/",
+        ReglementPDFView.as_view(),
+        {"language": "fr"},
+        name="reglement-pdf-fr",
+    ),
+    path(
+        "pdf/en/<int:pk>/",
+        ReglementPDFView.as_view(),
+        {"language": "en"},
+        name="reglement-pdf-en",
+    ),
 ]

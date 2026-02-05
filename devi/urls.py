@@ -42,6 +42,16 @@ urlpatterns = [
         name="convert-to-facture-client",
     ),
     # GET : generate PDF
-    path("pdf/fr/<int:pk>/", DeviPDFView.as_view(), {"language": "fr"}, name="devi-pdf-fr"),
-    path("pdf/en/<int:pk>/", DeviPDFView.as_view(), {"language": "en"}, name="devi-pdf-en"),
+    path(
+        "pdf/fr/<int:pk>/",
+        DeviPDFView.as_view(),
+        {"language": "fr"},
+        name="devi-pdf-fr",
+    ),
+    path(
+        "pdf/en/<int:pk>/",
+        DeviPDFView.as_view(),
+        {"language": "en"},
+        name="devi-pdf-en",
+    ),
 ]

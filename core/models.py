@@ -51,7 +51,7 @@ class BaseDeviFactureDocument(models.Model):
         verbose_name="Remarque",
         help_text="Remarque ou note supplémentaire pour le document",
         blank=True,
-        null=True
+        null=True,
     )
 
     statut = models.CharField(
@@ -114,6 +114,14 @@ class BaseDeviFactureDocument(models.Model):
         verbose_name="Total TTC après remise",
         help_text="Total TTC après application de la remise",
         editable=False,
+    )
+
+    devise = models.CharField(
+        max_length=3,
+        choices=CURRENCY_CHOICES,
+        default="MAD",
+        verbose_name="Devise",
+        help_text="Devise utilisée pour ce document (héritée du premier article ajouté)",
     )
 
     date_created = models.DateTimeField(
@@ -260,6 +268,14 @@ class BaseDeviFactureLine(models.Model):
         decimal_places=2,
         verbose_name="Prix de vente",
         help_text="Prix de vente unitaire (ex: en MAD)",
+    )
+
+    devise_prix_vente = models.CharField(
+        max_length=3,
+        choices=CURRENCY_CHOICES,
+        default="MAD",
+        verbose_name="Devise prix de vente",
+        help_text="Devise utilisée pour le prix de vente",
     )
 
     quantity = models.PositiveIntegerField(
