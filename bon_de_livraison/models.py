@@ -13,6 +13,16 @@ from parameter.models import LivrePar
 
 
 class BonDeLivraison(BaseDeviFactureDocument):
+    company = models.ForeignKey(
+        "company.Company",
+        on_delete=models.PROTECT,
+        related_name="bons_de_livraison",
+        verbose_name="Société",
+        help_text="Société propriétaire du bon de livraison",
+        null=True,
+        blank=True,
+    )
+
     STATUT_CHOICES = [
         ("Brouillon", "Brouillon"),
         ("Envoyé", "Envoyé"),
@@ -33,7 +43,6 @@ class BonDeLivraison(BaseDeviFactureDocument):
     numero_bon_livraison = models.CharField(
         max_length=20,
         verbose_name="Numéro du bon de livraison",
-        unique=True,
         help_text="Format ex: 0001/25",
     )
 
@@ -69,9 +78,16 @@ class BonDeLivraison(BaseDeviFactureDocument):
         verbose_name = "Bon de Livraison"
         verbose_name_plural = "Bons de Livraison"
         ordering = ("-date_created",)
+        unique_together = [('numero_bon_livraison', 'company')]
 
     def __str__(self):
         return self.numero_bon_livraison
+
+    def save(self, *args, **kwargs):
+        """Auto-populate company from client before saving."""
+        if self.client_id:
+            self.company = self.client.company
+        super().save(*args, **kwargs)
 
 
 class BonDeLivraisonLine(BaseDeviFactureLine):

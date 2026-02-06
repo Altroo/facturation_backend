@@ -13,10 +13,19 @@ from core.models import (
 
 
 class FactureProForma(BaseDeviFactureDocument):
+    company = models.ForeignKey(
+        "company.Company",
+        on_delete=models.PROTECT,
+        related_name="factures_proforma",
+        verbose_name="Société",
+        help_text="Société propriétaire de la facture pro forma",
+        null=True,
+        blank=True,
+    )
+
     numero_facture = models.CharField(
         max_length=20,
         verbose_name="Numéro de la facture pro forma",
-        unique=True,
         help_text="Format ex: 0001/25",
     )
 
@@ -43,9 +52,16 @@ class FactureProForma(BaseDeviFactureDocument):
         verbose_name = "Facture Pro-Forma"
         verbose_name_plural = "Factures Pro-Forma"
         ordering = ("-date_created",)
+        unique_together = [('numero_facture', 'company')]
 
     def __str__(self):
         return self.numero_facture
+
+    def save(self, *args, **kwargs):
+        """Autopopulate company from client before saving."""
+        if self.client_id:
+            self.company = self.client.company
+        super().save(*args, **kwargs)
 
     def convert_to_facture_client(self, numero_facture, created_by_user: CustomUser):
         """Convert this FactureProForma to a FactureClient."""
@@ -63,6 +79,7 @@ class FactureProForma(BaseDeviFactureDocument):
 
         facture_client = FactureClient.objects.create(
             numero_facture=numero_facture,
+            company=self.company,
             client=self.client,
             date_facture=self.date_facture,
             numero_bon_commande_client=self.numero_bon_commande_client,

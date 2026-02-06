@@ -43,6 +43,7 @@ class BaseDeviFactureDocument(models.Model):
         ModePaiement,
         on_delete=models.SET_NULL,
         null=True,
+        blank=True,
         verbose_name="Mode de paiement",
         help_text="Mode de paiement préféré pour le document",
     )

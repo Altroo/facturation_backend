@@ -7,9 +7,9 @@ from core.utils import format_number_with_dynamic_digits
 from .models import BonDeLivraison
 
 
-def get_next_numero_bon_livraison() -> str:
+def get_next_numero_bon_livraison(company_id: int) -> str:
     """
-    Return the next available numero_bon_livraison string like '0001/25'.
+    Return the next available numero_bon_livraison string like '0001/25' for the given company.
     Automatically increases digit count when 9999 is reached.
     """
     year_suffix = f"{datetime.now().year % 100:02d}"
@@ -18,6 +18,7 @@ def get_next_numero_bon_livraison() -> str:
         # Lock the relevant rows to prevent concurrent access
         existing = (
             BonDeLivraison.objects.filter(
+                company_id=company_id,
                 numero_bon_livraison__isnull=False,
                 numero_bon_livraison__endswith=f"/{year_suffix}",
             )

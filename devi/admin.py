@@ -24,6 +24,7 @@ class DeviAdmin(BaseDocumentAdmin):
 
     list_display = (
         "numero_devis",
+        "company",
         "client",
         "date_devis",
         "statut_badge",
@@ -50,6 +51,7 @@ class DeviAdmin(BaseDocumentAdmin):
             {
                 "fields": (
                     "numero_devis",
+                    "company",
                     "client",
                     "date_devis",
                     "statut",

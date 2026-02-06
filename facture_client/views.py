@@ -155,7 +155,7 @@ class FactureClientDetailEditDeleteView(BaseDocumentDetailEditDeleteView):
 
 
 class GenerateNumeroFactureView(BaseGenerateNumeroView):
-    numero_generator = staticmethod(get_next_numero_facture_client)
+    numero_generator = get_next_numero_facture_client
     response_key = "numero_facture"
 
 

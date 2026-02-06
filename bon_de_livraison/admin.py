@@ -24,6 +24,7 @@ class BonDeLivraisonAdmin(BaseDocumentAdmin):
 
     list_display = (
         "numero_bon_livraison",
+        "company",
         "client",
         "date_bon_livraison",
         "statut_badge",
@@ -51,6 +52,7 @@ class BonDeLivraisonAdmin(BaseDocumentAdmin):
             {
                 "fields": (
                     "numero_bon_livraison",
+                    "company",
                     "client",
                     "date_bon_livraison",
                     "statut",

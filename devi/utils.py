@@ -7,9 +7,9 @@ from core.utils import format_number_with_dynamic_digits
 from .models import Devi
 
 
-def get_next_numero_devis() -> str:
+def get_next_numero_devis(company_id: int) -> str:
     """
-    Return the next available numero_devis string like '0001/25'.
+    Return the next available numero_devis string like '0001/25' for the given company.
     Automatically increases digit count when 9999 is reached.
     """
     year_suffix = f"{datetime.now().year % 100:02d}"
@@ -18,7 +18,9 @@ def get_next_numero_devis() -> str:
         # Lock the relevant rows to prevent concurrent access
         existing = (
             Devi.objects.filter(
-                numero_devis__isnull=False, numero_devis__endswith=f"/{year_suffix}"
+                company_id=company_id,
+                numero_devis__isnull=False,
+                numero_devis__endswith=f"/{year_suffix}"
             )
             .select_for_update()
             .values_list("numero_devis", flat=True)

@@ -15,10 +15,19 @@ from parameter.models import ModePaiement
 
 
 class FactureClient(BaseDeviFactureDocument):
+    company = models.ForeignKey(
+        "company.Company",
+        on_delete=models.PROTECT,
+        related_name="factures_client",
+        verbose_name="Société",
+        help_text="Société propriétaire de la facture",
+        null=True,
+        blank=True,
+    )
+
     numero_facture = models.CharField(
         max_length=20,
         verbose_name="Numéro de la facture client",
-        unique=True,
         help_text="Format ex: 0001/25",
     )
 
@@ -45,9 +54,16 @@ class FactureClient(BaseDeviFactureDocument):
         verbose_name = "Facture Client"
         verbose_name_plural = "Factures Client"
         ordering = ("-date_created",)
+        unique_together = [('numero_facture', 'company')]
 
     def __str__(self):
         return self.numero_facture
+
+    def save(self, *args, **kwargs):
+        """Autopopulate company from client before saving."""
+        if self.client_id:
+            self.company = self.client.company
+        super().save(*args, **kwargs)
 
     def convert_to_bon_de_livraison(
         self, numero_bon_livraison, created_by_user: CustomUser
@@ -67,6 +83,7 @@ class FactureClient(BaseDeviFactureDocument):
 
         bon_de_livraison = BonDeLivraison.objects.create(
             numero_bon_livraison=numero_bon_livraison,
+            company=self.company,
             client=self.client,
             date_bon_livraison=self.date_facture,
             numero_bon_commande_client=self.numero_bon_commande_client,

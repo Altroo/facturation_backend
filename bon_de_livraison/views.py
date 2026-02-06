@@ -48,7 +48,7 @@ class BonDeLivraisonDetailEditDeleteView(BaseDocumentDetailEditDeleteView):
 
 
 class GenerateNumeroBonDeLivraisonView(BaseGenerateNumeroView):
-    numero_generator = staticmethod(get_next_numero_bon_livraison)
+    numero_generator = get_next_numero_bon_livraison
     response_key = "numero_bon_livraison"
 
 

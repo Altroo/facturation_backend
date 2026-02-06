@@ -18,6 +18,7 @@ from .serializers import (
     ClientDetailSerializer,
     ClientListSerializer,
 )
+from .utils import get_next_client_code
 
 
 class ClientListCreateView(APIView):
@@ -160,26 +161,24 @@ class GenerateClientCodeView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
     @staticmethod
-    def get(request, *args, **kwargs):
+    def _has_membership(user, company_id):
+        """True if the user has a Membership for the given company."""
+        return Membership.objects.filter(user=user, company_id=company_id).exists()
 
-        # Robustly scan all existing codes and extract numeric parts.
-        max_num = 0
-        for code in Client.objects.filter(code_client__isnull=False).values_list(
-            "code_client", flat=True
-        ):
-            match = search(r"CLT(\d+)", code)
-            if not match:
-                continue
-            try:
-                value = int(match.group(1))
-            except ValueError:
-                continue
-            if value > max_num:
-                max_num = value
+    def get(self, request, *args, **kwargs):
+        company_id_str = request.query_params.get("company_id")
+        if not company_id_str:
+            raise Http404(_("company_id manquant dans les paramètres."))
 
-        next_number = max_num + 1
-        formatted_number = format_number_with_dynamic_digits(next_number, min_digits=4)
-        new_code = f"CLT{formatted_number}"
+        try:
+            company_id = int(company_id_str)
+        except (ValueError, TypeError):
+            raise Http404(_("company_id doit être un entier valide."))
+
+        if not self._has_membership(request.user, company_id):
+            raise PermissionDenied(_("Vous n'avez pas accès à cette société."))
+
+        new_code = get_next_client_code(company_id)
         return Response({"code_client": new_code}, status=status.HTTP_200_OK)
 
 

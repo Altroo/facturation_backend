@@ -13,10 +13,19 @@ from core.models import (
 
 
 class Devi(BaseDeviFactureDocument):
+    company = models.ForeignKey(
+        "company.Company",
+        on_delete=models.PROTECT,
+        related_name="devis",
+        verbose_name="Société",
+        help_text="Société propriétaire du devis",
+        null=True,
+        blank=True,
+    )
+
     numero_devis = models.CharField(
         max_length=20,
         verbose_name="Numéro du devis",
-        unique=True,
         help_text="Format ex: 0001/25",
     )
 
@@ -42,9 +51,16 @@ class Devi(BaseDeviFactureDocument):
         verbose_name = "Devis"
         verbose_name_plural = "Devis"
         ordering = ("-date_created",)
+        unique_together = [('numero_devis', 'company')]
 
     def __str__(self):
         return self.numero_devis
+
+    def save(self, *args, **kwargs):
+        """Autopopulate company from client before saving."""
+        if self.client_id:
+            self.company = self.client.company
+        super().save(*args, **kwargs)
 
     def convert_to_facture_proforma(self, numero_facture, created_by_user: CustomUser):
         """Convert this Devis to a FactureProForma."""
@@ -62,6 +78,7 @@ class Devi(BaseDeviFactureDocument):
 
         facture_pro_forma = FactureProForma.objects.create(
             numero_facture=numero_facture,
+            company=self.company,
             client=self.client,
             date_facture=self.date_devis,
             numero_bon_commande_client=self.numero_demande_prix_client,
@@ -109,6 +126,7 @@ class Devi(BaseDeviFactureDocument):
 
         facture_client = FactureClient.objects.create(
             numero_facture=numero_facture,
+            company=self.company,
             client=self.client,
             date_facture=self.date_devis,
             numero_bon_commande_client=self.numero_demande_prix_client,

@@ -19,6 +19,7 @@ class BonDeLivraisonListSerializer(BaseListSerializer):
         fields = [
             "id",
             "numero_bon_livraison",
+            "company",
             "client",
             "client_name",
             "date_bon_livraison",
@@ -132,6 +133,7 @@ class BonDeLivraisonSerializer(BaseCreateSerializer):
         fields = [
             "id",
             "numero_bon_livraison",
+            "company",
             "client",
             "client_name",
             "date_bon_livraison",
@@ -159,6 +161,7 @@ class BonDeLivraisonSerializer(BaseCreateSerializer):
         ]
         read_only_fields = [
             "id",
+            "company",
             "created_by_user",
             "statut",
             "total_ht",

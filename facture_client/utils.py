@@ -7,9 +7,9 @@ from core.utils import format_number_with_dynamic_digits
 from .models import FactureClient
 
 
-def get_next_numero_facture_client() -> str:
+def get_next_numero_facture_client(company_id: int) -> str:
     """
-    Return the next available numero_facture string like '0001/25'.
+    Return the next available numero_facture string like '0001/25' for the given company.
     Automatically increases digit count when 9999 is reached (e.g., '10000/25').
     """
     year_suffix = f"{datetime.now().year % 100:02d}"
@@ -18,6 +18,7 @@ def get_next_numero_facture_client() -> str:
         # Lock the relevant rows to prevent concurrent access
         existing = (
             FactureClient.objects.filter(
+                company_id=company_id,
                 numero_facture__isnull=False,
                 numero_facture__endswith=f"/{year_suffix}",
             )

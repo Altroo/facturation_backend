@@ -17,9 +17,8 @@ class Client(models.Model):
 
     code_client = models.CharField(
         max_length=50,
-        unique=True,
         verbose_name="Code client",
-        help_text="Code unique identifiant le client",
+        help_text="Code unique identifiant le client par société",
     )
     client_type = models.CharField(
         max_length=2,
@@ -29,12 +28,12 @@ class Client(models.Model):
     )
     company = models.ForeignKey(
         Company,
-        on_delete=models.SET_NULL,
-        verbose_name="Entreprise",
-        help_text="Entreprise associée au client (si personne morale)",
-        blank=True,
-        null=True,
+        on_delete=models.PROTECT,
+        verbose_name="Société",
+        help_text="Société propriétaire du client",
         related_name="clients",
+        null=True,
+        blank=True,
     )
     # Champs communs
     adresse = models.CharField(
@@ -187,6 +186,7 @@ class Client(models.Model):
         verbose_name = "Client"
         verbose_name_plural = "Clients"
         ordering = ("-date_created",)
+        unique_together = [('code_client', 'company')]
         indexes = [
             models.Index(fields=["company", "archived"]),
         ]

@@ -48,7 +48,7 @@ class DeviDetailEditDeleteView(BaseDocumentDetailEditDeleteView):
 
 
 class GenerateNumeroDevisView(BaseGenerateNumeroView):
-    numero_generator = staticmethod(get_next_numero_devis)
+    numero_generator = get_next_numero_devis
     response_key = "numero_devis"
 
 

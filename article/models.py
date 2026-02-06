@@ -61,8 +61,7 @@ class Article(models.Model):
     reference = models.CharField(
         max_length=100,
         verbose_name="Référence",
-        unique=True,
-        help_text="Référence unique de l'article",
+        help_text="Référence unique de l'article par société",
     )
     designation = models.TextField(
         verbose_name="Désignation",
@@ -168,6 +167,7 @@ class Article(models.Model):
         verbose_name = "Article"
         verbose_name_plural = "Articles"
         ordering = ("-date_created",)
+        unique_together = [('reference', 'company')]
 
     def __str__(self):
         return f"{self.reference} – {self.designation[:30]}"

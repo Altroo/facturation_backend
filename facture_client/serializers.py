@@ -19,6 +19,7 @@ class FactureClientListSerializer(BaseListSerializer):
         fields = [
             "id",
             "numero_facture",
+            "company",
             "client",
             "client_name",
             "date_facture",
@@ -128,6 +129,7 @@ class FactureClientSerializer(BaseCreateSerializer):
         fields = [
             "id",
             "numero_facture",
+            "company",
             "client",
             "client_name",
             "date_facture",
@@ -153,6 +155,7 @@ class FactureClientSerializer(BaseCreateSerializer):
         ]
         read_only_fields = [
             "id",
+            "company",
             "created_by_user",
             "statut",
             "total_ht",

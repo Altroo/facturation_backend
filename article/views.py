@@ -24,6 +24,7 @@ from .serializers import (
     ArticleDetailSerializer,
     ArticleListSerializer,
 )
+from .utils import get_next_article_reference
 
 
 class ArticleListCreateView(APIView):
@@ -198,32 +199,24 @@ class GenerateArticleReferenceCodeView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
     @staticmethod
-    def get(request, *args, **kwargs):
+    def _has_membership(user, company_id):
+        """True if the user has a Membership for the given company."""
+        return Membership.objects.filter(user=user, company_id=company_id).exists()
 
-        max_num = 0
-        for ref in Article.objects.filter(reference__isnull=False).values_list(
-            "reference", flat=True
-        ):
-            if not ref:
-                continue
-            m = search(r"ART(\d+)", ref)
-            if m:
-                num_str = m.group(1)
-            else:
-                m_last = search(r"(\d+)(?!.*\d)", ref)
-                num_str = m_last.group(1) if m_last else None
-            if not num_str:
-                continue
-            try:
-                value = int(num_str)
-            except ValueError:
-                continue
-            if value > max_num:
-                max_num = value
+    def get(self, request, *args, **kwargs):
+        company_id_str = request.query_params.get("company_id")
+        if not company_id_str:
+            raise Http404(_("company_id manquant dans les paramètres."))
 
-        next_number = max_num + 1
-        formatted_number = format_number_with_dynamic_digits(next_number, min_digits=4)
-        new_ref = f"ART{formatted_number}"
+        try:
+            company_id = int(company_id_str)
+        except (ValueError, TypeError):
+            raise Http404(_("company_id doit être un entier valide."))
+
+        if not self._has_membership(request.user, company_id):
+            raise PermissionDenied(_("Vous n'avez pas accès à cette société."))
+
+        new_ref = get_next_article_reference(company_id)
         return Response({"reference": new_ref}, status=status.HTTP_200_OK)
 
 
@@ -300,12 +293,12 @@ class ImportArticlesView(APIView):
             )
 
     @staticmethod
-    def _get_max_art_number() -> int:
-        """Scan existing references to find the highest ART#### number."""
+    def _get_max_art_number(company_id: int) -> int:
+        """Scan existing references to find the highest ART#### number for the given company."""
         max_num = 0
-        for ref in Article.objects.filter(reference__isnull=False).values_list(
-            "reference", flat=True
-        ):
+        for ref in Article.objects.filter(
+            company_id=company_id, reference__isnull=False
+        ).values_list("reference", flat=True):
             if not ref:
                 continue
             m = search(r"ART(\d+)", ref)
@@ -418,7 +411,7 @@ class ImportArticlesView(APIView):
             )
 
         # --- iterate ---------------------------------------------------------
-        next_num = self._get_max_art_number() + 1
+        next_num = self._get_max_art_number(company_id) + 1
         errors: list[dict] = []
         created_count = 0
 

@@ -19,6 +19,7 @@ class DeviListSerializer(BaseListSerializer):
         fields = [
             "id",
             "numero_devis",
+            "company",
             "client",
             "client_name",
             "date_devis",
@@ -124,6 +125,7 @@ class DeviSerializer(BaseCreateSerializer):
         fields = [
             "id",
             "numero_devis",
+            "company",
             "client",
             "client_name",
             "date_devis",
@@ -149,6 +151,7 @@ class DeviSerializer(BaseCreateSerializer):
         ]
         read_only_fields = [
             "id",
+            "company",
             "created_by_user",
             "statut",
             "total_ht",

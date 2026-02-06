@@ -81,8 +81,7 @@ class ClientSerializer(ClientBaseSerializer):
     )
     company = serializers.PrimaryKeyRelatedField(
         queryset=Client._meta.get_field("company").related_model.objects.all(),
-        required=False,
-        allow_null=True,
+        required=True,
     )
 
 

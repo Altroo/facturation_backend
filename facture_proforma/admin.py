@@ -24,6 +24,7 @@ class FactureProFormaAdmin(BaseDocumentAdmin):
 
     list_display = (
         "numero_facture",
+        "company",
         "client",
         "date_facture",
         "statut_badge",
@@ -50,6 +51,7 @@ class FactureProFormaAdmin(BaseDocumentAdmin):
             {
                 "fields": (
                     "numero_facture",
+                    "company",
                     "client",
                     "date_facture",
                     "statut",

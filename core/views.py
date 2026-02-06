@@ -165,8 +165,23 @@ class BaseGenerateNumeroView(APIView):
     numero_generator = None
     response_key = "numero"
 
+    @staticmethod
+    def _has_membership(user, company_id):
+        return Membership.objects.filter(user=user, company_id=company_id).exists()
+
     def get(self, request, *args, **kwargs):
-        new_num = self.numero_generator()
+        company_id_str = request.query_params.get("company_id")
+        if not company_id_str:
+            raise Http404(_("company_id manquant dans les paramètres."))
+        company_id = int(company_id_str)
+
+        # Check if user has access to this company
+        if not self._has_membership(request.user, company_id):
+            raise PermissionDenied(
+                _("Vous n'avez pas accès à cette société.")
+            )
+
+        new_num = self.numero_generator(company_id)
         return Response({self.response_key: new_num}, status=status.HTTP_200_OK)
 
 
