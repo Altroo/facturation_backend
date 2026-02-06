@@ -183,7 +183,7 @@ class TestArticleAPI:
 
     def test_generate_reference_code(self):
         url = reverse("article:article-generate-reference")
-        response = self.client.get(url)
+        response = self.client.get(url, {"company_id": self.company.id})
         assert response.status_code == status.HTTP_200_OK
         assert response.data["reference"].startswith("ART")
         # Should be ART0003 (next after ART0002)
@@ -199,7 +199,7 @@ class TestArticleAPI:
             tva=20,
         )
         url = reverse("article:article-generate-reference")
-        response = self.client.get(url)
+        response = self.client.get(url, {"company_id": self.company.id})
         assert response.status_code == status.HTTP_200_OK
         # Should be ART0011
         assert response.data["reference"] == "ART0011"
@@ -207,7 +207,7 @@ class TestArticleAPI:
     def test_generate_reference_code_when_no_articles(self):
         Article.objects.all().delete()
         url = reverse("article:article-generate-reference")
-        response = self.client.get(url)
+        response = self.client.get(url, {"company_id": self.company.id})
         assert response.status_code == status.HTTP_200_OK
         assert response.data["reference"] == "ART0001"
 
@@ -1480,7 +1480,7 @@ class TestArticleViewsCoverage:
         )
 
         url = reverse("article:article-generate-reference")
-        response = self.client.get(url)
+        response = self.client.get(url, {"company_id": self.company.id})
 
         assert response.status_code == 200
         assert "reference" in response.data
@@ -1499,7 +1499,7 @@ class TestArticleViewsCoverage:
         )
 
         url = reverse("article:article-generate-reference")
-        response = self.client.get(url)
+        response = self.client.get(url, {"company_id": self.company.id})
 
         assert response.status_code == 200
         assert "reference" in response.data
@@ -1519,7 +1519,7 @@ class TestArticleViewsCoverage:
         )
 
         url = reverse("article:article-generate-reference")
-        response = self.client.get(url)
+        response = self.client.get(url, {"company_id": self.company.id})
 
         assert response.status_code == 200
         assert "reference" in response.data
@@ -1527,30 +1527,22 @@ class TestArticleViewsCoverage:
     def test_generate_reference_with_invalid_number_format(self):
         """Test generate reference with invalid number that raises ValueError (lines 165-166)."""
         from unittest.mock import patch, MagicMock
-        from article.views import GenerateArticleReferenceCodeView
-        from rest_framework.test import APIRequestFactory
+        from django.urls import reverse
 
-        # To test ValueError, we need to mock the int() call within the view's context
-        # The try/except is at lines 165-166, catching ValueError from int(num_str)
-        factory = APIRequestFactory()
-        request = factory.get("/api/article/generate_reference_article/")
-        request.user = self.user
-
-        # Create a regex match object that returns invalid numeric string
-        with patch("article.views.search") as mock_search:
-            # First call to search with ART pattern - return a match with an invalid number
-            mock_match = MagicMock()
-            mock_match.group.return_value = (
-                "invalid_number"  # This will raise ValueError
-            )
-            mock_search.return_value = mock_match
-
-            # Also mock Article.objects to return some references
-            with patch("article.views.Article.objects.filter") as mock_filter:
-                mock_filter.return_value.values_list.return_value = ["ART0001"]
-
-                view = GenerateArticleReferenceCodeView()
-                response = view.get(request)
+        # Mock Article.objects.filter to return a reference with invalid number format
+        with patch("article.utils.Article.objects.filter") as mock_filter:
+            mock_queryset = MagicMock()
+            mock_filter.return_value = mock_queryset
+            mock_queryset.values_list.return_value = ["ARTXYZ"]  # No valid number to extract
+            
+            # Create a regex match that will cause ValueError
+            with patch("article.utils.search") as mock_search:
+                mock_match = MagicMock()
+                mock_match.group.return_value = "invalid_number"  # This will raise ValueError when int() is called
+                mock_search.return_value = mock_match
+                
+                url = reverse("article:article-generate-reference")
+                response = self.client.get(url, {"company_id": self.company.id})
 
                 assert response.status_code == 200
                 assert "reference" in response.data

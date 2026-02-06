@@ -372,7 +372,7 @@ class TestFactureProFormaUtilsExtra:
             created_by_user=user,
         )
 
-        next_num = get_next_numero_facture_pro_forma()
+        next_num = get_next_numero_facture_pro_forma(company.id)
         assert next_num == f"0002/{year_suffix}"
 
     def test_get_next_numero_with_invalid_format(self):
@@ -406,7 +406,7 @@ class TestFactureProFormaUtilsExtra:
             created_by_user=user,
         )
 
-        next_num = get_next_numero_facture_pro_forma()
+        next_num = get_next_numero_facture_pro_forma(company.id)
         assert "0001" in next_num or "0002" in next_num
 
     def test_get_next_numero_empty_db(self):
@@ -416,9 +416,11 @@ class TestFactureProFormaUtilsExtra:
 
         # Clear all
         FactureProForma.objects.all().delete()
+        
+        company = Company.objects.create(raison_sociale="Empty Test Co", ICE="EMPTY123")
 
         year_suffix = f"{datetime.now().year % 100:02d}"
-        next_num = get_next_numero_facture_pro_forma()
+        next_num = get_next_numero_facture_pro_forma(company.id)
         assert next_num == f"0001/{year_suffix}"
 
     def test_get_next_numero_consecutive(self):
@@ -460,7 +462,7 @@ class TestFactureProFormaUtilsExtra:
             created_by_user=user,
         )
 
-        next_num = get_next_numero_facture_pro_forma()
+        next_num = get_next_numero_facture_pro_forma(company.id)
         assert next_num == f"0003/{year_suffix}"
 
 

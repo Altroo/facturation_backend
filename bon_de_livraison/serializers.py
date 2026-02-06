@@ -192,6 +192,6 @@ class BonDeLivraisonDetailSerializer(BaseDetailUpdateSerializer):
         return BonDeLivraisonLineSerializer
 
     class Meta(BonDeLivraisonSerializer.Meta):
-        read_only_fields = ["id", "created_by_user", "date_created", "date_updated"]
+        read_only_fields = ["id", "company", "created_by_user", "date_created", "date_updated"]
 
     livre_par_name = serializers.CharField(source="livre_par.nom", read_only=True)

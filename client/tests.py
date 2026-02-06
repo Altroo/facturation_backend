@@ -155,7 +155,7 @@ class TestClientAPI:
 
     def test_generate_code(self):
         url = reverse("client:client-generate-code")
-        response = self.client.get(url)
+        response = self.client.get(url, {"company_id": self.company.id})
         assert response.status_code == status.HTTP_200_OK
         assert response.data["code_client"].startswith("CLT")
 
@@ -368,7 +368,7 @@ class TestClientAPI:
             company=self.company,
         )
         url = reverse("client:client-generate-code")
-        response = self.client.get(url)
+        response = self.client.get(url, {"company_id": self.company.id})
         assert response.status_code == status.HTTP_200_OK
         # Should be CLT0011
         assert response.data["code_client"] == "CLT0011"
@@ -515,7 +515,7 @@ class TestClientAPI:
     def test_generate_code_when_no_clients(self):
         Client.objects.all().delete()
         url = reverse("client:client-generate-code")
-        response = self.client.get(url)
+        response = self.client.get(url, {"company_id": self.company.id})
         assert response.status_code == status.HTTP_200_OK
         assert response.data["code_client"] == "CLT0001"
 
@@ -888,7 +888,7 @@ class TestClientViewsCoverage:
         api_client.force_authenticate(user=user)
 
         url = reverse("client:client-generate-code")
-        response = api_client.get(url)
+        response = api_client.get(url, {"company_id": company.id})
 
         assert response.status_code == status.HTTP_200_OK
         assert response.data["code_client"] == "CLT0001"
@@ -926,7 +926,7 @@ class TestClientViewsCoverage:
         api_client.force_authenticate(user=user)
 
         url = reverse("client:client-generate-code")
-        response = api_client.get(url)
+        response = api_client.get(url, {"company_id": company.id})
 
         assert response.status_code == status.HTTP_200_OK
         assert response.data["code_client"] == "CLT0006"

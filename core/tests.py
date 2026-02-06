@@ -474,7 +474,8 @@ class SharedDocumentAPITestsMixin:
 
     def shared_test_generate_numero(self) -> None:
         year_suffix = f"{datetime.now().year % 100:02d}"
-        response = self.client_api.get(self._generate_url())
+        url = self._generate_url() + f"?company_id={self.company.id}"
+        response = self.client_api.get(url)
         assert response.status_code == status.HTTP_200_OK
         assert match(r"^\d{4}/\d{2}$", response.data[self.cfg.numero_field])
         assert response.data[self.cfg.numero_field].endswith(f"/{year_suffix}")
@@ -3065,7 +3066,7 @@ class TestAdditionalCoverageEdgeCases:
             mode_paiement=mode,
         )
 
-        result = get_next_numero_devis()
+        result = get_next_numero_devis(company.id)
         # Should find gap at 0002
         assert result == f"0002/{year_suffix}"
 
@@ -3105,7 +3106,7 @@ class TestAdditionalCoverageEdgeCases:
             created_by_user=user,
         )
 
-        result = get_next_numero_facture_client()
+        result = get_next_numero_facture_client(company.id)
         assert result == f"0002/{year_suffix}"
 
     def test_facture_proforma_utils_finds_gap(self):
@@ -3143,7 +3144,7 @@ class TestAdditionalCoverageEdgeCases:
             created_by_user=user,
         )
 
-        result = get_next_numero_facture_pro_forma()
+        result = get_next_numero_facture_pro_forma(company.id)
         assert result == f"0002/{year_suffix}"
 
     def test_bon_de_livraison_utils_finds_gap(self):
@@ -3181,7 +3182,7 @@ class TestAdditionalCoverageEdgeCases:
             created_by_user=user,
         )
 
-        result = get_next_numero_bon_livraison()
+        result = get_next_numero_bon_livraison(company.id)
         assert result == f"0002/{year_suffix}"
 
 

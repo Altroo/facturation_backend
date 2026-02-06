@@ -181,7 +181,8 @@ class BaseGenerateNumeroView(APIView):
                 _("Vous n'avez pas accès à cette société.")
             )
 
-        new_num = self.numero_generator(company_id)
+        # Call the generator function directly, not as a bound method
+        new_num = self.__class__.numero_generator(company_id)
         return Response({self.response_key: new_num}, status=status.HTTP_200_OK)
 
 
@@ -279,7 +280,7 @@ class BaseConversionView(APIView):
             )
 
         try:
-            numero = self.numero_generator()
+            numero = self.numero_generator(object_.client.company_id)
             conversion_func = getattr(object_, self.conversion_method)
             converted = conversion_func(
                 **{self.numero_param_name: numero},

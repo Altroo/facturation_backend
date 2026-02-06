@@ -511,7 +511,7 @@ class TestBonDeLivraisonUtilsExtra:
         )
 
         # Should find gap at 0002
-        next_num = get_next_numero_bon_livraison()
+        next_num = get_next_numero_bon_livraison(company.id)
         assert next_num == f"0002/{year_suffix}"
 
     def test_get_next_numero_bon_livraison_with_invalid_format(self):
@@ -550,7 +550,7 @@ class TestBonDeLivraisonUtilsExtra:
         )
 
         # Should return 0001 since invalid format is skipped
-        next_num = get_next_numero_bon_livraison()
+        next_num = get_next_numero_bon_livraison(company.id)
         assert "0001" in next_num or "0002" in next_num
 
     def test_get_next_numero_bon_livraison_empty_db(self):
@@ -560,9 +560,12 @@ class TestBonDeLivraisonUtilsExtra:
 
         # Clear all bons
         BonDeLivraison.objects.all().delete()
+        
+        # Create a company for testing
+        company = Company.objects.create(raison_sociale="Empty Test Co", ICE="EMPTY123")
 
         year_suffix = f"{datetime.now().year % 100:02d}"
-        next_num = get_next_numero_bon_livraison()
+        next_num = get_next_numero_bon_livraison(company.id)
         assert next_num == f"0001/{year_suffix}"
 
     def test_get_next_numero_bon_livraison_consecutive(self):
@@ -609,7 +612,7 @@ class TestBonDeLivraisonUtilsExtra:
             created_by_user=user,
         )
 
-        next_num = get_next_numero_bon_livraison()
+        next_num = get_next_numero_bon_livraison(company.id)
         assert next_num == f"0003/{year_suffix}"
 
 
@@ -1043,13 +1046,13 @@ class TestBonDeLivraisonUtilsCoverage:
         ) as mock_filter:
             mock_filter.return_value.values_list.return_value = mock_qs
             with patch("bon_de_livraison.utils.search", side_effect=mock_search):
-                result = get_next_numero_bon_livraison()
+                result = get_next_numero_bon_livraison(1)  # Pass a dummy company_id
 
         # Should still return a valid result
         assert result == f"0001/{year_suffix}"
 
     def test_get_next_numero_with_consecutive_numbers(
-        self, bon_de_livraison_user, bon_de_livraison_client
+        self, bon_de_livraison_user, bon_de_livraison_client, bon_de_livraison_company
     ):
         """Test get_next_numero with consecutive numbers to exercise loop continuation (branch 25->30)."""
         from bon_de_livraison.utils import get_next_numero_bon_livraison
@@ -1080,7 +1083,7 @@ class TestBonDeLivraisonUtilsCoverage:
             created_by_user=bon_de_livraison_user,
         )
 
-        result = get_next_numero_bon_livraison()
+        result = get_next_numero_bon_livraison(bon_de_livraison_company.id)
 
         # Should return 0004 since 1, 2, 3 are taken
         assert result == f"0004/{year_suffix}"
