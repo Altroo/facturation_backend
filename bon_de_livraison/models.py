@@ -19,8 +19,6 @@ class BonDeLivraison(BaseDeviFactureDocument):
         related_name="bons_de_livraison",
         verbose_name="Société",
         help_text="Société propriétaire du bon de livraison",
-        null=True,
-        blank=True,
     )
 
     STATUT_CHOICES = [

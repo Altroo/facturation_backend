@@ -32,8 +32,6 @@ class Client(models.Model):
         verbose_name="Société",
         help_text="Société propriétaire du client",
         related_name="clients",
-        null=True,
-        blank=True,
     )
     # Champs communs
     adresse = models.CharField(

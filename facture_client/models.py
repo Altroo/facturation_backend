@@ -21,8 +21,6 @@ class FactureClient(BaseDeviFactureDocument):
         related_name="factures_client",
         verbose_name="Société",
         help_text="Société propriétaire de la facture",
-        null=True,
-        blank=True,
     )
 
     numero_facture = models.CharField(

@@ -19,8 +19,6 @@ class Devi(BaseDeviFactureDocument):
         related_name="devis",
         verbose_name="Société",
         help_text="Société propriétaire du devis",
-        null=True,
-        blank=True,
     )
 
     numero_devis = models.CharField(

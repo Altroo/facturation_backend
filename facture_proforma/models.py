@@ -19,8 +19,6 @@ class FactureProForma(BaseDeviFactureDocument):
         related_name="factures_proforma",
         verbose_name="Société",
         help_text="Société propriétaire de la facture pro forma",
-        null=True,
-        blank=True,
     )
 
     numero_facture = models.CharField(
