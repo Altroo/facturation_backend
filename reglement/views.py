@@ -21,6 +21,7 @@ from core.pdf_utils import (
     BasePDFGenerator,
     number_to_french_words,
     number_to_english_words,
+    format_number_for_pdf,
 )
 from core.permissions import can_create, can_update, can_delete
 from facturation_backend.utils import CustomPagination
@@ -475,7 +476,7 @@ class ReglementPDFGenerator(BasePDFGenerator):
             ],
             [
                 Paragraph(f"<b>{self._('Amount')} :</b>", self.styles["CustomNormal"]),
-                Paragraph(f"{amount:.2f} {devise}", self.styles["CustomNormal"]),
+                Paragraph(f"{format_number_for_pdf(amount)} {devise}", self.styles["CustomNormal"]),
             ],
         ]
 

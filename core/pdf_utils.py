@@ -249,6 +249,36 @@ def number_to_english_words(number: Decimal, currency: str = "MAD") -> str:
     return result
 
 
+def format_number_for_pdf(value: Decimal, decimals: int = 2) -> str:
+    """
+    Format a number with spaces as thousands separator for better readability in PDFs.
+    
+    Args:
+        value: The number to format (Decimal or float)
+        decimals: Number of decimal places (default: 2)
+    
+    Returns:
+        Formatted string with spaces as thousands separators
+        Example: 1234567.89 -> "1 234 567,89"
+    """
+    if value is None:
+        return "0,00" if decimals == 2 else "0"
+    
+    # Convert to float for formatting
+    num = float(value)
+    
+    # Format with specified decimals
+    formatted = f"{num:,.{decimals}f}"
+    
+    # Replace comma with space for thousands and dot with comma for decimals
+    # Python's format uses comma for thousands, we want space
+    # Python's format uses dot for decimals, we want comma
+    formatted = formatted.replace(",", " ")  # thousands separator
+    formatted = formatted.replace(".", ",")  # decimal separator
+    
+    return formatted
+
+
 class BasePDFGenerator:
     """Base class for generating PDF documents."""
 
@@ -905,14 +935,14 @@ class BasePDFGenerator:
             row.append(Paragraph(designation_text, self.styles["CustomSmall"]))
 
             # Quantity
-            row.append(Paragraph(f"{line.quantity:.2f}", self.styles["CustomSmall"]))
+            row.append(Paragraph(format_number_for_pdf(line.quantity), self.styles["CustomSmall"]))
 
             # TVA %
             tva_pct = line.article.tva if line.article.tva else Decimal("0")
             row.append(Paragraph(f"{tva_pct:.0f}%", self.styles["CustomSmall"]))
 
             # Prix unitaire HT
-            row.append(Paragraph(f"{line.prix_vente:.2f}", self.styles["CustomSmall"]))
+            row.append(Paragraph(format_number_for_pdf(line.prix_vente), self.styles["CustomSmall"]))
 
             # Unite (if showing)
             if show_unite:
@@ -926,7 +956,7 @@ class BasePDFGenerator:
                     total_ht -= total_ht * line.remise / Decimal("100")
                 elif line.remise_type == "Fixe":
                     total_ht -= line.remise
-            row.append(Paragraph(f"{total_ht:.2f}", self.styles["CustomSmall"]))
+            row.append(Paragraph(format_number_for_pdf(total_ht), self.styles["CustomSmall"]))
 
             table_data.append(row)
 
@@ -940,7 +970,7 @@ class BasePDFGenerator:
             f"<b>{self._('Total_HT_Label')}</b>", self.styles["CustomSmall"]
         )
         total_ht_row[-1] = Paragraph(
-            f"{self.document.total_ht:.2f} {self.document.devise}",
+            f"{format_number_for_pdf(self.document.total_ht)} {self.document.devise}",
             self.styles["CustomSmall"],
         )
         table_data.append(total_ht_row)
@@ -950,7 +980,7 @@ class BasePDFGenerator:
             f"<b>{self._('Total_TVA_Label')}</b>", self.styles["CustomSmall"]
         )
         tva_row[-1] = Paragraph(
-            f"{self.document.total_tva:.2f} {self.document.devise}",
+            f"{format_number_for_pdf(self.document.total_tva)} {self.document.devise}",
             self.styles["CustomSmall"],
         )
         table_data.append(tva_row)
@@ -960,7 +990,7 @@ class BasePDFGenerator:
             f"<b>{self._('Total_TTC_Label')}</b>", self.styles["CustomSmall"]
         )
         total_ttc_row[-1] = Paragraph(
-            f"{self.document.total_ttc:.2f} {self.document.devise}",
+            f"{format_number_for_pdf(self.document.total_ttc)} {self.document.devise}",
             self.styles["CustomSmall"],
         )
         table_data.append(total_ttc_row)
@@ -969,9 +999,9 @@ class BasePDFGenerator:
         if show_remise and self.document.remise_type and self.document.remise > 0:
             remise_row = [Paragraph("", self.styles["CustomSmall"])] * num_cols
             if self.document.remise_type == "Pourcentage":
-                remise_text = f"{self.document.remise:.2f}%"
+                remise_text = f"{format_number_for_pdf(self.document.remise)}%"
             else:
-                remise_text = f"{self.document.remise:.2f} {self.document.devise}"
+                remise_text = f"{format_number_for_pdf(self.document.remise)} {self.document.devise}"
             remise_type_label = (
                 self._("Percentage")
                 if self.document.remise_type == "Pourcentage"
@@ -990,7 +1020,7 @@ class BasePDFGenerator:
                 self.styles["CustomSmall"],
             )
             final_row[-1] = Paragraph(
-                f"{self.document.total_ttc_apres_remise:.2f} {self.document.devise}",
+                f"{format_number_for_pdf(self.document.total_ttc_apres_remise)} {self.document.devise}",
                 self.styles["CustomSmall"],
             )
             table_data.append(final_row)
@@ -1051,28 +1081,28 @@ class BasePDFGenerator:
             [
                 Paragraph("<b>Total HT:</b>", self.styles["CustomNormal"]),
                 Paragraph(
-                    f"{self.document.total_ht:.2f} MAD", self.styles["CustomRight"]
+                    f"{format_number_for_pdf(self.document.total_ht)} MAD", self.styles["CustomRight"]
                 ),
             ],
             [
                 Paragraph("<b>TVA:</b>", self.styles["CustomNormal"]),
                 Paragraph(
-                    f"{self.document.total_tva:.2f} MAD", self.styles["CustomRight"]
+                    f"{format_number_for_pdf(self.document.total_tva)} MAD", self.styles["CustomRight"]
                 ),
             ],
             [
                 Paragraph("<b>Total TTC:</b>", self.styles["CustomNormal"]),
                 Paragraph(
-                    f"{self.document.total_ttc:.2f} MAD", self.styles["CustomRight"]
+                    f"{format_number_for_pdf(self.document.total_ttc)} MAD", self.styles["CustomRight"]
                 ),
             ],
         ]
 
         if show_remise and self.document.remise_type and self.document.remise > 0:
             if self.document.remise_type == "Pourcentage":
-                remise_text = f"{self.document.remise:.2f}%"
+                remise_text = f"{format_number_for_pdf(self.document.remise)}%"
             else:
-                remise_text = f"{self.document.remise:.2f} {self.document.devise}"
+                remise_text = f"{format_number_for_pdf(self.document.remise)} {self.document.devise}"
             totals_data.append(
                 [
                     Paragraph(
@@ -1088,7 +1118,7 @@ class BasePDFGenerator:
                         "<b>Total TTC après remise:</b>", self.styles["CustomNormal"]
                     ),
                     Paragraph(
-                        f"{self.document.total_ttc_apres_remise:.2f} {self.document.devise}",
+                        f"{format_number_for_pdf(self.document.total_ttc_apres_remise)} {self.document.devise}",
                         self.styles["CustomRight"],
                     ),
                 ]

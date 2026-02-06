@@ -12,7 +12,7 @@ from rest_framework.views import APIView
 
 from company.models import Company
 from core.authentication import JWTQueryParamAuthentication
-from core.pdf_utils import BasePDFGenerator, number_to_french_words
+from core.pdf_utils import BasePDFGenerator, number_to_french_words, format_number_for_pdf
 from core.views import (
     BaseDocumentListCreateView,
     BaseDocumentDetailEditDeleteView,
@@ -397,7 +397,7 @@ class DeviPDFGenerator(BasePDFGenerator):
 
             # Quantity - centered
             row.append(
-                Paragraph(f"{line.quantity:.2f}", self.styles["CustomSmallCenter"])
+                Paragraph(format_number_for_pdf(line.quantity), self.styles["CustomSmallCenter"])
             )
 
             # TVA % - centered
@@ -406,7 +406,7 @@ class DeviPDFGenerator(BasePDFGenerator):
 
             # Prix unitaire HT - centered
             row.append(
-                Paragraph(f"{line.prix_vente:.2f}", self.styles["CustomSmallCenter"])
+                Paragraph(format_number_for_pdf(line.prix_vente), self.styles["CustomSmallCenter"])
             )
 
             # Unite (if showing) - centered
@@ -417,9 +417,9 @@ class DeviPDFGenerator(BasePDFGenerator):
             # Remise per article (if showing) - centered
             if show_remise:
                 if line.remise_type == "Pourcentage" and line.remise:
-                    remise_text = f"{line.remise:.2f}%"
+                    remise_text = f"{format_number_for_pdf(line.remise)}%"
                 elif line.remise_type == "Fixe" and line.remise:
-                    remise_text = f"{line.remise:.2f}"
+                    remise_text = format_number_for_pdf(line.remise)
                 else:
                     remise_text = "-"
                 row.append(Paragraph(remise_text, self.styles["CustomSmallCenter"]))
@@ -430,7 +430,7 @@ class DeviPDFGenerator(BasePDFGenerator):
                 total_ht -= total_ht * line.remise / Decimal("100")
             elif line.remise_type == "Fixe" and line.remise:
                 total_ht -= line.remise
-            row.append(Paragraph(f"{total_ht:.2f}", self.styles["CustomSmallCenter"]))
+            row.append(Paragraph(format_number_for_pdf(total_ht), self.styles["CustomSmallCenter"]))
 
             table_data.append(row)
 
@@ -446,7 +446,7 @@ class DeviPDFGenerator(BasePDFGenerator):
             f"<b>{self._('Total_HT_Label')}</b>", self.styles["CustomSmall"]
         )
         total_ht_row[-1] = Paragraph(
-            f"{self.document.total_ht:.2f}", self.styles["CustomSmallCenter"]
+            format_number_for_pdf(self.document.total_ht), self.styles["CustomSmallCenter"]
         )
         table_data.append(total_ht_row)
 
@@ -456,7 +456,7 @@ class DeviPDFGenerator(BasePDFGenerator):
             f"<b>{self._('Total_TVA_Label')}</b>", self.styles["CustomSmall"]
         )
         tva_row[-1] = Paragraph(
-            f"{self.document.total_tva:.2f}", self.styles["CustomSmallCenter"]
+            format_number_for_pdf(self.document.total_tva), self.styles["CustomSmallCenter"]
         )
         table_data.append(tva_row)
 
@@ -466,7 +466,7 @@ class DeviPDFGenerator(BasePDFGenerator):
             f"<b>{self._('Total_TTC_Label')}</b>", self.styles["CustomSmall"]
         )
         total_ttc_row[-1] = Paragraph(
-            f"{self.document.total_ttc:.2f}", self.styles["CustomSmallCenter"]
+            format_number_for_pdf(self.document.total_ttc), self.styles["CustomSmallCenter"]
         )
         table_data.append(total_ttc_row)
 
@@ -474,9 +474,9 @@ class DeviPDFGenerator(BasePDFGenerator):
         if self.document.remise_type and self.document.remise > 0:
             remise_row = [Paragraph("", self.styles["CustomSmall"])] * num_cols
             if self.document.remise_type == "Pourcentage":
-                remise_text = f"{self.document.remise:.2f}%"
+                remise_text = f"{format_number_for_pdf(self.document.remise)}%"
             else:
-                remise_text = f"{self.document.remise:.2f}"
+                remise_text = format_number_for_pdf(self.document.remise)
             remise_type_label = (
                 self._("Percentage")
                 if self.document.remise_type == "Pourcentage"
@@ -496,7 +496,7 @@ class DeviPDFGenerator(BasePDFGenerator):
                 self.styles["CustomSmall"],
             )
             final_row[-1] = Paragraph(
-                f"{self.document.total_ttc_apres_remise:.2f}",
+                format_number_for_pdf(self.document.total_ttc_apres_remise),
                 self.styles["CustomSmallCenter"],
             )
             table_data.append(final_row)
