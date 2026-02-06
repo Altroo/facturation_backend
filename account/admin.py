@@ -88,7 +88,7 @@ class CustomUserAdmin(UserAdmin):
                 send_email.delay(
                     user_pk=user.pk,
                     email_=user.email,
-                    mail_subject="Casa Di Lusso - Changement de mot de passe",
+                    mail_subject="Changement de mot de passe - Facturation",
                     message=message,
                 )
 

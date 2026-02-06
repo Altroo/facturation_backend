@@ -399,7 +399,7 @@ class UsersListCreateView(APIView):
                 generate_user_thumbnail.apply_async(
                     (user.pk,),
                 )
-            mail_subject = "Invitation (Facturation Casa Di Lusso)"
+            mail_subject = "Invitation - Application de Facturation"
             mail_template = "new_account.html"
             message = render_to_string(
                 mail_template, {"first_name": user.first_name, "password": password}

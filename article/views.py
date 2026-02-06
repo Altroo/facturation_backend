@@ -538,3 +538,36 @@ class ImportArticlesView(APIView):
             {"total": len(rows), "created": created_count, "errors": errors},
             status=status.HTTP_200_OK,
         )
+
+
+class SendCSVExampleEmailView(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    @staticmethod
+    def post(request, *args, **kwargs):
+        """Send CSV import guide via email with CSV template attached."""
+        from account.tasks import send_csv_example_email
+        
+        company_id = request.data.get("company_id")
+        if not company_id:
+            raise PermissionDenied(
+                _("L'ID de la société est requis.")
+            )
+        
+        # Check if user has access to this company
+        if not Membership.objects.filter(
+            user=request.user, company_id=company_id
+        ).exists():
+            raise PermissionDenied(
+                _("Vous n'avez pas accès à cette société.")
+            )
+        
+        # Send email via Celery
+        send_csv_example_email.apply_async(
+            (request.user.pk, request.user.email)
+        )
+        
+        return Response(
+            {"message": "Email envoyé avec succès."},
+            status=status.HTTP_200_OK
+        )

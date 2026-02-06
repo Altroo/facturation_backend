@@ -1874,3 +1874,92 @@ class TestArticleImport:
 
         assert response.status_code == 400
         assert "vide" in response.json()["detail"].lower()
+
+
+@pytest.mark.django_db
+class TestSendCSVExampleEmailView:
+    """Tests for SendCSVExampleEmailView endpoint."""
+
+    def setup_method(self):
+        self.user_model = get_user_model()
+        self.user = self.user_model.objects.create_user(
+            email="test@example.com",
+            password="pass",
+            first_name="John",
+            last_name="Doe",
+        )
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
+
+        self.company = Company.objects.create(
+            raison_sociale="TestCorp",
+            ICE="ICE_MAIN",
+            registre_de_commerce="RC_MAIN",
+            nbr_employe="1 à 5",
+        )
+
+        self.caissier_role, _ = Role.objects.get_or_create(name="Caissier")
+        Membership.objects.create(
+            user=self.user, company=self.company, role=self.caissier_role
+        )
+
+        self.url = reverse("article:article-send-csv-example-email")
+
+    def test_send_csv_example_email_success(self):
+        """Successfully sends CSV example email with company access."""
+        response = self.client.post(
+            self.url,
+            {"company_id": self.company.id},
+            format="json",
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert "envoyé" in data["message"].lower()
+
+    def test_send_csv_example_email_no_company_id(self):
+        """Returns 403 when company_id is missing."""
+        response = self.client.post(
+            self.url,
+            {},
+            format="json",
+        )
+
+        assert response.status_code == 403
+        response_data = response.json()
+        assert "details" in response_data or "detail" in response_data
+        detail_text = response_data.get("details", {}).get("detail", response_data.get("detail", ""))
+        assert "requis" in detail_text.lower()
+
+    def test_send_csv_example_email_no_membership(self):
+        """Returns 403 when user has no membership in the company."""
+        other_company = Company.objects.create(
+            raison_sociale="OtherCorp",
+            ICE="ICE_OTHER",
+            registre_de_commerce="RC_OTHER",
+            nbr_employe="1 à 5",
+        )
+
+        response = self.client.post(
+            self.url,
+            {"company_id": other_company.id},
+            format="json",
+        )
+
+        assert response.status_code == 403
+        response_data = response.json()
+        assert "details" in response_data or "detail" in response_data
+        detail_text = response_data.get("details", {}).get("detail", response_data.get("detail", ""))
+        assert "accès" in detail_text.lower()
+
+    def test_send_csv_example_email_unauthenticated(self):
+        """Returns 401/403 when user is not authenticated."""
+        self.client.force_authenticate(user=None)
+
+        response = self.client.post(
+            self.url,
+            {"company_id": self.company.id},
+            format="json",
+        )
+
+        assert response.status_code in [401, 403]

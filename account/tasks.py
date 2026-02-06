@@ -8,6 +8,7 @@ from channels.layers import get_channel_layer
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.files import File
 from django.core.mail import EmailMessage
+from django.template.loader import render_to_string
 
 from account.models import CustomUser
 from facturation_backend.celery_conf import app
@@ -35,6 +36,46 @@ def send_email(self, user_pk, email_, mail_subject, message, code=None, type_=No
         logger.error(f"Échec de l’envoi de l’e-mail pour l’utilisateur {user_pk} : {e}")
         raise self.retry(exc=e, countdown=60)  # Retry in 60 seconds
 
+
+@app.task(bind=True, serializer="json", max_retries=3)
+def send_csv_example_email(self, user_pk, email_):
+    try:
+        user = CustomUser.objects.get(pk=user_pk)
+        
+        # Create CSV content with headers only
+        csv_content = ("reference;type_article;designation;prix_achat;devise_prix_achat;"
+                       "prix_vente;devise_prix_vente;tva;remarque;marque;categorie;emplacement;unite\n")
+        
+        # Render HTML template
+        mail_subject = "Guide d'importation des articles - Facturation"
+        mail_template = "csv_email.html"
+        message = render_to_string(
+            mail_template,
+            {
+                "first_name": user.first_name,
+            },
+        )
+        
+        # Create email with HTML content
+        email = EmailMessage(
+            subject=mail_subject,
+            body=message,
+            to=(email_,)
+        )
+        email.content_subtype = "html"
+        
+        # Attach CSV file
+        email.attach("modele_articles.csv", csv_content, "text/csv")
+        
+        # Send email
+        email.send(fail_silently=False)
+        
+    except ObjectDoesNotExist:
+        logger.error(f"Utilisateur {user_pk} introuvable pour l'envoi du CSV exemple")
+        return
+    except Exception as e:
+        logger.error(f"Échec de l'envoi du CSV exemple pour l'utilisateur {user_pk} : {e}")
+        raise self.retry(exc=e, countdown=60)
 
 @app.task(bind=True, serializer="json", max_retries=3)
 def start_deleting_expired_codes(self, user_pk, type_):

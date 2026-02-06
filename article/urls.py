@@ -6,6 +6,7 @@ from .views import (
     GenerateArticleReferenceCodeView,
     ArchiveToggleArticleView,
     ImportArticlesView,
+    SendCSVExampleEmailView,
 )
 
 app_name = "article"
@@ -27,4 +28,10 @@ urlpatterns = [
     ),
     # POST importer des articles depuis un fichier CSV
     path("import/", ImportArticlesView.as_view(), name="article-import"),
+    # POST send CSV example email
+    path(
+        "send-csv-example-email/",
+        SendCSVExampleEmailView.as_view(),
+        name="article-send-csv-example-email",
+    ),
 ]

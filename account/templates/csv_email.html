@@ -7,7 +7,7 @@
 	<meta name="x-apple-disable-message-reformatting">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta content="telephone=no" name="format-detection">
-	<title>Changement de mot de passe - Facturation</title>
+	<title>Guide d'importation des articles - Facturation</title>
 	<!--[if (mso 16)]>
 	<style type="text/css">
 		a {
@@ -104,6 +104,29 @@
               padding-right: 0px !important
           }
       }
+
+      .field-table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-top: 10px;
+          margin-bottom: 10px;
+      }
+
+      .field-table td {
+          padding: 8px;
+          border: 1px solid #ddd;
+          font-size: 14px;
+      }
+
+      .field-name {
+          font-weight: 600;
+          background-color: #f5f5f5;
+          width: 30%;
+      }
+
+      .field-info {
+          background-color: #fff;
+      }
 	</style>
 </head>
 <body
@@ -139,8 +162,8 @@
 															<td align="left"
 															    style="padding-right:20px;Margin:0">
 																<h1
-																	style="Margin:0;line-height:29px;mso-line-height-rule:exactly;font-family:Arial, 'helvetica neue', Helvetica, verdana, sans-serif;font-size:32px;font-style:normal;font-weight:normal;color:#0D070B;text-align:left">
-																	Changement de mot de passe (Facturation)</h1></td>
+																	style="Margin:0;line-height:29px;mso-line-height-rule:exactly;font-family:Arial, 'helvetica neue', Helvetica, verdana, sans-serif;font-size:28px;font-style:normal;font-weight:normal;color:#0D070B;text-align:left">
+																	Guide d'importation des articles</h1></td>
 														</tr>
 													</table>
 												</td>
@@ -162,24 +185,101 @@
 															<td align="left"
 															    style="padding:0;Margin:0;padding-top:20px;padding-left:20px;padding-right:20px">
 																<p
-																	style="margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:Arial, 'helvetica neue', Helvetica, verdana, sans-serif;line-height:38px;color:#0D070B;font-size:16px;letter-spacing: -0.01em">
-																	Bonjour {{ first_name }},<br>Un administrateur a modifié le mot de passe
-																	de votre compte Facturation. Voici votre nouveau mot de passe :</p></td>
-														</tr>
-														<tr>
-															<td height="10" align="left"
-															    style="padding:0;Margin:0"></td>
+																	style="margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:Arial, 'helvetica neue', Helvetica, verdana, sans-serif;line-height:24px;color:#0D070B;font-size:16px;letter-spacing: -0.01em">
+																	Bonjour {{ first_name }},</p>
+																<p
+																	style="margin:0;margin-top:10px;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:Arial, 'helvetica neue', Helvetica, verdana, sans-serif;line-height:24px;color:#0D070B;font-size:16px;letter-spacing: -0.01em">
+																	Vous trouverez ci-joint un fichier CSV modèle pour l'importation des articles. 
+																	Voici les spécifications détaillées de chaque champ :</p>
+															</td>
 														</tr>
 														<tr>
 															<td align="left"
-															    style="padding:0;Margin:0;padding-left:15px;padding-right:15px;text-align:left">
-                                                                  <span class="es-button-border"
-                                                                        style="display:inline-block;width:auto;">
-                                                                      <span class="es-button" target="_blank"
-                                                                            style="border-color: #d9d9d9;padding:10px;mso-style-priority:100 !important;font-weight: 700;text-decoration:none;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-size:20px;border-style:solid;border-width:1px;display:inline-block;border-radius:10px;font-family:Arial, 'helvetica neue', Helvetica, verdana, sans-serif;font-style:normal;line-height:23px;width:auto;text-align:left;color: #0D070B;letter-spacing: -0.01em;">
-                                                                          {{ password }}
-                                                                      </span>
-                                                                </span>
+															    style="padding:0;Margin:0;padding-top:20px;padding-left:20px;padding-right:20px">
+																<h3
+																	style="Margin:0;line-height:24px;mso-line-height-rule:exactly;font-family:Arial, 'helvetica neue', Helvetica, verdana, sans-serif;font-size:18px;font-style:normal;font-weight:600;color:#0D070B;">
+																	Structure du fichier CSV</h3>
+															</td>
+														</tr>
+														<tr>
+															<td align="left"
+															    style="padding:0;Margin:0;padding-top:10px;padding-left:20px;padding-right:20px">
+																<table class="field-table">
+																	<tr>
+																		<td class="field-name">reference</td>
+																		<td class="field-info"><strong>Optionnel.</strong> Référence unique de l'article. Si vide, une référence sera générée automatiquement.</td>
+																	</tr>
+																	<tr>
+																		<td class="field-name">type_article</td>
+																		<td class="field-info"><strong>Obligatoire.</strong> Doit être soit <strong>"Produit"</strong> soit <strong>"Service"</strong>.</td>
+																	</tr>
+																	<tr>
+																		<td class="field-name">designation</td>
+																		<td class="field-info"><strong>Obligatoire.</strong> Description de l'article.</td>
+																	</tr>
+																	<tr>
+																		<td class="field-name">prix_achat</td>
+																		<td class="field-info"><strong>Obligatoire.</strong> Prix d'achat en format numérique. Utilisez la virgule (,) pour les décimales. Ex: 100,00</td>
+																	</tr>
+																	<tr>
+																		<td class="field-name">devise_prix_achat</td>
+																		<td class="field-info"><strong>Obligatoire.</strong> Devise du prix d'achat. Valeurs acceptées : <strong>MAD</strong>, <strong>EUR</strong>, <strong>USD</strong>.</td>
+																	</tr>
+																	<tr>
+																		<td class="field-name">prix_vente</td>
+																		<td class="field-info"><strong>Obligatoire.</strong> Prix de vente en format numérique. Utilisez la virgule (,) pour les décimales. Ex: 200,00</td>
+																	</tr>
+																	<tr>
+																		<td class="field-name">devise_prix_vente</td>
+																		<td class="field-info"><strong>Obligatoire.</strong> Devise du prix de vente. Valeurs acceptées : <strong>MAD</strong>, <strong>EUR</strong>, <strong>USD</strong>.</td>
+																	</tr>
+																	<tr>
+																		<td class="field-name">tva</td>
+																		<td class="field-info"><strong>Obligatoire.</strong> Taux de TVA en pourcentage. Utilisez la virgule (,) pour les décimales. Ex: 20,00</td>
+																	</tr>
+																	<tr>
+																		<td class="field-name">remarque</td>
+																		<td class="field-info"><strong>Optionnel.</strong> Remarques ou notes concernant l'article.</td>
+																	</tr>
+																	<tr>
+																		<td class="field-name">marque</td>
+																		<td class="field-info"><strong>Optionnel.</strong> Nom de la marque de l'article.</td>
+																	</tr>
+																	<tr>
+																		<td class="field-name">categorie</td>
+																		<td class="field-info"><strong>Optionnel.</strong> Catégorie de l'article.</td>
+																	</tr>
+																	<tr>
+																		<td class="field-name">emplacement</td>
+																		<td class="field-info"><strong>Optionnel.</strong> Emplacement de stockage de l'article.</td>
+																	</tr>
+																	<tr>
+																		<td class="field-name">unite</td>
+																		<td class="field-info"><strong>Optionnel.</strong> Unité de mesure (Ex: Pièce, Kg, Litre, etc.).</td>
+																	</tr>
+																</table>
+															</td>
+														</tr>
+														<tr>
+															<td align="left"
+															    style="padding:0;Margin:0;padding-top:20px;padding-left:20px;padding-right:20px">
+																<h3
+																	style="Margin:0;line-height:24px;mso-line-height-rule:exactly;font-family:Arial, 'helvetica neue', Helvetica, verdana, sans-serif;font-size:18px;font-style:normal;font-weight:600;color:#0D070B;">
+																	Points importants</h3>
+															</td>
+														</tr>
+														<tr>
+															<td align="left"
+															    style="padding:0;Margin:0;padding-top:10px;padding-left:20px;padding-right:20px">
+																<ul style="margin:0;padding-left:20px;font-family:Arial, 'helvetica neue', Helvetica, verdana, sans-serif;font-size:15px;color:#0D070B;line-height:22px;">
+																	<li style="margin-bottom:8px;">Le fichier doit être au format CSV avec le séparateur point-virgule (;)</li>
+																	<li style="margin-bottom:8px;">La première ligne doit contenir les en-têtes de colonnes</li>
+																	<li style="margin-bottom:8px;">Les nombres décimaux doivent utiliser la virgule (,) comme séparateur</li>
+																	<li style="margin-bottom:8px;">Les champs <strong>type_article</strong>, <strong>designation</strong>, <strong>prix_achat</strong>, <strong>devise_prix_achat</strong>, <strong>prix_vente</strong>, <strong>devise_prix_vente</strong>, et <strong>tva</strong> sont obligatoires</li>
+																	<li style="margin-bottom:8px;">Si la référence est vide, une référence unique sera générée automatiquement</li>
+																	<li style="margin-bottom:8px;">Les devises acceptées sont : MAD, EUR, USD</li>
+																	<li style="margin-bottom:8px;">Le type d'article doit être exactement "Produit" ou "Service"</li>
+																</ul>
 															</td>
 														</tr>
 														<tr>
@@ -191,7 +291,7 @@
 															    style="padding:0;Margin:0;padding-left:20px;padding-right:20px">
 																<p
 																	style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:Arial, 'helvetica neue', Helvetica, verdana, sans-serif;line-height:18px;color:#0D070B;font-size:16px;letter-spacing: -0.01em;font-weight: 400;">
-																	Vous pouvez utiliser ce nouveau mot de passe pour vous connecter avec votre adresse Email, Merci,</p></td>
+																	Pour toute question, n'hésitez pas à nous contacter.</p></td>
 														</tr>
 														<tr>
 															<td height="10" align="center"
