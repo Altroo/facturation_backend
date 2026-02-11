@@ -706,6 +706,56 @@ class TestClientFilters:
         result = ClientFilter.global_search(base_qs, "search", "   ")
         assert result.count() == base_qs.count()
 
+    # --- Text lookup filter tests ---
+
+    def test_prenom_icontains_filter(self):
+        """Test prenom__icontains text lookup filter."""
+        qs = Client.objects.filter(company=self.company1)
+        filt = ClientFilter({"prenom__icontains": "ala"}, queryset=qs)
+        assert self.c2 in filt.qs
+        assert self.c1 not in filt.qs
+
+    def test_prenom_istartswith_filter(self):
+        """Test prenom__istartswith text lookup filter."""
+        qs = Client.objects.filter(company=self.company1)
+        filt = ClientFilter({"prenom__istartswith": "Ala"}, queryset=qs)
+        assert self.c2 in filt.qs
+        assert self.c1 not in filt.qs
+
+    def test_prenom_iendswith_filter(self):
+        """Test prenom__iendswith text lookup filter."""
+        qs = Client.objects.filter(company=self.company1)
+        filt = ClientFilter({"prenom__iendswith": "oui"}, queryset=qs)
+        assert self.c2 in filt.qs
+
+    def test_raison_sociale_icontains_filter(self):
+        """Test raison_sociale__icontains text lookup filter."""
+        qs = Client.objects.filter(company=self.company1)
+        filt = ClientFilter({"raison_sociale__icontains": "filter"}, queryset=qs)
+        assert self.c1 in filt.qs
+        assert self.c2 not in filt.qs
+
+    def test_ville_name_icontains_filter(self):
+        """Test ville_name__icontains text lookup filter."""
+        qs = Client.objects.filter(company=self.company1)
+        filt = ClientFilter({"ville_name__icontains": "casa"}, queryset=qs)
+        assert self.c1 in filt.qs
+
+    def test_isempty_filter_true(self):
+        """Test __isempty=true matches clients with empty prenom."""
+        qs = Client.objects.filter(company=self.company1)
+        filt = ClientFilter({"prenom__isempty": "true"}, queryset=qs)
+        # c1 has no prenom (empty or null), c2 has prenom="Alaoui"
+        assert self.c1 in filt.qs
+        assert self.c2 not in filt.qs
+
+    def test_isempty_filter_false(self):
+        """Test __isempty=false matches clients with non-empty prenom."""
+        qs = Client.objects.filter(company=self.company1)
+        filt = ClientFilter({"prenom__isempty": "false"}, queryset=qs)
+        assert self.c2 in filt.qs
+        assert self.c1 not in filt.qs
+
 
 @pytest.mark.django_db
 class TestClientModelExtra:

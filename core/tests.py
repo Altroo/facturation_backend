@@ -2818,6 +2818,212 @@ class TestCoreFilterAdditional:
         # Should fall back to icontains search
         assert devi in filterset.qs
 
+    def test_client_name_icontains_filter(self, test_client_filter, extra_mode_paiement):
+        """Test client_name__icontains text lookup filter on BaseDocumentFilter."""
+        from devi.models import Devi
+        from devi.filters import DeviFilter
+
+        devi = Devi.objects.create(
+            client=test_client_filter,
+            numero_devis="CFILT001/26",
+            date_devis="2026-01-01",
+            mode_paiement=extra_mode_paiement,
+        )
+
+        qs = Devi.objects.all()
+        filt = DeviFilter({"client_name__icontains": "Filter Test"}, queryset=qs)
+        assert devi in filt.qs
+
+    def test_client_name_istartswith_filter(self, test_client_filter, extra_mode_paiement):
+        """Test client_name__istartswith filter."""
+        from devi.models import Devi
+        from devi.filters import DeviFilter
+
+        devi = Devi.objects.create(
+            client=test_client_filter,
+            numero_devis="CFILT002/26",
+            date_devis="2026-01-01",
+            mode_paiement=extra_mode_paiement,
+        )
+
+        qs = Devi.objects.all()
+        filt = DeviFilter({"client_name__istartswith": "Filter"}, queryset=qs)
+        assert devi in filt.qs
+
+    def test_client_name_isempty_true(self, extra_ville, extra_company, extra_mode_paiement):
+        """Test client_name__isempty=true on BaseDocumentFilter."""
+        from devi.models import Devi
+        from devi.filters import DeviFilter
+
+        client_empty = Client.objects.create(
+            code_client="EMPTY001",
+            client_type="PM",
+            raison_sociale="",
+            ville=extra_ville,
+            company=extra_company,
+        )
+        devi_empty = Devi.objects.create(
+            client=client_empty,
+            numero_devis="CFILT003/26",
+            date_devis="2026-01-01",
+            mode_paiement=extra_mode_paiement,
+        )
+
+        qs = Devi.objects.all()
+        filt = DeviFilter({"client_name__isempty": "true"}, queryset=qs)
+        assert devi_empty in filt.qs
+
+    def test_client_name_isempty_false(self, test_client_filter, extra_mode_paiement):
+        """Test client_name__isempty=false on BaseDocumentFilter."""
+        from devi.models import Devi
+        from devi.filters import DeviFilter
+
+        devi = Devi.objects.create(
+            client=test_client_filter,
+            numero_devis="CFILT004/26",
+            date_devis="2026-01-01",
+            mode_paiement=extra_mode_paiement,
+        )
+
+        qs = Devi.objects.all()
+        filt = DeviFilter({"client_name__isempty": "false"}, queryset=qs)
+        assert devi in filt.qs
+
+    def test_dynamic_numero_icontains_filter(self, test_client_filter, extra_mode_paiement):
+        """Test dynamically generated numero_field__icontains filter."""
+        from devi.models import Devi
+        from devi.filters import DeviFilter
+
+        devi = Devi.objects.create(
+            client=test_client_filter,
+            numero_devis="DYNFILT001/26",
+            date_devis="2026-01-01",
+            mode_paiement=extra_mode_paiement,
+        )
+
+        qs = Devi.objects.all()
+        filt = DeviFilter({"numero_devis__icontains": "DYNFILT"}, queryset=qs)
+        assert devi in filt.qs
+
+    def test_total_ttc_numeric_filters(self, test_client_filter, extra_mode_paiement):
+        """Test total_ttc_apres_remise numeric filters."""
+        from devi.models import Devi
+        from devi.filters import DeviFilter
+
+        devi = Devi.objects.create(
+            client=test_client_filter,
+            numero_devis="NUMFILT001/26",
+            date_devis="2026-01-01",
+            mode_paiement=extra_mode_paiement,
+        )
+
+        qs = Devi.objects.all()
+        # Default total_ttc_apres_remise is 0
+        filt = DeviFilter({"total_ttc_apres_remise__gte": "0"}, queryset=qs)
+        assert devi in filt.qs
+
+    def test_is_empty_filter_class(self, extra_ville, extra_company):
+        """Test IsEmptyFilter handles both NULL and empty string."""
+        from core.filters import IsEmptyFilter
+        from django.db.models import QuerySet
+
+        # Test with a real model - Company has nullable and blank fields
+        c_full = Company.objects.create(raison_sociale="Full Corp", ICE="ICE001")
+        c_empty = Company.objects.create(raison_sociale="", ICE="ICE002")
+
+        f = IsEmptyFilter(field_name="raison_sociale")
+        qs = Company.objects.all()
+
+        # value=True: match empty/null
+        result = f.filter(qs, True)
+        assert c_empty in result
+        assert c_full not in result
+
+        # value=False: exclude empty/null
+        result = f.filter(qs, False)
+        assert c_full in result
+        assert c_empty not in result
+
+        # value=None: return queryset unchanged
+        result = f.filter(qs, None)
+        assert c_full in result
+        assert c_empty in result
+
+    def test_lignes_count_filters(self, test_client_filter, extra_mode_paiement):
+        """Test lignes_count numeric filters (annotated Count on related lignes)."""
+        from devi.models import Devi, DeviLine
+        from devi.filters import DeviFilter
+        from article.models import Article
+
+        article = Article.objects.create(
+            company=test_client_filter.company,
+            reference="LC-ART",
+            designation="LC Article",
+            prix_achat=10,
+            prix_vente=20,
+            tva=20,
+        )
+
+        devi_with_lines = Devi.objects.create(
+            client=test_client_filter,
+            numero_devis="LCFILT001/26",
+            date_devis="2026-01-01",
+            mode_paiement=extra_mode_paiement,
+        )
+        DeviLine.objects.create(
+            devis=devi_with_lines, article=article,
+            prix_achat=10, prix_vente=20, quantity=1,
+        )
+        DeviLine.objects.create(
+            devis=devi_with_lines, article=article,
+            prix_achat=10, prix_vente=20, quantity=2,
+        )
+
+        devi_no_lines = Devi.objects.create(
+            client=test_client_filter,
+            numero_devis="LCFILT002/26",
+            date_devis="2026-01-01",
+            mode_paiement=extra_mode_paiement,
+        )
+
+        qs = Devi.objects.all()
+
+        # Exact count
+        filt = DeviFilter({"lignes_count": "2"}, queryset=qs)
+        assert devi_with_lines in filt.qs
+        assert devi_no_lines not in filt.qs
+
+        # Greater than
+        filt = DeviFilter({"lignes_count__gt": "1"}, queryset=qs)
+        assert devi_with_lines in filt.qs
+        assert devi_no_lines not in filt.qs
+
+        # Less than or equal
+        filt = DeviFilter({"lignes_count__lte": "0"}, queryset=qs)
+        assert devi_no_lines in filt.qs
+        assert devi_with_lines not in filt.qs
+
+        # Not equal
+        filt = DeviFilter({"lignes_count__ne": "2"}, queryset=qs)
+        assert devi_no_lines in filt.qs
+        assert devi_with_lines not in filt.qs
+
+    def test_lignes_count_filter_none_value(self, test_client_filter, extra_mode_paiement):
+        """Test lignes_count filter with None value returns all."""
+        from devi.models import Devi
+        from devi.filters import DeviFilter
+
+        devi = Devi.objects.create(
+            client=test_client_filter,
+            numero_devis="LCNONE/26",
+            date_devis="2026-01-01",
+            mode_paiement=extra_mode_paiement,
+        )
+
+        qs = Devi.objects.all()
+        filt = DeviFilter({"lignes_count": None}, queryset=qs)
+        assert devi in filt.qs
+
 
 @pytest.mark.django_db
 class TestAdditionalCoverageEdgeCases:

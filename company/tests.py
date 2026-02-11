@@ -525,6 +525,41 @@ class TestCompanyFilters:
         result = CompanyFilter.global_search(base_qs, "search", "   ")
         assert result.count() == base_qs.count()
 
+    # --- Text lookup filter tests ---
+
+    def test_raison_sociale_icontains_filter(self):
+        """Test raison_sociale__icontains text lookup filter."""
+        qs = Company.objects.all()
+        filt = CompanyFilter({"raison_sociale__icontains": "filter"}, queryset=qs)
+        assert self.c1 in filt.qs
+        assert self.c2 not in filt.qs
+
+    def test_ice_icontains_filter(self):
+        """Test ICE__icontains text lookup filter."""
+        qs = Company.objects.all()
+        filt = CompanyFilter({"ICE__icontains": "ICEFILT"}, queryset=qs)
+        assert self.c1 in filt.qs
+
+    def test_nom_responsable_istartswith_filter(self):
+        """Test nom_responsable__istartswith text lookup filter."""
+        qs = Company.objects.all()
+        filt = CompanyFilter({"nom_responsable__istartswith": "Alice"}, queryset=qs)
+        assert self.c1 in filt.qs
+
+    def test_raison_sociale_isempty_true(self):
+        """Test raison_sociale__isempty=true matches companies with empty raison_sociale."""
+        c_empty = Company.objects.create(raison_sociale="", ICE="ICEEMPTY")
+        qs = Company.objects.all()
+        filt = CompanyFilter({"raison_sociale__isempty": "true"}, queryset=qs)
+        assert c_empty in filt.qs
+        assert self.c1 not in filt.qs
+
+    def test_raison_sociale_isempty_false(self):
+        """Test raison_sociale__isempty=false matches companies with non-empty raison_sociale."""
+        qs = Company.objects.all()
+        filt = CompanyFilter({"raison_sociale__isempty": "false"}, queryset=qs)
+        assert self.c1 in filt.qs
+
 
 @pytest.mark.django_db
 class TestCompanySerializerExtra:

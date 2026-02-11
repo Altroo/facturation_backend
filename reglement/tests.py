@@ -959,6 +959,70 @@ class TestReglementFilters:
         ids = list(filt.qs.values_list("id", flat=True))
         assert self.reg1.id in ids
 
+    # --- Text lookup filter tests ---
+
+    def test_libelle_icontains_filter(self):
+        """Test libelle__icontains text lookup filter."""
+        base_qs = Reglement.objects.all()
+        filt = ReglementFilter({"libelle__icontains": "Alpha"}, queryset=base_qs)
+        assert self.reg1 in filt.qs
+        assert self.reg2 not in filt.qs
+
+    def test_facture_client_numero_icontains_filter(self):
+        """Test facture_client_numero__icontains maps to facture_client__numero_facture."""
+        base_qs = Reglement.objects.all()
+        filt = ReglementFilter({"facture_client_numero__icontains": "FILT"}, queryset=base_qs)
+        assert self.reg1 in filt.qs
+
+    def test_client_name_icontains_filter(self):
+        """Test client_name__icontains maps to facture_client__client__raison_sociale."""
+        base_qs = Reglement.objects.all()
+        filt = ReglementFilter({"client_name__icontains": "Alpha"}, queryset=base_qs)
+        assert self.reg1 in filt.qs
+
+    def test_mode_reglement_name_icontains_filter(self):
+        """Test mode_reglement_name__icontains maps to mode_reglement__nom."""
+        base_qs = Reglement.objects.all()
+        filt = ReglementFilter({"mode_reglement_name__icontains": "FilterPay"}, queryset=base_qs)
+        # self.reg1 uses self.mode_reglement which has nom="FilterReg"
+        filt2 = ReglementFilter({"mode_reglement_name__icontains": "FilterReg2"}, queryset=base_qs)
+        assert self.reg2 in filt2.qs
+        assert self.reg1 not in filt2.qs
+
+    def test_libelle_isempty_true(self):
+        """Test libelle__isempty=true matches reglements with empty libelle."""
+        # Create a reglement with empty libelle
+        reg_empty = Reglement.objects.create(
+            facture_client=self.facture1,
+            mode_reglement=self.mode_reglement,
+            libelle="",
+            montant=Decimal("50.00"),
+            date_reglement="2025-02-01",
+            date_echeance="2025-03-01",
+            statut="Valide",
+        )
+        base_qs = Reglement.objects.all()
+        filt = ReglementFilter({"libelle__isempty": "true"}, queryset=base_qs)
+        assert reg_empty in filt.qs
+        assert self.reg1 not in filt.qs
+
+    def test_libelle_isempty_false(self):
+        """Test libelle__isempty=false matches reglements with non-empty libelle."""
+        base_qs = Reglement.objects.all()
+        filt = ReglementFilter({"libelle__isempty": "false"}, queryset=base_qs)
+        assert self.reg1 in filt.qs
+        assert self.reg2 in filt.qs
+
+    def test_montant_numeric_filters(self):
+        """Test numeric filters for montant."""
+        base_qs = Reglement.objects.all()
+        filt = ReglementFilter({"montant__gt": "150"}, queryset=base_qs)
+        assert self.reg1 in filt.qs
+        assert self.reg2 not in filt.qs
+        filt2 = ReglementFilter({"montant__lt": "150"}, queryset=base_qs)
+        assert self.reg2 in filt2.qs
+        assert self.reg1 not in filt2.qs
+
 
 # -----------------------------------------------------------------------------
 # Admin Tests

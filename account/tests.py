@@ -1918,6 +1918,85 @@ class TestUsersFilterExtra:
         result = UsersFilter.global_search(qs, "search", "test:*")
         assert result is not None
 
+    # --- Text lookup filter tests ---
+
+    def test_first_name_icontains_filter(self):
+        """Test first_name__icontains text lookup filter."""
+        u1 = CustomUser.objects.create_user(
+            email="fname@test.com", password="p", first_name="Ahmed"
+        )
+        u2 = CustomUser.objects.create_user(
+            email="fname2@test.com", password="p", first_name="Sara"
+        )
+        qs = CustomUser.objects.all()
+        filt = UsersFilter({"first_name__icontains": "ahm"}, queryset=qs)
+        assert u1 in filt.qs
+        assert u2 not in filt.qs
+
+    def test_last_name_istartswith_filter(self):
+        """Test last_name__istartswith text lookup filter."""
+        u1 = CustomUser.objects.create_user(
+            email="lname@test.com", password="p", last_name="Benali"
+        )
+        qs = CustomUser.objects.all()
+        filt = UsersFilter({"last_name__istartswith": "Ben"}, queryset=qs)
+        assert u1 in filt.qs
+
+    def test_gender_method_filter(self):
+        """Test gender method filter maps display labels to stored values."""
+        u1 = CustomUser.objects.create_user(
+            email="gender@test.com", password="p", gender="H"
+        )
+        u2 = CustomUser.objects.create_user(
+            email="gender2@test.com", password="p", gender="F"
+        )
+        qs = CustomUser.objects.all()
+        filt = UsersFilter({"gender": "Homme"}, queryset=qs)
+        assert u1 in filt.qs
+        assert u2 not in filt.qs
+        filt2 = UsersFilter({"gender": "Femme"}, queryset=qs)
+        assert u2 in filt2.qs
+        assert u1 not in filt2.qs
+
+    def test_is_staff_boolean_filter(self):
+        """Test is_staff BooleanFilter."""
+        u1 = CustomUser.objects.create_user(
+            email="staff@test.com", password="p", is_staff=True
+        )
+        u2 = CustomUser.objects.create_user(
+            email="nostaff@test.com", password="p", is_staff=False
+        )
+        qs = CustomUser.objects.all()
+        filt = UsersFilter({"is_staff": "true"}, queryset=qs)
+        assert u1 in filt.qs
+        assert u2 not in filt.qs
+
+    def test_first_name_isempty_true(self):
+        """Test first_name__isempty=true matches users with empty first_name."""
+        u_empty = CustomUser.objects.create_user(
+            email="empty@test.com", password="p", first_name=""
+        )
+        u_full = CustomUser.objects.create_user(
+            email="full@test.com", password="p", first_name="John"
+        )
+        qs = CustomUser.objects.all()
+        filt = UsersFilter({"first_name__isempty": "true"}, queryset=qs)
+        assert u_empty in filt.qs
+        assert u_full not in filt.qs
+
+    def test_first_name_isempty_false(self):
+        """Test first_name__isempty=false matches users with non-empty first_name."""
+        u_empty = CustomUser.objects.create_user(
+            email="empty2@test.com", password="p", first_name=""
+        )
+        u_full = CustomUser.objects.create_user(
+            email="full2@test.com", password="p", first_name="John"
+        )
+        qs = CustomUser.objects.all()
+        filt = UsersFilter({"first_name__isempty": "false"}, queryset=qs)
+        assert u_full in filt.qs
+        assert u_empty not in filt.qs
+
 
 @pytest.mark.django_db
 class TestAccountViewsExtra:

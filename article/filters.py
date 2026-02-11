@@ -4,9 +4,10 @@ from django.db.models import Q, Value, F, FloatField
 from django.db.utils import DatabaseError
 
 from .models import Article
+from core.filters import IsEmptyAutoMixin
 
 
-class ArticleFilter(django_filters.FilterSet):
+class ArticleFilter(IsEmptyAutoMixin, django_filters.FilterSet):
     """FilterSet for the ``Article`` model with full‑text search support."""
 
     search = django_filters.CharFilter(method="global_search", label="Search")
@@ -19,9 +20,46 @@ class ArticleFilter(django_filters.FilterSet):
         field_name="date_created", lookup_expr="lte", label="Date Created Before"
     )
 
+    # Text field filters
+    reference__icontains = django_filters.CharFilter(field_name="reference", lookup_expr="icontains")
+    reference__istartswith = django_filters.CharFilter(field_name="reference", lookup_expr="istartswith")
+    reference__iendswith = django_filters.CharFilter(field_name="reference", lookup_expr="iendswith")
+    reference = django_filters.CharFilter(field_name="reference", lookup_expr="exact")
+
+    designation__icontains = django_filters.CharFilter(field_name="designation", lookup_expr="icontains")
+    designation__istartswith = django_filters.CharFilter(field_name="designation", lookup_expr="istartswith")
+    designation__iendswith = django_filters.CharFilter(field_name="designation", lookup_expr="iendswith")
+    designation = django_filters.CharFilter(field_name="designation", lookup_expr="exact")
+
+    # Dropdown filters
+    type_article = django_filters.CharFilter(field_name="type_article", lookup_expr="exact")
+
+    # Numeric field filters for prix_achat
+    prix_achat = django_filters.NumberFilter(field_name="prix_achat", lookup_expr="exact")
+    prix_achat__gt = django_filters.NumberFilter(field_name="prix_achat", lookup_expr="gt")
+    prix_achat__gte = django_filters.NumberFilter(field_name="prix_achat", lookup_expr="gte")
+    prix_achat__lt = django_filters.NumberFilter(field_name="prix_achat", lookup_expr="lt")
+    prix_achat__lte = django_filters.NumberFilter(field_name="prix_achat", lookup_expr="lte")
+    prix_achat__ne = django_filters.NumberFilter(field_name="prix_achat", exclude=True)
+
+    # Numeric field filters for prix_vente
+    prix_vente = django_filters.NumberFilter(field_name="prix_vente", lookup_expr="exact")
+    prix_vente__gt = django_filters.NumberFilter(field_name="prix_vente", lookup_expr="gt")
+    prix_vente__gte = django_filters.NumberFilter(field_name="prix_vente", lookup_expr="gte")
+    prix_vente__lt = django_filters.NumberFilter(field_name="prix_vente", lookup_expr="lt")
+    prix_vente__lte = django_filters.NumberFilter(field_name="prix_vente", lookup_expr="lte")
+    prix_vente__ne = django_filters.NumberFilter(field_name="prix_vente", exclude=True)
+
     class Meta:
         model = Article
-        fields = ["archived", "company_id", "date_created_after", "date_created_before"]
+        fields = [
+            "archived", "company_id", "date_created_after", "date_created_before",
+            "reference", "reference__icontains", "reference__istartswith", "reference__iendswith",
+            "designation", "designation__icontains", "designation__istartswith", "designation__iendswith",
+            "type_article",
+            "prix_achat", "prix_achat__gt", "prix_achat__gte", "prix_achat__lt", "prix_achat__lte", "prix_achat__ne",
+            "prix_vente", "prix_vente__gt", "prix_vente__gte", "prix_vente__lt", "prix_vente__lte", "prix_vente__ne",
+        ]
 
     @staticmethod
     def global_search(queryset, _name, value):

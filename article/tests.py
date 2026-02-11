@@ -864,6 +864,44 @@ class TestArticleFilters:
         result = ArticleFilter.global_search(base_qs, "search", "   ")
         assert result.count() == base_qs.count()
 
+    # --- Text lookup filter tests ---
+
+    def test_reference_icontains_filter(self):
+        """Test reference__icontains text lookup filter."""
+        qs = Article.objects.all()
+        filt = ArticleFilter({"reference__icontains": "REF1"}, queryset=qs)
+        assert self.a1 in filt.qs
+        assert self.a2 not in filt.qs
+
+    def test_designation_icontains_filter(self):
+        """Test designation__icontains text lookup filter."""
+        qs = Article.objects.all()
+        filt = ArticleFilter({"designation__icontains": "findme"}, queryset=qs)
+        assert self.a1 in filt.qs
+
+    def test_prix_vente_numeric_filters(self):
+        """Test prix_vente numeric filters (gte, lte)."""
+        qs = Article.objects.all()
+        filt = ArticleFilter({"prix_vente__gte": "10"}, queryset=qs)
+        assert self.a1 in filt.qs
+
+    def test_reference_isempty_true(self):
+        """Test reference__isempty=true matches articles with empty reference."""
+        a_empty = Article.objects.create(
+            company=self.company, reference="", designation="Empty Ref",
+            prix_achat=10, prix_vente=20, tva=20,
+        )
+        qs = Article.objects.all()
+        filt = ArticleFilter({"reference__isempty": "true"}, queryset=qs)
+        assert a_empty in filt.qs
+        assert self.a1 not in filt.qs
+
+    def test_reference_isempty_false(self):
+        """Test reference__isempty=false matches articles with non-empty reference."""
+        qs = Article.objects.all()
+        filt = ArticleFilter({"reference__isempty": "false"}, queryset=qs)
+        assert self.a1 in filt.qs
+
 
 @pytest.mark.django_db
 class TestArticleSerializerExtra:
