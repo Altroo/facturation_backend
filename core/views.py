@@ -21,6 +21,10 @@ class BaseDocumentListCreateView(APIView):
     create_serializer_class = None
     detail_serializer_class = None
     document_name = "document"
+    # FK fields to select_related on list queries (override in subclasses to extend)
+    list_select_related = ("client", "mode_paiement", "created_by_user")
+    # Reverse FK fields to prefetch on list queries
+    list_prefetch_related = ("lignes",)
 
     @staticmethod
     def _get_bool_param(request, param: str, default: bool = False) -> bool:
@@ -43,7 +47,13 @@ class BaseDocumentListCreateView(APIView):
             raise Http404(_("Aucune clients ne correspond à la requête."))
         company_id = int(company_id_str)
         self._check_company_access(request, company_id)
-        base_queryset = self.model.objects.filter(client__company_id=company_id)
+        base_queryset = self.model.objects.filter(
+            client__company_id=company_id
+        ).select_related(
+            *self.list_select_related
+        ).prefetch_related(
+            *self.list_prefetch_related
+        )
         filterset = self.filter_class(request.GET, queryset=base_queryset)
         ordered_qs = filterset.qs.order_by("-id")
         if pagination:

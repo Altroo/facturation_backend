@@ -205,15 +205,17 @@ class TestFinancialOverviewEndpoints:
     """Tests for financial overview endpoints."""
 
     def test_monthly_revenue_evolution_authenticated(
-        self, authenticated_client, facture_client
+        self, authenticated_client, facture_client, company
     ):
         """Test monthly revenue evolution endpoint returns data."""
-        response = authenticated_client.get("/api/dashboard/financial/monthly-revenue/")
+        response = authenticated_client.get(
+            f"/api/dashboard/financial/monthly-revenue/?company_id={company.id}"
+        )
         assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.data, list)
 
     def test_monthly_revenue_evolution_with_date_filters(
-        self, authenticated_client, facture_client
+        self, authenticated_client, facture_client, company
     ):
         """Test monthly revenue with date filters."""
         today = date.today()
@@ -221,14 +223,16 @@ class TestFinancialOverviewEndpoints:
         date_to = today.isoformat()
 
         response = authenticated_client.get(
-            f"/api/dashboard/financial/monthly-revenue/?date_from={date_from}&date_to={date_to}"
+            f"/api/dashboard/financial/monthly-revenue/?company_id={company.id}&date_from={date_from}&date_to={date_to}"
         )
         assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.data, list)
 
-    def test_monthly_revenue_evolution_unauthenticated(self, api_client):
+    def test_monthly_revenue_evolution_unauthenticated(self, api_client, company):
         """Test unauthenticated access is forbidden."""
-        response = api_client.get("/api/dashboard/financial/monthly-revenue/")
+        response = api_client.get(
+            f"/api/dashboard/financial/monthly-revenue/?company_id={company.id}"
+        )
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_revenue_by_type_authenticated(
@@ -238,14 +242,17 @@ class TestFinancialOverviewEndpoints:
         devi,
         facture_proforma,
         bon_de_livraison,
+        company,
     ):
         """Test revenue by document type endpoint."""
-        response = authenticated_client.get("/api/dashboard/financial/revenue-by-type/")
+        response = authenticated_client.get(
+            f"/api/dashboard/financial/revenue-by-type/?company_id={company.id}"
+        )
         assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.data, list)
 
     def test_revenue_by_type_with_date_filters(
-        self, authenticated_client, facture_client
+        self, authenticated_client, facture_client, company
     ):
         """Test revenue by type with date filters."""
         today = date.today()
@@ -253,47 +260,51 @@ class TestFinancialOverviewEndpoints:
         date_to = today.isoformat()
 
         response = authenticated_client.get(
-            f"/api/dashboard/financial/revenue-by-type/?date_from={date_from}&date_to={date_to}"
+            f"/api/dashboard/financial/revenue-by-type/?company_id={company.id}&date_from={date_from}&date_to={date_to}"
         )
         assert response.status_code == status.HTTP_200_OK
 
     def test_payment_status_overview_authenticated(
-        self, authenticated_client, facture_client
+        self, authenticated_client, facture_client, company
     ):
         """Test payment status overview endpoint."""
-        response = authenticated_client.get("/api/dashboard/financial/payment-status/")
+        response = authenticated_client.get(
+            f"/api/dashboard/financial/payment-status/?company_id={company.id}"
+        )
         assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.data, list)
 
     def test_payment_status_with_date_filters(
-        self, authenticated_client, facture_client
+        self, authenticated_client, facture_client, company
     ):
         """Test payment status with date filters."""
         today = date.today()
         response = authenticated_client.get(
-            f"/api/dashboard/financial/payment-status/?date_to={today.isoformat()}"
+            f"/api/dashboard/financial/payment-status/?company_id={company.id}&date_to={today.isoformat()}"
         )
         assert response.status_code == status.HTTP_200_OK
 
     def test_collection_rate_authenticated(
-        self, authenticated_client, facture_client, reglement
+        self, authenticated_client, facture_client, reglement, company
     ):
         """Test collection rate endpoint."""
-        response = authenticated_client.get("/api/dashboard/financial/collection-rate/")
+        response = authenticated_client.get(
+            f"/api/dashboard/financial/collection-rate/?company_id={company.id}"
+        )
         assert response.status_code == status.HTTP_200_OK
         assert "rate" in response.data
         assert "total_invoiced" in response.data
         assert "total_collected" in response.data
 
     def test_collection_rate_with_date_filters(
-        self, authenticated_client, facture_client, reglement
+        self, authenticated_client, facture_client, reglement, company
     ):
         """Test collection rate with date filters."""
         today = date.today()
         date_from = (today - timedelta(days=365)).isoformat()
 
         response = authenticated_client.get(
-            f"/api/dashboard/financial/collection-rate/?date_from={date_from}"
+            f"/api/dashboard/financial/collection-rate/?company_id={company.id}&date_from={date_from}"
         )
         assert response.status_code == status.HTTP_200_OK
 
@@ -302,76 +313,86 @@ class TestCommercialPerformanceEndpoints:
     """Tests for commercial performance endpoints."""
 
     def test_top_clients_by_revenue_authenticated(
-        self, authenticated_client, facture_client
+        self, authenticated_client, facture_client, company
     ):
         """Test top clients by revenue endpoint."""
-        response = authenticated_client.get("/api/dashboard/commercial/top-clients/")
+        response = authenticated_client.get(
+            f"/api/dashboard/commercial/top-clients/?company_id={company.id}"
+        )
         assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.data, list)
 
-    def test_top_clients_with_date_filters(self, authenticated_client, facture_client):
+    def test_top_clients_with_date_filters(
+        self, authenticated_client, facture_client, company
+    ):
         """Test top clients with date filters."""
         today = date.today()
         date_from = (today - timedelta(days=180)).isoformat()
 
         response = authenticated_client.get(
-            f"/api/dashboard/commercial/top-clients/?date_from={date_from}"
+            f"/api/dashboard/commercial/top-clients/?company_id={company.id}&date_from={date_from}"
         )
         assert response.status_code == status.HTTP_200_OK
 
     def test_top_products_by_quantity_authenticated(
-        self, authenticated_client, facture_with_line
+        self, authenticated_client, facture_with_line, company
     ):
         """Test top products by quantity endpoint."""
-        response = authenticated_client.get("/api/dashboard/commercial/top-products/")
+        response = authenticated_client.get(
+            f"/api/dashboard/commercial/top-products/?company_id={company.id}"
+        )
         assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.data, list)
 
     def test_top_products_with_date_filters(
-        self, authenticated_client, facture_with_line
+        self, authenticated_client, facture_with_line, company
     ):
         """Test top products with date filters."""
         today = date.today()
         response = authenticated_client.get(
-            f"/api/dashboard/commercial/top-products/?date_to={today.isoformat()}"
+            f"/api/dashboard/commercial/top-products/?company_id={company.id}&date_to={today.isoformat()}"
         )
         assert response.status_code == status.HTTP_200_OK
 
-    def test_quote_conversion_rate_authenticated(self, authenticated_client, devi):
+    def test_quote_conversion_rate_authenticated(
+        self, authenticated_client, devi, company
+    ):
         """Test quote conversion rate endpoint."""
         response = authenticated_client.get(
-            "/api/dashboard/commercial/quote-conversion/"
+            f"/api/dashboard/commercial/quote-conversion/?company_id={company.id}"
         )
         assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.data, list)
 
-    def test_quote_conversion_with_date_filters(self, authenticated_client, devi):
+    def test_quote_conversion_with_date_filters(
+        self, authenticated_client, devi, company
+    ):
         """Test quote conversion with date filters."""
         today = date.today()
         response = authenticated_client.get(
-            f"/api/dashboard/commercial/quote-conversion/?date_to={today.isoformat()}"
+            f"/api/dashboard/commercial/quote-conversion/?company_id={company.id}&date_to={today.isoformat()}"
         )
         assert response.status_code == status.HTTP_200_OK
 
     def test_product_price_volume_analysis_authenticated(
-        self, authenticated_client, facture_with_line
+        self, authenticated_client, facture_with_line, company
     ):
         """Test product price volume analysis endpoint."""
         response = authenticated_client.get(
-            "/api/dashboard/commercial/product-price-volume/"
+            f"/api/dashboard/commercial/product-price-volume/?company_id={company.id}"
         )
         assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.data, list)
 
     def test_product_price_volume_with_date_filters(
-        self, authenticated_client, facture_with_line
+        self, authenticated_client, facture_with_line, company
     ):
         """Test product price volume with date filters."""
         today = date.today()
         date_from = (today - timedelta(days=60)).isoformat()
 
         response = authenticated_client.get(
-            f"/api/dashboard/commercial/product-price-volume/?date_from={date_from}"
+            f"/api/dashboard/commercial/product-price-volume/?company_id={company.id}&date_from={date_from}"
         )
         assert response.status_code == status.HTTP_200_OK
 
@@ -380,44 +401,44 @@ class TestOperationalIndicatorEndpoints:
     """Tests for operational indicator endpoints."""
 
     def test_invoice_status_distribution_authenticated(
-        self, authenticated_client, facture_client
+        self, authenticated_client, facture_client, company
     ):
         """Test invoice status distribution endpoint."""
         response = authenticated_client.get(
-            "/api/dashboard/operational/invoice-status/"
+            f"/api/dashboard/operational/invoice-status/?company_id={company.id}"
         )
         assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.data, list)
 
     def test_invoice_status_with_date_filters(
-        self, authenticated_client, facture_client
+        self, authenticated_client, facture_client, company
     ):
         """Test invoice status with date filters."""
         today = date.today()
         response = authenticated_client.get(
-            f"/api/dashboard/operational/invoice-status/?date_to={today.isoformat()}"
+            f"/api/dashboard/operational/invoice-status/?company_id={company.id}&date_to={today.isoformat()}"
         )
         assert response.status_code == status.HTTP_200_OK
 
     def test_monthly_document_volume_authenticated(
-        self, authenticated_client, facture_client, devi, bon_de_livraison
+        self, authenticated_client, facture_client, devi, bon_de_livraison, company
     ):
         """Test monthly document volume endpoint."""
         response = authenticated_client.get(
-            "/api/dashboard/operational/document-volume/"
+            f"/api/dashboard/operational/document-volume/?company_id={company.id}"
         )
         assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.data, list)
 
     def test_document_volume_with_date_filters(
-        self, authenticated_client, facture_client, devi
+        self, authenticated_client, facture_client, devi, company
     ):
         """Test document volume with date filters."""
         today = date.today()
         date_from = (today - timedelta(days=365)).isoformat()
 
         response = authenticated_client.get(
-            f"/api/dashboard/operational/document-volume/?date_from={date_from}&date_to={today.isoformat()}"
+            f"/api/dashboard/operational/document-volume/?company_id={company.id}&date_from={date_from}&date_to={today.isoformat()}"
         )
         assert response.status_code == status.HTTP_200_OK
 
@@ -426,60 +447,64 @@ class TestCashFlowEndpoints:
     """Tests for cash flow analysis endpoints."""
 
     def test_payment_timeline_authenticated(
-        self, authenticated_client, facture_client, reglement
+        self, authenticated_client, facture_client, reglement, company
     ):
         """Test payment timeline endpoint."""
-        response = authenticated_client.get("/api/dashboard/cashflow/payment-timeline/")
+        response = authenticated_client.get(
+            f"/api/dashboard/cashflow/payment-timeline/?company_id={company.id}"
+        )
         assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.data, list)
 
     def test_payment_timeline_with_date_filters(
-        self, authenticated_client, facture_client, reglement
+        self, authenticated_client, facture_client, reglement, company
     ):
         """Test payment timeline with date filters."""
         today = date.today()
         date_from = (today - timedelta(days=30)).isoformat()
 
         response = authenticated_client.get(
-            f"/api/dashboard/cashflow/payment-timeline/?date_from={date_from}"
+            f"/api/dashboard/cashflow/payment-timeline/?company_id={company.id}&date_from={date_from}"
         )
         assert response.status_code == status.HTTP_200_OK
 
     def test_overdue_receivables_authenticated(
-        self, authenticated_client, facture_client
+        self, authenticated_client, facture_client, company
     ):
         """Test overdue receivables endpoint."""
         response = authenticated_client.get(
-            "/api/dashboard/cashflow/overdue-receivables/"
+            f"/api/dashboard/cashflow/overdue-receivables/?company_id={company.id}"
         )
         assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.data, list)
 
     def test_overdue_receivables_with_date_filters(
-        self, authenticated_client, facture_client
+        self, authenticated_client, facture_client, company
     ):
         """Test overdue receivables with date filters."""
         today = date.today()
         response = authenticated_client.get(
-            f"/api/dashboard/cashflow/overdue-receivables/?date_to={today.isoformat()}"
+            f"/api/dashboard/cashflow/overdue-receivables/?company_id={company.id}&date_to={today.isoformat()}"
         )
         assert response.status_code == status.HTTP_200_OK
 
     def test_payment_delay_by_client_authenticated(
-        self, authenticated_client, facture_client, reglement
+        self, authenticated_client, facture_client, reglement, company
     ):
         """Test payment delay by client endpoint."""
-        response = authenticated_client.get("/api/dashboard/cashflow/payment-delay/")
+        response = authenticated_client.get(
+            f"/api/dashboard/cashflow/payment-delay/?company_id={company.id}"
+        )
         assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.data, list)
 
     def test_payment_delay_with_date_filters(
-        self, authenticated_client, facture_client, reglement
+        self, authenticated_client, facture_client, reglement, company
     ):
         """Test payment delay with date filters."""
         today = date.today()
         response = authenticated_client.get(
-            f"/api/dashboard/cashflow/payment-delay/?date_to={today.isoformat()}"
+            f"/api/dashboard/cashflow/payment-delay/?company_id={company.id}&date_to={today.isoformat()}"
         )
         assert response.status_code == status.HTTP_200_OK
 
@@ -488,24 +513,24 @@ class TestClientAnalysisEndpoints:
     """Tests for client analysis endpoints."""
 
     def test_client_multidimensional_profile_authenticated(
-        self, authenticated_client, facture_client, devi
+        self, authenticated_client, facture_client, devi, company
     ):
         """Test client multidimensional profile endpoint."""
         response = authenticated_client.get(
-            "/api/dashboard/client/multidimensional-profile/"
+            f"/api/dashboard/client/multidimensional-profile/?company_id={company.id}"
         )
         assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.data, list)
 
     def test_client_profile_with_date_filters(
-        self, authenticated_client, facture_client, devi
+        self, authenticated_client, facture_client, devi, company
     ):
         """Test client profile with date filters."""
         today = date.today()
         date_from = (today - timedelta(days=365)).isoformat()
 
         response = authenticated_client.get(
-            f"/api/dashboard/client/multidimensional-profile/?date_from={date_from}"
+            f"/api/dashboard/client/multidimensional-profile/?company_id={company.id}&date_from={date_from}"
         )
         assert response.status_code == status.HTTP_200_OK
 
@@ -514,10 +539,12 @@ class TestKPIEndpoints:
     """Tests for KPI endpoints."""
 
     def test_kpi_cards_with_trends_authenticated(
-        self, authenticated_client, facture_client, reglement, client_entity
+        self, authenticated_client, facture_client, reglement, client_entity, company
     ):
         """Test KPI cards with trends endpoint."""
-        response = authenticated_client.get("/api/dashboard/kpi/cards-with-trends/")
+        response = authenticated_client.get(
+            f"/api/dashboard/kpi/cards-with-trends/?company_id={company.id}"
+        )
         assert response.status_code == status.HTTP_200_OK
         assert "currency_data" in response.data
         assert "MAD" in response.data["currency_data"]
@@ -529,32 +556,34 @@ class TestKPIEndpoints:
         assert "active_clients" in response.data["currency_data"]["MAD"]
 
     def test_kpi_cards_with_date_filters(
-        self, authenticated_client, facture_client, reglement
+        self, authenticated_client, facture_client, reglement, company
     ):
         """Test KPI cards with date filters."""
         today = date.today()
         response = authenticated_client.get(
-            f"/api/dashboard/kpi/cards-with-trends/?date_to={today.isoformat()}"
+            f"/api/dashboard/kpi/cards-with-trends/?company_id={company.id}&date_to={today.isoformat()}"
         )
         assert response.status_code == status.HTTP_200_OK
 
     def test_monthly_objectives_authenticated(
-        self, authenticated_client, facture_client, devi
+        self, authenticated_client, facture_client, devi, company
     ):
         """Test monthly objectives endpoint."""
-        response = authenticated_client.get("/api/dashboard/kpi/monthly-objectives/")
+        response = authenticated_client.get(
+            f"/api/dashboard/kpi/monthly-objectives/?company_id={company.id}"
+        )
         assert response.status_code == status.HTTP_200_OK
         assert "revenue" in response.data
         assert "invoices" in response.data
         assert "conversion" in response.data
 
     def test_monthly_objectives_with_date_filters(
-        self, authenticated_client, facture_client
+        self, authenticated_client, facture_client, company
     ):
         """Test monthly objectives with date filters."""
         today = date.today()
         response = authenticated_client.get(
-            f"/api/dashboard/kpi/monthly-objectives/?date_to={today.isoformat()}"
+            f"/api/dashboard/kpi/monthly-objectives/?company_id={company.id}&date_to={today.isoformat()}"
         )
         assert response.status_code == status.HTTP_200_OK
 
@@ -563,40 +592,42 @@ class TestDiscountAndMarginEndpoints:
     """Tests for discount and margin analysis endpoints."""
 
     def test_discount_impact_analysis_authenticated(
-        self, authenticated_client, facture_client
+        self, authenticated_client, facture_client, company
     ):
         """Test discount impact analysis endpoint."""
-        response = authenticated_client.get("/api/dashboard/analysis/discount-impact/")
+        response = authenticated_client.get(
+            f"/api/dashboard/analysis/discount-impact/?company_id={company.id}"
+        )
         assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.data, list)
 
     def test_discount_impact_with_date_filters(
-        self, authenticated_client, facture_client
+        self, authenticated_client, facture_client, company
     ):
         """Test discount impact with date filters."""
         today = date.today()
         response = authenticated_client.get(
-            f"/api/dashboard/analysis/discount-impact/?date_to={today.isoformat()}"
+            f"/api/dashboard/analysis/discount-impact/?company_id={company.id}&date_to={today.isoformat()}"
         )
         assert response.status_code == status.HTTP_200_OK
 
     def test_product_margin_volume_authenticated(
-        self, authenticated_client, facture_with_line
+        self, authenticated_client, facture_with_line, company
     ):
         """Test product margin volume endpoint."""
         response = authenticated_client.get(
-            "/api/dashboard/analysis/product-margin-volume/"
+            f"/api/dashboard/analysis/product-margin-volume/?company_id={company.id}"
         )
         assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.data, list)
 
     def test_product_margin_with_date_filters(
-        self, authenticated_client, facture_with_line
+        self, authenticated_client, facture_with_line, company
     ):
         """Test product margin with date filters."""
         today = date.today()
         response = authenticated_client.get(
-            f"/api/dashboard/analysis/product-margin-volume/?date_to={today.isoformat()}"
+            f"/api/dashboard/analysis/product-margin-volume/?company_id={company.id}&date_to={today.isoformat()}"
         )
         assert response.status_code == status.HTTP_200_OK
 
@@ -605,32 +636,38 @@ class TestSyntheticDashboardEndpoints:
     """Tests for synthetic dashboard endpoints."""
 
     def test_monthly_global_performance_authenticated(
-        self, authenticated_client, facture_client, devi, reglement, client_entity
+        self,
+        authenticated_client,
+        facture_client,
+        devi,
+        reglement,
+        client_entity,
+        company,
     ):
         """Test monthly global performance endpoint."""
         response = authenticated_client.get(
-            "/api/dashboard/synthetic/monthly-performance/"
+            f"/api/dashboard/synthetic/monthly-performance/?company_id={company.id}"
         )
         assert response.status_code == status.HTTP_200_OK
         assert "current" in response.data
         assert "previous" in response.data
 
     def test_monthly_performance_with_date_filters(
-        self, authenticated_client, facture_client, devi
+        self, authenticated_client, facture_client, devi, company
     ):
         """Test monthly performance with date filters."""
         today = date.today()
         response = authenticated_client.get(
-            f"/api/dashboard/synthetic/monthly-performance/?date_to={today.isoformat()}"
+            f"/api/dashboard/synthetic/monthly-performance/?company_id={company.id}&date_to={today.isoformat()}"
         )
         assert response.status_code == status.HTTP_200_OK
 
     def test_section_micro_trends_authenticated(
-        self, authenticated_client, facture_client, devi
+        self, authenticated_client, facture_client, devi, company
     ):
         """Test section micro trends endpoint."""
         response = authenticated_client.get(
-            "/api/dashboard/synthetic/section-micro-trends/"
+            f"/api/dashboard/synthetic/section-micro-trends/?company_id={company.id}"
         )
         assert response.status_code == status.HTTP_200_OK
         assert "financial" in response.data
@@ -639,14 +676,14 @@ class TestSyntheticDashboardEndpoints:
         assert "cashflow" in response.data
 
     def test_section_micro_trends_with_date_filters(
-        self, authenticated_client, facture_client
+        self, authenticated_client, facture_client, company
     ):
         """Test section micro trends with date filters."""
         today = date.today()
         date_from = (today - timedelta(days=30)).isoformat()
 
         response = authenticated_client.get(
-            f"/api/dashboard/synthetic/section-micro-trends/?date_from={date_from}"
+            f"/api/dashboard/synthetic/section-micro-trends/?company_id={company.id}&date_from={date_from}"
         )
         assert response.status_code == status.HTTP_200_OK
 
@@ -654,46 +691,52 @@ class TestSyntheticDashboardEndpoints:
 class TestDateFilterEdgeCases:
     """Tests for date filter edge cases."""
 
-    def test_invalid_date_format_fallback(self, authenticated_client, facture_client):
+    def test_invalid_date_format_fallback(
+        self, authenticated_client, facture_client, company
+    ):
         """Test invalid date format defaults to today."""
         response = authenticated_client.get(
-            "/api/dashboard/financial/monthly-revenue/?date_to=invalid-date"
+            f"/api/dashboard/financial/monthly-revenue/?company_id={company.id}&date_to=invalid-date"
         )
         assert response.status_code == status.HTTP_200_OK
 
-    def test_future_date_to(self, authenticated_client, facture_client):
+    def test_future_date_to(self, authenticated_client, facture_client, company):
         """Test future date_to returns empty or partial data."""
         future_date = (date.today() + timedelta(days=365)).isoformat()
         response = authenticated_client.get(
-            f"/api/dashboard/financial/monthly-revenue/?date_to={future_date}"
+            f"/api/dashboard/financial/monthly-revenue/?company_id={company.id}&date_to={future_date}"
         )
         assert response.status_code == status.HTTP_200_OK
 
-    def test_date_from_after_date_to(self, authenticated_client, facture_client):
+    def test_date_from_after_date_to(
+        self, authenticated_client, facture_client, company
+    ):
         """Test date_from after date_to returns empty data."""
         today = date.today()
         date_from = today.isoformat()
         date_to = (today - timedelta(days=30)).isoformat()
 
         response = authenticated_client.get(
-            f"/api/dashboard/financial/monthly-revenue/?date_from={date_from}&date_to={date_to}"
+            f"/api/dashboard/financial/monthly-revenue/?company_id={company.id}&date_from={date_from}&date_to={date_to}"
         )
         assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.data, list)
 
-    def test_only_date_from_provided(self, authenticated_client, facture_client):
+    def test_only_date_from_provided(
+        self, authenticated_client, facture_client, company
+    ):
         """Test with only date_from - date_to should default to today."""
         date_from = (date.today() - timedelta(days=365)).isoformat()
         response = authenticated_client.get(
-            f"/api/dashboard/financial/monthly-revenue/?date_from={date_from}"
+            f"/api/dashboard/financial/monthly-revenue/?company_id={company.id}&date_from={date_from}"
         )
         assert response.status_code == status.HTTP_200_OK
 
-    def test_only_date_to_provided(self, authenticated_client, facture_client):
+    def test_only_date_to_provided(self, authenticated_client, facture_client, company):
         """Test with only date_to - should use default lookback period."""
         date_to = date.today().isoformat()
         response = authenticated_client.get(
-            f"/api/dashboard/financial/monthly-revenue/?date_to={date_to}"
+            f"/api/dashboard/financial/monthly-revenue/?company_id={company.id}&date_to={date_to}"
         )
         assert response.status_code == status.HTTP_200_OK
 
@@ -734,23 +777,29 @@ class TestAuthenticationRequired:
 class TestEmptyDataHandling:
     """Tests for empty data handling."""
 
-    def test_empty_factures_returns_empty_list(self, authenticated_client):
+    def test_empty_factures_returns_empty_list(self, authenticated_client, company):
         """Test endpoints return empty list when no data exists."""
-        response = authenticated_client.get("/api/dashboard/financial/monthly-revenue/")
+        response = authenticated_client.get(
+            f"/api/dashboard/financial/monthly-revenue/?company_id={company.id}"
+        )
         assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.data, list)
         assert len(response.data) == 0
 
-    def test_collection_rate_with_no_data(self, authenticated_client):
+    def test_collection_rate_with_no_data(self, authenticated_client, company):
         """Test collection rate returns zeros when no data."""
-        response = authenticated_client.get("/api/dashboard/financial/collection-rate/")
+        response = authenticated_client.get(
+            f"/api/dashboard/financial/collection-rate/?company_id={company.id}"
+        )
         assert response.status_code == status.HTTP_200_OK
         assert response.data["total_invoiced"] == 0
         assert response.data["total_collected"] == 0
 
-    def test_kpi_cards_with_no_data(self, authenticated_client):
+    def test_kpi_cards_with_no_data(self, authenticated_client, company):
         """Test KPI cards return zeros when no data."""
-        response = authenticated_client.get("/api/dashboard/kpi/cards-with-trends/")
+        response = authenticated_client.get(
+            f"/api/dashboard/kpi/cards-with-trends/?company_id={company.id}"
+        )
         assert response.status_code == status.HTTP_200_OK
         assert "currency_data" in response.data
         assert "MAD" in response.data["currency_data"]
@@ -761,7 +810,7 @@ class TestDocumentLinesAggregation:
     """Tests for document lines aggregation in top products' endpoint."""
 
     def test_top_products_aggregates_devi_lines(
-        self, authenticated_client, devi, article
+        self, authenticated_client, devi, article, company
     ):
         """Test that DeviLine quantities are included in top products."""
         # Create a DeviLine
@@ -773,13 +822,15 @@ class TestDocumentLinesAggregation:
             quantity=10,
         )
 
-        response = authenticated_client.get("/api/dashboard/commercial/top-products/")
+        response = authenticated_client.get(
+            f"/api/dashboard/commercial/top-products/?company_id={company.id}"
+        )
         assert response.status_code == status.HTTP_200_OK
         # Should include the article from devi line
         assert isinstance(response.data, list)
 
     def test_top_products_aggregates_facture_proforma_lines(
-        self, authenticated_client, facture_proforma, article
+        self, authenticated_client, facture_proforma, article, company
     ):
         """Test that FactureProFormaLine quantities are included in top products."""
         # Create a FactureProFormaLine
@@ -791,12 +842,14 @@ class TestDocumentLinesAggregation:
             quantity=15,
         )
 
-        response = authenticated_client.get("/api/dashboard/commercial/top-products/")
+        response = authenticated_client.get(
+            f"/api/dashboard/commercial/top-products/?company_id={company.id}"
+        )
         assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.data, list)
 
     def test_top_products_aggregates_bon_de_livraison_lines(
-        self, authenticated_client, bon_de_livraison, article
+        self, authenticated_client, bon_de_livraison, article, company
     ):
         """Test that BonDeLivraisonLine quantities are included in top products."""
         # Create a BonDeLivraisonLine
@@ -808,7 +861,9 @@ class TestDocumentLinesAggregation:
             quantity=20,
         )
 
-        response = authenticated_client.get("/api/dashboard/commercial/top-products/")
+        response = authenticated_client.get(
+            f"/api/dashboard/commercial/top-products/?company_id={company.id}"
+        )
         assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.data, list)
 
@@ -820,6 +875,7 @@ class TestDocumentLinesAggregation:
         facture_proforma,
         bon_de_livraison,
         article,
+        company,
     ):
         """Test that all document line types are aggregated correctly."""
         # Create lines for each document type
@@ -845,7 +901,9 @@ class TestDocumentLinesAggregation:
             quantity=15,
         )
 
-        response = authenticated_client.get("/api/dashboard/commercial/top-products/")
+        response = authenticated_client.get(
+            f"/api/dashboard/commercial/top-products/?company_id={company.id}"
+        )
         assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.data, list)
         # Should have at least one product (the article used)
@@ -1045,47 +1103,47 @@ class TestCompanyFiltering:
         )
         assert response.status_code == status.HTTP_200_OK
 
-    def test_invalid_company_id_ignored(self, authenticated_client, facture_client):
-        """Test invalid company_id is ignored (returns all data)."""
+    def test_invalid_company_id_rejected(self, authenticated_client, facture_client):
+        """Test invalid company_id returns validation error."""
         response = authenticated_client.get(
             "/api/dashboard/financial/monthly-revenue/?company_id=invalid"
         )
-        assert response.status_code == status.HTTP_200_OK
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
 class TestDateFromFilterBranches:
     """Tests for date_from filter branches."""
 
     def test_monthly_revenue_with_explicit_date_from(
-        self, authenticated_client, facture_client
+        self, authenticated_client, facture_client, company
     ):
         """Test monthly revenue with explicit date_from parameter."""
         today = date.today()
         date_from = (today - timedelta(days=60)).isoformat()
         response = authenticated_client.get(
-            f"/api/dashboard/financial/monthly-revenue/?date_from={date_from}"
+            f"/api/dashboard/financial/monthly-revenue/?company_id={company.id}&date_from={date_from}"
         )
         assert response.status_code == status.HTTP_200_OK
 
     def test_payment_timeline_with_explicit_date_from(
-        self, authenticated_client, facture_client, reglement
+        self, authenticated_client, facture_client, reglement, company
     ):
         """Test payment timeline with explicit date_from parameter."""
         today = date.today()
         date_from = (today - timedelta(days=15)).isoformat()
         response = authenticated_client.get(
-            f"/api/dashboard/cashflow/payment-timeline/?date_from={date_from}"
+            f"/api/dashboard/cashflow/payment-timeline/?company_id={company.id}&date_from={date_from}"
         )
         assert response.status_code == status.HTTP_200_OK
 
     def test_document_volume_with_explicit_date_from(
-        self, authenticated_client, facture_client, devi, bon_de_livraison
+        self, authenticated_client, facture_client, devi, bon_de_livraison, company
     ):
         """Test document volume with explicit date_from parameter."""
         today = date.today()
         date_from = (today - timedelta(days=180)).isoformat()
         response = authenticated_client.get(
-            f"/api/dashboard/operational/document-volume/?date_from={date_from}"
+            f"/api/dashboard/operational/document-volume/?company_id={company.id}&date_from={date_from}"
         )
         assert response.status_code == status.HTTP_200_OK
 
@@ -1094,7 +1152,13 @@ class TestPaymentStatusScenarios:
     """Tests for different payment status scenarios."""
 
     def test_fully_paid_facture(
-        self, authenticated_client, client_entity, mode_paiement, user, mode_reglement
+        self,
+        authenticated_client,
+        client_entity,
+        mode_paiement,
+        user,
+        mode_reglement,
+        company,
     ):
         """Test facture that is fully paid."""
         today = date.today()
@@ -1116,7 +1180,9 @@ class TestPaymentStatusScenarios:
             statut="Valide",
         )
 
-        response = authenticated_client.get("/api/dashboard/financial/payment-status/")
+        response = authenticated_client.get(
+            f"/api/dashboard/financial/payment-status/?company_id={company.id}"
+        )
         assert response.status_code == status.HTTP_200_OK
         fully_paid_count = next(
             (s["count"] for s in response.data if s["status"] == "Totalement payée"), 0
@@ -1131,6 +1197,7 @@ class TestPaymentStatusScenarios:
         user,
         mode_reglement,
         article,
+        company,
     ):
         """Test facture that is partially paid."""
         today = date.today()
@@ -1162,10 +1229,16 @@ class TestPaymentStatusScenarios:
             statut="Valide",
         )
 
-        response = authenticated_client.get("/api/dashboard/financial/payment-status/")
+        response = authenticated_client.get(
+            f"/api/dashboard/financial/payment-status/?company_id={company.id}"
+        )
         assert response.status_code == status.HTTP_200_OK
         partial_count = next(
-            (s["count"] for s in response.data if s["status"] == "Partiellement payée"),
+            (
+                s["count"]
+                for s in response.data
+                if s["status"] == "Partiellement payée"
+            ),
             0,
         )
         assert partial_count >= 1
@@ -1175,7 +1248,7 @@ class TestOverdueReceivablesAgingBuckets:
     """Tests for overdue receivables aging buckets."""
 
     def test_overdue_30_60_days(
-        self, authenticated_client, client_entity, mode_paiement, user
+        self, authenticated_client, client_entity, mode_paiement, user, company
     ):
         """Test facture overdue 31-60 days."""
         old_date = date.today() - timedelta(days=45)
@@ -1190,7 +1263,7 @@ class TestOverdueReceivablesAgingBuckets:
         )
 
         response = authenticated_client.get(
-            "/api/dashboard/cashflow/overdue-receivables/"
+            f"/api/dashboard/cashflow/overdue-receivables/?company_id={company.id}"
         )
         assert response.status_code == status.HTTP_200_OK
         bucket_31_60 = next(
@@ -1199,7 +1272,7 @@ class TestOverdueReceivablesAgingBuckets:
         assert bucket_31_60 is not None
 
     def test_overdue_61_90_days(
-        self, authenticated_client, client_entity, mode_paiement, user
+        self, authenticated_client, client_entity, mode_paiement, user, company
     ):
         """Test facture overdue 61-90 days."""
         old_date = date.today() - timedelta(days=75)
@@ -1214,7 +1287,7 @@ class TestOverdueReceivablesAgingBuckets:
         )
 
         response = authenticated_client.get(
-            "/api/dashboard/cashflow/overdue-receivables/"
+            f"/api/dashboard/cashflow/overdue-receivables/?company_id={company.id}"
         )
         assert response.status_code == status.HTTP_200_OK
         bucket_61_90 = next(
@@ -1223,7 +1296,7 @@ class TestOverdueReceivablesAgingBuckets:
         assert bucket_61_90 is not None
 
     def test_overdue_90_plus_days(
-        self, authenticated_client, client_entity, mode_paiement, user
+        self, authenticated_client, client_entity, mode_paiement, user, company
     ):
         """Test facture overdue 90+ days."""
         old_date = date.today() - timedelta(days=120)
@@ -1238,7 +1311,7 @@ class TestOverdueReceivablesAgingBuckets:
         )
 
         response = authenticated_client.get(
-            "/api/dashboard/cashflow/overdue-receivables/"
+            f"/api/dashboard/cashflow/overdue-receivables/?company_id={company.id}"
         )
         assert response.status_code == status.HTTP_200_OK
         bucket_90_plus = next(
@@ -1251,7 +1324,7 @@ class TestMonthlyPerformanceWithDateRange:
     """Tests for monthly performance with custom date ranges."""
 
     def test_monthly_performance_with_custom_date_range(
-        self, authenticated_client, facture_client, devi
+        self, authenticated_client, facture_client, devi, company
     ):
         """Test monthly performance with both date_from and date_to."""
         today = date.today()
@@ -1259,19 +1332,19 @@ class TestMonthlyPerformanceWithDateRange:
         date_to = today.isoformat()
 
         response = authenticated_client.get(
-            f"/api/dashboard/synthetic/monthly-performance/?date_from={date_from}&date_to={date_to}"
+            f"/api/dashboard/synthetic/monthly-performance/?company_id={company.id}&date_from={date_from}&date_to={date_to}"
         )
         assert response.status_code == status.HTTP_200_OK
         assert "current" in response.data
         assert "previous" in response.data
 
     def test_monthly_performance_january_previous_month(
-        self, authenticated_client, facture_client
+        self, authenticated_client, facture_client, company
     ):
         """Test monthly performance calculation for January (previous month is December)."""
         # This test ensures the January edge case for previous month calculation works
         response = authenticated_client.get(
-            "/api/dashboard/synthetic/monthly-performance/"
+            f"/api/dashboard/synthetic/monthly-performance/?company_id={company.id}"
         )
         assert response.status_code == status.HTTP_200_OK
 
@@ -1280,13 +1353,13 @@ class TestKPICardsWithDateFrom:
     """Tests for KPI cards with date_from filter."""
 
     def test_kpi_cards_with_date_from(
-        self, authenticated_client, facture_client, reglement
+        self, authenticated_client, facture_client, reglement, company
     ):
         """Test KPI cards with date_from parameter."""
         today = date.today()
         date_from = (today - timedelta(days=60)).isoformat()
         response = authenticated_client.get(
-            f"/api/dashboard/kpi/cards-with-trends/?date_from={date_from}"
+            f"/api/dashboard/kpi/cards-with-trends/?company_id={company.id}&date_from={date_from}"
         )
         assert response.status_code == status.HTTP_200_OK
 
@@ -1295,7 +1368,7 @@ class TestDiscountImpactWithDiscount:
     """Tests for discount impact with actual discounts."""
 
     def test_discount_impact_with_discounted_facture(
-        self, authenticated_client, client_entity, mode_paiement, user
+        self, authenticated_client, client_entity, mode_paiement, user, company
     ):
         """Test discount impact with a facture that has a discount."""
         today = date.today()
@@ -1311,7 +1384,9 @@ class TestDiscountImpactWithDiscount:
             remise=Decimal("10.00"),
         )
 
-        response = authenticated_client.get("/api/dashboard/analysis/discount-impact/")
+        response = authenticated_client.get(
+            f"/api/dashboard/analysis/discount-impact/?company_id={company.id}"
+        )
         assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.data, list)
         # Should contain the discounted facture
@@ -1322,7 +1397,13 @@ class TestClientMultidimensionalProfile:
     """Tests for client multidimensional profile scenarios."""
 
     def test_client_profile_with_accepted_devis(
-        self, authenticated_client, facture_client, client_entity, mode_paiement, user
+        self,
+        authenticated_client,
+        facture_client,
+        client_entity,
+        mode_paiement,
+        user,
+        company,
     ):
         """Test client profile with accepted devis."""
         today = date.today()
@@ -1336,16 +1417,16 @@ class TestClientMultidimensionalProfile:
         )
 
         response = authenticated_client.get(
-            "/api/dashboard/client/multidimensional-profile/"
+            f"/api/dashboard/client/multidimensional-profile/?company_id={company.id}"
         )
         assert response.status_code == status.HTTP_200_OK
 
     def test_client_profile_with_reglements(
-        self, authenticated_client, facture_client, reglement
+        self, authenticated_client, facture_client, reglement, company
     ):
         """Test client profile with reglements for payment speed calculation."""
         response = authenticated_client.get(
-            "/api/dashboard/client/multidimensional-profile/"
+            f"/api/dashboard/client/multidimensional-profile/?company_id={company.id}"
         )
         assert response.status_code == status.HTTP_200_OK
         if len(response.data) > 0:
@@ -1357,13 +1438,13 @@ class TestMonthlyObjectivesWithDateFrom:
     """Tests for monthly objectives with date_from filter."""
 
     def test_monthly_objectives_with_date_from(
-        self, authenticated_client, facture_client, devi
+        self, authenticated_client, facture_client, devi, company
     ):
         """Test monthly objectives with date_from parameter."""
         today = date.today()
         date_from = (today - timedelta(days=60)).isoformat()
         response = authenticated_client.get(
-            f"/api/dashboard/kpi/monthly-objectives/?date_from={date_from}"
+            f"/api/dashboard/kpi/monthly-objectives/?company_id={company.id}&date_from={date_from}"
         )
         assert response.status_code == status.HTTP_200_OK
 
@@ -1371,19 +1452,19 @@ class TestMonthlyObjectivesWithDateFrom:
 class TestHelperFunctions:
     """Tests for helper functions in views."""
 
-    def test_parse_date_filters_invalid_date_from(self, authenticated_client):
+    def test_parse_date_filters_invalid_date_from(self, authenticated_client, company):
         """Test that invalid date_from is handled gracefully."""
         response = authenticated_client.get(
-            "/api/dashboard/financial/monthly-revenue/?date_from=invalid-date"
+            f"/api/dashboard/financial/monthly-revenue/?company_id={company.id}&date_from=invalid-date"
         )
         assert response.status_code == status.HTTP_200_OK
 
     def test_parse_date_filters_invalid_company_id(self, authenticated_client):
-        """Test that invalid company_id is handled gracefully."""
+        """Test that invalid company_id returns validation error."""
         response = authenticated_client.get(
             "/api/dashboard/financial/monthly-revenue/?company_id=not-a-number"
         )
-        assert response.status_code == status.HTTP_200_OK
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
 class TestHelperFunctionsNoneCases:
@@ -1405,13 +1486,15 @@ class TestHelperFunctionsNoneCases:
 class TestCollectionRateZeroInvoiced:
     """Tests for collection rate when total invoiced is zero."""
 
-    def test_collection_rate_zero_invoiced(self, authenticated_client):
+    def test_collection_rate_zero_invoiced(self, authenticated_client, company):
         """Test collection rate returns 0 when total_invoiced is 0 (line 246)."""
         # No factures exist, so total_invoiced should be 0
         # Delete all factures first
         FactureClient.objects.all().delete()
 
-        response = authenticated_client.get("/api/dashboard/financial/collection-rate/")
+        response = authenticated_client.get(
+            f"/api/dashboard/financial/collection-rate/?company_id={company.id}"
+        )
         assert response.status_code == status.HTTP_200_OK
         assert response.data["rate"] == 0
 
@@ -1420,7 +1503,7 @@ class TestOverdueReceivables0to30Days:
     """Tests for overdue receivables in 0-30 days bucket."""
 
     def test_overdue_0_30_days(
-        self, authenticated_client, client_entity, mode_paiement, user
+        self, authenticated_client, client_entity, mode_paiement, user, company
     ):
         """Test facture overdue 0-30 days (line 700 - bucket 0-30)."""
         recent_date = date.today() - timedelta(days=15)
@@ -1436,7 +1519,7 @@ class TestOverdueReceivables0to30Days:
         )
 
         response = authenticated_client.get(
-            "/api/dashboard/cashflow/overdue-receivables/"
+            f"/api/dashboard/cashflow/overdue-receivables/?company_id={company.id}"
         )
         assert response.status_code == status.HTTP_200_OK
         bucket_0_30 = next(
@@ -1449,7 +1532,7 @@ class TestPaymentStatusPartialAndUnpaid:
     """Tests for payment status with partial and unpaid factures."""
 
     def test_unpaid_facture(
-        self, authenticated_client, client_entity, mode_paiement, user
+        self, authenticated_client, client_entity, mode_paiement, user, company
     ):
         """Test payment status counts unpaid facture correctly (line 206)."""
         FactureClient.objects.create(
@@ -1462,7 +1545,9 @@ class TestPaymentStatusPartialAndUnpaid:
             total_ttc_apres_remise=Decimal("5000.00"),
         )
 
-        response = authenticated_client.get("/api/dashboard/financial/payment-status/")
+        response = authenticated_client.get(
+            f"/api/dashboard/financial/payment-status/?company_id={company.id}"
+        )
         assert response.status_code == status.HTTP_200_OK
         unpaid_item = next(
             (item for item in response.data if item["status"] == "Impayée"), None
@@ -1474,7 +1559,7 @@ class TestTopProductsFiltering:
     """Tests for top products filtering date branches."""
 
     def test_top_products_no_date_from(
-        self, authenticated_client, article, client_entity, mode_paiement, user
+        self, authenticated_client, article, client_entity, mode_paiement, user, company
     ):
         """Test top products without date_from parameter (line 316-319 not triggered)."""
         # Create devi with line
@@ -1495,7 +1580,9 @@ class TestTopProductsFiltering:
         )
 
         # Request without date_from
-        response = authenticated_client.get("/api/dashboard/commercial/top-products/")
+        response = authenticated_client.get(
+            f"/api/dashboard/commercial/top-products/?company_id={company.id}"
+        )
         assert response.status_code == status.HTTP_200_OK
 
 
@@ -1503,7 +1590,7 @@ class TestQuoteConversionFiltering:
     """Tests for quote conversion filtering branches."""
 
     def test_quote_conversion_no_date_from(
-        self, authenticated_client, client_entity, mode_paiement, user
+        self, authenticated_client, client_entity, mode_paiement, user, company
     ):
         """Test quote conversion without date_from (line 418 not triggered)."""
         Devi.objects.create(
@@ -1516,7 +1603,7 @@ class TestQuoteConversionFiltering:
         )
 
         response = authenticated_client.get(
-            "/api/dashboard/commercial/quote-conversion/"
+            f"/api/dashboard/commercial/quote-conversion/?company_id={company.id}"
         )
         assert response.status_code == status.HTTP_200_OK
 
@@ -1525,7 +1612,7 @@ class TestInvoiceStatusFiltering:
     """Tests for invoice status filtering branches."""
 
     def test_invoice_status_no_date_from(
-        self, authenticated_client, client_entity, mode_paiement, user
+        self, authenticated_client, client_entity, mode_paiement, user, company
     ):
         """Test invoice status without date_from."""
         FactureClient.objects.create(
@@ -1538,7 +1625,7 @@ class TestInvoiceStatusFiltering:
         )
 
         response = authenticated_client.get(
-            "/api/dashboard/operational/invoice-status/"
+            f"/api/dashboard/operational/invoice-status/?company_id={company.id}"
         )
         assert response.status_code == status.HTTP_200_OK
 
@@ -1547,7 +1634,7 @@ class TestPaymentDelayFiltering:
     """Tests for payment delay filtering branches."""
 
     def test_payment_delay_no_date_from(
-        self, authenticated_client, client_entity, mode_paiement, user
+        self, authenticated_client, client_entity, mode_paiement, user, company
     ):
         """Test payment delay without date_from (line 576)."""
         from parameter.models import ModePaiement
@@ -1572,7 +1659,9 @@ class TestPaymentDelayFiltering:
             statut="Valide",
         )
 
-        response = authenticated_client.get("/api/dashboard/cashflow/payment-delay/")
+        response = authenticated_client.get(
+            f"/api/dashboard/cashflow/payment-delay/?company_id={company.id}"
+        )
         assert response.status_code == status.HTTP_200_OK
 
 
@@ -1580,7 +1669,7 @@ class TestOverdueReceivablesFiltering:
     """Tests for overdue receivables filtering branches."""
 
     def test_overdue_receivables_no_date_from(
-        self, authenticated_client, client_entity, mode_paiement, user
+        self, authenticated_client, client_entity, mode_paiement, user, company
     ):
         """Test overdue receivables without date_from (line 660)."""
         FactureClient.objects.create(
@@ -1594,7 +1683,7 @@ class TestOverdueReceivablesFiltering:
         )
 
         response = authenticated_client.get(
-            "/api/dashboard/cashflow/overdue-receivables/"
+            f"/api/dashboard/cashflow/overdue-receivables/?company_id={company.id}"
         )
         assert response.status_code == status.HTTP_200_OK
 
@@ -1603,7 +1692,7 @@ class TestClientProfileFiltering:
     """Tests for client profile filtering branches."""
 
     def test_client_profile_no_date_from(
-        self, authenticated_client, client_entity, mode_paiement, user
+        self, authenticated_client, client_entity, mode_paiement, user, company
     ):
         """Test client profile without date_from (line 735)."""
         FactureClient.objects.create(
@@ -1617,7 +1706,7 @@ class TestClientProfileFiltering:
         )
 
         response = authenticated_client.get(
-            "/api/dashboard/client/multidimensional-profile/"
+            f"/api/dashboard/client/multidimensional-profile/?company_id={company.id}"
         )
         assert response.status_code == status.HTTP_200_OK
 
@@ -1626,7 +1715,7 @@ class TestKPICardsFiltering:
     """Tests for KPI cards filtering branches."""
 
     def test_kpi_cards_no_date_from(
-        self, authenticated_client, client_entity, mode_paiement, user
+        self, authenticated_client, client_entity, mode_paiement, user, company
     ):
         """Test KPI cards without date_from (line 946)."""
         FactureClient.objects.create(
@@ -1639,7 +1728,9 @@ class TestKPICardsFiltering:
             total_ttc_apres_remise=Decimal("1000.00"),
         )
 
-        response = authenticated_client.get("/api/dashboard/kpi/cards-with-trends/")
+        response = authenticated_client.get(
+            f"/api/dashboard/kpi/cards-with-trends/?company_id={company.id}"
+        )
         assert response.status_code == status.HTTP_200_OK
 
 
@@ -1647,7 +1738,7 @@ class TestDiscountImpactFiltering:
     """Tests for discount impact filtering branches."""
 
     def test_discount_impact_no_date_from(
-        self, authenticated_client, client_entity, mode_paiement, user
+        self, authenticated_client, client_entity, mode_paiement, user, company
     ):
         """Test discount impact without date_from (line 1084)."""
         FactureClient.objects.create(
@@ -1662,7 +1753,9 @@ class TestDiscountImpactFiltering:
             total_ttc_apres_remise=Decimal("990.00"),
         )
 
-        response = authenticated_client.get("/api/dashboard/analysis/discount-impact/")
+        response = authenticated_client.get(
+            f"/api/dashboard/analysis/discount-impact/?company_id={company.id}"
+        )
         assert response.status_code == status.HTTP_200_OK
 
 
@@ -1670,7 +1763,7 @@ class TestProductMarginFiltering:
     """Tests for product margin filtering branches."""
 
     def test_product_margin_no_date_from(
-        self, authenticated_client, article, client_entity, mode_paiement, user
+        self, authenticated_client, article, client_entity, mode_paiement, user, company
     ):
         """Test product margin without date_from (line 1116)."""
         facture = FactureClient.objects.create(
@@ -1690,7 +1783,7 @@ class TestProductMarginFiltering:
         )
 
         response = authenticated_client.get(
-            "/api/dashboard/analysis/product-margin-volume/"
+            f"/api/dashboard/analysis/product-margin-volume/?company_id={company.id}"
         )
         assert response.status_code == status.HTTP_200_OK
 
@@ -1699,7 +1792,7 @@ class TestMonthlyPerformanceFiltering:
     """Tests for monthly performance filtering branches."""
 
     def test_monthly_performance_no_date_from(
-        self, authenticated_client, client_entity, mode_paiement, user
+        self, authenticated_client, client_entity, mode_paiement, user, company
     ):
         """Test monthly performance without date_from (line 1187)."""
         FactureClient.objects.create(
@@ -1713,6 +1806,6 @@ class TestMonthlyPerformanceFiltering:
         )
 
         response = authenticated_client.get(
-            "/api/dashboard/synthetic/monthly-performance/"
+            f"/api/dashboard/synthetic/monthly-performance/?company_id={company.id}"
         )
         assert response.status_code == status.HTTP_200_OK

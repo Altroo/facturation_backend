@@ -18,6 +18,7 @@ GaussianBlur: Any = cv2.GaussianBlur
 from django.core.files.base import ContentFile
 from numpy import uint8, frombuffer
 from rest_framework import serializers
+from rest_framework.exceptions import Throttled
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import exception_handler
@@ -222,6 +223,11 @@ class Base64ImageField(serializers.ImageField):
 
 
 def api_exception_handler(exc, context):
+    # Translate DRF throttle message to French before handling
+    if isinstance(exc, Throttled):
+        wait = int(exc.wait) if exc.wait else 0
+        exc.detail = f"Requête ralentie. Réessayez dans {wait} seconde{'s' if wait != 1 else ''}."
+
     response = exception_handler(exc, context)
 
     if response is not None:
@@ -232,6 +238,7 @@ def api_exception_handler(exc, context):
             403: "Accès refusé",
             404: "Aucune correspondance avec l’URI donnée",
             405: "Méthode non autorisée",
+            429: "Trop de requêtes",
             500: "Erreur interne du serveur",
             # fallback to English for others
             **{

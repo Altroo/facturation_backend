@@ -186,6 +186,9 @@ class Membership(models.Model):
         verbose_name = "Membre"
         verbose_name_plural = "Membres"
         ordering = ("role",)
+        constraints = [
+            models.UniqueConstraint(fields=["user", "company"], name="unique_user_company_membership"),
+        ]
         indexes = [
             models.Index(fields=["user", "role"]),
             models.Index(fields=["company", "role"]),

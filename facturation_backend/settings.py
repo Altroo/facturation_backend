@@ -73,6 +73,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -82,7 +83,6 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "corsheaders.middleware.CorsMiddleware",
     "simple_history.middleware.HistoryRequestMiddleware",
 ]
 
@@ -135,20 +135,19 @@ DATABASES = {
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 
-# For debuging & dev only
 AUTH_PASSWORD_VALIDATORS = [
-    # {
-    #     'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    # },
+    {
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+    },
     {
         "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
     },
-    # {
-    #     'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    # },
-    # {
-    #     'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    # },
+    {
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
+    },
 ]
 
 # Internationalization
@@ -207,10 +206,19 @@ REST_FRAMEWORK = dict(
     DEFAULT_PAGINATION_CLASS="rest_framework.pagination.PageNumberPagination",
     PAGE_SIZE=20,
     DEFAULT_RENDERER_CLASSES=("rest_framework.renderers.JSONRenderer",),
-    DEFAULT_SCHEMA_CLASS="rest_framework.schemas.coreapi.AutoSchema",
     EXCEPTION_HANDLER="facturation_backend.utils.api_exception_handler",
     NON_FIELD_ERRORS_KEY="error",
     TOKEN_MODEL=None,
+    DEFAULT_THROTTLE_CLASSES=[
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
+    ],
+    DEFAULT_THROTTLE_RATES={
+        "anon": "60/minute",
+        "user": "200/minute",
+        "login": "5/minute",
+        "password_reset": "3/minute",
+    },
 )
 
 REST_AUTH = {
@@ -226,9 +234,9 @@ REST_AUTH = {
 
 # SIMPLE_JWT
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(days=60),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=365),
-    "BLACKLIST_AFTER_ROTATION": False,
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "BLACKLIST_AFTER_ROTATION": True,
     "ROTATE_REFRESH_TOKENS": True,
 }
 

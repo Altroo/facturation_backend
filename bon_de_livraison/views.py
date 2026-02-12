@@ -39,6 +39,7 @@ class BonDeLivraisonListCreateView(BaseDocumentListCreateView):
     create_serializer_class = BonDeLivraisonSerializer
     detail_serializer_class = BonDeLivraisonDetailSerializer
     document_name = "le bon de livraison"
+    list_select_related = ("client", "mode_paiement", "created_by_user", "livre_par")
 
 
 class BonDeLivraisonDetailEditDeleteView(BaseDocumentDetailEditDeleteView):

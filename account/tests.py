@@ -2699,6 +2699,7 @@ class TestAccountAdditionalCoverage:
         # Mock the CustomUser.objects.get to return user with email=None
         with patch("account.views.CustomUser.objects.get") as mock_get:
             mock_user = MagicMock()
+            mock_user.pk = 99999  # Avoid MagicMock repr in cache key
             mock_user.email = None  # This triggers the else branch
             mock_get.return_value = mock_user
 

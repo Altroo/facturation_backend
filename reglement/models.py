@@ -69,6 +69,7 @@ class Reglement(models.Model):
         default="Valide",
         verbose_name="Statut",
         help_text="Statut du règlement (ex: Valide, Annulé)",
+        db_index=True,
     )
 
     date_created = models.DateTimeField(

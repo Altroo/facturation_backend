@@ -60,7 +60,13 @@ class FactureClientListCreateView(BaseDocumentListCreateView):
             raise Http404(_("Aucune clients ne correspond à la requête."))
         company_id = int(company_id_str)
         self._check_company_access(request, company_id)
-        base_queryset = self.model.objects.filter(client__company_id=company_id)
+        base_queryset = self.model.objects.filter(
+            client__company_id=company_id
+        ).select_related(
+            *self.list_select_related
+        ).prefetch_related(
+            *self.list_prefetch_related
+        )
         filterset = self.filter_class(request.GET, queryset=base_queryset)
         ordered_qs = filterset.qs.order_by("-id")
 

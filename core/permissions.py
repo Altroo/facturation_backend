@@ -15,14 +15,24 @@ if TYPE_CHECKING:
 
 
 def get_user_role(user: "CustomUser", company_id: int) -> str:
-    """Get the user's role for a specific company."""
+    """Get the user's role for a specific company. Cached on the user object per request."""
     from account.models import Membership
 
-    try:
-        membership = Membership.objects.get(user=user, company_id=company_id)
-        return membership.role.name
-    except Membership.DoesNotExist:
-        return ""
+    # Cache roles on the user object to avoid repeated queries in the same request
+    cache: dict[int, str] = getattr(user, "role_cache", {})
+    if not cache:
+        setattr(user, "role_cache", cache)
+
+    if company_id not in cache:
+        try:
+            membership = Membership.objects.select_related("role").get(
+                user=user, company_id=company_id
+            )
+            cache[company_id] = membership.role.name if membership.role else ""
+        except Membership.DoesNotExist:
+            cache[company_id] = ""
+
+    return cache[company_id]
 
 
 def is_caissier(user: "CustomUser", company_id: int) -> bool:

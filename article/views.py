@@ -13,6 +13,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from account.models import Membership
+from core.constants import CURRENCY_CHOICES
 from core.permissions import can_create, can_update, can_delete
 from core.utils import format_number_with_dynamic_digits
 from facturation_backend.utils import CustomPagination
@@ -54,7 +55,11 @@ class ArticleListCreateView(APIView):
             raise Http404(_("Aucun article ne correspond à la requête."))
         company_id = int(company_id_str)
         self._check_company_access(request, company_id)
-        base_queryset = Article.objects.filter(company_id=company_id, archived=archived)
+        base_queryset = Article.objects.filter(
+            company_id=company_id, archived=archived
+        ).select_related(
+            "company", "marque", "categorie", "emplacement", "unite"
+        )
         filterset = ArticleFilter(request.GET, queryset=base_queryset)
         ordered_qs = filterset.qs.order_by("-id")
         if pagination:
@@ -485,7 +490,7 @@ class ImportArticlesView(APIView):
             remarque = normalized_row.get("remarque", "") or None
 
             # --- devise_prix_achat -------------------------------------------
-            valid_currencies = {c[0] for c in Article.CURRENCY_CHOICES}
+            valid_currencies = {c[0] for c in CURRENCY_CHOICES}
             devise_raw = normalized_row.get("devise_prix_achat", "").strip().upper()
             if devise_raw and devise_raw not in valid_currencies:
                 errors.append(

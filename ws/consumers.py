@@ -38,10 +38,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         # Send message to room group
         await self.channel_layer.group_send(
-            self.group_name, {"type": "recieve_group_message", "message": message}
+            self.group_name, {"type": "receive_group_message", "message": message}
         )
 
-    async def recieve_group_message(self, event):
+    async def receive_group_message(self, event):
         """
         Method used to broadcast the message the group
         """

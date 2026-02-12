@@ -5,10 +5,12 @@ from django.db.models import Sum, Count, F, Avg
 from django.db.models.functions import TruncMonth, TruncDate
 from django.utils import timezone
 from rest_framework import status
+from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from account.models import Membership
 from bon_de_livraison.models import BonDeLivraison, BonDeLivraisonLine
 from client.models import Client
 from devi.models import Devi, DeviLine
@@ -36,11 +38,12 @@ def make_aware_datetime_end(d):
 def parse_date_filters(request):
     """
     Parse date_from, date_to, company_id, and devise query parameters.
+    Validates that the user has membership in the requested company.
 
     Returns (date_from, date_to, company_id, devise) tuple.
     - date_to defaults to today if not provided
     - date_from is None if not provided (no lower bound)
-    - company_id is None if not provided (no filtering by company)
+    - company_id is required — raises ValidationError if missing
     - devise defaults to None if not provided (no filtering by currency)
     """
     date_to_str = request.query_params.get("date_to")
@@ -68,9 +71,17 @@ def parse_date_filters(request):
         try:
             company_id = int(company_id_str)
         except (ValueError, TypeError):
-            company_id = None
+            raise ValidationError({"company_id": "company_id doit être un entier valide."})
     else:
-        company_id = None
+        raise ValidationError({"company_id": "company_id est requis."})
+
+    # Verify user has membership in this company
+    if not Membership.objects.filter(
+        user=request.user, company_id=company_id
+    ).exists():
+        raise PermissionDenied(
+            "Vous n'avez pas accès aux données de cette société."
+        )
 
     # Validate devise if provided
     if devise and devise not in ['MAD', 'EUR', 'USD']:
@@ -251,7 +262,7 @@ class CollectionRateView(APIView):
         
         if devise:
             facture_filter["devise"] = devise
-            reglement_filter["devise"] = devise
+            reglement_filter["facture_client__devise"] = devise
 
         total_invoiced = FactureClient.objects.filter(**facture_filter).aggregate(
             total=Sum("total_ttc_apres_remise")
@@ -644,7 +655,7 @@ class PaymentTimelineView(APIView):
         
         if devise:
             invoice_query = invoice_query.filter(devise=devise)
-            payment_query = payment_query.filter(devise=devise)
+            payment_query = payment_query.filter(facture_client__devise=devise)
 
         # Invoices by date
         invoice_data = (

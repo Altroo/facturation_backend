@@ -13,9 +13,9 @@ app = Celery("ai_workx_backend", broker=settings.CELERY_BROKER_URL)
 app.config_from_object("django.conf:settings", namespace="CELERY")
 app.conf.timezone = settings.TIME_ZONE
 app.conf.setdefault("worker_cancel_long_running_tasks_on_connection_loss", True)
-app.conf.task_serializer = "pickle"
-app.conf.result_serializer = "pickle"
-app.conf.accept_content = ["application/json", "application/x-python-serialize"]
+app.conf.task_serializer = "json"
+app.conf.result_serializer = "json"
+app.conf.accept_content = ["json"]
 app.autodiscover_tasks(
     packages=[
         "account.tasks",

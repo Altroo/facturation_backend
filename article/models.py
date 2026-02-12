@@ -5,6 +5,8 @@ from django.db import models
 from django.utils import timezone
 from simple_history.models import HistoricalRecords
 
+from core.constants import CURRENCY_CHOICES
+
 
 def get_article_image_path(_, filename):
     """Store article images in a dedicated folder with a random name."""
@@ -78,11 +80,6 @@ class Article(models.Model):
     )
 
     # Pricing
-    CURRENCY_CHOICES = [
-        ("MAD", "MAD – Dirham Marocain"),
-        ("EUR", "EUR – Euro"),
-        ("USD", "USD – Dollar Américain"),
-    ]
     prix_achat = models.DecimalField(
         max_digits=10,
         decimal_places=2,

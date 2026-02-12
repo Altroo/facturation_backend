@@ -19,6 +19,7 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework import permissions, status
 from rest_framework.exceptions import ValidationError, PermissionDenied
 from rest_framework.response import Response
+from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 
 from account.models import Membership, Role
@@ -71,6 +72,9 @@ class CheckEmailView(APIView):
 
 
 class LoginView(Dj_rest_login):
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "login"
+
     def login(self):
         return super(LoginView, self).login()
 
@@ -198,6 +202,8 @@ class PasswordResetView(APIView):
 
 class SendPasswordResetView(APIView):
     permission_classes = (permissions.AllowAny,)
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "password_reset"
     errors = {"email": ["Aucun compte existant utilisant cette adresse éléctronique."]}
 
     @staticmethod

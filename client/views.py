@@ -1,5 +1,3 @@
-from re import search
-
 from django.http import Http404
 from django.utils.translation import gettext_lazy as _
 from rest_framework import permissions, status
@@ -9,7 +7,6 @@ from rest_framework.views import APIView
 
 from account.models import Membership
 from core.permissions import can_create, can_delete, can_update
-from core.utils import format_number_with_dynamic_digits
 from facturation_backend.utils import CustomPagination
 from .filters import ClientFilter
 from .models import Client
@@ -48,7 +45,11 @@ class ClientListCreateView(APIView):
             raise Http404(_("Aucune clients ne correspond à la requête."))
         company_id = int(company_id_str)
         self._check_company_access(request, company_id)
-        base_queryset = Client.objects.filter(company_id=company_id, archived=archived)
+        base_queryset = Client.objects.filter(
+            company_id=company_id, archived=archived
+        ).select_related(
+            "company", "ville"
+        )
         filterset = ClientFilter(request.GET, queryset=base_queryset)
         ordered_qs = filterset.qs.order_by("-id")
         if pagination:

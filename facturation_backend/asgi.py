@@ -1,5 +1,7 @@
 import os
 
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "facturation_backend.settings")
+
 # Avoid daphne apps not loaded yet
 import django
 
@@ -9,8 +11,6 @@ from django.core.asgi import get_asgi_application
 from ws.jwt_middleware import SimpleJwtTokenAuthMiddleware
 from channels.routing import ProtocolTypeRouter, URLRouter
 from ws.routing import websocket_urlpatterns
-
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "facturation_backend.settings")
 
 application = ProtocolTypeRouter(
     {
