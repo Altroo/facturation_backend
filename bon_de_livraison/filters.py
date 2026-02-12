@@ -1,4 +1,4 @@
-from core.filters import BaseDocumentFilter
+from core.filters import BaseDocumentFilter, CommaSeparatedIDsFilter
 
 from .models import BonDeLivraison
 
@@ -9,6 +9,11 @@ class BonDeLivraisonFilter(BaseDocumentFilter):
     numero_field = "numero_bon_livraison"
     req_field = "numero_bon_commande_client"
     date_field = "date_bon_livraison"
+
+    # Chip select multi-ID filter
+    livre_par_ids = CommaSeparatedIDsFilter(
+        field_name="livre_par_id", label="Livré par IDs"
+    )
 
     class Meta:
         model = BonDeLivraison

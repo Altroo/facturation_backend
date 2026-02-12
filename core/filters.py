@@ -4,6 +4,21 @@ from django.db.models import Q, Value, F, FloatField, Count
 from django.db.utils import DatabaseError
 
 
+class CommaSeparatedIDsFilter(django_filters.CharFilter):
+    """Accept a comma-separated list of integer IDs and filter with ``__in``."""
+
+    def filter(self, qs, value):
+        if not value:
+            return qs
+        try:
+            ids = [int(v.strip()) for v in value.split(",") if v.strip()]
+        except (ValueError, TypeError):
+            return qs
+        if not ids:
+            return qs
+        return qs.filter(**{f"{self.field_name}__in": ids})
+
+
 class IsEmptyFilter(django_filters.BooleanFilter):
     """Filter that checks both NULL and empty string for a field."""
 
@@ -60,6 +75,9 @@ class BaseDocumentFilter(django_filters.FilterSet):
     search = django_filters.CharFilter(method="global_search", label="Search")
     statut = django_filters.CharFilter(method="filter_statut", label="Status")
     client_id = django_filters.NumberFilter(field_name="client__id", label="Client ID")
+    mode_paiement_ids = CommaSeparatedIDsFilter(
+        field_name="mode_paiement_id", label="Mode de paiement IDs"
+    )
     # Generic date filters that will be mapped to specific date fields by subclasses
     date_after = django_filters.DateFilter(
         method="filter_date_after", label="Date After"

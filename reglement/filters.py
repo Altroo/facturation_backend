@@ -4,7 +4,7 @@ from django.db.models import Q, Value, FloatField, F
 from django.db.utils import DatabaseError
 
 from .models import Reglement
-from core.filters import IsEmptyAutoMixin
+from core.filters import IsEmptyAutoMixin, CommaSeparatedIDsFilter
 
 
 class ReglementFilter(IsEmptyAutoMixin, django_filters.FilterSet):
@@ -24,6 +24,11 @@ class ReglementFilter(IsEmptyAutoMixin, django_filters.FilterSet):
     )
     mode_reglement_id = django_filters.NumberFilter(
         field_name="mode_reglement__id", label="Mode Règlement ID"
+    )
+
+    # Chip select multi-ID filter
+    mode_reglement_ids = CommaSeparatedIDsFilter(
+        field_name="mode_reglement_id", label="Mode Règlement IDs"
     )
     date_reglement = django_filters.DateFilter(
         field_name="date_reglement", label="Date de règlement"

@@ -4,7 +4,7 @@ from django.db.models import Case, When, Value, CharField, Q, F, FloatField
 from django.db.utils import DatabaseError
 
 from .models import Client
-from core.filters import IsEmptyAutoMixin
+from core.filters import IsEmptyAutoMixin, CommaSeparatedIDsFilter
 
 
 class ClientFilter(IsEmptyAutoMixin, django_filters.FilterSet):
@@ -16,6 +16,11 @@ class ClientFilter(IsEmptyAutoMixin, django_filters.FilterSet):
     )
     date_created_before = django_filters.DateFilter(
         field_name="date_created", lookup_expr="lte", label="Date Created Before"
+    )
+
+    # Chip select multi-ID filter
+    ville_ids = CommaSeparatedIDsFilter(
+        field_name="ville_id", label="Ville IDs"
     )
 
     # Text field filters

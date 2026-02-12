@@ -4,7 +4,7 @@ from django.db.models import Q, Value, F, FloatField
 from django.db.utils import DatabaseError
 
 from .models import Article
-from core.filters import IsEmptyAutoMixin
+from core.filters import IsEmptyAutoMixin, CommaSeparatedIDsFilter
 
 
 class ArticleFilter(IsEmptyAutoMixin, django_filters.FilterSet):
@@ -18,6 +18,20 @@ class ArticleFilter(IsEmptyAutoMixin, django_filters.FilterSet):
     )
     date_created_before = django_filters.DateFilter(
         field_name="date_created", lookup_expr="lte", label="Date Created Before"
+    )
+
+    # Chip select multi-ID filters
+    categorie_ids = CommaSeparatedIDsFilter(
+        field_name="categorie_id", label="Categorie IDs"
+    )
+    emplacement_ids = CommaSeparatedIDsFilter(
+        field_name="emplacement_id", label="Emplacement IDs"
+    )
+    unite_ids = CommaSeparatedIDsFilter(
+        field_name="unite_id", label="Unite IDs"
+    )
+    marque_ids = CommaSeparatedIDsFilter(
+        field_name="marque_id", label="Marque IDs"
     )
 
     # Text field filters
