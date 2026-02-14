@@ -40,13 +40,13 @@ def bon_de_livraison_company():
 
 
 @pytest.fixture
-def bon_de_livraison_ville():
-    return Ville.objects.create(nom="LivraisonVille")
+def bon_de_livraison_ville(bon_de_livraison_company):
+    return Ville.objects.create(nom="LivraisonVille", company=bon_de_livraison_company)
 
 
 @pytest.fixture
-def bon_de_livraison_livre_par():
-    return LivrePar.objects.create(nom="Jean Dupont")
+def bon_de_livraison_livre_par(bon_de_livraison_company):
+    return LivrePar.objects.create(nom="Jean Dupont", company=bon_de_livraison_company)
 
 
 @pytest.fixture
@@ -61,8 +61,8 @@ def bon_de_livraison_client(bon_de_livraison_ville, bon_de_livraison_company):
 
 
 @pytest.fixture
-def bon_de_livraison_mode_paiement():
-    return ModePaiement.objects.create(nom="LivraisonPay")
+def bon_de_livraison_mode_paiement(bon_de_livraison_company):
+    return ModePaiement.objects.create(nom="LivraisonPay", company=bon_de_livraison_company)
 
 
 @pytest.fixture
@@ -141,7 +141,7 @@ class TestBonDeLivraisonAPI(SharedDocumentAPITestsMixin):
         self.base_setup_method()
 
         # Create bon_de_livraison-specific field
-        self.livre_par = LivrePar.objects.create(nom="Jean Dupont")
+        self.livre_par = LivrePar.objects.create(nom="Jean Dupont", company=self.company)
 
         # Create bon_de_livraison-specific document and line
         self.doc = BonDeLivraison.objects.create(
@@ -240,7 +240,7 @@ class TestBonDeLivraisonFilters(SharedDocumentFilterTestsMixin):
         self.base_filter_setup_method()
 
         # Create bon_de_livraison-specific field
-        self.livre_par = LivrePar.objects.create(nom="Livreur Test")
+        self.livre_par = LivrePar.objects.create(nom="Livreur Test", company=self.company)
 
         # Create bon_de_livraison-specific documents
         self.doc1 = BonDeLivraison.objects.create(
@@ -290,8 +290,8 @@ class TestBonDeLivraisonModels(SharedDocumentModelTestsMixin):
         self.user = CustomUser.objects.create_user(
             email="model@bon.com", password="pass"
         )
-        self.ville = Ville.objects.create(nom="ModelVille")
         self.company = Company.objects.create(raison_sociale="ModelCo", ICE="ICEMOD")
+        self.ville = Ville.objects.create(nom="ModelVille", company=self.company)
         caissier_role, _ = Role.objects.get_or_create(
             name="Caissier",
         )
@@ -306,8 +306,8 @@ class TestBonDeLivraisonModels(SharedDocumentModelTestsMixin):
             company=self.company,
             ville=self.ville,
         )
-        self.mode_paiement = ModePaiement.objects.create(nom="ModPay")
-        self.livre_par = LivrePar.objects.create(nom="Model Livreur")
+        self.mode_paiement = ModePaiement.objects.create(nom="ModPay", company=self.company)
+        self.livre_par = LivrePar.objects.create(nom="Model Livreur", company=self.company)
 
         self.article = Article.objects.create(
             company=self.company,
@@ -376,8 +376,8 @@ class TestBonDeLivraisonAdmin(SharedDocumentAdminTestsMixin):
         self.user = CustomUser.objects.create_superuser(
             email="admin@bon.com", password="pass"
         )
-        self.ville = Ville.objects.create(nom="AdminVille")
         self.company = Company.objects.create(raison_sociale="AdminCo", ICE="ICEADM")
+        self.ville = Ville.objects.create(nom="AdminVille", company=self.company)
         caissier_role, _ = Role.objects.get_or_create(
             name="Caissier",
         )
@@ -392,8 +392,8 @@ class TestBonDeLivraisonAdmin(SharedDocumentAdminTestsMixin):
             company=self.company,
             ville=self.ville,
         )
-        self.mode_paiement = ModePaiement.objects.create(nom="AdminPay")
-        self.livre_par = LivrePar.objects.create(nom="Admin Livreur")
+        self.mode_paiement = ModePaiement.objects.create(nom="AdminPay", company=self.company)
+        self.livre_par = LivrePar.objects.create(nom="Admin Livreur", company=self.company)
 
         self.article = Article.objects.create(
             company=self.company,
@@ -462,7 +462,7 @@ class TestBonDeLivraisonUtilsExtra:
 
         # Create company, client, user, livre_par, and mode_paiement first
         company = Company.objects.create(raison_sociale="Test Co", ICE="123")
-        ville = Ville.objects.create(nom="TestVille")
+        ville = Ville.objects.create(nom="TestVille", company=company)
         client = Client.objects.create(
             code_client="CLT001",
             client_type="PM",
@@ -473,8 +473,8 @@ class TestBonDeLivraisonUtilsExtra:
         user = CustomUser.objects.create_user(
             email="testuser@example.com", password="pass"
         )
-        mode_paiement = ModePaiement.objects.create(nom="Cash")
-        livre_par = LivrePar.objects.create(nom="Test Livreur")
+        mode_paiement = ModePaiement.objects.create(nom="Cash", company=company)
+        livre_par = LivrePar.objects.create(nom="Test Livreur", company=company)
 
         year_suffix = f"{datetime.now().year % 100:02d}"
 
@@ -521,7 +521,7 @@ class TestBonDeLivraisonUtilsExtra:
 
         # Create fixtures
         company = Company.objects.create(raison_sociale="Test Co2", ICE="456")
-        ville = Ville.objects.create(nom="TestVille2")
+        ville = Ville.objects.create(nom="TestVille2", company=company)
         client = Client.objects.create(
             code_client="CLT002",
             client_type="PM",
@@ -532,8 +532,8 @@ class TestBonDeLivraisonUtilsExtra:
         user = CustomUser.objects.create_user(
             email="testuser2@example.com", password="pass"
         )
-        mode_paiement = ModePaiement.objects.create(nom="Cash2")
-        livre_par = LivrePar.objects.create(nom="Test Livreur 2")
+        mode_paiement = ModePaiement.objects.create(nom="Cash2", company=company)
+        livre_par = LivrePar.objects.create(nom="Test Livreur 2", company=company)
 
         year_suffix = f"{datetime.now().year % 100:02d}"
 
@@ -574,7 +574,7 @@ class TestBonDeLivraisonUtilsExtra:
         from datetime import datetime
 
         company = Company.objects.create(raison_sociale="Test Co3", ICE="789")
-        ville = Ville.objects.create(nom="TestVille3")
+        ville = Ville.objects.create(nom="TestVille3", company=company)
         client = Client.objects.create(
             code_client="CLT003",
             client_type="PM",
@@ -585,8 +585,8 @@ class TestBonDeLivraisonUtilsExtra:
         user = CustomUser.objects.create_user(
             email="testuser3@example.com", password="pass"
         )
-        mode_paiement = ModePaiement.objects.create(nom="Cash3")
-        livre_par = LivrePar.objects.create(nom="Test Livreur 3")
+        mode_paiement = ModePaiement.objects.create(nom="Cash3", company=company)
+        livre_par = LivrePar.objects.create(nom="Test Livreur 3", company=company)
 
         year_suffix = f"{datetime.now().year % 100:02d}"
 

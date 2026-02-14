@@ -48,15 +48,15 @@ def membership(user, company):
 
 
 @pytest.fixture
-def ville():
+def ville(company):
     """Create a test city."""
-    return Ville.objects.create(nom="Casablanca")
+    return Ville.objects.create(nom="Casablanca", company=company)
 
 
 @pytest.fixture
-def mode_paiement():
+def mode_paiement(company):
     """Create a test payment mode."""
-    return ModePaiement.objects.create(nom="Virement Bancaire")
+    return ModePaiement.objects.create(nom="Virement Bancaire", company=company)
 
 
 @pytest.fixture
@@ -168,11 +168,11 @@ def bon_de_livraison(client_entity, mode_paiement, user):
 
 
 @pytest.fixture
-def mode_reglement():
+def mode_reglement(company):
     """Create a test mode reglement."""
     from parameter.models import ModePaiement
 
-    return ModePaiement.objects.create(nom="Carte Bancaire")
+    return ModePaiement.objects.create(nom="Carte Bancaire", company=company)
 
 
 @pytest.fixture
@@ -1649,7 +1649,7 @@ class TestPaymentDelayFiltering:
             total_ttc_apres_remise=Decimal("1000.00"),
         )
         # Create a mode reglement
-        mode_reglement = ModePaiement.objects.create(nom="Virement")
+        mode_reglement = ModePaiement.objects.create(nom="Virement", company=company)
         # Create a reglement
         Reglement.objects.create(
             facture_client=facture,

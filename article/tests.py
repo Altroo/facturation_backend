@@ -63,10 +63,10 @@ class TestArticleAPI:
         )
 
         # Create parameter objects
-        self.marque = Marque.objects.create(nom="TestMarque")
-        self.categorie = Categorie.objects.create(nom="TestCategorie")
-        self.unite = Unite.objects.create(nom="Pièce")
-        self.emplacement = Emplacement.objects.create(nom="Entrepôt A")
+        self.marque = Marque.objects.create(nom="TestMarque", company=self.company)
+        self.categorie = Categorie.objects.create(nom="TestCategorie", company=self.company)
+        self.unite = Unite.objects.create(nom="Pièce", company=self.company)
+        self.emplacement = Emplacement.objects.create(nom="Entrepôt A", company=self.company)
 
         # Create test articles
         self.article_produit = Article.objects.create(
@@ -716,10 +716,10 @@ class TestArticleFilters:
             user=self.user, company=self.company, role=caissier_role
         )
 
-        self.marque = Marque.objects.create(nom="BrandX")
-        self.categorie = Categorie.objects.create(nom="CatX")
-        self.unite = Unite.objects.create(nom="UnitX")
-        self.emplacement = Emplacement.objects.create(nom="PlaceX")
+        self.marque = Marque.objects.create(nom="BrandX", company=self.company)
+        self.categorie = Categorie.objects.create(nom="CatX", company=self.company)
+        self.unite = Unite.objects.create(nom="UnitX", company=self.company)
+        self.emplacement = Emplacement.objects.create(nom="PlaceX", company=self.company)
 
         self.a1 = Article.objects.create(
             reference="REF1",
@@ -1729,7 +1729,7 @@ class TestArticleImport:
 
     def test_import_fk_reuse_existing(self):
         """Existing FK objects are reused — no duplicate created."""
-        marque = Marque.objects.create(nom="ExistingMarque")
+        marque = Marque.objects.create(nom="ExistingMarque", company=self.company)
         csv_content = "designation,marque\nTestArticle,ExistingMarque\n"
         response = self.client.post(
             self.url,

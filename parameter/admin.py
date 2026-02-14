@@ -14,38 +14,45 @@ from .models import (
 class VilleAdmin(admin.ModelAdmin):
     """Admin configuration for the Ville model."""
 
-    list_display = ("id", "nom")
+    list_display = ("id", "nom", "company")
     search_fields = ("nom",)
+    list_filter = ("company",)
 
 
 class MarqueAdmin(admin.ModelAdmin):
-    list_display = ("id", "nom")
+    list_display = ("id", "nom", "company")
     search_fields = ("nom",)
+    list_filter = ("company",)
 
 
 class CategorieAdmin(admin.ModelAdmin):
-    list_display = ("id", "nom")
+    list_display = ("id", "nom", "company")
     search_fields = ("nom",)
+    list_filter = ("company",)
 
 
 class UniteAdmin(admin.ModelAdmin):
-    list_display = ("id", "nom")
+    list_display = ("id", "nom", "company")
     search_fields = ("nom",)
+    list_filter = ("company",)
 
 
 class EmplacementAdmin(admin.ModelAdmin):
-    list_display = ("id", "nom")
+    list_display = ("id", "nom", "company")
     search_fields = ("nom",)
+    list_filter = ("company",)
 
 
 class ModePaiementAdmin(admin.ModelAdmin):
-    list_display = ("id", "nom")
+    list_display = ("id", "nom", "company")
     search_fields = ("nom",)
+    list_filter = ("company",)
 
 
 class LivreParAdmin(admin.ModelAdmin):
-    list_display = ("id", "nom")
+    list_display = ("id", "nom", "company")
     search_fields = ("nom",)
+    list_filter = ("company",)
 
 
 # Historical Model Admins (Read-only)

@@ -21,13 +21,13 @@ class TestClientAPI:
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
 
-        self.ville = Ville.objects.create(nom="Casablanca")
         self.company = Company.objects.create(
             raison_sociale="TestCorp",
             ICE="ICE_MAIN",
             registre_de_commerce="RC_MAIN",
             nbr_employe=10,
         )
+        self.ville = Ville.objects.create(nom="Casablanca", company=self.company)
 
         self.caissier_role, _ = Role.objects.get_or_create(
             name="Caissier",
@@ -528,9 +528,6 @@ class TestClientFilters:
             email="filter@example.com", password="p"
         )
 
-        self.ville1 = Ville.objects.create(nom="Casablanca")
-        self.ville2 = Ville.objects.create(nom="Rabat")
-
         self.company1 = Company.objects.create(
             raison_sociale="FilterCorp",
             ICE="ICEFILT",
@@ -543,6 +540,9 @@ class TestClientFilters:
             registre_de_commerce="RCOther",
             nbr_employe=5,
         )
+
+        self.ville1 = Ville.objects.create(nom="Casablanca", company=self.company1)
+        self.ville2 = Ville.objects.create(nom="Rabat", company=self.company1)
 
         caissier_role, _ = Role.objects.get_or_create(
             name="Caissier",
@@ -763,7 +763,7 @@ class TestClientModelExtra:
 
     def setup_method(self):
         self.company = Company.objects.create(raison_sociale="TestCo", ICE="ICE123")
-        self.ville = Ville.objects.create(nom="TestVille")
+        self.ville = Ville.objects.create(nom="TestVille", company=self.company)
 
     def test_str_personne_morale_with_raison_sociale(self):
         """Test __str__ for personne morale with raison_sociale."""

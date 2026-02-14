@@ -48,8 +48,8 @@ def devi_conv_company():
 
 
 @pytest.fixture
-def devi_conv_ville():
-    return Ville.objects.create(nom="ConvVille")
+def devi_conv_ville(devi_conv_company):
+    return Ville.objects.create(nom="ConvVille", company=devi_conv_company)
 
 
 @pytest.fixture
@@ -64,8 +64,8 @@ def devi_conv_client(devi_conv_ville, devi_conv_company):
 
 
 @pytest.fixture
-def devi_conv_mode_paiement():
-    return ModePaiement.objects.create(nom="ConvPay")
+def devi_conv_mode_paiement(devi_conv_company):
+    return ModePaiement.objects.create(nom="ConvPay", company=devi_conv_company)
 
 
 @pytest.fixture
@@ -418,7 +418,7 @@ class TestDeviUtilsExtra:
 
         # Create company, client, user, and mode_paiement first
         company = Company.objects.create(raison_sociale="Test Co", ICE="123")
-        ville = Ville.objects.create(nom="TestVille")
+        ville = Ville.objects.create(nom="TestVille", company=company)
         client = Client.objects.create(
             code_client="CLT001",
             client_type="PM",
@@ -429,7 +429,7 @@ class TestDeviUtilsExtra:
         user = CustomUser.objects.create_user(
             email="testuser@example.com", password="pass"
         )
-        mode_paiement = ModePaiement.objects.create(nom="Cash")
+        mode_paiement = ModePaiement.objects.create(nom="Cash", company=company)
 
         year_suffix = f"{datetime.now().year % 100:02d}"
 
@@ -470,7 +470,7 @@ class TestDeviUtilsExtra:
 
         # Create fixtures
         company = Company.objects.create(raison_sociale="Test Co2", ICE="456")
-        ville = Ville.objects.create(nom="TestVille2")
+        ville = Ville.objects.create(nom="TestVille2", company=company)
         client = Client.objects.create(
             code_client="CLT002",
             client_type="PM",
@@ -481,7 +481,7 @@ class TestDeviUtilsExtra:
         user = CustomUser.objects.create_user(
             email="testuser2@example.com", password="pass"
         )
-        mode_paiement = ModePaiement.objects.create(nom="Cash2")
+        mode_paiement = ModePaiement.objects.create(nom="Cash2", company=company)
 
         year_suffix = f"{datetime.now().year % 100:02d}"
 
@@ -520,7 +520,7 @@ class TestDeviUtilsExtra:
         from datetime import datetime
 
         company = Company.objects.create(raison_sociale="Test Co3", ICE="789")
-        ville = Ville.objects.create(nom="TestVille3")
+        ville = Ville.objects.create(nom="TestVille3", company=company)
         client = Client.objects.create(
             code_client="CLT003",
             client_type="PM",
@@ -531,7 +531,7 @@ class TestDeviUtilsExtra:
         user = CustomUser.objects.create_user(
             email="testuser3@example.com", password="pass"
         )
-        mode_paiement = ModePaiement.objects.create(nom="Cash3")
+        mode_paiement = ModePaiement.objects.create(nom="Cash3", company=company)
 
         year_suffix = f"{datetime.now().year % 100:02d}"
 

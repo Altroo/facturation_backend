@@ -1,8 +1,9 @@
+from typing import cast
 from rest_framework import viewsets, permissions
 from rest_framework.exceptions import PermissionDenied
 from django.utils.translation import gettext_lazy as _
 
-from account.models import Membership
+from account.models import Membership, CustomUser
 from core.permissions import get_user_role
 
 from .models import (
@@ -29,11 +30,12 @@ class BaseModelViewSet(viewsets.ModelViewSet):
     """
     Base ViewSet with common configuration.
     Provides list, create, retrieve, update, and delete actions.
+    Filters by company_id query parameter.
 
     Permissions:
     - Caissier: Full access (CRUD)
     - Comptable: Read only (GET)
-    - Commercial: Read only (GET) - parameters are global master data
+    - Commercial: Read only (GET)
     - Lecture: Read only (GET)
     """
 
@@ -41,17 +43,26 @@ class BaseModelViewSet(viewsets.ModelViewSet):
     pagination_class = None
 
     def get_queryset(self):
-        # Order by descending ID for consistency
-        return self.queryset.order_by("-id")
+        qs = self.queryset.order_by("-id")
+        company_id = self.request.query_params.get("company_id")
+        if company_id:
+            qs = qs.filter(company_id=company_id)
+        return qs
 
     def _check_modification_permission(self, action_name: str) -> None:
         """
         Check if user has permission to create/update/delete parameters.
         Only Caissier role is allowed to modify parameters.
+        Validates membership for the company being modified.
         """
-        user = self.request.user
-        # Get any membership to check role
-        membership = Membership.objects.filter(user=user).first()
+        user = cast(CustomUser, self.request.user)
+        company_id = self.request.data.get("company")
+        if company_id:
+            membership = Membership.objects.filter(
+                user=user, company_id=company_id
+            ).first()
+        else:
+            membership = Membership.objects.filter(user=user).first()
         if not membership:
             raise PermissionDenied(
                 _(

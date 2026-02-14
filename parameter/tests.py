@@ -43,9 +43,10 @@ class BaseAPITest:
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
 
-        # create one instance
+        # create one instance scoped to company
         self.obj = self.model.objects.create(
-            **{self.field: f"{self.basename.title()}1"}
+            company=self.company,
+            **{self.field: f"{self.basename.title()}1"},
         )
 
     @staticmethod
@@ -54,14 +55,14 @@ class BaseAPITest:
 
     def test_list(self):
         url = reverse(f"parameter:{self.basename}-list")
-        response = self.client.get(url)
+        response = self.client.get(url, {"company_id": self.company.id})
         assert response.status_code == status.HTTP_200_OK
         results = self._get_results(response)
         assert any(o[self.field] == getattr(self.obj, self.field) for o in results)
 
     def test_create(self):
         url = reverse(f"parameter:{self.basename}-list")
-        payload = {self.field: f"{self.basename.title()}2"}
+        payload = {self.field: f"{self.basename.title()}2", "company": self.company.id}
         response = self.client.post(url, payload)
         assert response.status_code == status.HTTP_201_CREATED
         assert self.model.objects.filter(**{self.field: payload[self.field]}).exists()
@@ -74,7 +75,10 @@ class BaseAPITest:
 
     def test_update(self):
         url = reverse(f"parameter:{self.basename}-detail", args=[self.obj.id])
-        payload = {self.field: f"{self.basename.title()}Updated"}
+        payload = {
+            self.field: f"{self.basename.title()}Updated",
+            "company": self.company.id,
+        }
         response = self.client.put(url, payload)
         assert response.status_code == status.HTTP_200_OK
         self.obj.refresh_from_db()
@@ -92,12 +96,16 @@ class BaseAPITest:
         detail_url = reverse(f"parameter:{self.basename}-detail", args=[self.obj.id])
         assert unauth.get(list_url).status_code == status.HTTP_401_UNAUTHORIZED
         assert (
-            unauth.post(list_url, {self.field: "X"}).status_code
+            unauth.post(
+                list_url, {self.field: "X", "company": self.company.id}
+            ).status_code
             == status.HTTP_401_UNAUTHORIZED
         )
         assert unauth.get(detail_url).status_code == status.HTTP_401_UNAUTHORIZED
         assert (
-            unauth.put(detail_url, {self.field: "Y"}).status_code
+            unauth.put(
+                detail_url, {self.field: "Y", "company": self.company.id}
+            ).status_code
             == status.HTTP_401_UNAUTHORIZED
         )
         assert unauth.delete(detail_url).status_code == status.HTTP_401_UNAUTHORIZED
@@ -108,16 +116,21 @@ class BaseAPITest:
         assert self.client.delete(url).status_code == status.HTTP_404_NOT_FOUND
 
     def test_duplicate_name(self):
-        other = self.model.objects.create(**{self.field: f"{self.basename.title()}Dup"})
+        other = self.model.objects.create(
+            company=self.company,
+            **{self.field: f"{self.basename.title()}Dup"},
+        )
         url = reverse(f"parameter:{self.basename}-detail", args=[other.id])
-        payload = {self.field: getattr(self.obj, self.field)}  # duplicate
+        payload = {
+            self.field: getattr(self.obj, self.field),
+            "company": self.company.id,
+        }  # duplicate
         response = self.client.put(url, payload)
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert self.field in response.data["details"]
 
     def test_empty_name(self):
         url = reverse(f"parameter:{self.basename}-detail", args=[self.obj.id])
-        payload = {self.field: ""}
+        payload = {self.field: "", "company": self.company.id}
         response = self.client.put(url, payload)
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert self.field in response.data["details"]
@@ -126,11 +139,27 @@ class BaseAPITest:
 
     def test_serializer_fields_shape(self):
         url = reverse(f"parameter:{self.basename}-list")
-        response = self.client.get(url)
+        response = self.client.get(url, {"company_id": self.company.id})
         assert response.status_code == status.HTTP_200_OK
         results = self._get_results(response)
         for item in results:
-            assert set(item.keys()) == {"id", self.field}
+            assert set(item.keys()) == {"id", self.field, "company"}
+
+    def test_company_isolation(self):
+        """Objects from another company must not appear in the list."""
+        other_company = Company.objects.create(
+            raison_sociale="OtherCompany", ICE="ICE999", nbr_employe="1 à 5"
+        )
+        self.model.objects.create(
+            company=other_company,
+            **{self.field: f"{self.basename.title()}Other"},
+        )
+        url = reverse(f"parameter:{self.basename}-list")
+        response = self.client.get(url, {"company_id": self.company.id})
+        assert response.status_code == status.HTTP_200_OK
+        results = self._get_results(response)
+        for item in results:
+            assert item["company"] == self.company.id
 
 
 # --- Concrete test classes for each model ---
@@ -173,37 +202,48 @@ class TestLivreParAPI(BaseAPITest):
 class TestParameterModelsExtra:
     """Extra tests for parameter models __str__ methods."""
 
+    def setup_method(self):
+        self.company = Company.objects.create(
+            raison_sociale="StrTestCompany", ICE="ICE_STR", nbr_employe="1 à 5"
+        )
+
     def test_mode_paiement_str(self):
         """Test ModePaiement __str__."""
-        obj = ModePaiement.objects.create(nom="Test Payment Extra")
+        obj = ModePaiement.objects.create(
+            nom="Test Payment Extra", company=self.company
+        )
         assert str(obj) == "Test Payment Extra"
 
     def test_ville_str(self):
         """Test Ville __str__."""
-        obj = Ville.objects.create(nom="Test City Extra")
+        obj = Ville.objects.create(nom="Test City Extra", company=self.company)
         assert str(obj) == "Test City Extra"
 
     def test_categorie_str(self):
         """Test Categorie __str__."""
-        obj = Categorie.objects.create(nom="Test Cat Extra")
+        obj = Categorie.objects.create(nom="Test Cat Extra", company=self.company)
         assert str(obj) == "Test Cat Extra"
 
     def test_marque_str(self):
         """Test Marque __str__."""
-        obj = Marque.objects.create(nom="Test Brand Extra")
+        obj = Marque.objects.create(nom="Test Brand Extra", company=self.company)
         assert str(obj) == "Test Brand Extra"
 
     def test_unite_str(self):
         """Test Unite __str__."""
-        obj = Unite.objects.create(nom="KG Extra")
+        obj = Unite.objects.create(nom="KG Extra", company=self.company)
         assert str(obj) == "KG Extra"
 
     def test_emplacement_str(self):
         """Test Emplacement __str__."""
-        obj = Emplacement.objects.create(nom="Warehouse A Extra")
+        obj = Emplacement.objects.create(
+            nom="Warehouse A Extra", company=self.company
+        )
         assert str(obj) == "Warehouse A Extra"
 
     def test_livre_par_str(self):
         """Test LivrePar __str__."""
-        obj = LivrePar.objects.create(nom="Delivery Person Extra")
+        obj = LivrePar.objects.create(
+            nom="Delivery Person Extra", company=self.company
+        )
         assert str(obj) == "Delivery Person Extra"

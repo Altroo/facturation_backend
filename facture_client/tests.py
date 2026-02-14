@@ -47,8 +47,8 @@ def _create_fc_membership(user, company):
 
 
 @pytest.fixture
-def fc_conv_ville():
-    return Ville.objects.create(nom="FCConvVille")
+def fc_conv_ville(fc_conv_company):
+    return Ville.objects.create(nom="FCConvVille", company=fc_conv_company)
 
 
 @pytest.fixture
@@ -63,8 +63,8 @@ def fc_conv_client(fc_conv_ville, fc_conv_company):
 
 
 @pytest.fixture
-def fc_conv_mode_paiement():
-    return ModePaiement.objects.create(nom="FCConvPay")
+def fc_conv_mode_paiement(fc_conv_company):
+    return ModePaiement.objects.create(nom="FCConvPay", company=fc_conv_company)
 
 
 @pytest.fixture
@@ -337,7 +337,7 @@ class TestFactureClientUtilsExtra:
 
         # Create fixtures
         company = Company.objects.create(raison_sociale="UtilCo", ICE="UTIL123")
-        ville = Ville.objects.create(nom="UtilVille")
+        ville = Ville.objects.create(nom="UtilVille", company=company)
         client = Client.objects.create(
             code_client="UTIL001",
             client_type="PM",
@@ -348,7 +348,7 @@ class TestFactureClientUtilsExtra:
         user = CustomUser.objects.create_user(
             email="util_fc@example.com", password="pass"
         )
-        mode = ModePaiement.objects.create(nom="UtilCash")
+        mode = ModePaiement.objects.create(nom="UtilCash", company=company)
 
         year_suffix = f"{datetime.now().year % 100:02d}"
 
@@ -379,7 +379,7 @@ class TestFactureClientUtilsExtra:
         from datetime import datetime
 
         company = Company.objects.create(raison_sociale="UtilCo2", ICE="UTIL456")
-        ville = Ville.objects.create(nom="UtilVille2")
+        ville = Ville.objects.create(nom="UtilVille2", company=company)
         client = Client.objects.create(
             code_client="UTIL002",
             client_type="PM",
@@ -390,7 +390,7 @@ class TestFactureClientUtilsExtra:
         user = CustomUser.objects.create_user(
             email="util_fc2@example.com", password="pass"
         )
-        mode = ModePaiement.objects.create(nom="UtilCash2")
+        mode = ModePaiement.objects.create(nom="UtilCash2", company=company)
 
         year_suffix = f"{datetime.now().year % 100:02d}"
 
@@ -427,7 +427,7 @@ class TestFactureClientUtilsExtra:
         from datetime import datetime
 
         company = Company.objects.create(raison_sociale="UtilCo3", ICE="UTIL789")
-        ville = Ville.objects.create(nom="UtilVille3")
+        ville = Ville.objects.create(nom="UtilVille3", company=company)
         client = Client.objects.create(
             code_client="UTIL003",
             client_type="PM",
@@ -438,7 +438,7 @@ class TestFactureClientUtilsExtra:
         user = CustomUser.objects.create_user(
             email="util_fc3@example.com", password="pass"
         )
-        mode = ModePaiement.objects.create(nom="UtilCash3")
+        mode = ModePaiement.objects.create(nom="UtilCash3", company=company)
 
         year_suffix = f"{datetime.now().year % 100:02d}"
 

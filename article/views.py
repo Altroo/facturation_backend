@@ -323,12 +323,14 @@ class ImportArticlesView(APIView):
         return max_num
 
     @staticmethod
-    def _resolve_fk(model_class, nom_value):
-        """Return a model instance looked up by *nom*.  Creates it when
+    def _resolve_fk(model_class, nom_value, company_id):
+        """Return a model instance looked up by *nom* and *company_id*.  Creates it when
         it does not exist.  Returns ``None`` for empty values."""
         if not nom_value or not nom_value.strip():
             return None
-        instance, _ = model_class.objects.get_or_create(nom=nom_value.strip())
+        instance, _ = model_class.objects.get_or_create(
+            nom=nom_value.strip(), company_id=company_id
+        )
         return instance
 
     @staticmethod
@@ -506,12 +508,12 @@ class ImportArticlesView(APIView):
             devise_prix_achat = devise_raw or "MAD"
 
             # --- foreign keys ------------------------------------------------
-            marque = self._resolve_fk(Marque, normalized_row.get("marque"))
-            categorie = self._resolve_fk(Categorie, normalized_row.get("categorie"))
+            marque = self._resolve_fk(Marque, normalized_row.get("marque"), company_id)
+            categorie = self._resolve_fk(Categorie, normalized_row.get("categorie"), company_id)
             emplacement = self._resolve_fk(
-                Emplacement, normalized_row.get("emplacement")
+                Emplacement, normalized_row.get("emplacement"), company_id
             )
-            unite = self._resolve_fk(Unite, normalized_row.get("unite"))
+            unite = self._resolve_fk(Unite, normalized_row.get("unite"), company_id)
 
             # --- create ------------------------------------------------------
             try:

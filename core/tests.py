@@ -45,15 +45,15 @@ def common_company():
 
 
 @pytest.fixture
-def common_ville():
+def common_ville(common_company):
     """Create a common test ville."""
-    return Ville.objects.create(nom="TestVille")
+    return Ville.objects.create(nom="TestVille", company=common_company)
 
 
 @pytest.fixture
-def common_mode_paiement():
+def common_mode_paiement(common_company):
     """Create a common test mode de paiement."""
-    return ModePaiement.objects.create(nom="TestPayment")
+    return ModePaiement.objects.create(nom="TestPayment", company=common_company)
 
 
 @pytest.fixture
@@ -204,10 +204,10 @@ class SharedDocumentAPITestsMixin:
         self.client_api = APIClient()
         self.client_api.force_authenticate(user=self.user)
 
-        self.ville = Ville.objects.create(nom="TestVille")
         self.company = Company.objects.create(
             raison_sociale="TestCompany", ICE="ICE-1234"
         )
+        self.ville = Ville.objects.create(nom="TestVille", company=self.company)
         _create_core_membership(self.user, self.company)
 
         self.client_obj = Client.objects.create(
@@ -220,7 +220,7 @@ class SharedDocumentAPITestsMixin:
             ville=self.ville,
             company=self.company,
         )
-        self.mode_paiement = ModePaiement.objects.create(nom="Bank Transfer")
+        self.mode_paiement = ModePaiement.objects.create(nom="Bank Transfer", company=self.company)
 
         self.article = Article.objects.create(
             company=self.company,
@@ -537,8 +537,8 @@ class SharedDocumentFilterTestsMixin:
             email="filter@dev.com", password="p"
         )
 
-        self.ville = Ville.objects.create(nom="SearchVille")
         self.company = Company.objects.create(raison_sociale="FilterCo", ICE="ICEFILT")
+        self.ville = Ville.objects.create(nom="SearchVille", company=self.company)
         _create_core_membership(self.user, self.company)
 
         self.client_a = Client.objects.create(
@@ -555,7 +555,7 @@ class SharedDocumentFilterTestsMixin:
             company=self.company,
             ville=self.ville,
         )
-        self.mode = ModePaiement.objects.create(nom="Cash")
+        self.mode = ModePaiement.objects.create(nom="Cash", company=self.company)
 
     def shared_test_global_search_matches_numero_and_client_and_req(
         self, *, numero_field: str, client_label: str, req_value: str
@@ -755,8 +755,8 @@ def extra_company():
 
 
 @pytest.fixture
-def extra_ville():
-    return Ville.objects.create(nom="TestVille")
+def extra_ville(extra_company):
+    return Ville.objects.create(nom="TestVille", company=extra_company)
 
 
 @pytest.fixture
@@ -771,8 +771,8 @@ def extra_client(extra_ville, extra_company):
 
 
 @pytest.fixture
-def extra_mode_paiement():
-    return ModePaiement.objects.create(nom="Virement")
+def extra_mode_paiement(extra_company):
+    return ModePaiement.objects.create(nom="Virement", company=extra_company)
 
 
 @pytest.fixture
@@ -1937,9 +1937,9 @@ class TestBasePDFGenerator:
         )
 
     @pytest.fixture
-    def pdf_ville(self):
+    def pdf_ville(self, pdf_company):
         """Create a test ville for PDF generation."""
-        return Ville.objects.create(nom="PDF City")
+        return Ville.objects.create(nom="PDF City", company=pdf_company)
 
     @pytest.fixture
     def pdf_client(self, pdf_ville, pdf_company):
@@ -2132,7 +2132,7 @@ class TestBasePDFGenerator:
         from parameter.models import Unite
 
         # Create articles with lines
-        unite = Unite.objects.create(nom="Pièce")
+        unite = Unite.objects.create(nom="Pièce", company=pdf_company)
         article1 = Article.objects.create(
             company=pdf_company,
             reference="ART001",
@@ -2185,7 +2185,7 @@ class TestBasePDFGenerator:
         from article.models import Article
         from parameter.models import Unite
 
-        unite = Unite.objects.create(nom="Kg")
+        unite = Unite.objects.create(nom="Kg", company=pdf_company)
         article = Article.objects.create(
             company=pdf_company,
             reference="ART003",
@@ -2498,9 +2498,9 @@ class TestCoreSerializerAdditional:
         )
 
     @pytest.fixture
-    def test_mode_paiement(self):
+    def test_mode_paiement(self, extra_company):
         """Create a test mode paiement."""
-        return ModePaiement.objects.create(nom="Espèces")
+        return ModePaiement.objects.create(nom="Espèces", company=extra_company)
 
     def test_base_list_serializer_created_by_without_name(
         self, test_client_extra, test_mode_paiement
@@ -3103,9 +3103,9 @@ class TestAdditionalCoverageEdgeCases:
         """Test get_lines returns empty queryset when no lines."""
         from devi.models import Devi
 
-        ville = Ville.objects.create(nom="Test Ville")
         company = Company.objects.create(raison_sociale="Lines Test Co")
-        mode = ModePaiement.objects.create(nom="Lines Mode")
+        ville = Ville.objects.create(nom="Test Ville", company=company)
+        mode = ModePaiement.objects.create(nom="Lines Mode", company=company)
         client = Client.objects.create(
             company=company,
             nom="Lines Client",
@@ -3128,9 +3128,9 @@ class TestAdditionalCoverageEdgeCases:
         from devi.admin import DeviAdmin
         from devi.models import Devi
 
-        ville = Ville.objects.create(nom="Admin Test Ville")
         company = Company.objects.create(raison_sociale="Admin Test Co")
-        mode = ModePaiement.objects.create(nom="Admin Mode")
+        ville = Ville.objects.create(nom="Admin Test Ville", company=company)
+        mode = ModePaiement.objects.create(nom="Admin Mode", company=company)
         client = Client.objects.create(
             company=company,
             nom="Admin Client",
@@ -3155,9 +3155,9 @@ class TestAdditionalCoverageEdgeCases:
         from devi.admin import DeviAdmin
         from devi.models import Devi
 
-        ville = Ville.objects.create(nom="Admin Fixe Ville")
         company = Company.objects.create(raison_sociale="Admin Fixe Co")
-        mode = ModePaiement.objects.create(nom="Admin Fixe Mode")
+        ville = Ville.objects.create(nom="Admin Fixe Ville", company=company)
+        mode = ModePaiement.objects.create(nom="Admin Fixe Mode", company=company)
         client = Client.objects.create(
             company=company,
             nom="Admin Fixe Client",
@@ -3192,9 +3192,9 @@ class TestAdditionalCoverageEdgeCases:
         """Test validation passes when remise_type is empty."""
         from devi.serializers import DeviSerializer
 
-        ville = Ville.objects.create(nom="Ser Empty Ville")
         company = Company.objects.create(raison_sociale="Ser Empty Co")
-        mode = ModePaiement.objects.create(nom="Ser Empty Mode")
+        ville = Ville.objects.create(nom="Ser Empty Ville", company=company)
+        mode = ModePaiement.objects.create(nom="Ser Empty Mode", company=company)
         client = Client.objects.create(
             company=company,
             nom="Ser Empty Client",
@@ -3218,9 +3218,9 @@ class TestAdditionalCoverageEdgeCases:
         """Test validation fails with invalid remise_type."""
         from devi.serializers import DeviSerializer
 
-        ville = Ville.objects.create(nom="Ser Invalid Ville")
         company = Company.objects.create(raison_sociale="Ser Invalid Co")
-        mode = ModePaiement.objects.create(nom="Ser Invalid Mode")
+        ville = Ville.objects.create(nom="Ser Invalid Ville", company=company)
+        mode = ModePaiement.objects.create(nom="Ser Invalid Mode", company=company)
         client = Client.objects.create(
             company=company,
             nom="Ser Invalid Client",
@@ -3246,9 +3246,9 @@ class TestAdditionalCoverageEdgeCases:
         from devi.utils import get_next_numero_devis
         from devi.models import Devi
 
-        ville = Ville.objects.create(nom="Gap Test Ville")
         company = Company.objects.create(raison_sociale="Gap Test Co")
-        mode = ModePaiement.objects.create(nom="Gap Test Mode")
+        ville = Ville.objects.create(nom="Gap Test Ville", company=company)
+        mode = ModePaiement.objects.create(nom="Gap Test Mode", company=company)
         client = Client.objects.create(
             company=company,
             nom="Gap Test Client",
@@ -3281,9 +3281,9 @@ class TestAdditionalCoverageEdgeCases:
         from facture_client.utils import get_next_numero_facture_client
         from facture_client.models import FactureClient
 
-        ville = Ville.objects.create(nom="FC Gap Ville")
         company = Company.objects.create(raison_sociale="FC Gap Co")
-        mode = ModePaiement.objects.create(nom="FC Gap Mode")
+        ville = Ville.objects.create(nom="FC Gap Ville", company=company)
+        mode = ModePaiement.objects.create(nom="FC Gap Mode", company=company)
         client = Client.objects.create(
             company=company,
             nom="FC Gap Client",
@@ -3320,9 +3320,9 @@ class TestAdditionalCoverageEdgeCases:
         from facture_proforma.utils import get_next_numero_facture_pro_forma
         from facture_proforma.models import FactureProForma
 
-        ville = Ville.objects.create(nom="FP Gap Ville")
         company = Company.objects.create(raison_sociale="FP Gap Co")
-        mode = ModePaiement.objects.create(nom="FP Gap Mode")
+        ville = Ville.objects.create(nom="FP Gap Ville", company=company)
+        mode = ModePaiement.objects.create(nom="FP Gap Mode", company=company)
         client = Client.objects.create(
             company=company,
             nom="FP Gap Client",
@@ -3358,9 +3358,9 @@ class TestAdditionalCoverageEdgeCases:
         from bon_de_livraison.utils import get_next_numero_bon_livraison
         from bon_de_livraison.models import BonDeLivraison
 
-        ville = Ville.objects.create(nom="BL Gap Ville")
         company = Company.objects.create(raison_sociale="BL Gap Co")
-        mode = ModePaiement.objects.create(nom="BL Gap Mode")
+        ville = Ville.objects.create(nom="BL Gap Ville", company=company)
+        mode = ModePaiement.objects.create(nom="BL Gap Mode", company=company)
         client = Client.objects.create(
             company=company,
             nom="BL Gap Client",
@@ -3401,8 +3401,8 @@ class TestFilterDatabaseErrorBranches:
         """Create company and client for filter tests."""
         from article.models import Article
 
-        ville = Ville.objects.create(nom="Filter Err Ville")
         company = Company.objects.create(raison_sociale="Filter Err Co")
+        ville = Ville.objects.create(nom="Filter Err Ville", company=company)
         client = Client.objects.create(
             company=company,
             nom="Filter Err Client",
@@ -3486,7 +3486,7 @@ class TestFilterDatabaseErrorBranches:
         from django.contrib.postgres.search import SearchQuery
 
         company, client, _ = setup_company_client
-        mode_paiement = ModePaiement.objects.create(nom="Regl Mode")
+        mode_paiement = ModePaiement.objects.create(nom="Regl Mode", company=company)
 
         user = get_user_model().objects.create_user(
             email="reglfilter@test.com",
@@ -3527,9 +3527,9 @@ class TestSerializersEdgeCases:
     @pytest.fixture
     def setup_basic(self):
         """Create basic test entities."""
-        ville = Ville.objects.create(nom="Ser Edge Ville")
         company = Company.objects.create(raison_sociale="Ser Edge Co")
-        mode = ModePaiement.objects.create(nom="Ser Edge Mode")
+        ville = Ville.objects.create(nom="Ser Edge Ville", company=company)
+        mode = ModePaiement.objects.create(nom="Ser Edge Mode", company=company)
         client = Client.objects.create(
             company=company,
             nom="Ser Edge Client",
@@ -3638,13 +3638,13 @@ class TestPDFGeneratorEdgeCases:
         from article.models import Article
         from parameter.models import Unite
 
-        ville = Ville.objects.create(nom="PDF Edge Ville")
         company = Company.objects.create(
             raison_sociale="PDF Edge Co",
             ICE="ICE123",
             adresse="123 PDF Street",
         )
-        mode = ModePaiement.objects.create(nom="PDF Edge Mode")
+        ville = Ville.objects.create(nom="PDF Edge Ville", company=company)
+        mode = ModePaiement.objects.create(nom="PDF Edge Mode", company=company)
         client = Client.objects.create(
             company=company,
             nom="PDF",
@@ -3652,7 +3652,7 @@ class TestPDFGeneratorEdgeCases:
             ville=ville,
             client_type="PP",  # Physical person
         )
-        unite = Unite.objects.create(nom="PDF Unite")
+        unite = Unite.objects.create(nom="PDF Unite", company=company)
         article = Article.objects.create(
             company=company,
             reference="PDFA01",
@@ -3800,7 +3800,7 @@ class TestPDFGeneratorEdgeCases:
 
         company, client, mode, article, user, _ = setup_pdf
 
-        livre_par = LivrePar.objects.create(nom="PDF Livreur")
+        livre_par = LivrePar.objects.create(nom="PDF Livreur", company=company)
         from datetime import date
 
         bl = BonDeLivraison.objects.create(
@@ -3834,7 +3834,7 @@ class TestPDFGeneratorEdgeCases:
 
         company, client, mode, article, user, _ = setup_pdf
 
-        mode_reglement = ModePaiement.objects.create(nom="PDF Reglement Mode")
+        mode_reglement = ModePaiement.objects.create(nom="PDF Reglement Mode", company=company)
         from datetime import date
 
         facture = FactureClient.objects.create(
@@ -3880,13 +3880,13 @@ class TestCoreModelsCoverage:
         from unittest.mock import patch
 
         # Create a real Devi instance
-        ville = Ville.objects.create(nom="Lines Test Ville")
         company = Company.objects.create(
             raison_sociale="Lines Test Co",
             ICE="ICE123LINES",
             adresse="123 Test Street",
         )
-        mode = ModePaiement.objects.create(nom="Lines Test Mode")
+        ville = Ville.objects.create(nom="Lines Test Ville", company=company)
+        mode = ModePaiement.objects.create(nom="Lines Test Mode", company=company)
         client = Client.objects.create(
             company=company,
             nom="Lines Test Client",

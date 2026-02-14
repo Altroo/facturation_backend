@@ -37,8 +37,8 @@ def reglement_company():
 
 
 @pytest.fixture
-def reglement_ville():
-    return Ville.objects.create(nom="ReglementVille")
+def reglement_ville(reglement_company):
+    return Ville.objects.create(nom="ReglementVille", company=reglement_company)
 
 
 @pytest.fixture
@@ -53,18 +53,18 @@ def reglement_client(reglement_ville, reglement_company):
 
 
 @pytest.fixture
-def reglement_mode_paiement():
-    return ModePaiement.objects.create(nom="ReglementPay")
+def reglement_mode_paiement(reglement_company):
+    return ModePaiement.objects.create(nom="ReglementPay", company=reglement_company)
 
 
 @pytest.fixture
-def reglement_mode_reglement():
-    return ModePaiement.objects.create(nom="Espèces")
+def reglement_mode_reglement(reglement_company):
+    return ModePaiement.objects.create(nom="Espèces", company=reglement_company)
 
 
 @pytest.fixture
-def reglement_mode_reglement_cheque():
-    return ModePaiement.objects.create(nom="Chèque")
+def reglement_mode_reglement_cheque(reglement_company):
+    return ModePaiement.objects.create(nom="Chèque", company=reglement_company)
 
 
 @pytest.fixture
@@ -280,10 +280,10 @@ class TestReglementAPI:
         self.client_api = APIClient()
         self.client_api.force_authenticate(user=self.user)
 
-        self.ville = Ville.objects.create(nom="APIVille")
         self.company = Company.objects.create(
             raison_sociale="API Company", ICE="API-1234"
         )
+        self.ville = Ville.objects.create(nom="APIVille", company=self.company)
         self.caissier_role, _ = Role.objects.get_or_create(
             name="Caissier",
         )
@@ -299,8 +299,8 @@ class TestReglementAPI:
             ville=self.ville,
             company=self.company,
         )
-        self.mode_paiement = ModePaiement.objects.create(nom="API Payment")
-        self.mode_reglement = ModePaiement.objects.create(nom="API Règlement")
+        self.mode_paiement = ModePaiement.objects.create(nom="API Payment", company=self.company)
+        self.mode_reglement = ModePaiement.objects.create(nom="API Règlement", company=self.company)
 
         self.article = Article.objects.create(
             company=self.company,
@@ -772,8 +772,8 @@ class TestReglementFilters:
             email="filter@dev.com", password="p"
         )
 
-        self.ville = Ville.objects.create(nom="FilterVille")
         self.company = Company.objects.create(raison_sociale="FilterCo", ICE="FILTCO")
+        self.ville = Ville.objects.create(nom="FilterVille", company=self.company)
         self.caissier_role, _ = Role.objects.get_or_create(
             name="Caissier",
         )
@@ -788,9 +788,9 @@ class TestReglementFilters:
             company=self.company,
             ville=self.ville,
         )
-        self.mode_paiement = ModePaiement.objects.create(nom="FilterPay")
-        self.mode_reglement = ModePaiement.objects.create(nom="FilterReg")
-        self.mode_reglement2 = ModePaiement.objects.create(nom="FilterReg2")
+        self.mode_paiement = ModePaiement.objects.create(nom="FilterPay", company=self.company)
+        self.mode_reglement = ModePaiement.objects.create(nom="FilterReg", company=self.company)
+        self.mode_reglement2 = ModePaiement.objects.create(nom="FilterReg2", company=self.company)
 
         self.article = Article.objects.create(
             company=self.company,
@@ -1399,10 +1399,10 @@ class TestReglementFactureStatusValidation:
         self.client_api = APIClient()
         self.client_api.force_authenticate(user=self.user)
 
-        self.ville = Ville.objects.create(nom="StatusVille")
         self.company = Company.objects.create(
             raison_sociale="Status Company", ICE="STATUS-1234"
         )
+        self.ville = Ville.objects.create(nom="StatusVille", company=self.company)
         self.caissier_role, _ = Role.objects.get_or_create(
             name="Caissier",
         )
@@ -1417,8 +1417,8 @@ class TestReglementFactureStatusValidation:
             ville=self.ville,
             company=self.company,
         )
-        self.mode_paiement = ModePaiement.objects.create(nom="Status Payment")
-        self.mode_reglement = ModePaiement.objects.create(nom="Status Règlement")
+        self.mode_paiement = ModePaiement.objects.create(nom="Status Payment", company=self.company)
+        self.mode_reglement = ModePaiement.objects.create(nom="Status Règlement", company=self.company)
 
         self.article = Article.objects.create(
             company=self.company,

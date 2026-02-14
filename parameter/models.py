@@ -3,11 +3,17 @@ from simple_history.models import HistoricalRecords
 
 
 class Ville(models.Model):
+    company = models.ForeignKey(
+        "company.Company",
+        on_delete=models.CASCADE,
+        related_name="villes",
+        verbose_name="Société",
+        help_text="Société propriétaire de cette ville",
+    )
     nom = models.CharField(
         max_length=100,
         verbose_name="Nom de la ville",
-        unique=True,
-        help_text="Nom unique de la ville",
+        help_text="Nom de la ville",
     )
 
     history = HistoricalRecords(
@@ -18,17 +24,29 @@ class Ville(models.Model):
     class Meta:
         verbose_name = "Ville"
         verbose_name_plural = "Villes"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["company", "nom"],
+                name="unique_ville_per_company",
+            ),
+        ]
 
     def __str__(self):
         return self.nom
 
 
 class ModePaiement(models.Model):
+    company = models.ForeignKey(
+        "company.Company",
+        on_delete=models.CASCADE,
+        related_name="modes_paiement",
+        verbose_name="Société",
+        help_text="Société propriétaire de ce mode de paiement",
+    )
     nom = models.CharField(
         max_length=255,
-        unique=True,
         verbose_name="Nom du mode de paiement",
-        help_text="Nom unique du mode de paiement (ex: Espèces, Virement)",
+        help_text="Nom du mode de paiement (ex: Espèces, Virement)",
     )
 
     history = HistoricalRecords(
@@ -39,17 +57,29 @@ class ModePaiement(models.Model):
     class Meta:
         verbose_name = "Mode de paiement"
         verbose_name_plural = "Modes de paiement"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["company", "nom"],
+                name="unique_mode_paiement_per_company",
+            ),
+        ]
 
     def __str__(self):
         return self.nom
 
 
 class Marque(models.Model):
+    company = models.ForeignKey(
+        "company.Company",
+        on_delete=models.CASCADE,
+        related_name="marques",
+        verbose_name="Société",
+        help_text="Société propriétaire de cette marque",
+    )
     nom = models.CharField(
         max_length=255,
-        unique=True,
         verbose_name="Nom de la marque",
-        help_text="Nom unique de la marque",
+        help_text="Nom de la marque",
     )
 
     history = HistoricalRecords(
@@ -60,17 +90,29 @@ class Marque(models.Model):
     class Meta:
         verbose_name = "Marque"
         verbose_name_plural = "Marques"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["company", "nom"],
+                name="unique_marque_per_company",
+            ),
+        ]
 
     def __str__(self):
         return self.nom
 
 
 class Categorie(models.Model):
+    company = models.ForeignKey(
+        "company.Company",
+        on_delete=models.CASCADE,
+        related_name="categories",
+        verbose_name="Société",
+        help_text="Société propriétaire de cette catégorie",
+    )
     nom = models.CharField(
         max_length=255,
-        unique=True,
         verbose_name="Nom de la catégorie",
-        help_text="Nom unique de la catégorie",
+        help_text="Nom de la catégorie",
     )
 
     history = HistoricalRecords(
@@ -81,17 +123,29 @@ class Categorie(models.Model):
     class Meta:
         verbose_name = "Catégorie"
         verbose_name_plural = "Catégories"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["company", "nom"],
+                name="unique_categorie_per_company",
+            ),
+        ]
 
     def __str__(self):
         return self.nom
 
 
 class Unite(models.Model):
+    company = models.ForeignKey(
+        "company.Company",
+        on_delete=models.CASCADE,
+        related_name="unites",
+        verbose_name="Société",
+        help_text="Société propriétaire de cette unité",
+    )
     nom = models.CharField(
         max_length=255,
-        unique=True,
         verbose_name="Nom de l'unité",
-        help_text="Nom unique de l'unité (ex: pièce, kg)",
+        help_text="Nom de l'unité (ex: pièce, kg)",
     )
 
     history = HistoricalRecords(
@@ -102,17 +156,29 @@ class Unite(models.Model):
     class Meta:
         verbose_name = "Unité"
         verbose_name_plural = "Unités"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["company", "nom"],
+                name="unique_unite_per_company",
+            ),
+        ]
 
     def __str__(self):
         return self.nom
 
 
 class Emplacement(models.Model):
+    company = models.ForeignKey(
+        "company.Company",
+        on_delete=models.CASCADE,
+        related_name="emplacements",
+        verbose_name="Société",
+        help_text="Société propriétaire de cet emplacement",
+    )
     nom = models.CharField(
         max_length=255,
-        unique=True,
         verbose_name="Nom de l'emplacement",
-        help_text="Nom unique de l'emplacement (ex: Entrepôt A)",
+        help_text="Nom de l'emplacement (ex: Entrepôt A)",
     )
 
     history = HistoricalRecords(
@@ -123,17 +189,29 @@ class Emplacement(models.Model):
     class Meta:
         verbose_name = "Emplacement"
         verbose_name_plural = "Emplacements"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["company", "nom"],
+                name="unique_emplacement_per_company",
+            ),
+        ]
 
     def __str__(self):
         return self.nom
 
 
 class LivrePar(models.Model):
+    company = models.ForeignKey(
+        "company.Company",
+        on_delete=models.CASCADE,
+        related_name="livres_par",
+        verbose_name="Société",
+        help_text="Société propriétaire de ce livreur",
+    )
     nom = models.CharField(
         max_length=255,
-        unique=True,
         verbose_name="Nom du livreur",
-        help_text="Nom unique du livreur",
+        help_text="Nom du livreur",
     )
 
     history = HistoricalRecords(
@@ -144,6 +222,12 @@ class LivrePar(models.Model):
     class Meta:
         verbose_name = "Livré par"
         verbose_name_plural = "Livré par"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["company", "nom"],
+                name="unique_livre_par_per_company",
+            ),
+        ]
 
     def __str__(self):
         return self.nom
