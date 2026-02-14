@@ -476,7 +476,9 @@ class ImportArticlesView(APIView):
             for field_name, default in decimal_fields.items():
                 raw = normalized_row.get(field_name, default) or default
                 try:
-                    decimal_values[field_name] = Decimal(self._normalize_decimal(raw))
+                    value = Decimal(self._normalize_decimal(raw))
+                    # Round to 2 decimal places for prices and TVA
+                    decimal_values[field_name] = value.quantize(Decimal('0.01'))
                 except InvalidOperation:
                     errors.append(
                         {
