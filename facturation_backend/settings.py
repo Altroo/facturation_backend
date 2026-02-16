@@ -228,7 +228,7 @@ REST_AUTH = {
     "JWT_AUTH_REFRESH_COOKIE": "facturation_backend-jwt-refresh",
     "TOKEN_MODEL": None,
     "OLD_PASSWORD_FIELD_ENABLED": True,
-    "JWT_AUTH_HTTPONLY": False,
+    "JWT_AUTH_HTTPONLY": True,
     "LOGOUT_ON_PASSWORD_CHANGE": False,
 }
 
@@ -272,6 +272,7 @@ EMAIL_USE_TLS = config("EMAIL_USE_TLS", default=True, cast=bool)
 EMAIL_PORT = config("EMAIL_PORT", default=587, cast=int)
 EMAIL_HOST_USER = config("EMAIL_HOST_USER", default="")
 EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="")
+EMAIL_TIMEOUT = config("EMAIL_TIMEOUT", default=30, cast=int)
 DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="")
 SERVER_EMAIL = config("SERVER_EMAIL", default="")
 

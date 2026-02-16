@@ -600,7 +600,7 @@ class DeviPDFView(APIView):
         devis = get_object_or_404(Devi, pk=pk)
 
         # Check if user has print permission
-        if not can_print(request.user, int(company_id)):
+        if not can_print(request.user, company.pk):
             raise PermissionDenied(
                 _("Vous n'avez pas les droits pour imprimer ce document.")
             )

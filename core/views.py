@@ -11,7 +11,39 @@ from core.permissions import can_create, can_update, can_delete
 from facturation_backend.utils import CustomPagination
 
 
-class BaseDocumentListCreateView(APIView):
+class CompanyAccessMixin:
+    """Shared mixin providing company access checks for all views."""
+
+    @staticmethod
+    def _check_company_access(request, company_id: int) -> None:
+        if not Membership.objects.filter(
+            user=request.user, company_id=company_id
+        ).exists():
+            raise PermissionDenied(
+                detail=_("Vous n'avez pas accès à cette société.")
+            )
+
+    @staticmethod
+    def _has_membership(user, company_id):
+        return Membership.objects.filter(user=user, company_id=company_id).exists()
+
+    @staticmethod
+    def _get_bool_param(request, param: str, default: bool = False) -> bool:
+        val = request.query_params.get(param, str(default).lower())
+        return val.lower() == "true"
+
+    @staticmethod
+    def _parse_company_id(company_id_str, error_message=None):
+        """Parse and validate company_id from query params."""
+        if not company_id_str:
+            raise Http404(_(error_message or "company_id est requis."))
+        try:
+            return int(company_id_str)
+        except (ValueError, TypeError):
+            raise ValidationError({"company_id": _("company_id doit être un entier valide.")})
+
+
+class BaseDocumentListCreateView(CompanyAccessMixin, APIView):
     """Base view for listing and creating documents (Devi, FactureProforma, FactureClient)."""
 
     permission_classes = (permissions.IsAuthenticated,)
@@ -26,26 +58,15 @@ class BaseDocumentListCreateView(APIView):
     # Reverse FK fields to prefetch on list queries
     list_prefetch_related = ("lignes",)
 
-    @staticmethod
-    def _get_bool_param(request, param: str, default: bool = False) -> bool:
-        val = request.query_params.get(param, str(default).lower())
-        return val.lower() == "true"
-
-    @staticmethod
-    def _check_company_access(request, company_id: int) -> None:
-        if not Membership.objects.filter(
-            user=request.user, company_id=company_id
-        ).exists():
-            raise PermissionDenied(
-                detail=_("Seuls les Caissiers de cette société peuvent y accéder.")
-            )
-
     def get(self, request, *args, **kwargs):
         pagination = self._get_bool_param(request, "pagination")
         company_id_str = request.query_params.get("company_id")
         if not company_id_str:
             raise Http404(_("Aucune clients ne correspond à la requête."))
-        company_id = int(company_id_str)
+        try:
+            company_id = int(company_id_str)
+        except (ValueError, TypeError):
+            raise ValidationError({"company_id": _("company_id doit être un entier valide.")})
         self._check_company_access(request, company_id)
         base_queryset = self.model.objects.filter(
             client__company_id=company_id
@@ -104,17 +125,13 @@ class BaseDocumentListCreateView(APIView):
         return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
 
-class BaseDocumentDetailEditDeleteView(APIView):
+class BaseDocumentDetailEditDeleteView(CompanyAccessMixin, APIView):
     """Base view for retrieving, updating and deleting documents."""
 
     permission_classes = (permissions.IsAuthenticated,)
     model = None
     detail_serializer_class = None
     document_name = "document"
-
-    @staticmethod
-    def _has_membership(user, company_id):
-        return Membership.objects.filter(user=user, company_id=company_id).exists()
 
     def get_object(self, pk):
         try:
@@ -168,22 +185,21 @@ class BaseDocumentDetailEditDeleteView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class BaseGenerateNumeroView(APIView):
+class BaseGenerateNumeroView(CompanyAccessMixin, APIView):
     """Base view for generating document numbers."""
 
     permission_classes = (permissions.IsAuthenticated,)
     numero_generator = None
     response_key = "numero"
 
-    @staticmethod
-    def _has_membership(user, company_id):
-        return Membership.objects.filter(user=user, company_id=company_id).exists()
-
     def get(self, request, *args, **kwargs):
         company_id_str = request.query_params.get("company_id")
         if not company_id_str:
             raise Http404(_("company_id manquant dans les paramètres."))
-        company_id = int(company_id_str)
+        try:
+            company_id = int(company_id_str)
+        except (ValueError, TypeError):
+            raise ValidationError({"company_id": _("company_id doit être un entier valide.")})
 
         # Check if user has access to this company
         if not self._has_membership(request.user, company_id):
@@ -196,16 +212,22 @@ class BaseGenerateNumeroView(APIView):
         return Response({self.response_key: new_num}, status=status.HTTP_200_OK)
 
 
-class BaseStatusUpdateView(APIView):
+class BaseStatusUpdateView(CompanyAccessMixin, APIView):
     """Base view for updating document status."""
 
     permission_classes = (permissions.IsAuthenticated,)
     model = None
     document_name = "document"
 
-    @staticmethod
-    def _has_membership(user, company_id):
-        return Membership.objects.filter(user=user, company_id=company_id).exists()
+    # Define allowed status transitions (from_status -> set of allowed to_statuses)
+    ALLOWED_TRANSITIONS = {
+        "Brouillon": {"Envoyé", "Annulé"},
+        "Envoyé": {"Accepté", "Refusé", "Annulé", "Brouillon"},
+        "Accepté": {"Annulé"},
+        "Refusé": {"Brouillon", "Annulé"},
+        "Annulé": set(),  # Terminal state - no transitions allowed
+        "Expiré": {"Brouillon", "Annulé"},
+    }
 
     def get_object(self, pk):
         try:
@@ -230,12 +252,23 @@ class BaseStatusUpdateView(APIView):
         valid_statuses = [choice[0] for choice in self.model.STATUT_CHOICES]
         if new_status not in valid_statuses:
             raise ValidationError({"statut": _("Statut invalide.")})
+
+        # Validate status transition
+        current_status = object_.statut
+        allowed = self.ALLOWED_TRANSITIONS.get(current_status, set())
+        if new_status != current_status and new_status not in allowed:
+            raise ValidationError({
+                "statut": _(
+                    f"Transition de '{current_status}' vers '{new_status}' non autorisée."
+                )
+            })
+
         object_.statut = new_status
         object_.save()
         return Response({"statut": object_.statut}, status=status.HTTP_200_OK)
 
 
-class BaseConversionView(APIView):
+class BaseConversionView(CompanyAccessMixin, APIView):
     """Base view for converting documents."""
 
     permission_classes = (permissions.IsAuthenticated,)
@@ -244,10 +277,6 @@ class BaseConversionView(APIView):
     numero_generator = None
     conversion_method = None
     numero_param_name = "numero_facture"  # Default for most conversions
-
-    @staticmethod
-    def _has_membership(user, company_id):
-        return Membership.objects.filter(user=user, company_id=company_id).exists()
 
     def get_object(self, pk):
         try:

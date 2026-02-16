@@ -10,6 +10,15 @@ Group definitions:
 
 from typing import TYPE_CHECKING
 
+from core.constants import (
+    ROLE_CAISSIER,
+    ROLE_COMMERCIAL,
+    ROLE_COMPTABLE,
+    ROLE_LECTURE,
+    ROLES_WITH_PRINT,
+    ROLES_WITH_VIEW,
+)
+
 if TYPE_CHECKING:
     from account.models import CustomUser
 
@@ -37,22 +46,22 @@ def get_user_role(user: "CustomUser", company_id: int) -> str:
 
 def is_caissier(user: "CustomUser", company_id: int) -> bool:
     """Check if user is Caissier for the company (full access)."""
-    return get_user_role(user, company_id) == "Caissier"
+    return get_user_role(user, company_id) == ROLE_CAISSIER
 
 
 def is_comptable(user: "CustomUser", company_id: int) -> bool:
     """Check if user is Comptable for the company (read & print only)."""
-    return get_user_role(user, company_id) == "Comptable"
+    return get_user_role(user, company_id) == ROLE_COMPTABLE
 
 
 def is_commercial(user: "CustomUser", company_id: int) -> bool:
     """Check if user is Commercial for the company."""
-    return get_user_role(user, company_id) == "Commercial"
+    return get_user_role(user, company_id) == ROLE_COMMERCIAL
 
 
 def is_lecture(user: "CustomUser", company_id: int) -> bool:
     """Check if user is Lecture for the company (view only)."""
-    return get_user_role(user, company_id) == "Lecture"
+    return get_user_role(user, company_id) == ROLE_LECTURE
 
 
 def can_create(user: "CustomUser", company_id: int, model_name: str = "") -> bool:
@@ -67,11 +76,11 @@ def can_create(user: "CustomUser", company_id: int, model_name: str = "") -> boo
     role = get_user_role(user, company_id)
 
     # Caissier can create everything
-    if role == "Caissier":
+    if role == ROLE_CAISSIER:
         return True
 
     # Commercial can create documents but not users/companies
-    if role == "Commercial":
+    if role == ROLE_COMMERCIAL:
         if model_name.lower() in ["user", "company"]:
             return False
         return True
@@ -92,11 +101,11 @@ def can_update(user: "CustomUser", company_id: int, field_name: str = "") -> boo
     role = get_user_role(user, company_id)
 
     # Caissier can update everything
-    if role == "Caissier":
+    if role == ROLE_CAISSIER:
         return True
 
     # Commercial can update but not prix_vente
-    if role == "Commercial":
+    if role == ROLE_COMMERCIAL:
         if field_name == "prix_vente":
             return False
         return True
@@ -110,13 +119,13 @@ def can_delete(user: "CustomUser", company_id: int) -> bool:
     role = get_user_role(user, company_id)
 
     # Only Caissier can delete
-    return role == "Caissier"
+    return role == ROLE_CAISSIER
 
 
 def can_view(user: "CustomUser", company_id: int) -> bool:
     """Check if user can view resources (all roles can view)."""
     role = get_user_role(user, company_id)
-    return role in ["Caissier", "Comptable", "Commercial", "Lecture"]
+    return role in ROLES_WITH_VIEW
 
 
 def can_print(user: "CustomUser", company_id: int) -> bool:
@@ -125,4 +134,4 @@ def can_print(user: "CustomUser", company_id: int) -> bool:
 
     # Caissier, Comptable, and Commercial can print
     # Lecture cannot print
-    return role in ["Caissier", "Comptable", "Commercial"]
+    return role in ROLES_WITH_PRINT

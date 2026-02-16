@@ -1,12 +1,13 @@
 from django.http import Http404
 from django.utils.translation import gettext_lazy as _
 from rest_framework import permissions, status
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from account.models import Membership
 from core.permissions import can_create, can_delete, can_update
+from core.views import CompanyAccessMixin
 from facturation_backend.utils import CustomPagination
 from .filters import ClientFilter
 from .models import Client
@@ -18,24 +19,8 @@ from .serializers import (
 from .utils import get_next_client_code
 
 
-class ClientListCreateView(APIView):
+class ClientListCreateView(CompanyAccessMixin, APIView):
     permission_classes = (permissions.IsAuthenticated,)
-
-    @staticmethod
-    def _get_bool_param(request, param: str, default: bool = False) -> bool:
-        """Parse boolean query param safely."""
-        val = request.query_params.get(param, str(default).lower())
-        return val.lower() == "true"
-
-    @staticmethod
-    def _check_company_access(request, company_id: int) -> None:
-        """Raise PermissionDenied if user lacks membership for company."""
-        if not Membership.objects.filter(
-            user=request.user, company_id=company_id
-        ).exists():
-            raise PermissionDenied(
-                detail=_("Seuls les Caissiers de cette société peuvent y accéder.")
-            )
 
     def get(self, request, *args, **kwargs):
         pagination = self._get_bool_param(request, "pagination")
@@ -43,7 +28,10 @@ class ClientListCreateView(APIView):
         company_id_str = request.query_params.get("company_id")
         if not company_id_str:
             raise Http404(_("Aucune clients ne correspond à la requête."))
-        company_id = int(company_id_str)
+        try:
+            company_id = int(company_id_str)
+        except (ValueError, TypeError):
+            raise ValidationError({"company_id": _("company_id doit être un entier valide.")})
         self._check_company_access(request, company_id)
         base_queryset = Client.objects.filter(
             company_id=company_id, archived=archived
@@ -86,13 +74,8 @@ class ClientListCreateView(APIView):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
-class ClientDetailEditDeleteView(APIView):
+class ClientDetailEditDeleteView(CompanyAccessMixin, APIView):
     permission_classes = (permissions.IsAuthenticated,)
-
-    @staticmethod
-    def _has_membership(user, company_id):
-        """True if the user has a Membership for the given company."""
-        return Membership.objects.filter(user=user, company_id=company_id).exists()
 
     @staticmethod
     def get_object(pk):
@@ -155,16 +138,11 @@ class ClientDetailEditDeleteView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class GenerateClientCodeView(APIView):
+class GenerateClientCodeView(CompanyAccessMixin, APIView):
     """Return the next available ``code_client`` (e.g. ``CLT0018``).
     Automatically increases digit count when 9999 is reached."""
 
     permission_classes = (permissions.IsAuthenticated,)
-
-    @staticmethod
-    def _has_membership(user, company_id):
-        """True if the user has a Membership for the given company."""
-        return Membership.objects.filter(user=user, company_id=company_id).exists()
 
     def get(self, request, *args, **kwargs):
         company_id_str = request.query_params.get("company_id")
@@ -183,7 +161,7 @@ class GenerateClientCodeView(APIView):
         return Response({"code_client": new_code}, status=status.HTTP_200_OK)
 
 
-class ArchiveToggleClientView(APIView):
+class ArchiveToggleClientView(CompanyAccessMixin, APIView):
     """Toggle ``archived`` status for a client.
     - PATCH with ``{"archived": true}`` → archive
     - PATCH with ``{"archived": false}`` → un‑archive
@@ -210,9 +188,7 @@ class ArchiveToggleClientView(APIView):
         except Client.DoesNotExist:
             raise Http404(_("Aucun client ne correspond à la requête."))
 
-    @staticmethod
-    def _has_membership(user, company_id):
-        return Membership.objects.filter(user=user, company_id=company_id).exists()
+
 
     def patch(self, request, pk, *args, **kwargs):
         client = self.get_object(pk)

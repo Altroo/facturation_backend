@@ -3,6 +3,7 @@ from re import match
 from django.db import transaction
 from rest_framework import serializers
 
+from core.constants import ROLE_COMMERCIAL
 from core.permissions import get_user_role
 
 
@@ -30,7 +31,9 @@ def validate_line_currency(data, instance, parent_field_name):
             if devise_prix_vente != parent.devise:
                 raise serializers.ValidationError(
                     {
-                        "devise_prix_vente": f"La devise doit correspondre à celle du document ({parent.devise}). Impossible de mélanger les devises."
+                        "devise_prix_vente":
+                            f"La devise doit correspondre à celle du document ({parent.devise}). "
+                            f"Impossible de mélanger les devises."
                     }
                 )
 
@@ -219,7 +222,7 @@ class BaseLineWriteSerializer(serializers.ModelSerializer):
             company_id = self.context.get("company_id")
             if company_id:
                 role = get_user_role(request.user, company_id)
-                if role == "Commercial" and "prix_vente" in data:
+                if role == ROLE_COMMERCIAL and "prix_vente" in data:
                     # For updates, check if prix_vente is being changed
                     if self.instance:
                         if data.get("prix_vente") != self.instance.prix_vente:
@@ -244,7 +247,6 @@ class BaseLineWriteSerializer(serializers.ModelSerializer):
         # Auto-set devise_prix_achat from article if not provided
         if article and not devise_prix_achat:
             data["devise_prix_achat"] = article.devise_prix_achat
-            devise_prix_achat = article.devise_prix_achat
 
         # Auto-set devise_prix_vente from document if not provided
         if document_devise and not devise_prix_vente:
@@ -257,7 +259,9 @@ class BaseLineWriteSerializer(serializers.ModelSerializer):
             if devise_prix_vente != document_devise:
                 raise serializers.ValidationError(
                     {
-                        "devise_prix_vente": f"La devise doit correspondre à celle du document ({document_devise}). Impossible de mélanger les devises."
+                        "devise_prix_vente":
+                            f"La devise doit correspondre à celle du document ({document_devise}). "
+                            f"Impossible de mélanger les devises."
                     }
                 )
 

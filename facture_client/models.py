@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, transaction
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from simple_history.models import HistoricalRecords
@@ -53,6 +53,10 @@ class FactureClient(BaseDeviFactureDocument):
         verbose_name_plural = "Factures Client"
         ordering = ("-date_created",)
         unique_together = [('numero_facture', 'company')]
+        indexes = [
+            models.Index(fields=["company", "date_facture"]),
+            models.Index(fields=["client", "company"]),
+        ]
 
     def __str__(self):
         return self.numero_facture
@@ -63,10 +67,15 @@ class FactureClient(BaseDeviFactureDocument):
             self.company = self.client.company
         super().save(*args, **kwargs)
 
+    @transaction.atomic()
     def convert_to_bon_de_livraison(
         self, numero_bon_livraison, created_by_user: CustomUser
     ):
-        """Convert this FactureClient to a BonDeLivraison."""
+        """Convert this FactureClient to a BonDeLivraison.
+
+        This method is wrapped in a transaction to ensure atomicity.
+        If any part of the conversion fails, all changes will be rolled back.
+        """
         from bon_de_livraison.models import BonDeLivraison, BonDeLivraisonLine
 
         # Validate document has lines

@@ -16,6 +16,7 @@ from rest_framework.views import APIView
 
 from account.models import Membership
 from company.models import Company
+from core.views import CompanyAccessMixin
 from core.authentication import JWTQueryParamAuthentication
 from core.pdf_utils import (
     BasePDFGenerator,
@@ -36,7 +37,7 @@ from .serializers import (
 )
 
 
-class ReglementListCreateView(APIView):
+class ReglementListCreateView(CompanyAccessMixin, APIView):
     """
     GET: List règlements with pagination and aggregated stats.
     POST: Create a new règlement.
@@ -49,20 +50,6 @@ class ReglementListCreateView(APIView):
 
     permission_classes = (permissions.IsAuthenticated,)
 
-    @staticmethod
-    def _get_bool_param(request, param: str, default: bool = False) -> bool:
-        val = request.query_params.get(param, str(default).lower())
-        return val.lower() == "true"
-
-    @staticmethod
-    def _check_company_access(request, company_id: int) -> None:
-        if not Membership.objects.filter(
-            user=request.user, company_id=company_id
-        ).exists():
-            raise PermissionDenied(
-                detail=_("Seuls les Caissiers de cette société peuvent y accéder.")
-            )
-
     def get(self, request, *args, **kwargs):
         pagination = self._get_bool_param(request, "pagination")
         company_id_str = request.query_params.get("company_id")
@@ -70,7 +57,10 @@ class ReglementListCreateView(APIView):
         if not company_id_str:
             raise Http404(_("company_id est requis."))
 
-        company_id = int(company_id_str)
+        try:
+            company_id = int(company_id_str)
+        except (ValueError, TypeError):
+            raise ValidationError({"company_id": _("company_id doit être un entier valide.")})
         self._check_company_access(request, company_id)
 
         # Get règlements for factures belonging to this company
@@ -207,7 +197,7 @@ class ReglementListCreateView(APIView):
         return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
 
-class ReglementDetailEditDeleteView(APIView):
+class ReglementDetailEditDeleteView(CompanyAccessMixin, APIView):
     """
     GET: Retrieve a règlement with invoice-specific financial info.
     PUT: Update a règlement.
@@ -220,10 +210,6 @@ class ReglementDetailEditDeleteView(APIView):
     """
 
     permission_classes = (permissions.IsAuthenticated,)
-
-    @staticmethod
-    def _has_membership(user, company_id):
-        return Membership.objects.filter(user=user, company_id=company_id).exists()
 
     @staticmethod
     def get_object(pk):
@@ -668,7 +654,7 @@ class ReglementPDFView(APIView):
         reglement = get_object_or_404(Reglement, pk=pk)
 
         # Check if user has print permission
-        if not can_print(request.user, int(company_id)):
+        if not can_print(request.user, company.pk):
             raise PermissionDenied(
                 _("Vous n'avez pas les droits pour imprimer ce document.")
             )

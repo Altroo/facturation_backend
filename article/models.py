@@ -18,7 +18,7 @@ class Article(models.Model):
     # Foreign keys
     company = models.ForeignKey(
         "company.Company",
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         related_name="articles",
         verbose_name="Société",
         help_text="Société propriétaire de l'article",

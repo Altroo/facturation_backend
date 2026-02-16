@@ -566,7 +566,7 @@ class FactureProFormaPDFView(APIView):
         facture_proforma = get_object_or_404(FactureProForma, pk=pk)
 
         # Check if user has print permission
-        if not can_print(request.user, int(company_id)):
+        if not can_print(request.user, company.pk):
             raise PermissionDenied(
                 _("Vous n'avez pas les droits pour imprimer ce document.")
             )

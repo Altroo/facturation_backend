@@ -97,6 +97,13 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         null=True,
         db_index=True,
     )
+    password_reset_code_created_at = models.DateTimeField(
+        verbose_name="Mot de passe - Date de création du code",
+        help_text="Date et heure de création du code de réinitialisation (expire après 5 minutes)",
+        blank=True,
+        null=True,
+        db_index=True,
+    )
     # Task ids for Codes
     task_id_password_reset = models.CharField(
         verbose_name="Mot de passe - Task ID de réinitialisation",

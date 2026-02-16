@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, transaction
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from simple_history.models import HistoricalRecords
@@ -51,6 +51,10 @@ class FactureProForma(BaseDeviFactureDocument):
         verbose_name_plural = "Factures Pro-Forma"
         ordering = ("-date_created",)
         unique_together = [('numero_facture', 'company')]
+        indexes = [
+            models.Index(fields=["company", "date_facture"]),
+            models.Index(fields=["client", "company"]),
+        ]
 
     def __str__(self):
         return self.numero_facture
@@ -61,8 +65,13 @@ class FactureProForma(BaseDeviFactureDocument):
             self.company = self.client.company
         super().save(*args, **kwargs)
 
+    @transaction.atomic()
     def convert_to_facture_client(self, numero_facture, created_by_user: CustomUser):
-        """Convert this FactureProForma to a FactureClient."""
+        """Convert this FactureProForma to a FactureClient.
+
+        This method is wrapped in a transaction to ensure atomicity.
+        If any part of the conversion fails, all changes will be rolled back.
+        """
         from facture_client.models import FactureClient, FactureClientLine
 
         # Validate document has lines

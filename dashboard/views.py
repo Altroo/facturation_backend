@@ -1,8 +1,8 @@
 from datetime import timedelta, datetime, time
 from decimal import Decimal
 
-from django.db.models import Sum, Count, F, Avg
-from django.db.models.functions import TruncMonth, TruncDate
+from django.db.models import Sum, Count, F, Avg, Subquery, OuterRef, DecimalField, Case, When, Value, IntegerField
+from django.db.models.functions import TruncMonth, TruncDate, Coalesce
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied, ValidationError
@@ -26,6 +26,22 @@ def make_aware_datetime_start(d):
     if d is None:
         return None
     return timezone.make_aware(datetime.combine(d, time.min))
+
+
+def _annotate_total_reglements(queryset):
+    """Annotate a FactureClient queryset with total valid reglements (avoids N+1)."""
+    total_reglements_subquery = Subquery(
+        Reglement.objects.filter(
+            facture_client_id=OuterRef('id'),
+            statut="Valide"
+        ).values('facture_client_id').annotate(
+            total=Sum('montant')
+        ).values('total')[:1],
+        output_field=DecimalField()
+    )
+    return queryset.annotate(
+        total_reglements=Coalesce(total_reglements_subquery, Decimal("0"))
+    )
 
 
 def make_aware_datetime_end(d):
@@ -214,27 +230,27 @@ class PaymentStatusOverviewView(APIView):
         if company_id:
             facture_filter["client__company_id"] = company_id
 
-        factures = FactureClient.objects.filter(**facture_filter)
+        factures = _annotate_total_reglements(FactureClient.objects.filter(**facture_filter))
 
-        fully_paid = 0
-        partially_paid = 0
-        unpaid = 0
-
-        for facture in factures:
-            total_reglements = Reglement.get_total_reglements_for_facture(facture.id)
-            total_facture = facture.total_ttc_apres_remise
-
-            if total_reglements >= total_facture:
-                fully_paid += 1
-            elif total_reglements > 0:
-                partially_paid += 1
-            else:
-                unpaid += 1
+        counts = factures.aggregate(
+            fully_paid=Count(Case(
+                When(total_reglements__gte=F('total_ttc_apres_remise'), then=Value(1)),
+                output_field=IntegerField(),
+            )),
+            partially_paid=Count(Case(
+                When(total_reglements__gt=Decimal("0"), total_reglements__lt=F('total_ttc_apres_remise'), then=Value(1)),
+                output_field=IntegerField(),
+            )),
+            unpaid=Count(Case(
+                When(total_reglements__lte=Decimal("0"), then=Value(1)),
+                output_field=IntegerField(),
+            )),
+        )
 
         result = [
-            {"status": "Totalement payée", "count": fully_paid},
-            {"status": "Partiellement payée", "count": partially_paid},
-            {"status": "Impayée", "count": unpaid},
+            {"status": "Totalement payée", "count": counts["fully_paid"]},
+            {"status": "Partiellement payée", "count": counts["partially_paid"]},
+            {"status": "Impayée", "count": counts["unpaid"]},
         ]
 
         return Response(result)
@@ -710,7 +726,7 @@ class OverdueReceivablesView(APIView):
         if devise:
             facture_filter["devise"] = devise
 
-        factures = FactureClient.objects.filter(**facture_filter)
+        factures = _annotate_total_reglements(FactureClient.objects.filter(**facture_filter))
 
         aging_buckets = {
             "0-30": {"label": "0-30 jours", "count": 0, "amount": Decimal("0")},
@@ -720,9 +736,7 @@ class OverdueReceivablesView(APIView):
         }
 
         for facture in factures:
-            total_reglements = Reglement.get_total_reglements_for_facture(facture.id)
-            total_facture = facture.total_ttc_apres_remise
-            outstanding = total_facture - total_reglements
+            outstanding = facture.total_ttc_apres_remise - facture.total_reglements
 
             if outstanding > 0:
                 days_overdue = (date_to - facture.date_facture).days
@@ -957,14 +971,12 @@ class KPICardsWithTrendsView(APIView):
         if company_id:
             facture_filter["client__company_id"] = company_id
 
-        factures = FactureClient.objects.filter(**facture_filter)
-        outstanding_current = Decimal("0")
-
-        for facture in factures:
-            total_reglements = Reglement.get_total_reglements_for_facture(facture.id)
-            outstanding = facture.total_ttc_apres_remise - total_reglements
-            if outstanding > 0:
-                outstanding_current += outstanding
+        factures = _annotate_total_reglements(FactureClient.objects.filter(**facture_filter))
+        outstanding_current = factures.annotate(
+            outstanding=F('total_ttc_apres_remise') - F('total_reglements')
+        ).filter(outstanding__gt=0).aggregate(
+            total=Coalesce(Sum('outstanding'), Decimal("0"))
+        )["total"]
 
         outstanding_trend = [
             float(outstanding_current * Decimal("0.95")),

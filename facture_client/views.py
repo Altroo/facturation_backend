@@ -12,7 +12,7 @@ from reportlab.platypus import Spacer, Paragraph, Table, TableStyle
 from reportlab.platypus.flowables import HRFlowable
 from rest_framework import permissions
 from rest_framework import status
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -58,7 +58,10 @@ class FactureClientListCreateView(BaseDocumentListCreateView):
         company_id_str = request.query_params.get("company_id")
         if not company_id_str:
             raise Http404(_("Aucune clients ne correspond à la requête."))
-        company_id = int(company_id_str)
+        try:
+            company_id = int(company_id_str)
+        except (ValueError, TypeError):
+            raise ValidationError({"company_id": _("company_id doit être un entier valide.")})
         self._check_company_access(request, company_id)
         base_queryset = self.model.objects.filter(
             client__company_id=company_id
@@ -196,7 +199,10 @@ class FactureClientUnpaidListView(BaseDocumentListCreateView):
         company_id_str = request.query_params.get("company_id")
         if not company_id_str:
             raise Http404(_("Aucune clients ne correspond à la requête."))
-        company_id = int(company_id_str)
+        try:
+            company_id = int(company_id_str)
+        except (ValueError, TypeError):
+            raise ValidationError({"company_id": _("company_id doit être un entier valide.")})
         self._check_company_access(request, company_id)
 
         # Get all factures for the company
@@ -286,7 +292,10 @@ class FactureClientForPaymentView(APIView):
         if not company_id_str:
             raise Http404(_("company_id is required"))
 
-        company_id = int(company_id_str)
+        try:
+            company_id = int(company_id_str)
+        except (ValueError, TypeError):
+            raise ValidationError({"company_id": _("company_id doit être un entier valide.")})
 
         if not self._has_membership(request.user, company_id):
             from rest_framework.exceptions import PermissionDenied
@@ -830,7 +839,7 @@ class FactureClientPDFView(APIView):
         facture_client = get_object_or_404(FactureClient, pk=pk)
 
         # Check if user has print permission
-        if not can_print(request.user, int(company_id)):
+        if not can_print(request.user, company.pk):
             raise PermissionDenied(
                 _("Vous n'avez pas les droits pour imprimer ce document.")
             )

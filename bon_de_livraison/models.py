@@ -77,6 +77,10 @@ class BonDeLivraison(BaseDeviFactureDocument):
         verbose_name_plural = "Bons de Livraison"
         ordering = ("-date_created",)
         unique_together = [('numero_bon_livraison', 'company')]
+        indexes = [
+            models.Index(fields=["company", "date_bon_livraison"]),
+            models.Index(fields=["client", "company"]),
+        ]
 
     def __str__(self):
         return self.numero_bon_livraison

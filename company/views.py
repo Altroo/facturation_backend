@@ -9,6 +9,7 @@ from rest_framework.views import APIView
 
 from account.models import Membership
 from account.models import Role
+from core.constants import ROLE_CAISSIER, ROLES_RESTRICTED
 from facturation_backend.utils import CustomPagination
 from .filters import CompanyFilter
 from .models import Company
@@ -62,7 +63,7 @@ class CompanyListCreateView(APIView):
         if existing_memberships.exists():
             # Check if any membership is Commercial or other restricted role
             for membership in existing_memberships:
-                if membership.role.name in ["Commercial", "Lecture", "Comptable"]:
+                if membership.role.name in ROLES_RESTRICTED:
                     raise PermissionDenied(
                         detail="Vous n'avez pas les droits pour créer une société."
                     )
@@ -71,7 +72,7 @@ class CompanyListCreateView(APIView):
         serializer.is_valid(raise_exception=True)
 
         try:
-            admin_group = Role.objects.get(name="Caissier")
+            admin_group = Role.objects.get(name=ROLE_CAISSIER)
         except Role.DoesNotExist:
             raise PermissionDenied(
                 detail="Le groupe 'Caissier' n'existe pas. Un super‑utilisateur doit le créer et assigner les rôles."

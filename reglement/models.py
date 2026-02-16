@@ -93,6 +93,9 @@ class Reglement(models.Model):
         verbose_name = "Règlement"
         verbose_name_plural = "Règlements"
         ordering = ("-date_created",)
+        indexes = [
+            models.Index(fields=["facture_client", "statut"]),
+        ]
 
     def __str__(self):
         return f"Règlement {self.id} - {self.facture_client.numero_facture}"

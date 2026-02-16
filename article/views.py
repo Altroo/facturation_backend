@@ -7,12 +7,13 @@ from django.db import IntegrityError
 from django.http import Http404
 from django.utils.translation import gettext_lazy as _
 from rest_framework import permissions, status
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from account.models import Membership
+from core.views import CompanyAccessMixin
 from core.constants import CURRENCY_CHOICES
 from core.permissions import can_create, can_update, can_delete
 from core.utils import format_number_with_dynamic_digits
@@ -28,24 +29,8 @@ from .serializers import (
 from .utils import get_next_article_reference
 
 
-class ArticleListCreateView(APIView):
+class ArticleListCreateView(CompanyAccessMixin, APIView):
     permission_classes = (permissions.IsAuthenticated,)
-
-    @staticmethod
-    def _get_bool_param(request, param: str, default: bool = False) -> bool:
-        """Parse boolean query param safely."""
-        val = request.query_params.get(param, str(default).lower())
-        return val.lower() == "true"
-
-    @staticmethod
-    def _check_company_access(request, company_id: int) -> None:
-        """Raise PermissionDenied if user lacks membership for company."""
-        if not Membership.objects.filter(
-            user=request.user, company_id=company_id
-        ).exists():
-            raise PermissionDenied(
-                detail=_("Seuls les Caissiers de cette société peuvent y accéder.")
-            )
 
     def get(self, request, *args, **kwargs):
         pagination = self._get_bool_param(request, "pagination")
@@ -53,7 +38,10 @@ class ArticleListCreateView(APIView):
         company_id_str = request.query_params.get("company_id")
         if not company_id_str:
             raise Http404(_("Aucun article ne correspond à la requête."))
-        company_id = int(company_id_str)
+        try:
+            company_id = int(company_id_str)
+        except (ValueError, TypeError):
+            raise ValidationError({"company_id": _("company_id doit être un entier valide.")})
         self._check_company_access(request, company_id)
         base_queryset = Article.objects.filter(
             company_id=company_id, archived=archived
@@ -100,13 +88,8 @@ class ArticleListCreateView(APIView):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
-class ArticleDetailEditDeleteView(APIView):
+class ArticleDetailEditDeleteView(CompanyAccessMixin, APIView):
     permission_classes = (permissions.IsAuthenticated,)
-
-    @staticmethod
-    def _has_membership(user, company_id):
-        """True if the user has a Membership for the given company."""
-        return Membership.objects.filter(user=user, company_id=company_id).exists()
 
     @staticmethod
     def get_object(pk):
@@ -197,16 +180,11 @@ class ArticleDetailEditDeleteView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class GenerateArticleReferenceCodeView(APIView):
+class GenerateArticleReferenceCodeView(CompanyAccessMixin, APIView):
     """Return the next available ``code_article`` (e.g. ``ART0012``).
     Automatically increases digit count when 9999 is reached."""
 
     permission_classes = (permissions.IsAuthenticated,)
-
-    @staticmethod
-    def _has_membership(user, company_id):
-        """True if the user has a Membership for the given company."""
-        return Membership.objects.filter(user=user, company_id=company_id).exists()
 
     def get(self, request, *args, **kwargs):
         company_id_str = request.query_params.get("company_id")
@@ -225,7 +203,7 @@ class GenerateArticleReferenceCodeView(APIView):
         return Response({"reference": new_ref}, status=status.HTTP_200_OK)
 
 
-class ArchiveToggleArticleView(APIView):
+class ArchiveToggleArticleView(CompanyAccessMixin, APIView):
     """Toggle ``archived`` status for an article."""
 
     permission_classes = (permissions.IsAuthenticated,)
@@ -248,10 +226,6 @@ class ArchiveToggleArticleView(APIView):
         except Article.DoesNotExist:
             raise Http404(_("Aucun article ne correspond à la requête."))
 
-    @staticmethod
-    def _has_membership(user, company_id):
-        return Membership.objects.filter(user=user, company_id=company_id).exists()
-
     def patch(self, request, pk, *args, **kwargs):
         article = self.get_object(pk)
         if not self._has_membership(request.user, article.company_id):
@@ -270,7 +244,7 @@ class ArchiveToggleArticleView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class ImportArticlesView(APIView):
+class ImportArticlesView(CompanyAccessMixin, APIView):
     """Import articles from a CSV file.
 
     Expected CSV columns: reference, type_article, designation,
@@ -287,15 +261,6 @@ class ImportArticlesView(APIView):
     parser_classes = (MultiPartParser,)
 
     # --------------- helpers ------------------------------------------------
-
-    @staticmethod
-    def _check_company_access(request, company_id: int) -> None:
-        if not Membership.objects.filter(
-            user=request.user, company_id=company_id
-        ).exists():
-            raise PermissionDenied(
-                detail=_("Seuls les membres de cette société peuvent y accéder.")
-            )
 
     @staticmethod
     def _get_max_art_number(company_id: int) -> int:
@@ -543,10 +508,12 @@ class ImportArticlesView(APIView):
                     }
                 )
 
-        return Response(
-            {"total": len(rows), "created": created_count, "errors": errors},
-            status=status.HTTP_200_OK,
-        )
+        response_data = {"total": len(rows), "created": created_count, "errors": errors}
+        if errors and created_count == 0:
+            return Response(response_data, status=status.HTTP_400_BAD_REQUEST)
+        elif errors:
+            return Response(response_data, status=status.HTTP_207_MULTI_STATUS)
+        return Response(response_data, status=status.HTTP_200_OK)
 
 
 class SendCSVExampleEmailView(APIView):

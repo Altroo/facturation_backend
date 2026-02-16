@@ -1797,7 +1797,7 @@ class TestArticleImport:
             format="multipart",
         )
 
-        assert response.status_code == 200
+        assert response.status_code == 400
         data = response.json()
         assert data["created"] == 0
         assert len(data["errors"]) == 1
@@ -1813,7 +1813,7 @@ class TestArticleImport:
             format="multipart",
         )
 
-        assert response.status_code == 200
+        assert response.status_code == 400
         data = response.json()
         assert data["created"] == 0
         assert len(data["errors"]) == 1
@@ -1834,7 +1834,7 @@ class TestArticleImport:
             format="multipart",
         )
 
-        assert response.status_code == 200
+        assert response.status_code == 400
         data = response.json()
         assert data["created"] == 0
         assert len(data["errors"]) == 1
@@ -1849,7 +1849,7 @@ class TestArticleImport:
             format="multipart",
         )
 
-        assert response.status_code == 200
+        assert response.status_code == 400
         data = response.json()
         assert data["created"] == 0
         assert len(data["errors"]) == 1

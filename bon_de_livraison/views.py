@@ -9,6 +9,7 @@ from reportlab.platypus import Spacer, Paragraph, Table, TableStyle
 from reportlab.platypus.flowables import HRFlowable
 from rest_framework import permissions
 from rest_framework import status
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -75,7 +76,10 @@ class BonDeLivraisonUninvoicedListView(BaseDocumentListCreateView):
         company_id_str = request.query_params.get("company_id")
         if not company_id_str:
             raise Http404(_("Aucune clients ne correspond à la requête."))
-        company_id = int(company_id_str)
+        try:
+            company_id = int(company_id_str)
+        except (ValueError, TypeError):
+            raise ValidationError({"company_id": _("company_id doit être un entier valide.")})
         self._check_company_access(request, company_id)
 
         # Get BLs that are not yet invoiced (excluding 'Facturé' status if it exists)
@@ -708,7 +712,7 @@ class BonDeLivraisonPDFView(APIView):
         bon_de_livraison = get_object_or_404(BonDeLivraison, pk=pk)
 
         # Check if user has print permission
-        if not can_print(request.user, int(company_id)):
+        if not can_print(request.user, company.pk):
             raise PermissionDenied(
                 _("Vous n'avez pas les droits pour imprimer ce document.")
             )

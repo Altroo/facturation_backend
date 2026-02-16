@@ -482,7 +482,8 @@ class SharedDocumentAPITestsMixin:
 
     def shared_test_update_status(self) -> None:
         url = self._status_url(self.doc.id)
-        response = self.client_api.patch(url, {"statut": "Accepté"}, format="json")
+        # Valid transition: Brouillon -> Envoyé
+        response = self.client_api.patch(url, {"statut": "Envoyé"}, format="json")
         assert response.status_code == status.HTTP_200_OK
 
     def shared_test_update_status_invalid(self) -> None:
