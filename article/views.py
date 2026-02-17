@@ -3,6 +3,8 @@ import io
 from decimal import Decimal, InvalidOperation
 from re import search
 
+import openpyxl
+
 from django.db import IntegrityError
 from django.http import Http404
 from django.utils.translation import gettext_lazy as _
@@ -245,11 +247,13 @@ class ArchiveToggleArticleView(CompanyAccessMixin, APIView):
 
 
 class ImportArticlesView(CompanyAccessMixin, APIView):
-    """Import articles from a CSV file.
+    """Import articles from CSV or Excel files.
 
-    Expected CSV columns: reference, type_article, designation,
-    prix_achat, prix_vente, tva, remarque, marque, categorie,
-    emplacement, unite.
+    Expected columns: reference, type_article, designation,
+    prix_achat, devise_prix_achat, prix_vente, devise_prix_vente,
+    tva, remarque, marque, categorie, emplacement, unite.
+
+    Supported formats: .csv, .xls, .xlsx
 
     - reference: if empty a new ART#### code is generated.
     - FK columns (marque, categorie, emplacement, unite): resolved by
@@ -332,6 +336,66 @@ class ImportArticlesView(CompanyAccessMixin, APIView):
             value_str = value_str.replace(",", ".")
         return value_str
 
+    @staticmethod
+    def _parse_file(file) -> list[dict]:
+        """Parse CSV or Excel file and return list of row dictionaries."""
+        filename = file.name.lower()
+        
+        if filename.endswith('.csv'):
+            # Parse CSV file
+            try:
+                content = file.read().decode("utf-8-sig")
+            except UnicodeDecodeError:
+                raise ValueError(_("Le fichier CSV doit être encodé en UTF-8."))
+            
+            # Detect delimiter
+            try:
+                dialect = csv.Sniffer().sniff(content[:2048], delimiters=",;\t|")
+                delimiter = dialect.delimiter
+            except csv.Error:
+                delimiter = ";"
+            
+            reader = csv.DictReader(io.StringIO(content), delimiter=delimiter)
+            return list(reader)
+        
+        elif filename.endswith(('.xls', '.xlsx')):
+            # Parse Excel file
+            try:
+                workbook = openpyxl.load_workbook(file, read_only=True, data_only=True)
+                sheet = workbook.active
+                
+                # Get headers from first row
+                rows_iter = sheet.iter_rows(values_only=True)
+                headers = next(rows_iter, None)
+                
+                if not headers:
+                    raise ValueError(_("Le fichier Excel est vide."))
+                
+                # Convert to list of dicts
+                rows = []
+                for row_values in rows_iter:
+                    # Skip empty rows
+                    if all(v is None or str(v).strip() == "" for v in row_values):
+                        continue
+                    row_dict = {}
+                    for header, value in zip(headers, row_values):
+                        if header:
+                            # Convert None and numeric values to string
+                            if value is None:
+                                row_dict[header] = ""
+                            else:
+                                row_dict[header] = str(value)
+                    rows.append(row_dict)
+                
+                workbook.close()
+                return rows
+            
+            except Exception as e:
+                raise ValueError(_(f"Erreur lors de la lecture du fichier Excel : {str(e)}"))
+        
+        else:
+            raise ValueError(_("Format de fichier non supporté. Utilisez .csv, .xls ou .xlsx"))
+
     # --------------- POST ----------------------------------------------------
 
     def post(self, request, *args, **kwargs):
@@ -359,26 +423,22 @@ class ImportArticlesView(CompanyAccessMixin, APIView):
         file = request.FILES.get("file")
         if not file:
             return Response(
-                {"detail": _("Un fichier CSV est requis.")},
+                {"detail": _("Un fichier est requis (CSV ou Excel).")},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # --- decode ----------------------------------------------------------
+        # --- parse file ------------------------------------------------------
         try:
-            content = file.read().decode("utf-8-sig")
-        except UnicodeDecodeError:
+            rows = self._parse_file(file)
+        except ValueError as e:
             return Response(
-                {"detail": _("Le fichier doit être encodé en UTF-8.")},
+                {"detail": str(e)},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
-        delimiter = self._detect_delimiter(content[:2048])
-        reader = csv.DictReader(io.StringIO(content), delimiter=delimiter)
-
-        rows = list(reader)
+        
         if not rows:
             return Response(
-                {"detail": _("Le fichier CSV est vide ou ne contient pas de données.")},
+                {"detail": _("Le fichier est vide ou ne contient pas de données.")},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -460,19 +520,34 @@ class ImportArticlesView(CompanyAccessMixin, APIView):
 
             # --- devise_prix_achat -------------------------------------------
             valid_currencies = {c[0] for c in CURRENCY_CHOICES}
-            devise_raw = normalized_row.get("devise_prix_achat", "").strip().upper()
-            if devise_raw and devise_raw not in valid_currencies:
+            devise_achat_raw = normalized_row.get("devise_prix_achat", "").strip().upper()
+            if devise_achat_raw and devise_achat_raw not in valid_currencies:
                 errors.append(
                     {
                         "row": idx,
                         "message": (
-                            f"devise_prix_achat invalide : '{devise_raw}'."
+                            f"devise_prix_achat invalide : '{devise_achat_raw}'."
                             f" Utilisez l'une de : {', '.join(sorted(valid_currencies))}."
                         ),
                     }
                 )
                 continue
-            devise_prix_achat = devise_raw or "MAD"
+            devise_prix_achat = devise_achat_raw or "MAD"
+
+            # --- devise_prix_vente -------------------------------------------
+            devise_vente_raw = normalized_row.get("devise_prix_vente", "").strip().upper()
+            if devise_vente_raw and devise_vente_raw not in valid_currencies:
+                errors.append(
+                    {
+                        "row": idx,
+                        "message": (
+                            f"devise_prix_vente invalide : '{devise_vente_raw}'."
+                            f" Utilisez l'une de : {', '.join(sorted(valid_currencies))}."
+                        ),
+                    }
+                )
+                continue
+            devise_prix_vente = devise_vente_raw or "MAD"
 
             # --- foreign keys ------------------------------------------------
             marque = self._resolve_fk(Marque, normalized_row.get("marque"), company_id)
@@ -492,6 +567,7 @@ class ImportArticlesView(CompanyAccessMixin, APIView):
                     prix_achat=decimal_values["prix_achat"],
                     devise_prix_achat=devise_prix_achat,
                     prix_vente=decimal_values["prix_vente"],
+                    devise_prix_vente=devise_prix_vente,
                     tva=decimal_values["tva"],
                     remarque=remarque,
                     marque=marque,
@@ -521,7 +597,7 @@ class SendCSVExampleEmailView(APIView):
 
     @staticmethod
     def post(request, *args, **kwargs):
-        """Send CSV import guide via email with CSV template attached."""
+        """Send import guide via email with CSV and Excel templates attached."""
         from account.tasks import send_csv_example_email
         
         company_id = request.data.get("company_id")

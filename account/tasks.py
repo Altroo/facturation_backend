@@ -1,5 +1,6 @@
 from io import BytesIO
 from random import shuffle
+import openpyxl
 
 from PIL import Image, ImageDraw, ImageFont
 from asgiref.sync import async_to_sync, sync_to_async
@@ -39,16 +40,55 @@ def send_email(self, user_pk, email_, mail_subject, message, code=None, type_=No
 
 @app.task(bind=True, serializer="json", max_retries=3)
 def send_csv_example_email(self, user_pk, email_):
+    """Send import guide via email with CSV and Excel templates attached."""
     try:
         user = CustomUser.objects.get(pk=user_pk)
         
         # Create CSV content with headers only
-        csv_content = ("reference;type_article;designation;prix_achat;devise_prix_achat;"
+        csv_headers = ("reference;type_article;designation;prix_achat;devise_prix_achat;"
                        "prix_vente;devise_prix_vente;tva;remarque;marque;categorie;emplacement;unite\n")
+        
+        # Create Excel template
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "Articles"
+        
+        # Headers for Excel
+        headers = [
+            "reference", "type_article", "designation", "prix_achat", "devise_prix_achat",
+            "prix_vente", "devise_prix_vente", "tva", "remarque", "marque", "categorie", 
+            "emplacement", "unite"
+        ]
+        ws.append(headers)
+        
+        # Style headers
+        from openpyxl.styles import Font, PatternFill
+        header_font = Font(bold=True)
+        header_fill = PatternFill(start_color="CCE5FF", end_color="CCE5FF", fill_type="solid")
+        
+        for cell in ws[1]:
+            cell.font = header_font
+            cell.fill = header_fill
+        
+        # Adjust column widths
+        for col in ws.columns:
+            max_length = 0
+            column = col[0].column_letter
+            for cell in col:
+                if cell.value:
+                    max_length = max(max_length, len(str(cell.value)))
+            adjusted_width = min(max_length + 2, 50)
+            ws.column_dimensions[column].width = adjusted_width
+        
+        # Save Excel to bytes
+        excel_buffer = BytesIO()
+        wb.save(excel_buffer)
+        excel_content = excel_buffer.getvalue()
+        excel_buffer.close()
         
         # Render HTML template
         mail_subject = "Guide d'importation des articles - Facturation"
-        mail_template = "csv_email.html"
+        mail_template = "import_email_guide.html"
         message = render_to_string(
             mail_template,
             {
@@ -64,18 +104,21 @@ def send_csv_example_email(self, user_pk, email_):
         )
         email.content_subtype = "html"
         
-        # Attach CSV file
-        email.attach("modele_articles.csv", csv_content, "text/csv")
+        # Attach both CSV and Excel files
+        email.attach("modele_articles.csv", csv_headers, "text/csv")
+        email.attach("modele_articles.xlsx", excel_content, 
+                     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
         
         # Send email
         email.send(fail_silently=False)
         
     except ObjectDoesNotExist:
-        logger.error(f"Utilisateur {user_pk} introuvable pour l'envoi du CSV exemple")
+        logger.error(f"Utilisateur {user_pk} introuvable pour l'envoi du guide d'importation")
         return
     except Exception as e:
-        logger.error(f"Échec de l'envoi du CSV exemple pour l'utilisateur {user_pk} : {e}")
+        logger.error(f"Échec de l'envoi du guide d'importation pour l'utilisateur {user_pk} : {e}")
         raise self.retry(exc=e, countdown=60)
+
 
 @app.task(bind=True, serializer="json", max_retries=3)
 def start_deleting_expired_codes(self, user_pk, type_):
