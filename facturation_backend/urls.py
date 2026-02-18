@@ -27,6 +27,27 @@ def health_check(request):
     return JsonResponse({"status": "healthy"})
 
 
+def custom_404(request, exception=None):
+    """Custom 404 handler returning JSON."""
+    return JsonResponse(
+        {"status_code": 404, "message": "Page introuvable", "details": {}},
+        status=404,
+    )
+
+
+def custom_500(request):
+    """Custom 500 handler returning JSON."""
+    return JsonResponse(
+        {"status_code": 500, "message": "Erreur interne du serveur", "details": {}},
+        status=500,
+    )
+
+
+# Custom error handlers
+handler404 = custom_404
+handler500 = custom_500
+
+
 urlpatterns = [
     # Health check endpoint (unauthenticated)
     path("api/health/", health_check, name="health-check"),
@@ -52,8 +73,8 @@ urlpatterns = [
     path("api/parameter/", include("parameter.urls")),
     # Dashboard
     path("api/dashboard/", include("dashboard.urls")),
-    # Admin panel
-    path("admin/", admin.site.urls),
+    # Admin panel (obscured path for security)
+    path("gestion-interne-x7k2/", admin.site.urls),
 ]
 
 # Always serve static/media — nginx proxies these to Django

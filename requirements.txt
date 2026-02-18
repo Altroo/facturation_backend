@@ -29,3 +29,4 @@ reportlab==4.4.10
 django-simple-history==3.11.0
 openpyxl==3.1.5
 numpy==2.4.2
+django-axes==7.0.1

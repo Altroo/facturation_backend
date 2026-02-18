@@ -222,7 +222,9 @@ class SendPasswordResetView(APIView):
     permission_classes = (permissions.AllowAny,)
     throttle_classes = [ScopedRateThrottle]
     throttle_scope = "password_reset"
-    errors = {"email": ["Aucun compte existant utilisant cette adresse éléctronique."]}
+    # Generic message to prevent account enumeration
+    success_message = "Si un compte existe avec cet email, un code de vérification vous sera envoyé."
+    errors = {"email": ["Aucun compte existant utilisant cette adresse électronique."]}
 
     @staticmethod
     def generate_random_code(length=6):
@@ -310,9 +312,11 @@ class SendPasswordResetView(APIView):
                     return Response(status=status.HTTP_204_NO_CONTENT)
                 raise ValidationError(serializer.errors)
             else:
-                raise ValidationError(self.errors)
+                # Return same 204 response to prevent account enumeration
+                return Response(status=status.HTTP_204_NO_CONTENT)
         except CustomUser.DoesNotExist:
-            raise ValidationError(self.errors)
+            # Return same 204 response to prevent account enumeration
+            return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class ProfileView(APIView):

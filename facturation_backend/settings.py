@@ -70,6 +70,7 @@ INSTALLED_APPS = [
     "bon_de_livraison.apps.BonDeLivraisonConfig",
     "reglement.apps.ReglementConfig",
     "dashboard.apps.DashboardConfig",
+    "axes",
 ]
 
 MIDDLEWARE = [
@@ -84,6 +85,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "simple_history.middleware.HistoryRequestMiddleware",
+    "axes.middleware.AxesMiddleware",
 ]
 
 # Use WhiteNoise’s compressed static files storage
@@ -191,6 +193,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # allauth config
 AUTHENTICATION_BACKENDS = [
+    "axes.backends.AxesStandaloneBackend",
     "django.contrib.auth.backends.ModelBackend",
 ]
 SITE_ID = 1
@@ -199,7 +202,6 @@ SITE_ID = 1
 REST_FRAMEWORK = dict(
     DEFAULT_AUTHENTICATION_CLASSES=(
         "dj_rest_auth.jwt_auth.JWTAuthentication",
-        "rest_framework.authentication.SessionAuthentication",
     ),
     DEFAULT_FILTER_BACKENDS=["django_filters.rest_framework.DjangoFilterBackend"],
     DEFAULT_PERMISSION_CLASSES=("rest_framework.permissions.IsAuthenticated",),
@@ -229,7 +231,7 @@ REST_AUTH = {
     "TOKEN_MODEL": None,
     "OLD_PASSWORD_FIELD_ENABLED": True,
     "JWT_AUTH_HTTPONLY": True,
-    "LOGOUT_ON_PASSWORD_CHANGE": False,
+    "LOGOUT_ON_PASSWORD_CHANGE": True,
 }
 
 # SIMPLE_JWT
@@ -277,3 +279,35 @@ DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="")
 SERVER_EMAIL = config("SERVER_EMAIL", default="")
 
 API_URL = config("API_URL")
+
+# ──────────────────────────────────────────────
+# Security settings
+# ──────────────────────────────────────────────
+
+# Cookie security
+SESSION_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = "Lax"
+CSRF_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_HTTPONLY = True
+CSRF_COOKIE_SAMESITE = "Lax"
+
+# HTTPS enforcement (handled by nginx in production, but belt-and-suspenders)
+SECURE_SSL_REDIRECT = config("SECURE_SSL_REDIRECT", default=not DEBUG, cast=bool)
+SECURE_HSTS_SECONDS = 31536000
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_BROWSER_XSS_FILTER = True
+
+# ──────────────────────────────────────────────
+# Django Axes — brute-force protection
+# ──────────────────────────────────────────────
+AXES_FAILURE_LIMIT = 5  # Lock after 5 failed attempts
+AXES_COOLOFF_TIME = timedelta(minutes=15)  # Lockout duration
+AXES_RESET_ON_SUCCESS = True  # Reset counter on successful login
+AXES_LOCKOUT_CALLABLE = None  # Use default 403 response
+AXES_META_PRECEDENCE_ORDER = [
+    "HTTP_X_FORWARDED_FOR",
+    "REMOTE_ADDR",
+]
