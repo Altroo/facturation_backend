@@ -219,16 +219,6 @@ class BaseStatusUpdateView(CompanyAccessMixin, APIView):
     model = None
     document_name = "document"
 
-    # Define allowed status transitions (from_status -> set of allowed to_statuses)
-    ALLOWED_TRANSITIONS = {
-        "Brouillon": {"Envoyé", "Annulé"},
-        "Envoyé": {"Accepté", "Refusé", "Annulé", "Brouillon"},
-        "Accepté": {"Annulé"},
-        "Refusé": {"Brouillon", "Annulé"},
-        "Annulé": set(),  # Terminal state - no transitions allowed
-        "Expiré": {"Brouillon", "Annulé"},
-    }
-
     def get_object(self, pk):
         try:
             return self.model.objects.get(pk=pk)
@@ -252,16 +242,6 @@ class BaseStatusUpdateView(CompanyAccessMixin, APIView):
         valid_statuses = [choice[0] for choice in self.model.STATUT_CHOICES]
         if new_status not in valid_statuses:
             raise ValidationError({"statut": _("Statut invalide.")})
-
-        # Validate status transition
-        current_status = object_.statut
-        allowed = self.ALLOWED_TRANSITIONS.get(current_status, set())
-        if new_status != current_status and new_status not in allowed:
-            raise ValidationError({
-                "statut": _(
-                    f"Transition de '{current_status}' vers '{new_status}' non autorisée."
-                )
-            })
 
         object_.statut = new_status
         object_.save()

@@ -22,7 +22,7 @@ from rest_framework.exceptions import Throttled
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import exception_handler
-from six import string_types
+
 
 
 class ImageProcessor:
@@ -138,7 +138,7 @@ class ImageProcessor:
 
     @staticmethod
     def data_url_to_uploaded_file(data):
-        if isinstance(data, string_types):
+        if isinstance(data, str):
             # Check if the base64 string is in the "data:" format
             if "data:" in data and ";base64," in data:
                 # Break out the header from the base64 content
@@ -192,7 +192,7 @@ class Base64ImageField(serializers.ImageField):
     def to_internal_value(self, data):
         # Check if this is a base64 string
         decoded_file = None
-        if isinstance(data, string_types):
+        if isinstance(data, str):
             # Check if the base64 string is in the "data:" format
             if "data:" in data and ";base64," in data:
                 # Break out the header from the base64 content
