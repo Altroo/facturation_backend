@@ -1719,6 +1719,45 @@ class TestReglementPDFGeneration:
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
+    def test_pdf_forbidden_cross_company_document(
+        self,
+        reglement_user,
+        reglement_company,
+        reglement_facture,
+        reglement_mode_reglement,
+    ):
+        """Test PDF fails when company_id doesn't own the règlement."""
+        caissier_role, _ = Role.objects.get_or_create(
+            name="Caissier",
+        )
+        other_company = Company.objects.create(
+            raison_sociale="Other Regl Co", ICE="OTHREG"
+        )
+        Membership.objects.create(
+            user=reglement_user, company=other_company, role=caissier_role
+        )
+
+        reglement = Reglement.objects.create(
+            facture_client=reglement_facture,
+            mode_reglement=reglement_mode_reglement,
+            libelle="Test Payment",
+            montant=Decimal("500.00"),
+            date_reglement="2026-01-05",
+            date_echeance="2026-01-05",
+            statut="Valide",
+        )
+
+        client_api = APIClient()
+        client_api.force_authenticate(user=reglement_user)
+
+        url = (
+            reverse("reglement:reglement-pdf-fr", args=[reglement.id])
+            + f"?company_id={other_company.id}"
+        )
+        response = client_api.get(url)
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
     def test_pdf_not_found(self, reglement_user, reglement_company):
         """Test PDF fails for non-existent règlement."""
         caissier_role, _ = Role.objects.get_or_create(

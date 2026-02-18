@@ -383,8 +383,9 @@ class FactureProFormaPDFGenerator(BasePDFGenerator):
             row.append(Paragraph(f"{tva_pct:.0f}%", self.styles["CustomSmallCenter"]))
 
             # Prix unitaire HT - centered
+            devise = self.document.devise or "MAD"
             row.append(
-                Paragraph(format_number_for_pdf(line.prix_vente), self.styles["CustomSmallCenter"])
+                Paragraph(f"{format_number_for_pdf(line.prix_vente)} {devise}", self.styles["CustomSmallCenter"])
             )
 
             # Unite (if showing) - centered
@@ -408,7 +409,7 @@ class FactureProFormaPDFGenerator(BasePDFGenerator):
                 total_ht -= total_ht * line.remise / Decimal("100")
             elif line.remise_type == "Fixe" and line.remise:
                 total_ht -= line.remise
-            row.append(Paragraph(format_number_for_pdf(total_ht), self.styles["CustomSmallCenter"]))
+            row.append(Paragraph(f"{format_number_for_pdf(total_ht)} {devise}", self.styles["CustomSmallCenter"]))
 
             table_data.append(row)
 
@@ -418,11 +419,12 @@ class FactureProFormaPDFGenerator(BasePDFGenerator):
         table_data.append(empty_row)
 
         # Add totals rows (aligned to right columns) - NO MAD text
+        devise = self.document.devise or "MAD"
         # Total HT
         total_ht_row = [Paragraph("", self.styles["CustomSmall"])] * num_cols
         total_ht_row[-2] = Paragraph("<b>Total HT</b>", self.styles["CustomSmall"])
         total_ht_row[-1] = Paragraph(
-            format_number_for_pdf(self.document.total_ht), self.styles["CustomSmallCenter"]
+            f"{format_number_for_pdf(self.document.total_ht)} {devise}", self.styles["CustomSmallCenter"]
         )
         table_data.append(total_ht_row)
 
@@ -430,7 +432,7 @@ class FactureProFormaPDFGenerator(BasePDFGenerator):
         tva_row = [Paragraph("", self.styles["CustomSmall"])] * num_cols
         tva_row[-2] = Paragraph("<b>TVA</b>", self.styles["CustomSmall"])
         tva_row[-1] = Paragraph(
-            format_number_for_pdf(self.document.total_tva), self.styles["CustomSmallCenter"]
+            f"{format_number_for_pdf(self.document.total_tva)} {devise}", self.styles["CustomSmallCenter"]
         )
         table_data.append(tva_row)
 
@@ -438,7 +440,7 @@ class FactureProFormaPDFGenerator(BasePDFGenerator):
         total_ttc_row = [Paragraph("", self.styles["CustomSmall"])] * num_cols
         total_ttc_row[-2] = Paragraph("<b>Total TTC</b>", self.styles["CustomSmall"])
         total_ttc_row[-1] = Paragraph(
-            format_number_for_pdf(self.document.total_ttc), self.styles["CustomSmallCenter"]
+            f"{format_number_for_pdf(self.document.total_ttc)} {devise}", self.styles["CustomSmallCenter"]
         )
         table_data.append(total_ttc_row)
 
@@ -462,7 +464,7 @@ class FactureProFormaPDFGenerator(BasePDFGenerator):
                 "<b>Total TTC après remise</b>", self.styles["CustomSmall"]
             )
             final_row[-1] = Paragraph(
-                format_number_for_pdf(self.document.total_ttc_apres_remise),
+                f"{format_number_for_pdf(self.document.total_ttc_apres_remise)} {devise}",
                 self.styles["CustomSmallCenter"],
             )
             table_data.append(final_row)
@@ -563,7 +565,9 @@ class FactureProFormaPDFView(APIView):
             )
 
         company = get_object_or_404(Company, pk=company_id)
-        facture_proforma = get_object_or_404(FactureProForma, pk=pk)
+        facture_proforma = get_object_or_404(
+            FactureProForma, pk=pk, company_id=company_id
+        )
 
         # Check if user has print permission
         if not can_print(request.user, company.pk):

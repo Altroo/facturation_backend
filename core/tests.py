@@ -16,7 +16,7 @@ from account.models import Role
 from django.urls import reverse
 from rest_framework import serializers as drf_serializers
 from rest_framework import status
-from rest_framework.test import APIClient
+from rest_framework.test import APIClient, force_authenticate
 
 from account.models import CustomUser, Membership
 from article.models import Article
@@ -1490,14 +1490,11 @@ class TestBaseDocumentListCreateViewPermissions:
         class TestView(BaseDocumentListCreateView):
             model = Devi
 
-        client_api = APIClient()
-        client_api.force_authenticate(user=user)
-
         # Post with non-existent client ID
         view = TestView.as_view()
         factory = APIRequestFactory()
         request = factory.post("/", {"client": 99999}, format="json")
-        request.user = user
+        force_authenticate(request, user=user)
 
         response = view(request)
         assert response.status_code == 404
@@ -1526,7 +1523,7 @@ class TestBaseDocumentListCreateViewPermissions:
         view = TestView.as_view()
         factory = APIRequestFactory()
         request = factory.post("/", {"client": client_obj.id}, format="json")
-        request.user = user
+        force_authenticate(request, user=user)
 
         response = view(request)
         assert response.status_code == 403
@@ -1576,7 +1573,7 @@ class TestBaseStatusUpdateViewPermissions:
         view = TestStatusView.as_view()
         factory = APIRequestFactory()
         request = factory.patch("/", {"statut": "Accepté"}, format="json")
-        request.user = user  # user_obj is NOT a member
+        force_authenticate(request, user=user)  # user is NOT a member
 
         response = view(request, pk=devi.pk)
         assert response.status_code == 403
@@ -1596,7 +1593,7 @@ class TestBaseStatusUpdateViewPermissions:
         view = TestStatusView.as_view()
         factory = APIRequestFactory()
         request = factory.patch("/", {"statut": "Accepté"}, format="json")
-        request.user = user
+        force_authenticate(request, user=user)
 
         response = view(request, pk=99999)
         assert response.status_code == 404
@@ -1652,7 +1649,7 @@ class TestBaseConversionViewPermissions:
         view = TestConversionView.as_view()
         factory = APIRequestFactory()
         request = factory.post("/", format="json")
-        request.user = user  # user_obj is NOT a member
+        force_authenticate(request, user=user)  # user is NOT a member
 
         response = view(request, pk=devi.pk)
         assert response.status_code == 403
@@ -1678,7 +1675,7 @@ class TestBaseConversionViewPermissions:
         view = TestConversionView.as_view()
         factory = APIRequestFactory()
         request = factory.post("/", format="json")
-        request.user = user
+        force_authenticate(request, user=user)
 
         response = view(request, pk=99999)
         assert response.status_code == 404
@@ -1730,7 +1727,7 @@ class TestBaseDocumentDetailEditDeleteViewPermissions:
         view = TestDetailView.as_view()
         factory = APIRequestFactory()
         request = factory.put("/", {"numero_devis": "0004/25"}, format="json")
-        request.user = user  # user_obj is NOT a member
+        force_authenticate(request, user=user)  # user is NOT a member
 
         response = view(request, pk=devi.pk)
         assert response.status_code == 403
@@ -1777,7 +1774,7 @@ class TestBaseDocumentDetailEditDeleteViewPermissions:
         view = TestDetailView.as_view()
         factory = APIRequestFactory()
         request = factory.delete("/")
-        request.user = user  # user_obj is NOT a member
+        force_authenticate(request, user=user)  # user is NOT a member
 
         response = view(request, pk=devi.pk)
         assert response.status_code == 403
@@ -1799,7 +1796,7 @@ class TestBaseDocumentDetailEditDeleteViewPermissions:
         view = TestDetailView.as_view()
         factory = APIRequestFactory()
         request = factory.get("/")
-        request.user = user
+        force_authenticate(request, user=user)
 
         response = view(request, pk=99999)
         assert response.status_code == 404

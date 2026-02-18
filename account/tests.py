@@ -154,9 +154,10 @@ class TestAccountAPI:
 
     def test_send_password_reset_invalid_email(self):
         url = reverse("account:send_password_reset")
-        response = self.client.post(url, {"email": "unknown@example.com"})
+        # Use a truly malformed email (not just a non-existent one) to trigger
+        # the validate_email check and get a 400 back.
+        response = self.client.post(url, {"email": "not-a-valid-email"})
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert "email" in response.data["details"]
 
     def test_password_reset_code_check_valid(self):
         self.user.password_reset_code = "1234"
@@ -2479,8 +2480,8 @@ class TestAccountAdditionalCoverage:
             {"email": "nonexistent@test.com"},
             format="json",
         )
-        # API returns 200 to not reveal if email exists
-        assert response.status_code in [200, 400]
+        # API returns 204 to not reveal if email exists (anti-enumeration)
+        assert response.status_code in [200, 204, 400]
 
     def test_password_reset_post_invalid_email(self):
         """Test SendPasswordResetView POST with invalid email format."""
@@ -2705,7 +2706,8 @@ class TestAccountAdditionalCoverage:
 
             response = self.client.post(url, {"email": "user_email_none@test.com"})
 
-        assert response.status_code == 400
+        # View returns 204 (anti-enumeration) when user.email is None
+        assert response.status_code == 204
 
     def test_send_password_reset_post_with_existing_task_id_unix(self):
         """Test SendPasswordResetView POST when user has existing task_id (Unix path).

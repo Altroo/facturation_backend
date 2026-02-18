@@ -225,22 +225,58 @@ class FactureClientUnpaidListView(BaseDocumentListCreateView):
         filterset = self.filter_class(request.GET, queryset=queryset)
         ordered_qs = filterset.qs.order_by("-id")
 
-        # Calculate aggregated stats for the company (same as main list)
+        # Calculate aggregated stats per currency for the company
         factures = FactureClient.objects.filter(client__company_id=company_id)
-        chiffre_affaire_total = factures.aggregate(total=Sum("total_ttc_apres_remise"))[
-            "total"
-        ] or Decimal("0.00")
+        company = Company.objects.get(id=company_id)
+        stats_by_currency = {}
 
-        total_reglements = Reglement.objects.filter(
-            facture_client__client__company_id=company_id, statut="Valide"
-        ).aggregate(total=Sum("montant"))["total"] or Decimal("0.00")
+        if company.uses_foreign_currency:
+            for devise in ["MAD", "EUR", "USD"]:
+                factures_devise = factures.filter(devise=devise)
+                chiffre_affaire = factures_devise.aggregate(
+                    total=Sum("total_ttc_apres_remise")
+                )["total"] or Decimal("0.00")
 
-        total_impayes = chiffre_affaire_total - total_reglements
+                reglements = Reglement.objects.filter(
+                    facture_client__client__company_id=company_id,
+                    facture_client__devise=devise,
+                    statut="Valide",
+                ).aggregate(total=Sum("montant"))["total"] or Decimal("0.00")
+
+                impayes = chiffre_affaire - reglements
+
+                stats_by_currency[devise] = {
+                    "chiffre_affaire_total": str(chiffre_affaire),
+                    "total_reglements": str(reglements),
+                    "total_impayes": str(impayes),
+                }
+        else:
+            chiffre_affaire = factures.aggregate(total=Sum("total_ttc_apres_remise"))["total"] or Decimal("0.00")
+
+            reglements = Reglement.objects.filter(
+                facture_client__client__company_id=company_id, statut="Valide"
+            ).aggregate(total=Sum("montant"))["total"] or Decimal("0.00")
+
+            impayes = chiffre_affaire - reglements
+
+            stats_by_currency["MAD"] = {
+                "chiffre_affaire_total": str(chiffre_affaire),
+                "total_reglements": str(reglements),
+                "total_impayes": str(impayes),
+            }
+            stats_by_currency["EUR"] = {
+                "chiffre_affaire_total": "0.00",
+                "total_reglements": "0.00",
+                "total_impayes": "0.00",
+            }
+            stats_by_currency["USD"] = {
+                "chiffre_affaire_total": "0.00",
+                "total_reglements": "0.00",
+                "total_impayes": "0.00",
+            }
 
         extra_stats = {
-            "chiffre_affaire_total": str(chiffre_affaire_total),
-            "total_reglements": str(total_reglements),
-            "total_impayes": str(total_impayes),
+            "stats_by_currency": stats_by_currency,
         }
 
         if pagination:
@@ -663,8 +699,9 @@ class FactureClientPDFGenerator(BasePDFGenerator):
             row.append(Paragraph(f"{tva_pct:.0f}%", self.styles["CustomSmallCenter"]))
 
             # Prix unitaire HT - centered
+            devise = self.document.devise or "MAD"
             row.append(
-                Paragraph(format_number_for_pdf(line.prix_vente), self.styles["CustomSmallCenter"])
+                Paragraph(f"{format_number_for_pdf(line.prix_vente)} {devise}", self.styles["CustomSmallCenter"])
             )
 
             # Unite (if showing) - centered
@@ -688,7 +725,7 @@ class FactureClientPDFGenerator(BasePDFGenerator):
                 total_ht -= total_ht * line.remise / Decimal("100")
             elif line.remise_type == "Fixe" and line.remise:
                 total_ht -= line.remise
-            row.append(Paragraph(format_number_for_pdf(total_ht), self.styles["CustomSmallCenter"]))
+            row.append(Paragraph(f"{format_number_for_pdf(total_ht)} {devise}", self.styles["CustomSmallCenter"]))
 
             table_data.append(row)
 
@@ -698,24 +735,25 @@ class FactureClientPDFGenerator(BasePDFGenerator):
         table_data.append(empty_row)
 
         # Add totals rows - NO MAD text
+        devise = self.document.devise or "MAD"
         total_ht_row = [Paragraph("", self.styles["CustomSmall"])] * num_cols
         total_ht_row[-2] = Paragraph("<b>Total HT</b>", self.styles["CustomSmall"])
         total_ht_row[-1] = Paragraph(
-            format_number_for_pdf(self.document.total_ht), self.styles["CustomSmallCenter"]
+            f"{format_number_for_pdf(self.document.total_ht)} {devise}", self.styles["CustomSmallCenter"]
         )
         table_data.append(total_ht_row)
 
         tva_row = [Paragraph("", self.styles["CustomSmall"])] * num_cols
         tva_row[-2] = Paragraph("<b>TVA</b>", self.styles["CustomSmall"])
         tva_row[-1] = Paragraph(
-            format_number_for_pdf(self.document.total_tva), self.styles["CustomSmallCenter"]
+            f"{format_number_for_pdf(self.document.total_tva)} {devise}", self.styles["CustomSmallCenter"]
         )
         table_data.append(tva_row)
 
         total_ttc_row = [Paragraph("", self.styles["CustomSmall"])] * num_cols
         total_ttc_row[-2] = Paragraph("<b>Total TTC</b>", self.styles["CustomSmall"])
         total_ttc_row[-1] = Paragraph(
-            format_number_for_pdf(self.document.total_ttc), self.styles["CustomSmallCenter"]
+            f"{format_number_for_pdf(self.document.total_ttc)} {devise}", self.styles["CustomSmallCenter"]
         )
         table_data.append(total_ttc_row)
 
@@ -738,7 +776,7 @@ class FactureClientPDFGenerator(BasePDFGenerator):
                 "<b>Total TTC après remise</b>", self.styles["CustomSmall"]
             )
             final_row[-1] = Paragraph(
-                format_number_for_pdf(self.document.total_ttc_apres_remise),
+                f"{format_number_for_pdf(self.document.total_ttc_apres_remise)} {devise}",
                 self.styles["CustomSmallCenter"],
             )
             table_data.append(final_row)
@@ -836,7 +874,7 @@ class FactureClientPDFView(APIView):
             )
 
         company = get_object_or_404(Company, pk=company_id)
-        facture_client = get_object_or_404(FactureClient, pk=pk)
+        facture_client = get_object_or_404(FactureClient, pk=pk, company_id=company_id)
 
         # Check if user has print permission
         if not can_print(request.user, company.pk):

@@ -1,7 +1,7 @@
-from datetime import datetime
 from re import search
 
 from django.db import transaction
+from django.utils import timezone
 
 from core.utils import format_number_with_dynamic_digits
 from .models import FactureProForma
@@ -12,7 +12,7 @@ def get_next_numero_facture_pro_forma(company_id: int) -> str:
     Return the next available numero_facture string like '0001/25' for the given company.
     Automatically increases digit count when 9999 is reached.
     """
-    year_suffix = f"{datetime.now().year % 100:02d}"
+    year_suffix = f"{timezone.localtime(timezone.now()).year % 100:02d}"
 
     with transaction.atomic():
         # Lock the relevant rows to prevent concurrent access

@@ -726,6 +726,42 @@ class TestBonDeLivraisonPDFGeneration:
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
+    def test_pdf_forbidden_cross_company_document(
+        self,
+        bon_de_livraison_user,
+        bon_de_livraison_company,
+        bon_de_livraison_with_lines,
+    ):
+        """Test PDF fails when company_id doesn't own the bon de livraison."""
+        from django.urls import reverse
+        from rest_framework import status
+
+        other_company = Company.objects.create(
+            raison_sociale="Other BL Co", ICE="OTHBL"
+        )
+        caissier_role, _ = Role.objects.get_or_create(
+            name="Caissier",
+        )
+        Membership.objects.create(
+            user=bon_de_livraison_user,
+            company=other_company,
+            role=caissier_role,
+        )
+
+        client_api = APIClient()
+        client_api.force_authenticate(user=bon_de_livraison_user)
+
+        url = (
+            reverse(
+                "bon_de_livraison:bon-de-livraison-pdf-fr",
+                args=[bon_de_livraison_with_lines.id],
+            )
+            + f"?company_id={other_company.id}"
+        )
+        response = client_api.get(url)
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
     def test_pdf_not_found(self, bon_de_livraison_user, bon_de_livraison_company):
         """Test PDF fails for non-existent bon de livraison."""
         from django.urls import reverse

@@ -635,6 +635,31 @@ class TestFactureClientPDFGeneration:
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
+    def test_pdf_forbidden_cross_company_document(
+        self, fc_conv_user, fc_conv_company, fc_conv_with_lines
+    ):
+        """Test PDF fails when company_id doesn't own the facture."""
+        from django.urls import reverse
+        from rest_framework import status
+
+        other_company = Company.objects.create(
+            raison_sociale="Other FC Co", ICE="OTHFC"
+        )
+        _create_fc_membership(fc_conv_user, other_company)
+
+        client_api = APIClient()
+        client_api.force_authenticate(user=fc_conv_user)
+
+        url = (
+            reverse(
+                "facture_client:facture-client-pdf-fr", args=[fc_conv_with_lines.id]
+            )
+            + f"?company_id={other_company.id}"
+        )
+        response = client_api.get(url)
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
     def test_pdf_not_found(self, fc_conv_user, fc_conv_company):
         """Test PDF fails for non-existent facture client."""
         from django.urls import reverse
@@ -747,9 +772,11 @@ class TestFactureClientUnpaidListView:
 
         assert response.status_code == status.HTTP_200_OK
         assert "results" in response.data
-        assert "chiffre_affaire_total" in response.data
-        assert "total_reglements" in response.data
-        assert "total_impayes" in response.data
+        assert "stats_by_currency" in response.data
+        assert "MAD" in response.data["stats_by_currency"]
+        assert "chiffre_affaire_total" in response.data["stats_by_currency"]["MAD"]
+        assert "total_reglements" in response.data["stats_by_currency"]["MAD"]
+        assert "total_impayes" in response.data["stats_by_currency"]["MAD"]
 
     def test_unpaid_list_with_pagination(
         self, fc_conv_user, fc_conv_company, fc_conv_client
@@ -782,7 +809,7 @@ class TestFactureClientUnpaidListView:
 
         assert response.status_code == status.HTTP_200_OK
         assert "results" in response.data
-        assert "chiffre_affaire_total" in response.data
+        assert "stats_by_currency" in response.data
 
     def test_unpaid_list_post_disabled(self, fc_conv_user, fc_conv_company):
         """Test that POST is disabled for unpaid list."""

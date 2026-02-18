@@ -651,7 +651,9 @@ class ReglementPDFView(APIView):
             )
 
         company = get_object_or_404(Company, pk=company_id)
-        reglement = get_object_or_404(Reglement, pk=pk)
+        reglement = get_object_or_404(
+            Reglement, pk=pk, facture_client__company_id=company_id
+        )
 
         # Check if user has print permission
         if not can_print(request.user, company.pk):

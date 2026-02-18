@@ -942,7 +942,8 @@ class BasePDFGenerator:
             row.append(Paragraph(f"{tva_pct:.0f}%", self.styles["CustomSmall"]))
 
             # Prix unitaire HT
-            row.append(Paragraph(format_number_for_pdf(line.prix_vente), self.styles["CustomSmall"]))
+            devise = self.document.devise or "MAD"
+            row.append(Paragraph(f"{format_number_for_pdf(line.prix_vente)} {devise}", self.styles["CustomSmall"]))
 
             # Unite (if showing)
             if show_unite:
@@ -956,7 +957,7 @@ class BasePDFGenerator:
                     total_ht -= total_ht * line.remise / Decimal("100")
                 elif line.remise_type == "Fixe":
                     total_ht -= line.remise
-            row.append(Paragraph(format_number_for_pdf(total_ht), self.styles["CustomSmall"]))
+            row.append(Paragraph(f"{format_number_for_pdf(total_ht)} {devise}", self.styles["CustomSmall"]))
 
             table_data.append(row)
 
@@ -1077,23 +1078,24 @@ class BasePDFGenerator:
 
     def _create_totals_section(self, show_remise: bool = True) -> Table:
         """Create totals section table."""
+        devise = self.document.devise or "MAD"
         totals_data = [
             [
                 Paragraph("<b>Total HT:</b>", self.styles["CustomNormal"]),
                 Paragraph(
-                    f"{format_number_for_pdf(self.document.total_ht)} MAD", self.styles["CustomRight"]
+                    f"{format_number_for_pdf(self.document.total_ht)} {devise}", self.styles["CustomRight"]
                 ),
             ],
             [
                 Paragraph("<b>TVA:</b>", self.styles["CustomNormal"]),
                 Paragraph(
-                    f"{format_number_for_pdf(self.document.total_tva)} MAD", self.styles["CustomRight"]
+                    f"{format_number_for_pdf(self.document.total_tva)} {devise}", self.styles["CustomRight"]
                 ),
             ],
             [
                 Paragraph("<b>Total TTC:</b>", self.styles["CustomNormal"]),
                 Paragraph(
-                    f"{format_number_for_pdf(self.document.total_ttc)} MAD", self.styles["CustomRight"]
+                    f"{format_number_for_pdf(self.document.total_ttc)} {devise}", self.styles["CustomRight"]
                 ),
             ],
         ]

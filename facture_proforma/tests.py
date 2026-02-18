@@ -594,6 +594,31 @@ class TestFactureProFormaPDFGeneration:
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
+    def test_pdf_forbidden_cross_company_document(
+        self, pf_conv_user, pf_conv_company, pf_conv_with_lines
+    ):
+        """Test PDF fails when company_id doesn't own the facture proforma."""
+        from django.urls import reverse
+        from rest_framework import status
+
+        other_company = Company.objects.create(
+            raison_sociale="Other PF Co", ICE="OTHPF"
+        )
+        _create_pf_membership(pf_conv_user, other_company)
+
+        client_api = APIClient()
+        client_api.force_authenticate(user=pf_conv_user)
+
+        url = (
+            reverse(
+                "facture_proforma:facture-proforma-pdf-fr", args=[pf_conv_with_lines.id]
+            )
+            + f"?company_id={other_company.id}"
+        )
+        response = client_api.get(url)
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
     def test_pdf_not_found(self, pf_conv_user, pf_conv_company):
         """Test PDF fails for non-existent facture proforma."""
         from django.urls import reverse
