@@ -170,3 +170,9 @@ cython_debug/
 
 # VsCode
 .vscode/
+# Serena
+.serena/
+.serena/*
+# Claude
+.claude/
+.claude/*
