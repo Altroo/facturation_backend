@@ -1,6 +1,3 @@
-from decimal import Decimal
-
-from django.db.models import Sum
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
@@ -27,6 +24,7 @@ from core.pdf_utils import (
 from core.permissions import can_create, can_update, can_delete
 from facturation_backend.utils import CustomPagination
 from facture_client.models import FactureClient
+from facture_client.stats import get_stats_by_currency
 from .filters import ReglementFilter
 from .models import Reglement
 from .serializers import (
@@ -75,66 +73,8 @@ class ReglementListCreateView(CompanyAccessMixin, APIView):
         filterset = ReglementFilter(request.GET, queryset=base_queryset)
         ordered_qs = filterset.qs.order_by("-id")
 
-        # Calculate aggregated stats per currency for the company
-        factures = FactureClient.objects.filter(client__company_id=company_id)
-
-        # Get company to check uses_foreign_currency flag
-        company = Company.objects.get(id=company_id)
-
-        # Group by currency
-        stats_by_currency = {}
-        if company.uses_foreign_currency:
-            # Send stats for all currencies if company uses foreign currency
-            for devise in ["MAD", "EUR", "USD"]:
-                factures_devise = factures.filter(devise=devise)
-                chiffre_affaire = factures_devise.aggregate(
-                    total=Sum("total_ttc_apres_remise")
-                )["total"] or Decimal("0.00")
-
-                reglements = Reglement.objects.filter(
-                    facture_client__client__company_id=company_id,
-                    facture_client__devise=devise,
-                    statut="Valide",
-                ).aggregate(total=Sum("montant"))["total"] or Decimal("0.00")
-
-                impayes = chiffre_affaire - reglements
-
-                stats_by_currency[devise] = {
-                    "chiffre_affaire_total": str(chiffre_affaire),
-                    "total_reglements": str(reglements),
-                    "total_impayes": str(impayes),
-                }
-        else:
-            # Only send MAD stats if company doesn't use foreign currency
-            chiffre_affaire = factures.aggregate(total=Sum("total_ttc_apres_remise"))[
-                "total"
-            ] or Decimal("0.00")
-
-            reglements = Reglement.objects.filter(
-                facture_client__client__company_id=company_id, statut="Valide"
-            ).aggregate(total=Sum("montant"))["total"] or Decimal("0.00")
-
-            impayes = chiffre_affaire - reglements
-
-            stats_by_currency["MAD"] = {
-                "chiffre_affaire_total": str(chiffre_affaire),
-                "total_reglements": str(reglements),
-                "total_impayes": str(impayes),
-            }
-            # Initialize EUR and USD to zeros for consistency
-            stats_by_currency["EUR"] = {
-                "chiffre_affaire_total": "0.00",
-                "total_reglements": "0.00",
-                "total_impayes": "0.00",
-            }
-            stats_by_currency["USD"] = {
-                "chiffre_affaire_total": "0.00",
-                "total_reglements": "0.00",
-                "total_impayes": "0.00",
-            }
-
         extra_stats = {
-            "stats_by_currency": stats_by_currency,
+            "stats_by_currency": get_stats_by_currency(company_id),
         }
 
         if pagination:
@@ -217,6 +157,7 @@ class ReglementDetailEditDeleteView(CompanyAccessMixin, APIView):
             return Reglement.objects.select_related(
                 "facture_client",
                 "facture_client__client",
+                "facture_client__client__company",
                 "mode_reglement",
             ).get(pk=pk)
         except Reglement.DoesNotExist:
@@ -340,11 +281,14 @@ class ReglementStatusUpdateView(APIView):
                 reglement.facture_client, exclude_reglement_id=reglement.id
             )
             if reglement.montant > reste_a_payer:
+                devise = reglement.facture_client.devise
                 raise ValidationError(
                     {
-                        "statut": f"Impossible de valider ce règlement. "
-                        f"Le montant ({reglement.montant} MAD) dépasse "
-                        f"le reste à payer ({reste_a_payer} MAD)."
+                        "statut": (
+                            f"Impossible de valider ce règlement. "
+                            f"Le montant ({reglement.montant} {devise}) dépasse "
+                            f"le reste à payer ({reste_a_payer} {devise})."
+                        )
                     }
                 )
 

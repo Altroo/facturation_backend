@@ -54,6 +54,9 @@ class ReglementListSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
+# NOTE: This serializer is designed for single-object retrieval only.
+# Using it in a list context will cause N+1 queries (one per SerializerMethodField).
+# For lists, use ReglementListSerializer.
 class ReglementDetailSerializer(serializers.ModelSerializer):
     """Serializer for règlement detail with invoice-specific financial info."""
 
@@ -194,10 +197,13 @@ class ReglementCreateSerializer(serializers.ModelSerializer):
                 reste_a_payer = Reglement.get_reste_a_payer(facture_client)
 
                 if montant > reste_a_payer:
+                    devise = facture_client.devise
                     raise serializers.ValidationError(
                         {
-                            "montant": f"Le montant ({montant} MAD) dépasse le reste à payer "
-                            f"({reste_a_payer} MAD) pour cette facture."
+                            "montant": (
+                                f"Le montant ({montant} {devise}) dépasse le reste à payer "
+                                f"({reste_a_payer} {devise}) pour cette facture."
+                            )
                         }
                     )
 
@@ -307,10 +313,13 @@ class ReglementUpdateSerializer(serializers.ModelSerializer):
                 reste_a_payer = Reglement.get_reste_a_payer(facture_client, exclude_id)
 
                 if montant > reste_a_payer:
+                    devise = facture_client.devise
                     raise serializers.ValidationError(
                         {
-                            "montant": f"Le montant ({montant} MAD) dépasse le reste à payer "
-                            f"({reste_a_payer} MAD) pour cette facture."
+                            "montant": (
+                                f"Le montant ({montant} {devise}) dépasse le reste à payer "
+                                f"({reste_a_payer} {devise}) pour cette facture."
+                            )
                         }
                     )
 

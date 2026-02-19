@@ -699,6 +699,9 @@ class BasePDFGenerator:
         self.buffer.seek(0)
         response = HttpResponse(self.buffer, content_type="application/pdf")
         response["Content-Disposition"] = f'inline; filename="{filename}"'
+        # Prevent browsers/proxies from caching PDFs that may be fetched via JWT query-param tokens.
+        response["Cache-Control"] = "no-store, no-cache, must-revalidate, private"
+        response["Pragma"] = "no-cache"
 
         return response
 

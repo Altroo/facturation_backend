@@ -1,6 +1,10 @@
+import logging
+
 from django.http import Http404
 from django.utils.translation import gettext_lazy as _
 from rest_framework import permissions, status
+
+logger = logging.getLogger(__name__)
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -93,7 +97,7 @@ class BaseDocumentListCreateView(CompanyAccessMixin, APIView):
         client = request.data.get("client")
         if not client:
             raise PermissionDenied(
-                _(f"Un client doit être spécifié pour {self.document_name}.")
+                _("Un client doit être spécifié pour %(name)s.") % {"name": self.document_name}
             )
         try:
             client_obj = Client.objects.get(pk=client)
@@ -103,15 +107,13 @@ class BaseDocumentListCreateView(CompanyAccessMixin, APIView):
             user=request.user, company_id=client_obj.company_id
         ).exists():
             raise PermissionDenied(
-                _(
-                    f"Vous n'êtes pas autorisé à créer {self.document_name} pour cette société."
-                )
+                _("Vous n'êtes pas autorisé à créer %(name)s pour cette société.") % {"name": self.document_name}
             )
 
         # Check if user has created permission
         if not can_create(request.user, client_obj.company_id):
             raise PermissionDenied(
-                _(f"Vous n'avez pas les droits pour créer ce {self.document_name}.")
+                _("Vous n'avez pas les droits pour créer ce %(name)s.") % {"name": self.document_name}
             )
 
         serializer = self.create_serializer_class(
@@ -137,13 +139,13 @@ class BaseDocumentDetailEditDeleteView(CompanyAccessMixin, APIView):
         try:
             return self.model.objects.get(pk=pk)
         except self.model.DoesNotExist:
-            raise Http404(_(f"Aucun {self.document_name} ne correspond à la requête."))
+            raise Http404(_("Aucun %(name)s ne correspond à la requête.") % {"name": self.document_name})
 
     def get(self, request, pk, *args, **kwargs):
         object_ = self.get_object(pk)
         if not self._has_membership(request.user, object_.client.company_id):
             raise PermissionDenied(
-                _(f"Vous n'êtes pas autorisé à consulter ce {self.document_name}.")
+                _("Vous n'êtes pas autorisé à consulter ce %(name)s.") % {"name": self.document_name}
             )
         serializer = self.detail_serializer_class(object_, context={"request": request})
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -152,13 +154,13 @@ class BaseDocumentDetailEditDeleteView(CompanyAccessMixin, APIView):
         object_ = self.get_object(pk)
         if not self._has_membership(request.user, object_.client.company_id):
             raise PermissionDenied(
-                _(f"Vous n'êtes pas autorisé à modifier ce {self.document_name}.")
+                _("Vous n'êtes pas autorisé à modifier ce %(name)s.") % {"name": self.document_name}
             )
 
         # Check if user has update permission
         if not can_update(request.user, object_.client.company_id):
             raise PermissionDenied(
-                _(f"Vous n'avez pas les droits pour modifier ce {self.document_name}.")
+                _("Vous n'avez pas les droits pour modifier ce %(name)s.") % {"name": self.document_name}
             )
 
         serializer = self.detail_serializer_class(
@@ -172,13 +174,13 @@ class BaseDocumentDetailEditDeleteView(CompanyAccessMixin, APIView):
         object_ = self.get_object(pk)
         if not self._has_membership(request.user, object_.client.company_id):
             raise PermissionDenied(
-                _(f"Vous n'êtes pas autorisé à supprimer ce {self.document_name}.")
+                _("Vous n'êtes pas autorisé à supprimer ce %(name)s.") % {"name": self.document_name}
             )
 
         # Check if user has deleted permission
         if not can_delete(request.user, object_.client.company_id):
             raise PermissionDenied(
-                _(f"Vous n'avez pas les droits pour supprimer ce {self.document_name}.")
+                _("Vous n'avez pas les droits pour supprimer ce %(name)s.") % {"name": self.document_name}
             )
 
         object_.delete()
@@ -223,19 +225,19 @@ class BaseStatusUpdateView(CompanyAccessMixin, APIView):
         try:
             return self.model.objects.get(pk=pk)
         except self.model.DoesNotExist:
-            raise Http404(_(f"Aucun {self.document_name} ne correspond à la requête."))
+            raise Http404(_("Aucun %(name)s ne correspond à la requête.") % {"name": self.document_name})
 
     def patch(self, request, pk, *args, **kwargs):
         object_ = self.get_object(pk)
         if not self._has_membership(request.user, object_.client.company_id):
             raise PermissionDenied(
-                _(f"Vous n'êtes pas autorisé à modifier ce {self.document_name}.")
+                _("Vous n'êtes pas autorisé à modifier ce %(name)s.") % {"name": self.document_name}
             )
 
         # Check if user has update permission
         if not can_update(request.user, object_.client.company_id):
             raise PermissionDenied(
-                _(f"Vous n'avez pas les droits pour modifier ce {self.document_name}.")
+                _("Vous n'avez pas les droits pour modifier ce %(name)s.") % {"name": self.document_name}
             )
 
         new_status = request.data.get("statut")
@@ -262,40 +264,41 @@ class BaseConversionView(CompanyAccessMixin, APIView):
         try:
             return self.model.objects.get(pk=pk)
         except self.model.DoesNotExist:
-            raise Http404(_(f"Aucun {self.document_name} ne correspond à la requête."))
+            raise Http404(_("Aucun %(name)s ne correspond à la requête.") % {"name": self.document_name})
 
     def post(self, request, pk, *args, **kwargs):
         object_ = self.get_object(pk)
 
         if not self._has_membership(request.user, object_.client.company_id):
             raise PermissionDenied(
-                _(f"Vous n'êtes pas autorisé à convertir ce {self.document_name}.")
+                _("Vous n'êtes pas autorisé à convertir ce %(name)s.") % {"name": self.document_name}
             )
 
         # Check if user has created permission for conversions
         if not can_create(request.user, object_.client.company_id):
             raise PermissionDenied(
-                _(f"Vous n'avez pas les droits pour convertir ce {self.document_name}.")
+                _("Vous n'avez pas les droits pour convertir ce %(name)s.") % {"name": self.document_name}
             )
 
         # Validate conversion method exists
         if not hasattr(object_, self.conversion_method):
             raise ValidationError(
-                _(f"La méthode de conversion {self.conversion_method} n'existe pas.")
+                _("La méthode de conversion %(method)s n'existe pas.") % {"method": self.conversion_method}
             )
 
         # Validate source document has lines
         if not object_.get_lines().exists():
             raise ValidationError(
-                _(f"Impossible de convertir un {self.document_name} sans lignes.")
+                _("Impossible de convertir un %(name)s sans lignes.") % {"name": self.document_name}
             )
 
         # Validate source document status
         if object_.statut not in ["Envoyé", "Accepté"]:
             raise ValidationError(
-                _(
-                    f"Impossible de convertir un {self.document_name} avec le statut '{object_.statut}'."
-                )
+                _("Impossible de convertir un %(name)s avec le statut '%(statut)s'.") % {
+                    "name": self.document_name,
+                    "statut": object_.statut,
+                }
             )
 
         try:
@@ -307,8 +310,7 @@ class BaseConversionView(CompanyAccessMixin, APIView):
             )
             return Response({"id": converted.id}, status=status.HTTP_201_CREATED)
         except Exception as e:
-            import logging
-
-            logger = logging.getLogger(__name__)
-            logger.error(f"Échec de la conversion pour {self.document_name} {pk}: {e}")
-            raise ValidationError(_(f"Échec de la conversion: {str(e)}"))
+            logger.error("Échec de la conversion pour %s %s: %s", self.document_name, pk, e)
+            raise ValidationError(
+                _("Échec de la conversion: %(error)s") % {"error": str(e)}
+            )

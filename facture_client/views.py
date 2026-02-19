@@ -1,7 +1,6 @@
 from decimal import Decimal
 
 from django.db.models import Q, F, Sum as DjangoSum, Value
-from django.db.models import Sum
 from django.db.models.functions import Coalesce
 from django.http import Http404
 from django.shortcuts import get_object_or_404
@@ -28,7 +27,6 @@ from core.views import (
     BaseConversionView,
 )
 from facturation_backend.utils import CustomPagination
-from reglement.models import Reglement
 from .filters import FactureClientFilter
 from .models import FactureClient
 from .serializers import (
@@ -36,6 +34,7 @@ from .serializers import (
     FactureClientDetailSerializer,
     FactureClientListSerializer,
 )
+from .stats import get_stats_by_currency
 from .utils import get_next_numero_facture_client
 
 
@@ -73,66 +72,8 @@ class FactureClientListCreateView(BaseDocumentListCreateView):
         filterset = self.filter_class(request.GET, queryset=base_queryset)
         ordered_qs = filterset.qs.order_by("-id")
 
-        # Calculate aggregated stats per currency for the company
-        factures = FactureClient.objects.filter(client__company_id=company_id)
-
-        # Get company to check uses_foreign_currency flag
-        company = Company.objects.get(id=company_id)
-
-        # Group by currency
-        stats_by_currency = {}
-        if company.uses_foreign_currency:
-            # Send stats for all currencies if company uses foreign currency
-            for devise in ["MAD", "EUR", "USD"]:
-                factures_devise = factures.filter(devise=devise)
-                chiffre_affaire = factures_devise.aggregate(
-                    total=Sum("total_ttc_apres_remise")
-                )["total"] or Decimal("0.00")
-
-                reglements = Reglement.objects.filter(
-                    facture_client__client__company_id=company_id,
-                    facture_client__devise=devise,
-                    statut="Valide",
-                ).aggregate(total=Sum("montant"))["total"] or Decimal("0.00")
-
-                impayes = chiffre_affaire - reglements
-
-                stats_by_currency[devise] = {
-                    "chiffre_affaire_total": str(chiffre_affaire),
-                    "total_reglements": str(reglements),
-                    "total_impayes": str(impayes),
-                }
-        else:
-            # Only send MAD stats if company doesn't use foreign currency
-            chiffre_affaire = factures.aggregate(total=Sum("total_ttc_apres_remise"))[
-                "total"
-            ] or Decimal("0.00")
-
-            reglements = Reglement.objects.filter(
-                facture_client__client__company_id=company_id, statut="Valide"
-            ).aggregate(total=Sum("montant"))["total"] or Decimal("0.00")
-
-            impayes = chiffre_affaire - reglements
-
-            stats_by_currency["MAD"] = {
-                "chiffre_affaire_total": str(chiffre_affaire),
-                "total_reglements": str(reglements),
-                "total_impayes": str(impayes),
-            }
-            # Initialize EUR and USD to zeros for consistency
-            stats_by_currency["EUR"] = {
-                "chiffre_affaire_total": "0.00",
-                "total_reglements": "0.00",
-                "total_impayes": "0.00",
-            }
-            stats_by_currency["USD"] = {
-                "chiffre_affaire_total": "0.00",
-                "total_reglements": "0.00",
-                "total_impayes": "0.00",
-            }
-
         extra_stats = {
-            "stats_by_currency": stats_by_currency,
+            "stats_by_currency": get_stats_by_currency(company_id),
         }
 
         if pagination:
@@ -225,58 +166,8 @@ class FactureClientUnpaidListView(BaseDocumentListCreateView):
         filterset = self.filter_class(request.GET, queryset=queryset)
         ordered_qs = filterset.qs.order_by("-id")
 
-        # Calculate aggregated stats per currency for the company
-        factures = FactureClient.objects.filter(client__company_id=company_id)
-        company = Company.objects.get(id=company_id)
-        stats_by_currency = {}
-
-        if company.uses_foreign_currency:
-            for devise in ["MAD", "EUR", "USD"]:
-                factures_devise = factures.filter(devise=devise)
-                chiffre_affaire = factures_devise.aggregate(
-                    total=Sum("total_ttc_apres_remise")
-                )["total"] or Decimal("0.00")
-
-                reglements = Reglement.objects.filter(
-                    facture_client__client__company_id=company_id,
-                    facture_client__devise=devise,
-                    statut="Valide",
-                ).aggregate(total=Sum("montant"))["total"] or Decimal("0.00")
-
-                impayes = chiffre_affaire - reglements
-
-                stats_by_currency[devise] = {
-                    "chiffre_affaire_total": str(chiffre_affaire),
-                    "total_reglements": str(reglements),
-                    "total_impayes": str(impayes),
-                }
-        else:
-            chiffre_affaire = factures.aggregate(total=Sum("total_ttc_apres_remise"))["total"] or Decimal("0.00")
-
-            reglements = Reglement.objects.filter(
-                facture_client__client__company_id=company_id, statut="Valide"
-            ).aggregate(total=Sum("montant"))["total"] or Decimal("0.00")
-
-            impayes = chiffre_affaire - reglements
-
-            stats_by_currency["MAD"] = {
-                "chiffre_affaire_total": str(chiffre_affaire),
-                "total_reglements": str(reglements),
-                "total_impayes": str(impayes),
-            }
-            stats_by_currency["EUR"] = {
-                "chiffre_affaire_total": "0.00",
-                "total_reglements": "0.00",
-                "total_impayes": "0.00",
-            }
-            stats_by_currency["USD"] = {
-                "chiffre_affaire_total": "0.00",
-                "total_reglements": "0.00",
-                "total_impayes": "0.00",
-            }
-
         extra_stats = {
-            "stats_by_currency": stats_by_currency,
+            "stats_by_currency": get_stats_by_currency(company_id),
         }
 
         if pagination:

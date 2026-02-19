@@ -1,4 +1,6 @@
 from datetime import timedelta, timezone, datetime
+import hmac
+import logging
 from os import remove
 import secrets
 from string import digits, ascii_letters
@@ -43,6 +45,8 @@ from .tasks import (
     start_deleting_expired_codes,
     generate_user_thumbnail,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class CheckEmailView(APIView):
@@ -141,7 +145,8 @@ class PasswordResetView(APIView):
 
         try:
             user = CustomUser.objects.get(email=email)
-            if code is not None and code == user.password_reset_code:
+            stored_code = user.password_reset_code or ""
+            if code is not None and stored_code and hmac.compare_digest(str(code), stored_code):
                 # Check if code is still valid (5-minute window)
                 if user.password_reset_code_created_at:
                     time_elapsed = datetime.now(timezone.utc) - user.password_reset_code_created_at
@@ -159,10 +164,12 @@ class PasswordResetView(APIView):
         code = request.data.get("code")
         try:
             user = CustomUser.objects.get(email=email)
+            stored_code = user.password_reset_code or ""
             if (
                 code is not None
                 and email is not None
-                and code == str(user.password_reset_code)
+                and stored_code
+                and hmac.compare_digest(str(code), stored_code)
             ):
                 # Check if code is still valid (5-minute window)
                 if user.password_reset_code_created_at:
@@ -193,9 +200,6 @@ class PasswordResetView(APIView):
                                     )
                             except Exception as e:
                                 # Log but continue - task revocation failure shouldn't block password reset
-                                import logging
-
-                                logger = logging.getLogger(__name__)
                                 logger.warning(
                                     f"Failed to revoke task {task_id_password_reset}: {e}"
                                 )
@@ -268,9 +272,6 @@ class SendPasswordResetView(APIView):
                                         signal="SIGKILL",
                                     )
                             except Exception as e:
-                                import logging
-
-                                logger = logging.getLogger(__name__)
                                 logger.warning(
                                     f"Failed to revoke task {task_id_password_reset}: {e}"
                                 )

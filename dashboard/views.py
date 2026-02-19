@@ -1,8 +1,9 @@
 from datetime import timedelta, datetime, time
 from decimal import Decimal
 
-from django.db.models import Sum, Count, F, Avg, Subquery, OuterRef, DecimalField, Case, When, Value, IntegerField
-from django.db.models.functions import TruncMonth, TruncDate, Coalesce
+from django.db.models import (Sum, Count, F, Avg, Subquery, OuterRef, DecimalField, Case,
+                              When, Value, IntegerField, ExpressionWrapper, DurationField, Q)
+from django.db.models.functions import TruncMonth, TruncDate, Coalesce, Greatest
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied, ValidationError
@@ -492,34 +493,30 @@ class ProductPriceVolumeAnalysisView(APIView):
         if devise:
             facture_filter["devise_prix_vente"] = devise
 
-        # Get total quantity and average price for each article
-        article_data = {}
+        # Revenue-weighted average price: Sum(prix_vente * quantity) / Sum(quantity)
+        line_revenue = ExpressionWrapper(
+            F("prix_vente") * F("quantity"), output_field=DecimalField()
+        )
 
-        for line in FactureClientLine.objects.filter(**facture_filter).select_related(
-            "article"
-        ):
-            article_id = line.article.id
-            if article_id not in article_data:
-                article_data[article_id] = {
-                    "designation": line.article.designation,
-                    "total_quantity": 0,
-                    "total_revenue": Decimal("0"),
-                }
-            article_data[article_id]["total_quantity"] += line.quantity
-            article_data[article_id]["total_revenue"] += line.prix_vente * line.quantity
+        data = (
+            FactureClientLine.objects.filter(**facture_filter)
+            .values("article__id", "article__designation")
+            .annotate(
+                total_quantity=Sum("quantity"),
+                total_revenue=Sum(line_revenue),
+            )
+            .filter(total_quantity__gt=0)
+        )
 
-        result = []
-        for article_id, data in article_data.items():
-            if data["total_quantity"] > 0:
-                avg_price = data["total_revenue"] / data["total_quantity"]
-                result.append(
-                    {
-                        "article_id": article_id,
-                        "designation": data["designation"],
-                        "average_price": float(avg_price),
-                        "total_quantity": float(data["total_quantity"]),
-                    }
-                )
+        result = [
+            {
+                "article_id": item["article__id"],
+                "designation": item["article__designation"],
+                "average_price": float(item["total_revenue"] / item["total_quantity"]),
+                "total_quantity": float(item["total_quantity"]),
+            }
+            for item in data
+        ]
 
         return Response(result)
 
@@ -726,7 +723,21 @@ class OverdueReceivablesView(APIView):
         if devise:
             facture_filter["devise"] = devise
 
-        factures = _annotate_total_reglements(FactureClient.objects.filter(**facture_filter))
+        # Push outstanding calculation into SQL; fetch only the two needed columns.
+        factures = (
+            _annotate_total_reglements(FactureClient.objects.filter(**facture_filter))
+            .annotate(
+                outstanding=Greatest(
+                    ExpressionWrapper(
+                        F("total_ttc_apres_remise") - F("total_reglements"),
+                        output_field=DecimalField(),
+                    ),
+                    Value(Decimal("0"), output_field=DecimalField()),
+                )
+            )
+            .filter(outstanding__gt=0)
+            .values("outstanding", "date_facture")
+        )
 
         aging_buckets = {
             "0-30": {"label": "0-30 jours", "count": 0, "amount": Decimal("0")},
@@ -735,31 +746,26 @@ class OverdueReceivablesView(APIView):
             "90+": {"label": "90+ jours", "count": 0, "amount": Decimal("0")},
         }
 
-        for facture in factures:
-            outstanding = facture.total_ttc_apres_remise - facture.total_reglements
-
-            if outstanding > 0:
-                days_overdue = (date_to - facture.date_facture).days
-
-                if days_overdue <= 30:
-                    bucket = "0-30"
-                elif days_overdue <= 60:
-                    bucket = "31-60"
-                elif days_overdue <= 90:
-                    bucket = "61-90"
-                else:
-                    bucket = "90+"
-
-                aging_buckets[bucket]["count"] += 1
-                aging_buckets[bucket]["amount"] += outstanding
+        for f in factures:
+            days_overdue = (date_to - f["date_facture"]).days
+            if days_overdue <= 30:
+                bucket = "0-30"
+            elif days_overdue <= 60:
+                bucket = "31-60"
+            elif days_overdue <= 90:
+                bucket = "61-90"
+            else:
+                bucket = "90+"
+            aging_buckets[bucket]["count"] += 1
+            aging_buckets[bucket]["amount"] += f["outstanding"]
 
         result = [
             {
-                "period": bucket["label"],
-                "count": bucket["count"],
-                "amount": float(bucket["amount"]),
+                "period": b["label"],
+                "count": b["count"],
+                "amount": float(b["amount"]),
             }
-            for bucket in aging_buckets.values()
+            for b in aging_buckets.values()
         ]
 
         return Response(result)
@@ -838,14 +844,71 @@ class ClientMultidimensionalProfileView(APIView):
         if company_id:
             facture_filter["client__company_id"] = company_id
 
-        # Get top 5 clients by revenue
-        top_clients = (
+        # Get top 5 clients by revenue, annotating invoice count at the same time
+        # to avoid a separate per-client frequency query.
+        top_clients = list(
             FactureClient.objects.filter(**facture_filter)
             .values("client__id", "client__code_client", "client__raison_sociale")
-            .annotate(revenue=Sum("total_ttc_apres_remise"))
+            .annotate(
+                revenue=Sum("total_ttc_apres_remise"),
+                frequency=Count("id"),
+            )
             .order_by("-revenue")[:5]
         )
 
+        if not top_clients:
+            return Response([])
+
+        client_ids = [c["client__id"] for c in top_clients]
+
+        # --- Pre-fetch reglement delays for all top clients in one query ---
+        reglement_filter_base = {
+            "statut": "Valide",
+            "facture_client__client_id__in": client_ids,
+            "date_reglement__lte": date_to,
+        }
+        if date_from:
+            reglement_filter_base["date_reglement__gte"] = date_from
+
+        reglement_delays = (
+            Reglement.objects.filter(**reglement_filter_base)
+            .values("facture_client__client_id", "montant")
+            .annotate(
+                delay_days=ExpressionWrapper(
+                    F("date_reglement") - F("facture_client__date_facture"),
+                    output_field=DurationField(),
+                )
+            )
+        )
+
+        delay_data = {}
+        for r in reglement_delays:
+            cid = r["facture_client__client_id"]
+            if cid not in delay_data:
+                delay_data[cid] = {"total_delay": 0, "count": 0}
+            days = r["delay_days"].days if r["delay_days"] else 0
+            delay_data[cid]["total_delay"] += days
+            delay_data[cid]["count"] += 1
+
+        # --- Pre-fetch devi counts for all top clients in one query ---
+        devi_filter_base = {
+            "client_id__in": client_ids,
+            "date_devis__lte": date_to,
+        }
+        if date_from:
+            devi_filter_base["date_devis__gte"] = date_from
+
+        devi_counts = (
+            Devi.objects.filter(**devi_filter_base)
+            .values("client_id")
+            .annotate(
+                total_devis=Count("id"),
+                accepted_devis=Count("id", filter=Q(statut="Accepté")),
+            )
+        )
+        devi_data = {d["client_id"]: d for d in devi_counts}
+
+        # --- Build result using pre-fetched data ---
         result = []
 
         for client_data in top_clients:
@@ -855,52 +918,27 @@ class ClientMultidimensionalProfileView(APIView):
                 or client_data["client__code_client"]
             )
 
-            # Volume d'affaires (normalized to 100)
+            # Volume d'affaires
             volume = float(client_data["revenue"] or 0)
 
-            # Fréquence de commande
-            frequency = FactureClient.objects.filter(
-                client_id=client_id, **facture_filter
-            ).count()
+            # Fréquence de commande (pre-fetched via annotation)
+            frequency = client_data["frequency"]
 
             # Montant moyen
             avg_amount = volume / frequency if frequency > 0 else 0
 
             # Rapidité de paiement (inverse of average delay)
-            reglement_filter = {
-                "facture_client__client_id": client_id,
-                "statut": "Valide",
-                "date_reglement__lte": date_to,
-            }
-            if date_from:
-                reglement_filter["date_reglement__gte"] = date_from
-
-            reglements = Reglement.objects.filter(**reglement_filter).select_related(
-                "facture_client"
+            delays = delay_data.get(client_id, {"total_delay": 0, "count": 0})
+            avg_delay = (
+                delays["total_delay"] / delays["count"] if delays["count"] > 0 else 0
             )
-
-            total_delay = 0
-            delay_count = 0
-            for reglement in reglements:
-                delay = (
-                    reglement.date_reglement - reglement.facture_client.date_facture
-                ).days
-                total_delay += delay
-                delay_count += 1
-
-            avg_delay = total_delay / delay_count if delay_count > 0 else 0
             # Convert to a score (lower delay = higher score)
             payment_speed = max(0, 100 - avg_delay) if avg_delay < 100 else 0
 
             # Taux d'acceptation des devis
-            devi_filter = {"client_id": client_id, "date_devis__lte": date_to}
-            if date_from:
-                devi_filter["date_devis__gte"] = date_from
-
-            total_devis = Devi.objects.filter(**devi_filter).count()
-            accepted_devis = Devi.objects.filter(
-                **devi_filter, statut="Accepté"
-            ).count()
+            d = devi_data.get(client_id, {"total_devis": 0, "accepted_devis": 0})
+            total_devis = d["total_devis"]
+            accepted_devis = d["accepted_devis"]
             acceptance_rate = (
                 (accepted_devis / total_devis * 100) if total_devis > 0 else 0
             )
@@ -1235,35 +1273,31 @@ class ProductMarginVolumeView(APIView):
         if devise:
             facture_filter["devise_prix_vente"] = devise
 
-        article_data = {}
+        # Total margin per line: (prix_vente - prix_achat) * quantity
+        line_margin = ExpressionWrapper(
+            (F("prix_vente") - F("prix_achat")) * F("quantity"),
+            output_field=DecimalField(),
+        )
 
-        for line in FactureClientLine.objects.filter(**facture_filter).select_related(
-            "article"
-        ):
-            article_id = line.article.id
-            if article_id not in article_data:
-                article_data[article_id] = {
-                    "designation": line.article.designation,
-                    "total_quantity": 0,
-                    "total_margin": Decimal("0"),
-                }
+        data = (
+            FactureClientLine.objects.filter(**facture_filter)
+            .values("article__id", "article__designation")
+            .annotate(
+                total_quantity=Sum("quantity"),
+                total_margin=Sum(line_margin),
+            )
+            .filter(total_quantity__gt=0)
+        )
 
-            margin_per_unit = line.prix_vente - line.prix_achat
-            article_data[article_id]["total_quantity"] += line.quantity
-            article_data[article_id]["total_margin"] += margin_per_unit * line.quantity
-
-        result = []
-        for article_id, data in article_data.items():
-            if data["total_quantity"] > 0:
-                avg_margin = data["total_margin"] / data["total_quantity"]
-                result.append(
-                    {
-                        "article_id": article_id,
-                        "designation": data["designation"],
-                        "average_margin": float(avg_margin),
-                        "total_quantity": float(data["total_quantity"]),
-                    }
-                )
+        result = [
+            {
+                "article_id": item["article__id"],
+                "designation": item["article__designation"],
+                "average_margin": float(item["total_margin"] / item["total_quantity"]),
+                "total_quantity": float(item["total_quantity"]),
+            }
+            for item in data
+        ]
 
         return Response(result)
 
