@@ -8,6 +8,7 @@ from .views import (
     DeviConvertToFactureProformaView,
     DeviConvertToFactureClientView,
     DeviPDFView,
+    BulkDeleteDeviView,
 )
 
 app_name = "devi"
@@ -15,6 +16,8 @@ app_name = "devi"
 urlpatterns = [
     # GET Devi list (paginated) & POST create
     path("", DeviListCreateView.as_view(), name="devi-list-create"),
+    # DELETE bulk delete devis
+    path("bulk_delete/", BulkDeleteDeviView.as_view(), name="devi-bulk-delete"),
     # GET Devi detail, PUT update, DELETE
     path("<int:pk>/", DeviDetailEditDeleteView.as_view(), name="devi-detail"),
     # GET generated numero devis

@@ -19,6 +19,7 @@ from core.views import (
     BaseGenerateNumeroView,
     BaseStatusUpdateView,
     BaseConversionView,
+    BaseBulkDeleteView,
 )
 from facture_client.utils import get_next_numero_facture_client
 from facture_proforma.utils import get_next_numero_facture_pro_forma
@@ -610,3 +611,14 @@ class DeviPDFView(APIView):
         # Generate PDF
         pdf_generator = DeviPDFGenerator(devis, company, pdf_type, language)
         return pdf_generator.generate_pdf()
+
+
+class BulkDeleteDeviView(BaseBulkDeleteView):
+    model = Devi
+    document_name = "devis"
+
+    def get_queryset_with_related(self, ids):
+        return Devi.objects.filter(pk__in=ids).select_related("client")
+
+    def get_company_id(self, obj):
+        return obj.client.company_id

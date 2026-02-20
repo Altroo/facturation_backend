@@ -1025,3 +1025,170 @@ class TestClientViewsCoverage:
         view = ArchiveToggleClientView()
         assert view._to_bool(None) is None
         assert view._to_bool([]) is None
+
+
+# -----------------------------------------------------------------------------
+# Bulk Delete & Bulk Archive Tests
+# -----------------------------------------------------------------------------
+@pytest.mark.django_db
+class TestBulkDeleteClientAPI:
+    def setup_method(self):
+        User = get_user_model()
+        self.user = User.objects.create_user(email="bulk_clt_d@example.com", password="pass")
+        self.api_client = APIClient()
+        self.api_client.force_authenticate(user=self.user)
+
+        self.company = Company.objects.create(raison_sociale="BulkCltCo", ICE="BDCLTC1")
+        caissier_role, _ = Role.objects.get_or_create(name="Caissier")
+        Membership.objects.create(user=self.user, company=self.company, role=caissier_role)
+
+        self.ville = Ville.objects.create(nom="BulkCltVille", company=self.company)
+        self.clt1 = Client.objects.create(
+            code_client="BDCLT001",
+            client_type="PM",
+            raison_sociale="Bulk Client 1",
+            ville=self.ville,
+            company=self.company,
+        )
+        self.clt2 = Client.objects.create(
+            code_client="BDCLT002",
+            client_type="PM",
+            raison_sociale="Bulk Client 2",
+            ville=self.ville,
+            company=self.company,
+        )
+
+    def test_bulk_delete_success(self):
+        url = reverse("client:client-bulk-delete")
+        response = self.api_client.delete(
+            url, {"ids": [self.clt1.id, self.clt2.id]}, format="json"
+        )
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert not Client.objects.filter(pk__in=[self.clt1.id, self.clt2.id]).exists()
+
+    def test_bulk_delete_single_record(self):
+        url = reverse("client:client-bulk-delete")
+        response = self.api_client.delete(url, {"ids": [self.clt1.id]}, format="json")
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert not Client.objects.filter(pk=self.clt1.id).exists()
+        assert Client.objects.filter(pk=self.clt2.id).exists()
+
+    def test_bulk_delete_empty_ids_returns_400(self):
+        url = reverse("client:client-bulk-delete")
+        response = self.api_client.delete(url, {"ids": []}, format="json")
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_bulk_delete_missing_ids_field_returns_400(self):
+        url = reverse("client:client-bulk-delete")
+        response = self.api_client.delete(url, {}, format="json")
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_bulk_delete_unauthenticated_returns_401(self):
+        url = reverse("client:client-bulk-delete")
+        anon = APIClient()
+        response = anon.delete(url, {"ids": [self.clt1.id]}, format="json")
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_bulk_delete_wrong_company_returns_403(self):
+        other_company = Company.objects.create(raison_sociale="OtherCltCo", ICE="OTHCLT1")
+        other_ville = Ville.objects.create(nom="OtherCltVille", company=other_company)
+        other_clt = Client.objects.create(
+            code_client="OTHCLT01",
+            client_type="PM",
+            raison_sociale="Other Client",
+            ville=other_ville,
+            company=other_company,
+        )
+        url = reverse("client:client-bulk-delete")
+        response = self.api_client.delete(url, {"ids": [other_clt.id]}, format="json")
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+@pytest.mark.django_db
+class TestBulkArchiveClientAPI:
+    def setup_method(self):
+        User = get_user_model()
+        self.user = User.objects.create_user(email="bulk_clt_a@example.com", password="pass")
+        self.api_client = APIClient()
+        self.api_client.force_authenticate(user=self.user)
+
+        self.company = Company.objects.create(raison_sociale="BulkCltArcCo", ICE="BACLTC1")
+        caissier_role, _ = Role.objects.get_or_create(name="Caissier")
+        Membership.objects.create(user=self.user, company=self.company, role=caissier_role)
+
+        self.ville = Ville.objects.create(nom="BulkCltArcVille", company=self.company)
+        self.clt1 = Client.objects.create(
+            code_client="BACLT001",
+            client_type="PM",
+            raison_sociale="BulkArc Client 1",
+            ville=self.ville,
+            company=self.company,
+        )
+        self.clt2 = Client.objects.create(
+            code_client="BACLT002",
+            client_type="PM",
+            raison_sociale="BulkArc Client 2",
+            ville=self.ville,
+            company=self.company,
+        )
+
+    def test_bulk_archive_success(self):
+        url = reverse("client:client-bulk-archive")
+        response = self.api_client.patch(
+            url, {"ids": [self.clt1.id, self.clt2.id], "archived": True}, format="json"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["updated"] == 2
+        self.clt1.refresh_from_db()
+        self.clt2.refresh_from_db()
+        assert self.clt1.archived is True
+        assert self.clt2.archived is True
+
+    def test_bulk_unarchive_success(self):
+        self.clt1.archived = True
+        self.clt1.save()
+        self.clt2.archived = True
+        self.clt2.save()
+
+        url = reverse("client:client-bulk-archive")
+        response = self.api_client.patch(
+            url, {"ids": [self.clt1.id, self.clt2.id], "archived": False}, format="json"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["updated"] == 2
+        self.clt1.refresh_from_db()
+        self.clt2.refresh_from_db()
+        assert self.clt1.archived is False
+        assert self.clt2.archived is False
+
+    def test_bulk_archive_empty_ids_returns_400(self):
+        url = reverse("client:client-bulk-archive")
+        response = self.api_client.patch(url, {"ids": [], "archived": True}, format="json")
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_bulk_archive_missing_archived_field_returns_400(self):
+        url = reverse("client:client-bulk-archive")
+        response = self.api_client.patch(url, {"ids": [self.clt1.id]}, format="json")
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_bulk_archive_unauthenticated_returns_401(self):
+        url = reverse("client:client-bulk-archive")
+        anon = APIClient()
+        response = anon.patch(url, {"ids": [self.clt1.id], "archived": True}, format="json")
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_bulk_archive_wrong_company_returns_403(self):
+        other_company = Company.objects.create(raison_sociale="OtherCltArcCo", ICE="OTHBAC1")
+        other_ville = Ville.objects.create(nom="OtherCltArcVille", company=other_company)
+        other_clt = Client.objects.create(
+            code_client="OTHBAC01",
+            client_type="PM",
+            raison_sociale="Other Arc Client",
+            ville=other_ville,
+            company=other_company,
+        )
+        url = reverse("client:client-bulk-archive")
+        response = self.api_client.patch(
+            url, {"ids": [other_clt.id], "archived": True}, format="json"
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN

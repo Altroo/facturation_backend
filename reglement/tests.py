@@ -1777,3 +1777,126 @@ class TestReglementPDFGeneration:
         response = client_api.get(url)
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+# -----------------------------------------------------------------------------
+# Bulk Delete Tests
+# -----------------------------------------------------------------------------
+@pytest.mark.django_db
+class TestBulkDeleteReglementAPI:
+    def setup_method(self):
+        self.user = CustomUser.objects.create_user(
+            email="bulk_regl@example.com", password="pass"
+        )
+        self.api_client = APIClient()
+        self.api_client.force_authenticate(user=self.user)
+
+        self.company = Company.objects.create(raison_sociale="BulkReglCo", ICE="BDRGLC1")
+        caissier_role, _ = Role.objects.get_or_create(name="Caissier")
+        Membership.objects.create(user=self.user, company=self.company, role=caissier_role)
+
+        self.ville = Ville.objects.create(nom="BulkReglVille", company=self.company)
+        self.mode_paiement = ModePaiement.objects.create(nom="BulkReglPay", company=self.company)
+        self.mode_reglement = ModePaiement.objects.create(nom="BulkReglMode", company=self.company)
+        self.client_obj = Client.objects.create(
+            code_client="BDRGL001",
+            client_type="PM",
+            raison_sociale="BulkRegl Client",
+            ville=self.ville,
+            company=self.company,
+        )
+        self.facture = FactureClient.objects.create(
+            numero_facture="BKRGL/FC01",
+            client=self.client_obj,
+            date_facture="2025-01-01",
+            mode_paiement=self.mode_paiement,
+            statut="Accept\u00e9",
+            created_by_user=self.user,
+            remise=Decimal("0.00"),
+            remise_type="",
+        )
+        self.regl1 = Reglement.objects.create(
+            facture_client=self.facture,
+            mode_reglement=self.mode_reglement,
+            libelle="Regl 1",
+            montant=Decimal("100.00"),
+            date_reglement="2025-01-15",
+            statut="Valide",
+        )
+        self.regl2 = Reglement.objects.create(
+            facture_client=self.facture,
+            mode_reglement=self.mode_reglement,
+            libelle="Regl 2",
+            montant=Decimal("200.00"),
+            date_reglement="2025-01-20",
+            statut="Valide",
+        )
+
+    def test_bulk_delete_success(self):
+        url = reverse("reglement:reglement-bulk-delete")
+        response = self.api_client.delete(
+            url, {"ids": [self.regl1.id, self.regl2.id]}, format="json"
+        )
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert not Reglement.objects.filter(pk__in=[self.regl1.id, self.regl2.id]).exists()
+
+    def test_bulk_delete_single_record(self):
+        url = reverse("reglement:reglement-bulk-delete")
+        response = self.api_client.delete(
+            url, {"ids": [self.regl1.id]}, format="json"
+        )
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert not Reglement.objects.filter(pk=self.regl1.id).exists()
+        assert Reglement.objects.filter(pk=self.regl2.id).exists()
+
+    def test_bulk_delete_empty_ids_returns_400(self):
+        url = reverse("reglement:reglement-bulk-delete")
+        response = self.api_client.delete(url, {"ids": []}, format="json")
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_bulk_delete_missing_ids_field_returns_400(self):
+        url = reverse("reglement:reglement-bulk-delete")
+        response = self.api_client.delete(url, {}, format="json")
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_bulk_delete_unauthenticated_returns_401(self):
+        url = reverse("reglement:reglement-bulk-delete")
+        anon = APIClient()
+        response = anon.delete(url, {"ids": [self.regl1.id]}, format="json")
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_bulk_delete_wrong_company_returns_403(self):
+        other_company = Company.objects.create(raison_sociale="OtherCo", ICE="OTHRGL1")
+        other_ville = Ville.objects.create(nom="OtherReglVille", company=other_company)
+        other_mode_p = ModePaiement.objects.create(nom="OtherReglPay", company=other_company)
+        other_mode_r = ModePaiement.objects.create(nom="OtherReglMode", company=other_company)
+        other_client = Client.objects.create(
+            code_client="OTHRGL01",
+            client_type="PM",
+            raison_sociale="Other Regl Client",
+            ville=other_ville,
+            company=other_company,
+        )
+        other_facture = FactureClient.objects.create(
+            numero_facture="OTHER/RGL01",
+            client=other_client,
+            date_facture="2025-01-01",
+            mode_paiement=other_mode_p,
+            statut="Accept\u00e9",
+            created_by_user=self.user,
+            remise=Decimal("0.00"),
+            remise_type="",
+        )
+        other_regl = Reglement.objects.create(
+            facture_client=other_facture,
+            mode_reglement=other_mode_r,
+            libelle="Other Regl",
+            montant=Decimal("50.00"),
+            date_reglement="2025-01-10",
+            statut="Valide",
+        )
+        url = reverse("reglement:reglement-bulk-delete")
+        response = self.api_client.delete(
+            url, {"ids": [other_regl.id]}, format="json"
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN

@@ -13,6 +13,7 @@ from .views import (
     GroupView,
     UsersListCreateView,
     UserDetailEditDeleteView,
+    BulkDeleteUsersView,
 )
 
 app_name = "account"
@@ -47,6 +48,8 @@ urlpatterns = [
     path("group/", GroupView.as_view(), name="group"),
     # GET : Users list
     path("users/", UsersListCreateView.as_view(), name="users"),
+    # DELETE : Bulk delete users
+    path("users/bulk_delete/", BulkDeleteUsersView.as_view(), name="users-bulk-delete"),
     # GET user detail, PUT update, DELETE
     path("users/<int:pk>/", UserDetailEditDeleteView.as_view(), name="users_detail"),
     # POST : Tokens, Verify if token valid, Refresh access token

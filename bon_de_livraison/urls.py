@@ -7,6 +7,7 @@ from .views import (
     BonDeLivraisonStatusUpdateView,
     BonDeLivraisonUninvoicedListView,
     BonDeLivraisonPDFView,
+    BulkDeleteBonDeLivraisonView,
 )
 
 app_name = "bon_de_livraison"
@@ -21,6 +22,12 @@ urlpatterns = [
         "uninvoiced/",
         BonDeLivraisonUninvoicedListView.as_view(),
         name="bon-de-livraison-uninvoiced-list",
+    ),
+    # DELETE bulk delete bons de livraison
+    path(
+        "bulk_delete/",
+        BulkDeleteBonDeLivraisonView.as_view(),
+        name="bon-de-livraison-bulk-delete",
     ),
     # GET BonDeLivraison detail, PUT update, DELETE
     path(

@@ -25,6 +25,7 @@ from core.views import (
     BaseGenerateNumeroView,
     BaseStatusUpdateView,
     BaseConversionView,
+    BaseBulkDeleteView,
 )
 from facturation_backend.utils import CustomPagination
 from .filters import FactureClientFilter
@@ -778,3 +779,14 @@ class FactureClientPDFView(APIView):
             facture_client, company, pdf_type, language
         )
         return pdf_generator.generate_pdf()
+
+
+class BulkDeleteFactureClientView(BaseBulkDeleteView):
+    model = FactureClient
+    document_name = "facture client"
+
+    def get_queryset_with_related(self, ids):
+        return FactureClient.objects.filter(pk__in=ids).select_related("client")
+
+    def get_company_id(self, obj):
+        return obj.client.company_id

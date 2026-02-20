@@ -7,7 +7,7 @@ from rest_framework.views import APIView
 
 from account.models import Membership
 from core.permissions import can_create, can_delete, can_update
-from core.views import CompanyAccessMixin
+from core.views import CompanyAccessMixin, BaseBulkDeleteView, BaseBulkArchiveView
 from facturation_backend.utils import CustomPagination
 from .filters import ClientFilter
 from .models import Client
@@ -213,3 +213,25 @@ class ArchiveToggleClientView(CompanyAccessMixin, APIView):
         client.save(update_fields=["archived"])
         serializer = ClientDetailSerializer(client)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class BulkDeleteClientView(BaseBulkDeleteView):
+    model = Client
+    document_name = "client"
+
+    def get_queryset_with_related(self, ids):
+        return Client.objects.filter(pk__in=ids)
+
+    def get_company_id(self, obj):
+        return obj.company_id
+
+
+class BulkArchiveClientView(BaseBulkArchiveView):
+    model = Client
+    document_name = "client"
+
+    def get_queryset_with_related(self, ids):
+        return Client.objects.filter(pk__in=ids)
+
+    def get_company_id(self, obj):
+        return obj.company_id

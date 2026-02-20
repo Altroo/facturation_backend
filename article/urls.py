@@ -7,6 +7,8 @@ from .views import (
     ArchiveToggleArticleView,
     ImportArticlesView,
     SendCSVExampleEmailView,
+    BulkDeleteArticleView,
+    BulkArchiveArticleView,
 )
 
 app_name = "article"
@@ -14,6 +16,10 @@ app_name = "article"
 urlpatterns = [
     # GET Article list (paginated) & POST create
     path("", ArticleListCreateView.as_view(), name="article-list-create"),
+    # DELETE bulk delete articles
+    path("bulk_delete/", BulkDeleteArticleView.as_view(), name="article-bulk-delete"),
+    # PATCH bulk archive/unarchive articles
+    path("bulk_archive/", BulkArchiveArticleView.as_view(), name="article-bulk-archive"),
     # GET Article detail, PUT update, DELETE
     path("<int:pk>/", ArticleDetailEditDeleteView.as_view(), name="article-detail"),
     # GET generated reference Article

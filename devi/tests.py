@@ -1,6 +1,8 @@
 from decimal import Decimal
 
 import pytest
+from django.urls import reverse
+from rest_framework import status
 from rest_framework.test import APIClient
 
 from account.models import CustomUser, Membership, Role
@@ -1070,3 +1072,110 @@ class TestCoreViewsCoverage:
         response = client_api.patch(url, payload)
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+# -----------------------------------------------------------------------------
+# Bulk Delete Tests
+# -----------------------------------------------------------------------------
+@pytest.mark.django_db
+class TestBulkDeleteDeviAPI:
+    def setup_method(self):
+        self.user = CustomUser.objects.create_user(
+            email="bulk_devi@example.com", password="pass"
+        )
+        self.api_client = APIClient()
+        self.api_client.force_authenticate(user=self.user)
+
+        self.company = Company.objects.create(raison_sociale="BulkDeviCo", ICE="BDVCO1")
+        caissier_role, _ = Role.objects.get_or_create(name="Caissier")
+        Membership.objects.create(user=self.user, company=self.company, role=caissier_role)
+
+        self.ville = Ville.objects.create(nom="BulkDeviVille", company=self.company)
+        self.mode_paiement = ModePaiement.objects.create(nom="BulkDeviPay", company=self.company)
+        self.client_obj = Client.objects.create(
+            code_client="BDD001",
+            client_type="PM",
+            raison_sociale="BulkDevi Client",
+            ville=self.ville,
+            company=self.company,
+        )
+        self.devi1 = Devi.objects.create(
+            numero_devis="BULK/01",
+            client=self.client_obj,
+            date_devis="2025-01-01",
+            mode_paiement=self.mode_paiement,
+            statut="Brouillon",
+            created_by_user=self.user,
+            remise=Decimal("0.00"),
+            remise_type="Pourcentage",
+        )
+        self.devi2 = Devi.objects.create(
+            numero_devis="BULK/02",
+            client=self.client_obj,
+            date_devis="2025-01-02",
+            mode_paiement=self.mode_paiement,
+            statut="Brouillon",
+            created_by_user=self.user,
+            remise=Decimal("0.00"),
+            remise_type="Pourcentage",
+        )
+
+    def test_bulk_delete_success(self):
+        url = reverse("devi:devi-bulk-delete")
+        response = self.api_client.delete(
+            url, {"ids": [self.devi1.id, self.devi2.id]}, format="json"
+        )
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert not Devi.objects.filter(pk__in=[self.devi1.id, self.devi2.id]).exists()
+
+    def test_bulk_delete_single_record(self):
+        url = reverse("devi:devi-bulk-delete")
+        response = self.api_client.delete(
+            url, {"ids": [self.devi1.id]}, format="json"
+        )
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert not Devi.objects.filter(pk=self.devi1.id).exists()
+        assert Devi.objects.filter(pk=self.devi2.id).exists()
+
+    def test_bulk_delete_empty_ids_returns_400(self):
+        url = reverse("devi:devi-bulk-delete")
+        response = self.api_client.delete(url, {"ids": []}, format="json")
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_bulk_delete_missing_ids_field_returns_400(self):
+        url = reverse("devi:devi-bulk-delete")
+        response = self.api_client.delete(url, {}, format="json")
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_bulk_delete_unauthenticated_returns_401(self):
+        url = reverse("devi:devi-bulk-delete")
+        anon = APIClient()
+        response = anon.delete(url, {"ids": [self.devi1.id]}, format="json")
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_bulk_delete_wrong_company_returns_403(self):
+        other_company = Company.objects.create(raison_sociale="OtherCo", ICE="OTHDV1")
+        other_ville = Ville.objects.create(nom="OtherVille", company=other_company)
+        other_mode = ModePaiement.objects.create(nom="OtherPay", company=other_company)
+        other_client = Client.objects.create(
+            code_client="OTH001",
+            client_type="PM",
+            raison_sociale="Other Client",
+            ville=other_ville,
+            company=other_company,
+        )
+        other_devi = Devi.objects.create(
+            numero_devis="OTHER/01",
+            client=other_client,
+            date_devis="2025-01-01",
+            mode_paiement=other_mode,
+            statut="Brouillon",
+            created_by_user=self.user,
+            remise=Decimal("0.00"),
+            remise_type="Pourcentage",
+        )
+        url = reverse("devi:devi-bulk-delete")
+        response = self.api_client.delete(
+            url, {"ids": [other_devi.id]}, format="json"
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN

@@ -19,6 +19,7 @@ from core.views import (
     BaseGenerateNumeroView,
     BaseStatusUpdateView,
     BaseConversionView,
+    BaseBulkDeleteView,
 )
 from facture_client.utils import get_next_numero_facture_client
 from .filters import FactureProFormaFilter
@@ -580,3 +581,14 @@ class FactureProFormaPDFView(APIView):
             facture_proforma, company, pdf_type, language
         )
         return pdf_generator.generate_pdf()
+
+
+class BulkDeleteFactureProFormaView(BaseBulkDeleteView):
+    model = FactureProForma
+    document_name = "facture pro forma"
+
+    def get_queryset_with_related(self, ids):
+        return FactureProForma.objects.filter(pk__in=ids).select_related("client")
+
+    def get_company_id(self, obj):
+        return obj.client.company_id

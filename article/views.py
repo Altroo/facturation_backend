@@ -15,7 +15,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from account.models import Membership
-from core.views import CompanyAccessMixin
+from core.views import CompanyAccessMixin, BaseBulkDeleteView, BaseBulkArchiveView
 from core.constants import CURRENCY_CHOICES
 from core.permissions import can_create, can_update, can_delete
 from core.utils import format_number_with_dynamic_digits
@@ -623,3 +623,25 @@ class SendCSVExampleEmailView(APIView):
             {"message": "Email envoyé avec succès."},
             status=status.HTTP_200_OK
         )
+
+
+class BulkDeleteArticleView(BaseBulkDeleteView):
+    model = Article
+    document_name = "article"
+
+    def get_queryset_with_related(self, ids):
+        return Article.objects.filter(pk__in=ids)
+
+    def get_company_id(self, obj):
+        return obj.company_id
+
+
+class BulkArchiveArticleView(BaseBulkArchiveView):
+    model = Article
+    document_name = "article"
+
+    def get_queryset_with_related(self, ids):
+        return Article.objects.filter(pk__in=ids)
+
+    def get_company_id(self, obj):
+        return obj.company_id

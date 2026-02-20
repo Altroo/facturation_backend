@@ -511,3 +511,42 @@ class UserDetailEditDeleteView(APIView):
                 pass
         user.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class BulkDeleteUsersView(APIView):
+    """DELETE a list of users by ID. Admin-only endpoint."""
+
+    permission_classes = (permissions.IsAdminUser,)
+
+    def delete(self, request, *args, **kwargs):
+        ids = request.data.get("ids")
+        if not ids or not isinstance(ids, list):
+            raise ValidationError({"ids": _("Une liste d'identifiants est requise.")})
+
+        ids = [int(i) for i in ids]
+
+        # Cannot include the requesting user's own account
+        if request.user.pk in ids:
+            raise ValidationError(
+                {"ids": _("Vous ne pouvez pas supprimer votre propre utilisateur.")}
+            )
+
+        users = list(CustomUser.objects.filter(pk__in=ids))
+        if len(users) != len(ids):
+            raise Http404(_("Certains utilisateurs sont introuvables."))
+
+        with transaction.atomic():
+            for user in users:
+                media_paths_list = []
+                if user.avatar:
+                    media_paths_list.append(user.avatar.path)
+                if user.avatar_cropped:
+                    media_paths_list.append(user.avatar_cropped.path)
+                for media_path in media_paths_list:
+                    try:
+                        remove(media_path)
+                    except (ValueError, SuspiciousFileOperation, FileNotFoundError):
+                        pass
+            CustomUser.objects.filter(pk__in=ids).delete()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)

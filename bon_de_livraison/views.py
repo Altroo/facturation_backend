@@ -21,6 +21,7 @@ from core.views import (
     BaseDocumentDetailEditDeleteView,
     BaseGenerateNumeroView,
     BaseStatusUpdateView,
+    BaseBulkDeleteView,
 )
 from facturation_backend.utils import CustomPagination
 from .filters import BonDeLivraisonFilter
@@ -726,3 +727,14 @@ class BonDeLivraisonPDFView(APIView):
             bon_de_livraison, company, pdf_type, language
         )
         return pdf_generator.generate_pdf()
+
+
+class BulkDeleteBonDeLivraisonView(BaseBulkDeleteView):
+    model = BonDeLivraison
+    document_name = "bon de livraison"
+
+    def get_queryset_with_related(self, ids):
+        return BonDeLivraison.objects.filter(pk__in=ids).select_related("client")
+
+    def get_company_id(self, obj):
+        return obj.client.company_id

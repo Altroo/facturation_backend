@@ -2769,3 +2769,80 @@ class TestAccountAdditionalCoverage:
 
         assert response.status_code == 400
         assert "gender" in response.data.get("details", response.data)
+
+
+# -----------------------------------------------------------------------------
+# Bulk Delete Users Tests
+# -----------------------------------------------------------------------------
+@pytest.mark.django_db
+class TestBulkDeleteUsersAPI:
+    def setup_method(self):
+        self.User = get_user_model()
+        self.admin = self.User.objects.create_user(
+            email="bulk_admin@example.com",
+            password="pass",
+            is_staff=True,
+        )
+        self.api_client = APIClient()
+        self.api_client.force_authenticate(user=self.admin)
+
+        self.user1 = self.User.objects.create_user(
+            email="bulk_u1@example.com", password="pass"
+        )
+        self.user2 = self.User.objects.create_user(
+            email="bulk_u2@example.com", password="pass"
+        )
+
+    def test_bulk_delete_success(self):
+        url = reverse("account:users-bulk-delete")
+        response = self.api_client.delete(
+            url, {"ids": [self.user1.id, self.user2.id]}, format="json"
+        )
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert not self.User.objects.filter(pk__in=[self.user1.id, self.user2.id]).exists()
+
+    def test_bulk_delete_single_user(self):
+        url = reverse("account:users-bulk-delete")
+        response = self.api_client.delete(
+            url, {"ids": [self.user1.id]}, format="json"
+        )
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert not self.User.objects.filter(pk=self.user1.id).exists()
+        assert self.User.objects.filter(pk=self.user2.id).exists()
+
+    def test_bulk_delete_empty_ids_returns_400(self):
+        url = reverse("account:users-bulk-delete")
+        response = self.api_client.delete(url, {"ids": []}, format="json")
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_bulk_delete_missing_ids_field_returns_400(self):
+        url = reverse("account:users-bulk-delete")
+        response = self.api_client.delete(url, {}, format="json")
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_bulk_delete_cannot_delete_own_account(self):
+        """Admin cannot include their own ID in the bulk delete list."""
+        url = reverse("account:users-bulk-delete")
+        response = self.api_client.delete(
+            url, {"ids": [self.admin.id, self.user1.id]}, format="json"
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        # Own account should still exist
+        assert self.User.objects.filter(pk=self.admin.id).exists()
+
+    def test_bulk_delete_unauthenticated_returns_401(self):
+        url = reverse("account:users-bulk-delete")
+        anon = APIClient()
+        response = anon.delete(url, {"ids": [self.user1.id]}, format="json")
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_bulk_delete_non_admin_returns_403(self):
+        """Regular (non-staff) user cannot bulk delete."""
+        regular_user = self.User.objects.create_user(
+            email="regular@example.com", password="pass", is_staff=False
+        )
+        client = APIClient()
+        client.force_authenticate(user=regular_user)
+        url = reverse("account:users-bulk-delete")
+        response = client.delete(url, {"ids": [self.user1.id]}, format="json")
+        assert response.status_code == status.HTTP_403_FORBIDDEN

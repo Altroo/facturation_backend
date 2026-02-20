@@ -7,6 +7,7 @@ from .views import (
     FactureProFormaStatusUpdateView,
     FactureProFormaConvertToFactureClientView,
     FactureProFormaPDFView,
+    BulkDeleteFactureProFormaView,
 )
 
 app_name = "facture_proforma"
@@ -17,6 +18,12 @@ urlpatterns = [
         "",
         FactureProFormaListCreateView.as_view(),
         name="facture-proforma-list-create",
+    ),
+    # DELETE bulk delete factures pro forma
+    path(
+        "bulk_delete/",
+        BulkDeleteFactureProFormaView.as_view(),
+        name="facture-proforma-bulk-delete",
     ),
     # GET facture-proforma detail, PUT update, DELETE
     path(

@@ -9,6 +9,7 @@ from .views import (
     FactureClientUnpaidListView,
     FactureClientForPaymentView,
     FactureClientPDFView,
+    BulkDeleteFactureClientView,
 )
 
 app_name = "facture_client"
@@ -31,6 +32,12 @@ urlpatterns = [
         "for_payment/",
         FactureClientForPaymentView.as_view(),
         name="facture-client-for-payment",
+    ),
+    # DELETE bulk delete factures client
+    path(
+        "bulk_delete/",
+        BulkDeleteFactureClientView.as_view(),
+        name="facture-client-bulk-delete",
     ),
     # GET facture-client detail, PUT update, DELETE
     path(

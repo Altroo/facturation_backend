@@ -5,6 +5,7 @@ from .views import (
     ReglementDetailEditDeleteView,
     ReglementStatusUpdateView,
     ReglementPDFView,
+    BulkDeleteReglementView,
 )
 
 app_name = "reglement"
@@ -15,6 +16,12 @@ urlpatterns = [
         "",
         ReglementListCreateView.as_view(),
         name="reglement-list-create",
+    ),
+    # DELETE bulk delete règlements
+    path(
+        "bulk_delete/",
+        BulkDeleteReglementView.as_view(),
+        name="reglement-bulk-delete",
     ),
     # GET règlement detail, PUT update, DELETE
     path(

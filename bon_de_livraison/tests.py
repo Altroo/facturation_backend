@@ -1,6 +1,8 @@
 from decimal import Decimal
 
 import pytest
+from django.urls import reverse
+from rest_framework import status
 from rest_framework.test import APIClient
 
 from account.models import CustomUser, Membership, Role
@@ -1460,3 +1462,115 @@ class TestBonDeLivraisonViewsCoverage:
             url + f"?company_id={bon_de_livraison_company.id}&type=avec_remise"
         )
         assert response2.status_code == status.HTTP_200_OK
+
+
+# -----------------------------------------------------------------------------
+# Bulk Delete Tests
+# -----------------------------------------------------------------------------
+@pytest.mark.django_db
+class TestBulkDeleteBonDeLivraisonAPI:
+    def setup_method(self):
+        self.user = CustomUser.objects.create_user(
+            email="bulk_bl@example.com", password="pass"
+        )
+        self.api_client = APIClient()
+        self.api_client.force_authenticate(user=self.user)
+
+        self.company = Company.objects.create(raison_sociale="BulkBLCo", ICE="BDBLC01")
+        caissier_role, _ = Role.objects.get_or_create(name="Caissier")
+        Membership.objects.create(user=self.user, company=self.company, role=caissier_role)
+
+        self.ville = Ville.objects.create(nom="BulkBLVille", company=self.company)
+        self.mode_paiement = ModePaiement.objects.create(nom="BulkBLPay", company=self.company)
+        self.livre_par = LivrePar.objects.create(nom="BulkLivreur", company=self.company)
+        self.client_obj = Client.objects.create(
+            code_client="BDBL001",
+            client_type="PM",
+            raison_sociale="BulkBL Client",
+            ville=self.ville,
+            company=self.company,
+        )
+        self.bl1 = BonDeLivraison.objects.create(
+            numero_bon_livraison="BKBL/01",
+            client=self.client_obj,
+            date_bon_livraison="2025-01-01",
+            livre_par=self.livre_par,
+            mode_paiement=self.mode_paiement,
+            statut="Brouillon",
+            created_by_user=self.user,
+            remise=Decimal("0.00"),
+            remise_type="Pourcentage",
+        )
+        self.bl2 = BonDeLivraison.objects.create(
+            numero_bon_livraison="BKBL/02",
+            client=self.client_obj,
+            date_bon_livraison="2025-01-02",
+            livre_par=self.livre_par,
+            mode_paiement=self.mode_paiement,
+            statut="Brouillon",
+            created_by_user=self.user,
+            remise=Decimal("0.00"),
+            remise_type="Pourcentage",
+        )
+
+    def test_bulk_delete_success(self):
+        url = reverse("bon_de_livraison:bon-de-livraison-bulk-delete")
+        response = self.api_client.delete(
+            url, {"ids": [self.bl1.id, self.bl2.id]}, format="json"
+        )
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert not BonDeLivraison.objects.filter(pk__in=[self.bl1.id, self.bl2.id]).exists()
+
+    def test_bulk_delete_single_record(self):
+        url = reverse("bon_de_livraison:bon-de-livraison-bulk-delete")
+        response = self.api_client.delete(
+            url, {"ids": [self.bl1.id]}, format="json"
+        )
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert not BonDeLivraison.objects.filter(pk=self.bl1.id).exists()
+        assert BonDeLivraison.objects.filter(pk=self.bl2.id).exists()
+
+    def test_bulk_delete_empty_ids_returns_400(self):
+        url = reverse("bon_de_livraison:bon-de-livraison-bulk-delete")
+        response = self.api_client.delete(url, {"ids": []}, format="json")
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_bulk_delete_missing_ids_field_returns_400(self):
+        url = reverse("bon_de_livraison:bon-de-livraison-bulk-delete")
+        response = self.api_client.delete(url, {}, format="json")
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_bulk_delete_unauthenticated_returns_401(self):
+        url = reverse("bon_de_livraison:bon-de-livraison-bulk-delete")
+        anon = APIClient()
+        response = anon.delete(url, {"ids": [self.bl1.id]}, format="json")
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_bulk_delete_wrong_company_returns_403(self):
+        other_company = Company.objects.create(raison_sociale="OtherCo", ICE="OTHBL1")
+        other_ville = Ville.objects.create(nom="OtherBLVille", company=other_company)
+        other_mode = ModePaiement.objects.create(nom="OtherBLPay", company=other_company)
+        other_livre_par = LivrePar.objects.create(nom="OtherLivreur", company=other_company)
+        other_client = Client.objects.create(
+            code_client="OTHBL01",
+            client_type="PM",
+            raison_sociale="Other BL Client",
+            ville=other_ville,
+            company=other_company,
+        )
+        other_bl = BonDeLivraison.objects.create(
+            numero_bon_livraison="OTHER/BL01",
+            client=other_client,
+            date_bon_livraison="2025-01-01",
+            livre_par=other_livre_par,
+            mode_paiement=other_mode,
+            statut="Brouillon",
+            created_by_user=self.user,
+            remise=Decimal("0.00"),
+            remise_type="Pourcentage",
+        )
+        url = reverse("bon_de_livraison:bon-de-livraison-bulk-delete")
+        response = self.api_client.delete(
+            url, {"ids": [other_bl.id]}, format="json"
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN

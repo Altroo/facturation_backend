@@ -314,3 +314,114 @@ class BaseConversionView(CompanyAccessMixin, APIView):
             raise ValidationError(
                 _("Échec de la conversion: %(error)s") % {"error": str(e)}
             )
+
+
+class BaseBulkDeleteView(CompanyAccessMixin, APIView):
+    """Base view for bulk-deleting documents by a list of IDs.
+
+    Subclasses must define:
+        model              – the Django model class
+        document_name      – human-readable name (used in error messages)
+
+    Subclasses must implement:
+        get_queryset_with_related(ids)  – returns a queryset pre-fetched for
+                                          get_company_id lookups
+        get_company_id(obj)             – returns the company_id for one object
+    """
+
+    permission_classes = (permissions.IsAuthenticated,)
+    model = None
+    document_name = "document"
+
+    def get_queryset_with_related(self, ids):  # pragma: no cover
+        raise NotImplementedError
+
+    def get_company_id(self, obj):  # pragma: no cover
+        raise NotImplementedError
+
+    def delete(self, request, *args, **kwargs):
+        ids = request.data.get("ids")
+        if not ids or not isinstance(ids, list):
+            raise ValidationError({"ids": _("Une liste d'identifiants est requise.")})
+
+        ids = [int(i) for i in ids]
+        objects = list(self.get_queryset_with_related(ids))
+        if len(objects) != len(ids):
+            raise Http404(
+                _("Certains %(name)s sont introuvables.") % {"name": self.document_name}
+            )
+
+        from django.db import transaction
+        with transaction.atomic():
+            for obj in objects:
+                company_id = self.get_company_id(obj)
+                if not self._has_membership(request.user, company_id):
+                    raise PermissionDenied(
+                        _("Vous n'êtes pas autorisé à supprimer ce %(name)s.")
+                        % {"name": self.document_name}
+                    )
+                if not can_delete(request.user, company_id):
+                    raise PermissionDenied(
+                        _("Vous n'avez pas les droits pour supprimer ce %(name)s.")
+                        % {"name": self.document_name}
+                    )
+            self.model.objects.filter(pk__in=ids).delete()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class BaseBulkArchiveView(CompanyAccessMixin, APIView):
+    """Base view for bulk-archiving / unarchiving objects by a list of IDs.
+
+    Subclasses must define:
+        model              – the Django model class (must have an ``archived`` field)
+        document_name      – human-readable name
+
+    Subclasses must implement:
+        get_queryset_with_related(ids)  – returns a queryset pre-fetched for
+                                          get_company_id lookups
+        get_company_id(obj)             – returns the company_id for one object
+    """
+
+    permission_classes = (permissions.IsAuthenticated,)
+    model = None
+    document_name = "document"
+
+    def get_queryset_with_related(self, ids):  # pragma: no cover
+        raise NotImplementedError
+
+    def get_company_id(self, obj):  # pragma: no cover
+        raise NotImplementedError
+
+    def patch(self, request, *args, **kwargs):
+        ids = request.data.get("ids")
+        archived = request.data.get("archived")
+        if not ids or not isinstance(ids, list):
+            raise ValidationError({"ids": _("Une liste d'identifiants est requise.")})
+        if archived is None or not isinstance(archived, bool):
+            raise ValidationError({"archived": _("Le champ 'archived' (booléen) est requis.")})
+
+        ids = [int(i) for i in ids]
+        objects = list(self.get_queryset_with_related(ids))
+        if len(objects) != len(ids):
+            raise Http404(
+                _("Certains %(name)s sont introuvables.") % {"name": self.document_name}
+            )
+
+        from django.db import transaction
+        with transaction.atomic():
+            for obj in objects:
+                company_id = self.get_company_id(obj)
+                if not self._has_membership(request.user, company_id):
+                    raise PermissionDenied(
+                        _("Vous n'êtes pas autorisé à modifier ce %(name)s.")
+                        % {"name": self.document_name}
+                    )
+                if not can_update(request.user, company_id):
+                    raise PermissionDenied(
+                        _("Vous n'avez pas les droits pour modifier ce %(name)s.")
+                        % {"name": self.document_name}
+                    )
+            self.model.objects.filter(pk__in=ids).update(archived=archived)
+
+        return Response({"updated": len(ids)}, status=status.HTTP_200_OK)

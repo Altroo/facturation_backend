@@ -13,7 +13,7 @@ from rest_framework.views import APIView
 
 from account.models import Membership
 from company.models import Company
-from core.views import CompanyAccessMixin
+from core.views import CompanyAccessMixin, BaseBulkDeleteView
 from core.authentication import JWTQueryParamAuthentication
 from core.pdf_utils import (
     BasePDFGenerator,
@@ -608,3 +608,16 @@ class ReglementPDFView(APIView):
         # Generate PDF
         pdf_generator = ReglementPDFGenerator(reglement, company, "normal", language)
         return pdf_generator.generate_pdf()
+
+
+class BulkDeleteReglementView(BaseBulkDeleteView):
+    model = Reglement
+    document_name = "règlement"
+
+    def get_queryset_with_related(self, ids):
+        return Reglement.objects.filter(pk__in=ids).select_related(
+            "facture_client__client"
+        )
+
+    def get_company_id(self, obj):
+        return obj.facture_client.client.company_id
