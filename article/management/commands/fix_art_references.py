@@ -38,7 +38,7 @@ class Command(BaseCommand):
             datetime.datetime(2026, 2, 17, 15, 42, 0), tz
         )
         window_end = timezone.make_aware(
-            datetime.datetime(2026, 2, 17, 15, 42, 59, 999999), tz
+            datetime.datetime(2026, 2, 17, 15, 45, 59, 999999), tz
         )
 
         # Import here to avoid issues if the command is loaded before Django setup
