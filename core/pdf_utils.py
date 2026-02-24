@@ -688,6 +688,33 @@ class BasePDFGenerator:
         # Rebuild elements for final document
         elements = self._build_content()
 
+        # Balance content across pages if needed
+        if self.total_pages > 1:
+            elements = self._balance_elements(elements)
+            # Re-count pages after balancing (may have changed)
+            temp_buffer2 = BytesIO()
+            temp_doc2 = SimpleDocTemplate(
+                temp_buffer2,
+                pagesize=A4,
+                rightMargin=self.MARGIN,
+                leftMargin=self.MARGIN,
+                topMargin=self.MARGIN,
+                bottomMargin=2 * cm,
+            )
+            page_counter2 = [0]
+
+            def count_pages2(canvas, _pdf_doc):
+                page_counter2[0] = canvas.getPageNumber()
+
+            temp_doc2.build(
+                elements[:], onFirstPage=count_pages2, onLaterPages=count_pages2
+            )
+            self.total_pages = page_counter2[0]
+            # Rebuild balanced elements for final document
+            elements = self._build_content()
+            if self.total_pages > 1:
+                elements = self._balance_elements(elements)
+
         # Generate PDF with page numbers
         doc.build(
             elements,
@@ -732,6 +759,67 @@ class BasePDFGenerator:
         canvas.drawRightString(self.PAGE_WIDTH - self.MARGIN, 1 * cm, page_text)
 
         canvas.restoreState()
+
+    def _balance_elements(self, elements):
+        """Balance content across pages so footer sections aren't orphaned.
+
+        Measures all flowable heights, and if the content spans multiple pages,
+        splits the articles table at a balanced point so each page has a
+        roughly equal share of content.
+        """
+        import math
+        from reportlab.platypus import PageBreak
+
+        available_width = self.PAGE_WIDTH - 2 * self.MARGIN
+        available_height = self.PAGE_HEIGHT - self.MARGIN - 2 * cm  # matches doc margins
+
+        # Build a throwaway copy of the elements just for measuring heights
+        measure_elements = self._build_content()
+        heights = []
+        for elem in measure_elements:
+            try:
+                _w, h = elem.wrap(available_width, available_height)
+                heights.append(h)
+            except Exception:
+                heights.append(0)
+
+        total_height = sum(heights)
+        if total_height <= available_height:
+            return elements  # fits on one page
+
+        num_pages = math.ceil(total_height / available_height)
+        target_per_page = total_height / num_pages
+
+        result = []
+        cumulative = 0
+        current_page = 1
+
+        for i, (elem, h) in enumerate(zip(elements, heights)):
+            if (
+                cumulative > 0
+                and cumulative + h > target_per_page * current_page
+                and current_page < num_pages
+            ):
+                # Try to split large Tables (the articles table) at the target point
+                if isinstance(elem, Table) and h > available_height * 0.2:
+                    split_at = max(target_per_page * current_page - cumulative, 0)
+                    if split_at > 0:
+                        parts = elem.split(available_width, split_at)
+                        if len(parts) == 2:
+                            result.append(parts[0])
+                            result.append(PageBreak())
+                            result.append(parts[1])
+                            cumulative += h
+                            current_page += 1
+                            continue
+                # For non-table elements or unsplittable tables, break before
+                result.append(PageBreak())
+                current_page += 1
+
+            result.append(elem)
+            cumulative += h
+
+        return result
 
     def _build_content(self) -> list:
         """Build PDF content. Override in subclasses."""
