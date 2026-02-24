@@ -2245,8 +2245,8 @@ class TestBasePDFGenerator:
         table = generator._create_articles_table(show_remise=True, show_unite=False)
         assert isinstance(table, Table)
 
-    def test_create_totals_section(self, pdf_devi, pdf_company):
-        """Test _create_totals_section method."""
+    def test_create_totals_table(self, pdf_devi, pdf_company):
+        """Test _create_totals_table method."""
         from core.pdf_utils import BasePDFGenerator
         from reportlab.platypus import Table
 
@@ -2256,11 +2256,11 @@ class TestBasePDFGenerator:
         pdf_devi.save()
 
         generator = BasePDFGenerator(pdf_devi, pdf_company)
-        table = generator._create_totals_section(show_remise=False)
+        table = generator._create_totals_table(show_remise=False)
         assert isinstance(table, Table)
 
-    def test_create_totals_section_with_remise(self, pdf_devi, pdf_company):
-        """Test _create_totals_section with remise."""
+    def test_create_totals_table_with_remise(self, pdf_devi, pdf_company):
+        """Test _create_totals_table with remise."""
         from core.pdf_utils import BasePDFGenerator
         from reportlab.platypus import Table
 
@@ -2273,11 +2273,11 @@ class TestBasePDFGenerator:
         pdf_devi.save()
 
         generator = BasePDFGenerator(pdf_devi, pdf_company)
-        table = generator._create_totals_section(show_remise=True)
+        table = generator._create_totals_table(show_remise=True)
         assert isinstance(table, Table)
 
-    def test_create_totals_section_with_remise_fixe(self, pdf_devi, pdf_company):
-        """Test _create_totals_section with fixed remise."""
+    def test_create_totals_table_with_remise_fixe(self, pdf_devi, pdf_company):
+        """Test _create_totals_table with fixed remise."""
         from core.pdf_utils import BasePDFGenerator
         from reportlab.platypus import Table
 
@@ -2290,7 +2290,7 @@ class TestBasePDFGenerator:
         pdf_devi.save()
 
         generator = BasePDFGenerator(pdf_devi, pdf_company)
-        table = generator._create_totals_section(show_remise=True)
+        table = generator._create_totals_table(show_remise=True)
         assert isinstance(table, Table)
 
     def test_create_price_in_words_section(self, pdf_devi, pdf_company):

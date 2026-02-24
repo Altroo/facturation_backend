@@ -15,7 +15,7 @@ from rest_framework.views import APIView
 
 from company.models import Company
 from core.authentication import JWTQueryParamAuthentication
-from core.pdf_utils import BasePDFGenerator, number_to_french_words, format_number_for_pdf
+from core.pdf_utils import BasePDFGenerator, number_to_french_words, number_to_english_words, format_number_for_pdf
 from core.views import (
     BaseDocumentListCreateView,
     BaseDocumentDetailEditDeleteView,
@@ -403,22 +403,26 @@ class BonDeLivraisonPDFGenerator(BasePDFGenerator):
                 show_remise=show_remise, show_unite=show_unite
             )
             elements.append(articles_table)
-            elements.append(Spacer(1, 0.5 * cm))
+            elements.append(Spacer(1, 0.3 * cm))
 
-            # ===== PRICE IN WORDS (kept together to avoid orphan on next page) =====
-            from core.pdf_utils import number_to_english_words
+            # ===== TAIL: totals + price-in-words (kept together, no remarks) =====
+            tail_elements = []
 
-            footer_elements = []
-            footer_elements.append(
+            # Totals table
+            tail_elements.append(self._create_totals_table(show_remise=show_remise))
+            tail_elements.append(Spacer(1, 0.3 * cm))
+
+            # Price in words
+            tail_elements.append(
                 Paragraph(
                     f"<b>{self._('Delivery_Amount_Words')}</b>",
                     self.styles["SectionHeader"],
                 )
             )
-            footer_elements.append(
+            tail_elements.append(
                 HRFlowable(width="100%", thickness=1, color=self.primary_color)
             )
-            footer_elements.append(Spacer(1, 0.2 * cm))
+            tail_elements.append(Spacer(1, 0.2 * cm))
 
             total_price = (
                 self.document.total_ttc_apres_remise
@@ -432,11 +436,11 @@ class BonDeLivraisonPDFGenerator(BasePDFGenerator):
                 if self.language == "en"
                 else number_to_french_words(total_price, currency)
             )
-            footer_elements.append(
+            tail_elements.append(
                 Paragraph(f"{price_in_words} TTC", self.styles["PriceWords"])
             )
 
-            elements.append(KeepTogether(footer_elements))
+            elements.append(KeepTogether(tail_elements))
             elements.append(Spacer(1, 0.5 * cm))
 
         return elements
@@ -557,102 +561,26 @@ class BonDeLivraisonPDFGenerator(BasePDFGenerator):
 
             table_data.append(row)
 
-        # Add empty row for spacing before totals
-        num_cols = len(headers)
-        empty_row = [Paragraph("", self.styles["CustomSmall"])] * num_cols
-        table_data.append(empty_row)
-
-        # Add totals rows (aligned to right columns) - NO MAD text
-        devise = self.document.devise or "MAD"
-        # Total HT
-        total_ht_row = [Paragraph("", self.styles["CustomSmall"])] * num_cols
-        total_ht_row[-2] = Paragraph(
-            f"<b>{self._('Total_HT_Label')}</b>", self.styles["CustomSmall"]
-        )
-        total_ht_row[-1] = Paragraph(
-            f"{format_number_for_pdf(self.document.total_ht)} {devise}", self.styles["CustomSmallCenter"]
-        )
-        table_data.append(total_ht_row)
-
-        # TVA
-        tva_row = [Paragraph("", self.styles["CustomSmall"])] * num_cols
-        tva_row[-2] = Paragraph(
-            f"<b>{self._('Total_TVA_Label')}</b>", self.styles["CustomSmall"]
-        )
-        tva_row[-1] = Paragraph(
-            f"{format_number_for_pdf(self.document.total_tva)} {devise}", self.styles["CustomSmallCenter"]
-        )
-        table_data.append(tva_row)
-
-        # Total TTC
-        total_ttc_row = [Paragraph("", self.styles["CustomSmall"])] * num_cols
-        total_ttc_row[-2] = Paragraph(
-            f"<b>{self._('Total_TTC_Label')}</b>", self.styles["CustomSmall"]
-        )
-        total_ttc_row[-1] = Paragraph(
-            f"{format_number_for_pdf(self.document.total_ttc)} {devise}", self.styles["CustomSmallCenter"]
-        )
-        table_data.append(total_ttc_row)
-
-        # Remise globale and Total TTC après remise (if applicable)
-        if self.document.remise_type and self.document.remise > 0:
-            remise_row = [Paragraph("", self.styles["CustomSmall"])] * num_cols
-            if self.document.remise_type == "Pourcentage":
-                remise_text = f"{format_number_for_pdf(self.document.remise)}%"
-            else:
-                remise_text = format_number_for_pdf(self.document.remise)
-            remise_type_label = (
-                self._("Percentage")
-                if self.document.remise_type == "Pourcentage"
-                else self._("Fixed")
-            )
-            remise_row[-2] = Paragraph(
-                f"<b>{self._('Discount_Label')} ({remise_type_label})</b>",
-                self.styles["CustomSmall"],
-            )
-            remise_row[-1] = Paragraph(remise_text, self.styles["CustomSmallCenter"])
-            table_data.append(remise_row)
-
-            # Total TTC après remise
-            final_row = [Paragraph("", self.styles["CustomSmall"])] * num_cols
-            final_row[-2] = Paragraph(
-                f"<b>{self._('Total_TTC_After_Discount')}</b>",
-                self.styles["CustomSmall"],
-            )
-            final_row[-1] = Paragraph(
-                f"{format_number_for_pdf(self.document.total_ttc_apres_remise)} {devise}",
-                self.styles["CustomSmallCenter"],
-            )
-            table_data.append(final_row)
-
-        # Create table
+        # Create table (articles only - no totals)
         table = Table(table_data, colWidths=col_widths, repeatRows=1)
 
-        # Calculate row indices for styling
         num_articles = self.document.lignes.count()
         last_article_row = num_articles
-        totals_start = num_articles + 2
 
         style_commands = [
             # Header styling - soft light gray background
             ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#f5f5f5")),
             ("TEXTCOLOR", (0, 0), (-1, 0), colors.HexColor("#333333")),
-            (
-                "ALIGN",
-                (1, 0),
-                (-1, 0),
-                "CENTER",
-            ),  # Center all headers except Designation
-            ("ALIGN", (0, 0), (0, 0), "LEFT"),  # Designation header stays left
+            ("ALIGN", (1, 0), (-1, 0), "CENTER"),
+            ("ALIGN", (0, 0), (0, 0), "LEFT"),
             ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
             ("FONTSIZE", (0, 0), (-1, 0), 9),
             ("BOTTOMPADDING", (0, 0), (-1, 0), 8),
             ("TOPPADDING", (0, 0), (-1, 0), 8),
             # Body styling (articles)
             ("VALIGN", (0, 1), (-1, last_article_row), "TOP"),
-            # Center align all numeric columns (Qté, TVA, PRIX UNIT. HT, Unité, Remise, Total HT)
             ("ALIGN", (1, 1), (-1, last_article_row), "CENTER"),
-            ("ALIGN", (0, 1), (0, last_article_row), "LEFT"),  # Designation stays left
+            ("ALIGN", (0, 1), (0, last_article_row), "LEFT"),
             ("FONTSIZE", (0, 1), (-1, last_article_row), 8),
             (
                 "ROWBACKGROUNDS",
@@ -665,17 +593,6 @@ class BonDeLivraisonPDFGenerator(BasePDFGenerator):
             ("RIGHTPADDING", (0, 0), (-1, -1), 4),
             ("TOPPADDING", (0, 1), (-1, -1), 4),
             ("BOTTOMPADDING", (0, 1), (-1, -1), 4),
-            # Totals section styling
-            ("ALIGN", (-2, totals_start), (-1, -1), "RIGHT"),
-            ("FONTNAME", (-2, totals_start), (-1, -1), "Helvetica"),
-            (
-                "LINEABOVE",
-                (-2, totals_start),
-                (-1, totals_start),
-                1,
-                colors.HexColor("#333333"),
-            ),
-            ("BACKGROUND", (-2, -1), (-1, -1), colors.HexColor("#f5f5f5")),
         ]
 
         table.setStyle(TableStyle(style_commands))

@@ -16,8 +16,9 @@ COLOR_BGR2RGB: Any = cv2.COLOR_BGR2RGB
 GaussianBlur: Any = cv2.GaussianBlur
 
 from django.core.files.base import ContentFile
+from django.db.models import ProtectedError
 from numpy import uint8, frombuffer
-from rest_framework import serializers
+from rest_framework import serializers, status
 from rest_framework.exceptions import Throttled
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
@@ -223,6 +224,20 @@ class Base64ImageField(serializers.ImageField):
 
 
 def api_exception_handler(exc, context):
+    # Handle ProtectedError (on_delete=PROTECT) with a clear French message
+    if isinstance(exc, ProtectedError):
+        error_payload = {
+            "status_code": 409,
+            "message": "Suppression impossible",
+            "details": {
+                "protected": [
+                    "Cet élément ne peut pas être supprimé car il est utilisé "
+                    "dans d'autres documents. Utilisez l'archivage à la place."
+                ]
+            },
+        }
+        return Response(error_payload, status=status.HTTP_409_CONFLICT)
+
     # Translate DRF throttle message to French before handling
     if isinstance(exc, Throttled):
         wait = int(exc.wait) if exc.wait else 0

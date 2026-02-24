@@ -1,4 +1,5 @@
 import logging
+import math
 import os
 from decimal import Decimal
 from io import BytesIO
@@ -17,6 +18,8 @@ from reportlab.platypus import (
     Paragraph,
     Spacer,
     Image,
+    KeepTogether,
+    PageBreak,
 )
 
 logger = logging.getLogger(__name__)
@@ -637,14 +640,31 @@ class BasePDFGenerator:
                 return None
         return None
 
+    def _count_pages(self, elements):
+        """Build elements into a throwaway doc just to count pages."""
+        temp_buffer = BytesIO()
+        temp_doc = SimpleDocTemplate(
+            temp_buffer,
+            pagesize=A4,
+            rightMargin=self.MARGIN,
+            leftMargin=self.MARGIN,
+            topMargin=self.MARGIN,
+            bottomMargin=2 * cm,
+        )
+        page_counter = [0]
+
+        def _on_page(canvas, _pdf_doc):
+            page_counter[0] = canvas.getPageNumber()
+
+        temp_doc.build(elements[:], onFirstPage=_on_page, onLaterPages=_on_page)
+        return page_counter[0]
+
     def generate_pdf(self) -> HttpResponse:
         """Generate and return PDF as HTTP response."""
 
-        # Get PDF title and filename for metadata
         filename = self._get_filename()
         pdf_title = self._get_pdf_title()
 
-        # Create PDF document with page number tracking
         doc = SimpleDocTemplate(
             self.buffer,
             pagesize=A4,
@@ -660,73 +680,29 @@ class BasePDFGenerator:
             ),
         )
 
-        # Build content
+        # Build content and count pages
         elements = self._build_content()
+        self.total_pages = self._count_pages(elements)
 
-        # First pass to count pages
-        from io import BytesIO
-
-        temp_buffer = BytesIO()
-        temp_doc = SimpleDocTemplate(
-            temp_buffer,
-            pagesize=A4,
-            rightMargin=self.MARGIN,
-            leftMargin=self.MARGIN,
-            topMargin=self.MARGIN,
-            bottomMargin=2 * cm,
-        )
-
-        # Count pages using a dummy build
-        page_counter = [0]
-
-        def count_pages(canvas, _pdf_doc):
-            page_counter[0] = canvas.getPageNumber()
-
-        temp_doc.build(elements[:], onFirstPage=count_pages, onLaterPages=count_pages)
-        self.total_pages = page_counter[0]
-
-        # Rebuild elements for final document
-        elements = self._build_content()
-
-        # Balance content across pages if needed
+        # Balance content across pages if multi-page
         if self.total_pages > 1:
+            elements = self._build_content()
             elements = self._balance_elements(elements)
-            # Re-count pages after balancing (may have changed)
-            temp_buffer2 = BytesIO()
-            temp_doc2 = SimpleDocTemplate(
-                temp_buffer2,
-                pagesize=A4,
-                rightMargin=self.MARGIN,
-                leftMargin=self.MARGIN,
-                topMargin=self.MARGIN,
-                bottomMargin=2 * cm,
-            )
-            page_counter2 = [0]
-
-            def count_pages2(canvas, _pdf_doc):
-                page_counter2[0] = canvas.getPageNumber()
-
-            temp_doc2.build(
-                elements[:], onFirstPage=count_pages2, onLaterPages=count_pages2
-            )
-            self.total_pages = page_counter2[0]
-            # Rebuild balanced elements for final document
+            self.total_pages = self._count_pages(elements)
+            # Rebuild balanced for final output
             elements = self._build_content()
             if self.total_pages > 1:
                 elements = self._balance_elements(elements)
 
-        # Generate PDF with page numbers
         doc.build(
             elements,
             onFirstPage=self._add_page_footer,
             onLaterPages=self._add_page_footer,
         )
 
-        # Prepare response
         self.buffer.seek(0)
         response = HttpResponse(self.buffer, content_type="application/pdf")
         response["Content-Disposition"] = f'inline; filename="{filename}"'
-        # Prevent browsers/proxies from caching PDFs that may be fetched via JWT query-param tokens.
         response["Cache-Control"] = "no-store, no-cache, must-revalidate, private"
         response["Pragma"] = "no-cache"
 
@@ -761,19 +737,18 @@ class BasePDFGenerator:
         canvas.restoreState()
 
     def _balance_elements(self, elements):
-        """Balance content across pages so footer sections aren't orphaned.
+        """Balance content across pages using tail-reservation strategy.
 
-        Measures all flowable heights, and if the content spans multiple pages,
-        splits the articles table at a balanced point so each page has a
-        roughly equal share of content.
+        Identifies the KeepTogether tail (totals + price-in-words + remarks)
+        and the articles Table, then splits the articles table so the last
+        page carries a balanced amount of content rather than orphaning the
+        footer.
         """
-        import math
-        from reportlab.platypus import PageBreak
-
         available_width = self.PAGE_WIDTH - 2 * self.MARGIN
-        available_height = self.PAGE_HEIGHT - self.MARGIN - 2 * cm  # matches doc margins
+        available_height = self.PAGE_HEIGHT - self.MARGIN - 2 * cm
 
-        # Build a throwaway copy of the elements just for measuring heights
+        # Build a SEPARATE copy just for measuring heights.
+        # wrap() mutates flowable state, so we must never wrap the real elements.
         measure_elements = self._build_content()
         heights = []
         for elem in measure_elements:
@@ -785,40 +760,70 @@ class BasePDFGenerator:
 
         total_height = sum(heights)
         if total_height <= available_height:
-            return elements  # fits on one page
+            return elements
+
+        # Find the tail KeepTogether (last one in elements list)
+        tail_idx = None
+        for i in range(len(elements) - 1, -1, -1):
+            if isinstance(elements[i], KeepTogether):
+                tail_idx = i
+                break
+
+        # Find the articles Table (largest Table before the tail)
+        art_idx = None
+        art_height = 0
+        search_limit = tail_idx if tail_idx is not None else len(elements)
+        for i in range(search_limit):
+            if isinstance(elements[i], Table) and heights[i] > art_height:
+                art_idx = i
+                art_height = heights[i]
+
+        if art_idx is None:
+            return elements  # nothing to split
+
+        # Height of everything before articles table
+        pre_height = sum(heights[:art_idx])
+        # Height of everything after articles table
+        post_height = sum(heights[art_idx + 1:])
 
         num_pages = math.ceil(total_height / available_height)
-        target_per_page = total_height / num_pages
 
-        result = []
-        cumulative = 0
-        current_page = 1
+        if num_pages == 2:
+            # Target: last page gets ~50% of available height
+            last_page_target = available_height * 0.50
+        else:
+            # Target: last page gets ~55% fill
+            last_page_target = available_height * 0.55
 
-        for i, (elem, h) in enumerate(zip(elements, heights)):
-            if (
-                cumulative > 0
-                and cumulative + h > target_per_page * current_page
-                and current_page < num_pages
-            ):
-                # Try to split large Tables (the articles table) at the target point
-                if isinstance(elem, Table) and h > available_height * 0.2:
-                    split_at = max(target_per_page * current_page - cumulative, 0)
-                    if split_at > 0:
-                        parts = elem.split(available_width, split_at)
-                        if len(parts) == 2:
-                            result.append(parts[0])
-                            result.append(PageBreak())
-                            result.append(parts[1])
-                            cumulative += h
-                            current_page += 1
-                            continue
-                # For non-table elements or unsplittable tables, break before
-                result.append(PageBreak())
-                current_page += 1
+        art_for_last = max(last_page_target - post_height, 0)
+        split_at = art_height - art_for_last
 
-            result.append(elem)
-            cumulative += h
+        # For 2-page docs, first part of articles + pre-content must fit on page 1
+        max_page1 = available_height - pre_height
+        if num_pages == 2 and split_at > max_page1:
+            split_at = max_page1
 
+        logger.debug(
+            "PDF balance: pages=%d pre=%.1f art=%.1f post=%.1f total=%.1f "
+            "avail=%.1f split_at=%.1f max_p1=%.1f",
+            num_pages, pre_height, art_height, post_height, total_height,
+            available_height, split_at, max_page1,
+        )
+
+        if split_at <= 0 or split_at >= art_height:
+            return elements
+
+        art_table = elements[art_idx]
+        parts = art_table.split(available_width, split_at)
+        if len(parts) != 2:
+            logger.debug("PDF balance: Table.split() returned %d parts, skipping", len(parts))
+            return elements
+
+        result = list(elements[:art_idx])
+        result.append(parts[0])
+        result.append(PageBreak())
+        result.append(parts[1])
+        result.extend(elements[art_idx + 1:])
         return result
 
     def _build_content(self) -> list:
@@ -1052,78 +1057,11 @@ class BasePDFGenerator:
 
             table_data.append(row)
 
-        # Empty row for spacing
-        num_cols = len(headers)
-        table_data.append([Paragraph("", self.styles["CustomSmall"])] * num_cols)
-
-        # Totals rows
-        total_ht_row = [Paragraph("", self.styles["CustomSmall"])] * num_cols
-        total_ht_row[-2] = Paragraph(
-            f"<b>{self._('Total_HT_Label')}</b>", self.styles["CustomSmall"]
-        )
-        total_ht_row[-1] = Paragraph(
-            f"{format_number_for_pdf(self.document.total_ht)} {self.document.devise}",
-            self.styles["CustomSmall"],
-        )
-        table_data.append(total_ht_row)
-
-        tva_row = [Paragraph("", self.styles["CustomSmall"])] * num_cols
-        tva_row[-2] = Paragraph(
-            f"<b>{self._('Total_TVA_Label')}</b>", self.styles["CustomSmall"]
-        )
-        tva_row[-1] = Paragraph(
-            f"{format_number_for_pdf(self.document.total_tva)} {self.document.devise}",
-            self.styles["CustomSmall"],
-        )
-        table_data.append(tva_row)
-
-        total_ttc_row = [Paragraph("", self.styles["CustomSmall"])] * num_cols
-        total_ttc_row[-2] = Paragraph(
-            f"<b>{self._('Total_TTC_Label')}</b>", self.styles["CustomSmall"]
-        )
-        total_ttc_row[-1] = Paragraph(
-            f"{format_number_for_pdf(self.document.total_ttc)} {self.document.devise}",
-            self.styles["CustomSmall"],
-        )
-        table_data.append(total_ttc_row)
-
-        # Remise and final total
-        if show_remise and self.document.remise_type and self.document.remise > 0:
-            remise_row = [Paragraph("", self.styles["CustomSmall"])] * num_cols
-            if self.document.remise_type == "Pourcentage":
-                remise_text = f"{format_number_for_pdf(self.document.remise)}%"
-            else:
-                remise_text = f"{format_number_for_pdf(self.document.remise)} {self.document.devise}"
-            remise_type_label = (
-                self._("Percentage")
-                if self.document.remise_type == "Pourcentage"
-                else self._("Fixed")
-            )
-            remise_row[-2] = Paragraph(
-                f"<b>{self._('Discount_Label')} ({remise_type_label})</b>",
-                self.styles["CustomSmall"],
-            )
-            remise_row[-1] = Paragraph(remise_text, self.styles["CustomSmall"])
-            table_data.append(remise_row)
-
-            final_row = [Paragraph("", self.styles["CustomSmall"])] * num_cols
-            final_row[-2] = Paragraph(
-                f"<b>{self._('Total_TTC_After_Discount')}</b>",
-                self.styles["CustomSmall"],
-            )
-            final_row[-1] = Paragraph(
-                f"{format_number_for_pdf(self.document.total_ttc_apres_remise)} {self.document.devise}",
-                self.styles["CustomSmall"],
-            )
-            table_data.append(final_row)
-
-        # Create table
+        # Create table (articles only - no totals)
         table = Table(table_data, colWidths=col_widths, repeatRows=1)
 
-        # Calculate styling indices
         num_articles = self.document.lignes.count()
         last_article_row = num_articles
-        totals_start = num_articles + 2
 
         style_commands = [
             # Header styling
@@ -1150,43 +1088,35 @@ class BasePDFGenerator:
             ("RIGHTPADDING", (0, 0), (-1, -1), 4),
             ("TOPPADDING", (0, 1), (-1, -1), 4),
             ("BOTTOMPADDING", (0, 1), (-1, -1), 4),
-            # Totals section
-            ("ALIGN", (-2, totals_start), (-1, -1), "RIGHT"),
-            ("FONTNAME", (-2, totals_start), (-1, -1), "Helvetica"),
-            (
-                "LINEABOVE",
-                (-2, totals_start),
-                (-1, totals_start),
-                1,
-                colors.HexColor("#333333"),
-            ),
-            ("BACKGROUND", (-2, -1), (-1, -1), colors.HexColor("#f0f0f0")),
         ]
 
         table.setStyle(TableStyle(style_commands))
 
         return table
 
-    def _create_totals_section(self, show_remise: bool = True) -> Table:
-        """Create totals section table."""
+    def _create_totals_table(self, show_remise: bool = True) -> Table:
+        """Create a standalone right-aligned totals table (separate from articles)."""
         devise = self.document.devise or "MAD"
         totals_data = [
             [
-                Paragraph("<b>Total HT:</b>", self.styles["CustomNormal"]),
+                Paragraph(f"<b>{self._('Total_HT_Label')}</b>", self.styles["CustomSmall"]),
                 Paragraph(
-                    f"{format_number_for_pdf(self.document.total_ht)} {devise}", self.styles["CustomRight"]
+                    f"{format_number_for_pdf(self.document.total_ht)} {devise}",
+                    self.styles["CustomSmallCenter"],
                 ),
             ],
             [
-                Paragraph("<b>TVA:</b>", self.styles["CustomNormal"]),
+                Paragraph(f"<b>{self._('Total_TVA_Label')}</b>", self.styles["CustomSmall"]),
                 Paragraph(
-                    f"{format_number_for_pdf(self.document.total_tva)} {devise}", self.styles["CustomRight"]
+                    f"{format_number_for_pdf(self.document.total_tva)} {devise}",
+                    self.styles["CustomSmallCenter"],
                 ),
             ],
             [
-                Paragraph("<b>Total TTC:</b>", self.styles["CustomNormal"]),
+                Paragraph(f"<b>{self._('Total_TTC_Label')}</b>", self.styles["CustomSmall"]),
                 Paragraph(
-                    f"{format_number_for_pdf(self.document.total_ttc)} {devise}", self.styles["CustomRight"]
+                    f"{format_number_for_pdf(self.document.total_ttc)} {devise}",
+                    self.styles["CustomSmallCenter"],
                 ),
             ],
         ]
@@ -1195,29 +1125,36 @@ class BasePDFGenerator:
             if self.document.remise_type == "Pourcentage":
                 remise_text = f"{format_number_for_pdf(self.document.remise)}%"
             else:
-                remise_text = f"{format_number_for_pdf(self.document.remise)} {self.document.devise}"
+                remise_text = f"{format_number_for_pdf(self.document.remise)} {devise}"
+            remise_type_label = (
+                self._("Percentage")
+                if self.document.remise_type == "Pourcentage"
+                else self._("Fixed")
+            )
             totals_data.append(
                 [
                     Paragraph(
-                        f"<b>Remise ({self.document.remise_type}):</b>",
-                        self.styles["CustomNormal"],
+                        f"<b>{self._('Discount_Label')} ({remise_type_label})</b>",
+                        self.styles["CustomSmall"],
                     ),
-                    Paragraph(remise_text, self.styles["CustomRight"]),
+                    Paragraph(remise_text, self.styles["CustomSmallCenter"]),
                 ]
             )
             totals_data.append(
                 [
                     Paragraph(
-                        "<b>Total TTC après remise:</b>", self.styles["CustomNormal"]
+                        f"<b>{self._('Total_TTC_After_Discount')}</b>",
+                        self.styles["CustomSmall"],
                     ),
                     Paragraph(
-                        f"{format_number_for_pdf(self.document.total_ttc_apres_remise)} {self.document.devise}",
-                        self.styles["CustomRight"],
+                        f"{format_number_for_pdf(self.document.total_ttc_apres_remise)} {devise}",
+                        self.styles["CustomSmallCenter"],
                     ),
                 ]
             )
 
-        totals_table = Table(totals_data, colWidths=[12 * cm, 6 * cm])
+        totals_table = Table(totals_data, colWidths=[5 * cm, 4 * cm])
+        totals_table.hAlign = "RIGHT"
         totals_table.setStyle(
             TableStyle(
                 [
