@@ -7,7 +7,7 @@ from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
 from reportlab.lib import colors
 from reportlab.lib.units import cm
-from reportlab.platypus import Spacer, Paragraph, Table, TableStyle
+from reportlab.platypus import Spacer, Paragraph, Table, TableStyle, KeepTogether
 from reportlab.platypus.flowables import HRFlowable
 from rest_framework import permissions
 from rest_framework import status
@@ -411,6 +411,13 @@ class FactureClientPDFGenerator(BasePDFGenerator):
                 f"{self._('Address')}: {client_adresse}", self.styles["CustomSmall"]
             )
         )
+        # Téléphone
+        client_tel = client.tel if client.tel else "-"
+        client_lines.append(
+            Paragraph(
+                f"{self._('Phone')}: {client_tel}", self.styles["CustomSmall"]
+            )
+        )
 
         # Build left column content
         left_content = [
@@ -470,24 +477,24 @@ class FactureClientPDFGenerator(BasePDFGenerator):
         elements.append(articles_table)
         elements.append(Spacer(1, 0.5 * cm))
 
-        # ===== PRICE IN WORDS SECTION =====
-        elements.append(
+        # ===== PRICE IN WORDS + REMARKS (kept together to avoid orphan on next page) =====
+        from core.pdf_utils import number_to_english_words
+
+        footer_elements = []
+        footer_elements.append(
             Paragraph(
                 f"<b>{self._('Invoice_Amount_Words')}</b>",
                 self.styles["SectionHeader"],
             )
         )
-        elements.append(HRFlowable(width="100%", thickness=1, color=self.primary_color))
-        elements.append(Spacer(1, 0.2 * cm))
+        footer_elements.append(HRFlowable(width="100%", thickness=1, color=self.primary_color))
+        footer_elements.append(Spacer(1, 0.2 * cm))
 
         total_price = (
             self.document.total_ttc_apres_remise
             if self.document.remise_type
             else self.document.total_ttc
         )
-        from core.pdf_utils import number_to_english_words
-
-        # Get the currency from the document
         currency = self.document.devise
 
         price_in_words = (
@@ -495,19 +502,21 @@ class FactureClientPDFGenerator(BasePDFGenerator):
             if self.language == "en"
             else number_to_french_words(total_price, currency)
         )
-        elements.append(Paragraph(f"{price_in_words} TTC", self.styles["PriceWords"]))
-        elements.append(Spacer(1, 0.5 * cm))
+        footer_elements.append(Paragraph(f"{price_in_words} TTC", self.styles["PriceWords"]))
+        footer_elements.append(Spacer(1, 0.5 * cm))
 
-        # ===== REMARKS SECTION =====
-        elements.append(
+        # Remarks
+        footer_elements.append(
             Paragraph(f"<b>{self._('Remarks')} :</b>", self.styles["SectionHeader"])
         )
         remarks_text = self._("Invoice_Default_Remarks")
         if self.document.remarque:
             remarks_text = self.document.remarque + "\n\n" + remarks_text
-        elements.append(
+        footer_elements.append(
             Paragraph(remarks_text.replace("\n", "<br/>"), self.styles["Remarks"])
         )
+
+        elements.append(KeepTogether(footer_elements))
 
         return elements
 

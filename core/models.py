@@ -284,8 +284,12 @@ class BaseDeviFactureLine(models.Model):
         help_text="Devise utilisée pour le prix de vente",
     )
 
-    quantity = models.PositiveIntegerField(
-        default=1, verbose_name="Quantité", help_text="Quantité (entier positif)"
+    quantity = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=1,
+        verbose_name="Quantité",
+        help_text="Quantité (ex: 15,35)",
     )
 
     remise_type = models.CharField(

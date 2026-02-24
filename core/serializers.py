@@ -273,6 +273,12 @@ class BaseLineWriteSerializer(serializers.ModelSerializer):
         remise = data.get("remise", 0)
         remise_type = data.get("remise_type") or "Pourcentage"
         quantity = data.get("quantity", 1)
+
+        if quantity <= 0:
+            raise serializers.ValidationError(
+                "La quantité doit être supérieure à 0."
+            )
+
         line_total = data["prix_vente"] * quantity
 
         if remise < 0:
