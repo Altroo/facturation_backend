@@ -24,7 +24,7 @@ class ClientListCreateView(CompanyAccessMixin, APIView):
 
     def get(self, request, *args, **kwargs):
         pagination = self._get_bool_param(request, "pagination")
-        archived = self._get_bool_param(request, "archived")
+        archived_param = request.query_params.get("archived")
         company_id_str = request.query_params.get("company_id")
         if not company_id_str:
             raise Http404(_("Aucune clients ne correspond à la requête."))
@@ -33,8 +33,11 @@ class ClientListCreateView(CompanyAccessMixin, APIView):
         except (ValueError, TypeError):
             raise ValidationError({"company_id": _("company_id doit être un entier valide.")})
         self._check_company_access(request, company_id)
+        qs_filter = {"company_id": company_id}
+        if archived_param is not None:
+            qs_filter["archived"] = archived_param.lower() == "true"
         base_queryset = Client.objects.filter(
-            company_id=company_id, archived=archived
+            **qs_filter
         ).select_related(
             "company", "ville"
         )
