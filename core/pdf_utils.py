@@ -737,21 +737,21 @@ class BasePDFGenerator:
         canvas.restoreState()
 
     def _balance_elements(self, elements):
-        """Balance content across pages using tail-reservation strategy.
+        """Balance content across 2 pages by splitting the articles table
+        at the optimal row boundary.
 
-        For 2-page documents: the natural flow puts all articles on page 1
-        and orphans the tail (totals + price-in-words + remarks) on page 2.
-        We fix this by moving just enough articles to page 2 so it looks
-        filled (~40% target), while keeping the majority on page 1.
+        Uses exact row heights from the measured table to find a split point
+        where both pages are guaranteed to fit.  Within the valid range,
+        picks ~55 % of data rows for page 1 (slight bias because page 2
+        also carries the tail: totals + price-in-words + remarks).
 
-        For 3+ page documents: natural flow with KeepTogether handles
-        multi-page splitting well, so we don't intervene.
+        For 3+ page documents the natural ReportLab flow + KeepTogether
+        produces a good result, so we don't intervene.
         """
         available_width = self.PAGE_WIDTH - 2 * self.MARGIN
         available_height = self.PAGE_HEIGHT - self.MARGIN - 2 * cm
 
-        # Build a SEPARATE copy just for measuring heights.
-        # wrap() mutates flowable state, so we must never wrap the real elements.
+        # ---- measure on a disposable copy (wrap mutates state) ----
         measure_elements = self._build_content()
         heights = []
         for elem in measure_elements:
@@ -765,14 +765,13 @@ class BasePDFGenerator:
         if total_height <= available_height:
             return elements
 
-        # Find the tail KeepTogether (last one in elements list)
+        # ---- locate key elements ----
         tail_idx = None
         for i in range(len(elements) - 1, -1, -1):
             if isinstance(elements[i], KeepTogether):
                 tail_idx = i
                 break
 
-        # Find the articles Table (largest Table before the tail)
         art_idx = None
         art_height = 0
         search_limit = tail_idx if tail_idx is not None else len(elements)
@@ -782,47 +781,74 @@ class BasePDFGenerator:
                 art_height = heights[i]
 
         if art_idx is None:
-            return elements  # nothing to split
-
-        # Height of everything before articles table
-        pre_height = sum(heights[:art_idx])
-        # Height of everything after articles table
-        post_height = sum(heights[art_idx + 1:])
-
-        num_pages = math.ceil(total_height / available_height)
-
-        if num_pages >= 3:
-            # Natural flow with KeepTogether handles 3+ pages well
             return elements
 
-        # --- 2-page balancing ---
-        # Maximum articles height that fits on page 1 alongside pre-content
+        pre_height = sum(heights[:art_idx])
+        post_height = sum(heights[art_idx + 1:])
         max_page1 = available_height - pre_height
 
-        # Strategy: keep ~60% of the articles table on page 1.
-        # Table.split() allocates from the split_at budget: the repeated
-        # header row first, then as many data rows as fit. Using 60%
-        # ensures the majority of articles stay on page 1 (which already
-        # has the tall header section), while enough articles move to
-        # page 2 to accompany the tail (totals + price-in-words + remarks).
-        split_at = art_height * 0.60
-        # Cap so page 1 doesn't overflow
-        split_at = min(split_at, max_page1)
+        if max_page1 <= 0:
+            return elements
+
+        # ---- get exact row heights from the measured table ----
+        measure_table = measure_elements[art_idx]
+        row_heights = getattr(measure_table, '_rowHeights', None)
+        if not row_heights or len(row_heights) < 3:
+            # Fallback: can't introspect → skip balancing
+            return elements
+
+        header_h = row_heights[0]
+        num_data = len(row_heights) - 1  # exclude header row
+        if num_data <= 2:
+            return elements
+
+        # Cumulative height: cum[k] = height of header + first k data rows
+        cum = [0.0] * (num_data + 1)
+        cum[0] = header_h
+        for k in range(1, num_data + 1):
+            cum[k] = cum[k - 1] + row_heights[k]  # row_heights[k] = k-th data row
+
+        # ---- find valid range of rows for page 1 ----
+        # Constraint A – page 1: cum[n] <= max_page1
+        max_n = 0
+        for n in range(num_data, 0, -1):
+            if cum[n] <= max_page1:
+                max_n = n
+                break
+        if max_n == 0:
+            return elements  # can't fit even 1 data row on page 1
+
+        # Constraint B – page 2: header(repeated) + remaining rows + post <= available
+        # remaining_height(n) = cum[num_data] - cum[n] + header_h  (repeated header in part2)
+        #                      (that is:  total_art - page1_art)
+        # We need: cum[num_data] - cum[n] + header_h + post_height <= available_height
+        # ⟹ cum[n] >= cum[num_data] + header_h + post_height - available_height
+        min_cum = cum[num_data] + header_h + post_height - available_height
+        min_n = 1
+        for n in range(1, num_data + 1):
+            if cum[n] >= min_cum:
+                min_n = n
+                break
+
+        if min_n > max_n:
+            # No valid 2-page split exists → let natural flow handle it
+            return elements
+
+        # ---- choose the best row count within [min_n, max_n] ----
+        target = math.ceil(num_data * 0.55)
+        chosen = max(min_n, min(target, max_n))
+        split_at = cum[chosen]
 
         logger.debug(
-            "PDF balance: pages=%d pre=%.1f art=%.1f post=%.1f total=%.1f "
-            "avail=%.1f split_at=%.1f max_p1=%.1f",
-            num_pages, pre_height, art_height, post_height, total_height,
-            available_height, split_at, max_page1,
+            "PDF balance: data_rows=%d min_n=%d max_n=%d target=%d chosen=%d "
+            "split_at=%.1f pre=%.1f art=%.1f post=%.1f avail=%.1f",
+            num_data, min_n, max_n, target, chosen,
+            split_at, pre_height, art_height, post_height, available_height,
         )
-
-        if split_at <= 0 or split_at >= art_height:
-            return elements
 
         art_table = elements[art_idx]
         parts = art_table.split(available_width, split_at)
         if len(parts) != 2:
-            logger.debug("PDF balance: Table.split() returned %d parts, skipping", len(parts))
             return elements
 
         result = list(elements[:art_idx])
