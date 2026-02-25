@@ -19,7 +19,6 @@ from reportlab.platypus import (
     Spacer,
     Image,
     KeepTogether,
-    PageBreak,
 )
 
 logger = logging.getLogger(__name__)
@@ -737,16 +736,19 @@ class BasePDFGenerator:
         canvas.restoreState()
 
     def _balance_elements(self, elements):
-        """Balance content across 2 pages by splitting the articles table
-        at the optimal row boundary.
+        """Balance content across pages by splitting the articles table
+        so the last page carries articles alongside the tail (totals,
+        price-in-words, remarks) instead of having the tail orphaned.
 
-        Uses exact row heights from the measured table to find a split point
-        where both pages are guaranteed to fit.  Within the valid range,
-        picks ~55 % of data rows for page 1 (slight bias because page 2
-        also carries the tail: totals + price-in-words + remarks).
-
-        For 3+ page documents the natural ReportLab flow + KeepTogether
-        produces a good result, so we don't intervene.
+        Strategy:
+        - Split the articles table into part1 (main) and part2 (last chunk).
+        - Wrap part2 + all post-article elements inside a KeepTogether so
+          they always land on the same page.
+        - part1 flows naturally across however many pages it needs;
+          ReportLab auto-splits it with repeatRows.
+        - For 2-page docs: aim for ~50/50 article split.
+        - For 3+-page docs: size the last chunk to fill the last page
+          alongside the tail, let part1 fill the remaining pages.
         """
         available_width = self.PAGE_WIDTH - 2 * self.MARGIN
         available_height = self.PAGE_HEIGHT - self.MARGIN - 2 * cm
@@ -785,77 +787,109 @@ class BasePDFGenerator:
 
         pre_height = sum(heights[:art_idx])
         post_height = sum(heights[art_idx + 1:])
-        max_page1 = available_height - pre_height
 
-        if max_page1 <= 0:
+        if available_height - pre_height <= 0:
             return elements
 
-        # ---- get exact row heights from the measured table ----
+        # ---- get row heights (exact or estimated) ----
         measure_table = measure_elements[art_idx]
-        row_heights = getattr(measure_table, '_rowHeights', None)
-        if not row_heights or len(row_heights) < 3:
-            # Fallback: can't introspect → skip balancing
+        row_h_attr = getattr(measure_table, '_rowHeights', None)
+        num_total_rows = len(getattr(measure_table, '_cellvalues', []))
+
+        if num_total_rows < 3:
             return elements
 
-        header_h = row_heights[0]
-        num_data = len(row_heights) - 1  # exclude header row
-        if num_data <= 2:
-            return elements
+        num_data = num_total_rows - 1  # exclude header
 
-        # Cumulative height: cum[k] = height of header + first k data rows
+        if row_h_attr and len(row_h_attr) == num_total_rows:
+            header_h = row_h_attr[0]
+            data_rh = list(row_h_attr[1:])
+        else:
+            # Fallback: estimate uniform row heights from total art_height
+            header_h = max(art_height / num_total_rows, 15.0)
+            avg_data = (art_height - header_h) / num_data if num_data > 0 else 20.0
+            data_rh = [avg_data] * num_data
+
+        # Cumulative data height: cum[k] = header + first k data rows
         cum = [0.0] * (num_data + 1)
         cum[0] = header_h
         for k in range(1, num_data + 1):
-            cum[k] = cum[k - 1] + row_heights[k]  # row_heights[k] = k-th data row
+            cum[k] = cum[k - 1] + data_rh[k - 1]
 
-        # ---- find valid range of rows for page 1 ----
-        # Constraint A – page 1: cum[n] <= max_page1
-        max_n = 0
-        for n in range(num_data, 0, -1):
-            if cum[n] <= max_page1:
-                max_n = n
-                break
-        if max_n == 0:
-            return elements  # can't fit even 1 data row on page 1
+        total_data_h = cum[num_data] - header_h  # pure data height
 
-        # Constraint B – page 2: header(repeated) + remaining rows + post <= available
-        # remaining_height(n) = cum[num_data] - cum[n] + header_h  (repeated header in part2)
-        #                      (that is:  total_art - page1_art)
-        # We need: cum[num_data] - cum[n] + header_h + post_height <= available_height
-        # ⟹ cum[n] >= cum[num_data] + header_h + post_height - available_height
-        min_cum = cum[num_data] + header_h + post_height - available_height
-        min_n = 1
-        for n in range(1, num_data + 1):
-            if cum[n] >= min_cum:
-                min_n = n
+        # ---- max rows that fit on page 1 ----
+        p1_budget = available_height - pre_height - header_h
+        max_p1 = 0
+        for k in range(num_data, -1, -1):
+            data_h = cum[k] - header_h  # height of first k data rows
+            if data_h <= p1_budget:
+                max_p1 = k
                 break
 
-        if min_n > max_n:
-            # No valid 2-page split exists → let natural flow handle it
+        if max_p1 <= 0:
             return elements
 
-        # ---- choose the best row count within [min_n, max_n] ----
-        target = math.ceil(num_data * 0.55)
-        chosen = max(min_n, min(target, max_n))
-        split_at = cum[chosen]
+        # ---- max rows on the LAST page alongside the tail ----
+        # Last page: repeated header + last_rows data + post_elements
+        last_budget = available_height - header_h - post_height
+        max_last = 0
+        for k in range(num_data, -1, -1):
+            # Height of the last k data rows
+            last_k_h = total_data_h - (cum[num_data - k] - header_h)
+            if last_k_h <= last_budget:
+                max_last = k
+                break
+
+        if max_last <= 0:
+            return elements  # tail alone fills a page
+
+        # ---- decide the split ----
+        two_pages_possible = (max_p1 + max_last >= num_data)
+
+        if two_pages_possible:
+            # Aim for even article count across 2 pages
+            ideal = math.ceil(num_data / 2)
+            min_p1 = max(1, num_data - max_last)
+            p1_rows = max(min_p1, min(ideal, max_p1))
+        else:
+            # 3+ pages: size the last chunk at ~avg articles per page
+            total_pages_est = max(2, math.ceil(total_height / available_height))
+            avg_per_page = max(3, round(num_data / total_pages_est))
+            last_rows = min(max_last, avg_per_page)
+            p1_rows = num_data - last_rows
+            # Clamp p1_rows: at least 1, but for the KeepTogether part we
+            # don't strictly need page-1 to fit exactly (part1 auto-splits)
+            p1_rows = max(1, p1_rows)
+
+        if p1_rows <= 0 or p1_rows >= num_data:
+            return elements
+
+        last_rows = num_data - p1_rows
+        split_at = cum[p1_rows]
 
         logger.debug(
-            "PDF balance: data_rows=%d min_n=%d max_n=%d target=%d chosen=%d "
+            "PDF balance: data=%d p1=%d last=%d two_pages=%s "
             "split_at=%.1f pre=%.1f art=%.1f post=%.1f avail=%.1f",
-            num_data, min_n, max_n, target, chosen,
+            num_data, p1_rows, last_rows, two_pages_possible,
             split_at, pre_height, art_height, post_height, available_height,
         )
 
+        # ---- split the real (un-wrapped) articles table ----
         art_table = elements[art_idx]
         parts = art_table.split(available_width, split_at)
         if len(parts) != 2:
             return elements
 
+        # Bundle part2 + all post-article elements in KeepTogether
+        # so they always land on the same page.
+        post_elements = list(elements[art_idx + 1:])
+        keep_content = [parts[1]] + post_elements
+        keep_block = KeepTogether(keep_content)
+
         result = list(elements[:art_idx])
         result.append(parts[0])
-        result.append(PageBreak())
-        result.append(parts[1])
-        result.extend(elements[art_idx + 1:])
+        result.append(keep_block)
         return result
 
     def _build_content(self) -> list:
