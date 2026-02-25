@@ -739,10 +739,13 @@ class BasePDFGenerator:
     def _balance_elements(self, elements):
         """Balance content across pages using tail-reservation strategy.
 
-        Identifies the KeepTogether tail (totals + price-in-words + remarks)
-        and the articles Table, then splits the articles table so the last
-        page carries a balanced amount of content rather than orphaning the
-        footer.
+        For 2-page documents: the natural flow puts all articles on page 1
+        and orphans the tail (totals + price-in-words + remarks) on page 2.
+        We fix this by moving just enough articles to page 2 so it looks
+        filled (~40% target), while keeping the majority on page 1.
+
+        For 3+ page documents: natural flow with KeepTogether handles
+        multi-page splitting well, so we don't intervene.
         """
         available_width = self.PAGE_WIDTH - 2 * self.MARGIN
         available_height = self.PAGE_HEIGHT - self.MARGIN - 2 * cm
@@ -788,20 +791,23 @@ class BasePDFGenerator:
 
         num_pages = math.ceil(total_height / available_height)
 
-        if num_pages == 2:
-            # Target: last page gets ~50% of available height
-            last_page_target = available_height * 0.50
-        else:
-            # Target: last page gets ~55% fill
-            last_page_target = available_height * 0.55
+        if num_pages >= 3:
+            # Natural flow with KeepTogether handles 3+ pages well
+            return elements
 
-        art_for_last = max(last_page_target - post_height, 0)
-        split_at = art_height - art_for_last
-
-        # For 2-page docs, first part of articles + pre-content must fit on page 1
+        # --- 2-page balancing ---
+        # Maximum articles height that fits on page 1 alongside pre-content
         max_page1 = available_height - pre_height
-        if num_pages == 2 and split_at > max_page1:
-            split_at = max_page1
+
+        # Strategy: keep ~60% of the articles table on page 1.
+        # Table.split() allocates from the split_at budget: the repeated
+        # header row first, then as many data rows as fit. Using 60%
+        # ensures the majority of articles stay on page 1 (which already
+        # has the tall header section), while enough articles move to
+        # page 2 to accompany the tail (totals + price-in-words + remarks).
+        split_at = art_height * 0.60
+        # Cap so page 1 doesn't overflow
+        split_at = min(split_at, max_page1)
 
         logger.debug(
             "PDF balance: pages=%d pre=%.1f art=%.1f post=%.1f total=%.1f "
