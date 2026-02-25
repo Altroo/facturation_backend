@@ -132,7 +132,7 @@ class BonDeLivraisonPDFGenerator(BasePDFGenerator):
         ]
 
         # Add article lines
-        for line in self.document.lignes.all():
+        for line in self.document.lignes.order_by('article__reference').all():
             row = []
 
             # Designation
@@ -508,7 +508,7 @@ class BonDeLivraisonPDFGenerator(BasePDFGenerator):
         table_data = [header_cells]
 
         # Add article lines
-        for line in self.document.lignes.all():
+        for line in self.document.lignes.order_by('article__reference').all():
             row = []
 
             # Designation
