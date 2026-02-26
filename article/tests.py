@@ -207,8 +207,8 @@ class TestArticleAPI:
         url = reverse("article:article-generate-reference")
         response = self.client.get(url, {"company_id": self.company.id})
         assert response.status_code == status.HTTP_200_OK
-        # Should be ART0011
-        assert response.data["reference"] == "ART0011"
+        # Should be ART0003 (first gap after ART0001, ART0002)
+        assert response.data["reference"] == "ART0003"
 
     def test_generate_reference_code_when_no_articles(self):
         Article.objects.all().delete()

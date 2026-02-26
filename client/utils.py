@@ -9,6 +9,7 @@ from .models import Client
 def get_next_client_code(company_id: int) -> str:
     """
     Return the next available code_client string like 'CLT0001' for the given company.
+    Finds the first gap in the sequence starting from 1.
     Automatically increases digit count when 9999 is reached.
     """
     with transaction.atomic():
@@ -22,7 +23,7 @@ def get_next_client_code(company_id: int) -> str:
             .values_list("code_client", flat=True)
         )
 
-        max_num = 0
+        used_numbers: set[int] = set()
         for code in existing:
             if not code:
                 continue
@@ -30,12 +31,14 @@ def get_next_client_code(company_id: int) -> str:
             if not match:
                 continue
             try:
-                value = int(match.group(1))
+                used_numbers.add(int(match.group(1)))
             except ValueError:
                 continue
-            if value > max_num:
-                max_num = value
 
-        next_number = max_num + 1
+        # Find the first available number starting from 1
+        next_number = 1
+        while next_number in used_numbers:
+            next_number += 1
+
         formatted_number = format_number_with_dynamic_digits(next_number, min_digits=4)
         return f"CLT{formatted_number}"

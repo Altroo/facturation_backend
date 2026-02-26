@@ -357,7 +357,7 @@ class TestClientAPI:
 
     # --- Validation & edge cases ---
     def test_generate_code_increments_from_existing(self):
-        # Existing max code: CLT0002 already present
+        # Existing codes: CLT0001, CLT0002 already present
         Client.objects.create(
             code_client="CLT0010",
             client_type=Client.PERSONNE_PHYSIQUE,
@@ -372,8 +372,8 @@ class TestClientAPI:
         url = reverse("client:client-generate-code")
         response = self.client.get(url, {"company_id": self.company.id})
         assert response.status_code == status.HTTP_200_OK
-        # Should be CLT0011
-        assert response.data["code_client"] == "CLT0011"
+        # Should be CLT0003 (first gap after CLT0001, CLT0002)
+        assert response.data["code_client"] == "CLT0003"
 
     def test_validation_required_fields_pm_missing_fields(self):
         url = reverse("client:client-list-create")
@@ -961,7 +961,8 @@ class TestClientViewsCoverage:
         response = api_client.get(url, {"company_id": company.id})
 
         assert response.status_code == status.HTTP_200_OK
-        assert response.data["code_client"] == "CLT0006"
+        # First gap is 1 (only CLT0005 exists)
+        assert response.data["code_client"] == "CLT0001"
 
     def test_archive_toggle_to_bool_with_int(self):
         """Test _to_bool with int value (line 166)."""
