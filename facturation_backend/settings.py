@@ -131,6 +131,11 @@ DATABASES = {
         "PASSWORD": config("POSTGRES_PASSWORD", ""),
         "HOST": config("POSTGRES_HOST", "db"),
         "PORT": config("POSTGRES_PORT", "5432"),
+        # Keep DB connections open for 10 minutes to avoid reconnection
+        # overhead on every request (especially impactful when the frontend
+        # fires multiple parallel API calls).
+        "CONN_MAX_AGE": 600,
+        "CONN_HEALTH_CHECKS": True,
     },
 }
 

@@ -136,8 +136,12 @@ class BaseDocumentDetailEditDeleteView(CompanyAccessMixin, APIView):
     document_name = "document"
     # FK fields to eagerly load on detail queries (override to extend)
     detail_select_related = ("client", "mode_paiement", "created_by_user")
-    # Reverse FK / deep relations to prefetch on detail queries
-    detail_prefetch_related = ("lignes__article",)
+    # Reverse FK / deep relations to prefetch on detail queries.
+    # NOTE: lignes are NOT prefetched here because to_representation()
+    # builds its own queryset with select_related("article"), which
+    # would bypass the prefetch cache anyway.  Removing the wasted
+    # prefetch saves two extra SQL queries on every detail GET.
+    detail_prefetch_related = ()
 
     def get_object(self, pk):
         try:
