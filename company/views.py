@@ -151,6 +151,40 @@ class CompanyDetailEditDeleteView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+class BulkSuspendCompaniesView(APIView):
+    permission_classes = (permissions.IsAdminUser,)
+
+    @staticmethod
+    def post(request, *args, **kwargs):
+        from core.permissions import can_delete
+
+        ids = request.data.get("ids", [])
+        if not isinstance(ids, list) or len(ids) == 0:
+            return Response(
+                {"detail": _("Aucun identifiant fourni.")},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        companies = Company.objects.filter(
+            pk__in=ids,
+            memberships__user=request.user,
+            memberships__user__is_staff=True,
+            suspended=False,
+        )
+
+        suspended_count = 0
+        for company in companies:
+            if can_delete(request.user, company.id):
+                company.suspended = True
+                company.save(update_fields=["suspended"])
+                suspended_count += 1
+
+        return Response(
+            {"suspended": suspended_count},
+            status=status.HTTP_200_OK,
+        )
+
+
 class CompaniesByUserView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
