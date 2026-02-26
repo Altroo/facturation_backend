@@ -741,14 +741,19 @@ class BasePDFGenerator:
         price-in-words, remarks) instead of having the tail orphaned.
 
         Strategy:
-        - Split the articles table into part1 (main) and part2 (last chunk).
-        - Wrap part2 + all post-article elements inside a KeepTogether so
-          they always land on the same page.
+        - Measure all element heights on a disposable copy.
+        - Locate the articles table (tallest Table before the tail) and
+          the tail (last KeepTogether).
+        - Calculate how many article rows fit on page 1 and how many
+          can share the last page with the tail.
+        - Split the articles table at the optimal row boundary.
+        - Wrap part2 + all post-article elements inside a KeepTogether
+          so they always land on the same page.
         - part1 flows naturally across however many pages it needs;
           ReportLab auto-splits it with repeatRows.
         - For 2-page docs: aim for ~50/50 article split.
-        - For 3+-page docs: size the last chunk to fill the last page
-          alongside the tail, let part1 fill the remaining pages.
+        - For 3+-page docs: fill the last page with as many articles
+          as possible alongside the tail; part1 auto-splits the rest.
         """
         available_width = self.PAGE_WIDTH - 2 * self.MARGIN
         available_height = self.PAGE_HEIGHT - self.MARGIN - 2 * cm
@@ -793,7 +798,6 @@ class BasePDFGenerator:
 
         # ---- get row heights (exact or estimated) ----
         measure_table = measure_elements[art_idx]
-        row_h_attr = getattr(measure_table, '_rowHeights', None)
         num_total_rows = len(getattr(measure_table, '_cellvalues', []))
 
         if num_total_rows < 3:
@@ -801,9 +805,19 @@ class BasePDFGenerator:
 
         num_data = num_total_rows - 1  # exclude header
 
-        if row_h_attr and len(row_h_attr) == num_total_rows:
-            header_h = row_h_attr[0]
-            data_rh = list(row_h_attr[1:])
+        # After wrap(), ReportLab stores calculated row heights in _rowH.
+        # _rowHeights is the user-specified heights (often None).
+        row_h = getattr(measure_table, '_rowH', None)
+        if not row_h or len(row_h) != num_total_rows:
+            row_h = getattr(measure_table, '_rowHeights', None)
+
+        if (
+            row_h
+            and len(row_h) == num_total_rows
+            and all(isinstance(h, (int, float)) and h > 0 for h in row_h)
+        ):
+            header_h = float(row_h[0])
+            data_rh = [float(h) for h in row_h[1:]]
         else:
             # Fallback: estimate uniform row heights from total art_height
             header_h = max(art_height / num_total_rows, 15.0)
@@ -836,7 +850,7 @@ class BasePDFGenerator:
         max_last = 0
         for k in range(num_data, -1, -1):
             # Height of the last k data rows
-            last_k_h = total_data_h - (cum[num_data - k] - header_h)
+            last_k_h = sum(data_rh[num_data - k:])
             if last_k_h <= last_budget:
                 max_last = k
                 break
@@ -853,33 +867,36 @@ class BasePDFGenerator:
             min_p1 = max(1, num_data - max_last)
             p1_rows = max(min_p1, min(ideal, max_p1))
         else:
-            # 3+ pages: size the last chunk at ~avg articles per page
-            total_pages_est = max(2, math.ceil(total_height / available_height))
-            avg_per_page = max(3, round(num_data / total_pages_est))
-            last_rows = min(max_last, avg_per_page)
-            p1_rows = num_data - last_rows
-            # Clamp p1_rows: at least 1, but for the KeepTogether part we
-            # don't strictly need page-1 to fit exactly (part1 auto-splits)
-            p1_rows = max(1, p1_rows)
+            # 3+ pages: fill the last page alongside the tail.
+            # part1 auto-splits across pages 1..N-1 via repeatRows.
+            last_rows = max_last
+            p1_rows = max(1, num_data - last_rows)
 
         if p1_rows <= 0 or p1_rows >= num_data:
             return elements
 
         last_rows = num_data - p1_rows
-        split_at = cum[p1_rows]
 
         logger.debug(
             "PDF balance: data=%d p1=%d last=%d two_pages=%s "
-            "split_at=%.1f pre=%.1f art=%.1f post=%.1f avail=%.1f",
+            "pre=%.1f art=%.1f post=%.1f avail=%.1f",
             num_data, p1_rows, last_rows, two_pages_possible,
-            split_at, pre_height, art_height, post_height, available_height,
+            pre_height, art_height, post_height, available_height,
         )
 
         # ---- split the real (un-wrapped) articles table ----
+        # Add a small buffer (+2pt) to avoid rounding at row boundaries.
+        split_at = cum[p1_rows] + 2
         art_table = elements[art_idx]
         parts = art_table.split(available_width, split_at)
+
         if len(parts) != 2:
-            return elements
+            # Retry with a larger buffer in case row heights differ
+            # slightly between the measurement copy and the fresh table.
+            split_at = cum[p1_rows] + max(header_h, 10)
+            parts = art_table.split(available_width, split_at)
+            if len(parts) != 2:
+                return elements
 
         # Bundle part2 + all post-article elements in KeepTogether
         # so they always land on the same page.
