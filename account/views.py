@@ -402,13 +402,11 @@ class UsersListCreateView(APIView):
 
     def post(self, request):
         # Check if user is Commercial - they cannot create users
-        existing_memberships = Membership.objects.filter(user=request.user)
-        if existing_memberships.exists():
-            for membership in existing_memberships:
-                if membership.role.name in ROLES_RESTRICTED:
-                    raise PermissionDenied(
-                        _("Vous n'avez pas les droits pour créer des utilisateurs.")
-                    )
+        for membership in Membership.objects.filter(user=request.user).select_related("role"):
+            if membership.role.name in ROLES_RESTRICTED:
+                raise PermissionDenied(
+                    _("Vous n'avez pas les droits pour créer des utilisateurs.")
+                )
 
         avatar = request.data.get("avatar")  # Can be base64, or file
         avatar_cropped = request.data.get("avatar_cropped")  # Can be base64, or file
@@ -448,7 +446,10 @@ class UserDetailEditDeleteView(APIView):
     @staticmethod
     def get_object(pk):
         try:
-            user = CustomUser.objects.get(pk=pk)
+            user = CustomUser.objects.prefetch_related(
+                "memberships__company",
+                "memberships__role",
+            ).get(pk=pk)
         except CustomUser.DoesNotExist:
             raise Http404(_("Aucune utilisateur ne correspond à la requête."))
         return user
@@ -463,13 +464,11 @@ class UserDetailEditDeleteView(APIView):
 
     def put(self, request, *args, **kwargs):
         # Check if user is Commercial - they cannot update users
-        existing_memberships = Membership.objects.filter(user=request.user)
-        if existing_memberships.exists():
-            for membership in existing_memberships:
-                if membership.role.name in ROLES_RESTRICTED:
-                    raise PermissionDenied(
-                        _("Vous n'avez pas les droits pour modifier des utilisateurs.")
-                    )
+        for membership in Membership.objects.filter(user=request.user).select_related("role"):
+            if membership.role.name in ROLES_RESTRICTED:
+                raise PermissionDenied(
+                    _("Vous n'avez pas les droits pour modifier des utilisateurs.")
+                )
 
         pk = kwargs.get("pk")
         if pk == request.user.pk:
@@ -487,13 +486,11 @@ class UserDetailEditDeleteView(APIView):
 
     def delete(self, request, *args, **kwargs):
         # Check if user is Commercial - they cannot delete users
-        existing_memberships = Membership.objects.filter(user=request.user)
-        if existing_memberships.exists():
-            for membership in existing_memberships:
-                if membership.role.name in ROLES_RESTRICTED:
-                    raise PermissionDenied(
-                        _("Vous n'avez pas les droits pour supprimer des utilisateurs.")
-                    )
+        for membership in Membership.objects.filter(user=request.user).select_related("role"):
+            if membership.role.name in ROLES_RESTRICTED:
+                raise PermissionDenied(
+                    _("Vous n'avez pas les droits pour supprimer des utilisateurs.")
+                )
 
         pk = kwargs.get("pk")
         if pk == request.user.pk:

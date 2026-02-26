@@ -71,7 +71,18 @@ class CompanyBasicListSerializer(serializers.ModelSerializer):
     def get_role(self, obj):
         """
         Return the name of the role the requesting user has for the given company.
+        Uses the prefetched ``_user_memberships`` attribute when available (set by
+        ``CompaniesByUserView``) to avoid one query per company (N+1).
         """
+        # Fast path: use prefetched membership attached by the view
+        user_memberships = getattr(obj, "_user_memberships", None)
+        if user_memberships is not None:
+            if user_memberships:
+                m = user_memberships[0]
+                return m.role.name if m.role else None
+            return None
+
+        # Fallback (e.g. when serializer is used outside CompaniesByUserView)
         request = self.context.get("request")
         if not request:
             return None

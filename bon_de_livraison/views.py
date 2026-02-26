@@ -70,6 +70,7 @@ class BonDeLivraisonUninvoicedListView(BaseDocumentListCreateView):
     filter_class = BonDeLivraisonFilter
     list_serializer_class = BonDeLivraisonListSerializer
     document_name = "le bon de livraison"
+    list_select_related = ("client", "mode_paiement", "created_by_user", "livre_par")
 
     def get(self, request, *args, **kwargs):
         """Get list of uninvoiced bons de livraison."""
@@ -87,6 +88,10 @@ class BonDeLivraisonUninvoicedListView(BaseDocumentListCreateView):
         # For now, we'll show all BLs - you can add more specific filtering later
         base_queryset = self.model.objects.filter(
             client__company_id=company_id
+        ).select_related(
+            *self.list_select_related
+        ).prefetch_related(
+            *self.list_prefetch_related
         ).exclude(
             statut="Facturé"  # Exclude if there's a "Facturé" status
         )
@@ -132,7 +137,7 @@ class BonDeLivraisonPDFGenerator(BasePDFGenerator):
         ]
 
         # Add article lines
-        for line in self.document.lignes.order_by('article__reference').all():
+        for line in self.document.lignes.select_related("article").order_by('article__reference').all():
             row = []
 
             # Designation
@@ -508,7 +513,7 @@ class BonDeLivraisonPDFGenerator(BasePDFGenerator):
         table_data = [header_cells]
 
         # Add article lines
-        for line in self.document.lignes.order_by('article__reference').all():
+        for line in self.document.lignes.select_related("article").order_by('article__reference').all():
             row = []
 
             # Designation

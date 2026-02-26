@@ -148,7 +148,13 @@ class FactureClientUnpaidListView(BaseDocumentListCreateView):
         self._check_company_access(request, company_id)
 
         # Get all factures for the company
-        base_queryset = self.model.objects.filter(client__company_id=company_id)
+        base_queryset = self.model.objects.filter(
+            client__company_id=company_id
+        ).select_related(
+            *self.list_select_related
+        ).prefetch_related(
+            *self.list_prefetch_related
+        )
 
         # Annotate with total paid per facture and filter for unpaid
         queryset = base_queryset.annotate(
@@ -237,6 +243,7 @@ class FactureClientForPaymentView(APIView):
             FactureClient.objects.filter(
                 client__company_id=company_id, statut__in=["Envoyé", "Accepté"]
             )
+            .select_related("client")
             .annotate(
                 total_paid=Coalesce(
                     DjangoSum(
@@ -581,7 +588,7 @@ class FactureClientPDFGenerator(BasePDFGenerator):
         table_data = [header_cells]
 
         # Add article lines
-        for line in self.document.lignes.order_by('article__reference').all():
+        for line in self.document.lignes.select_related("article").order_by('article__reference').all():
             row = []
 
             # Designation

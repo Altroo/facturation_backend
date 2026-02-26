@@ -83,6 +83,11 @@ class BaseListSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def get_lignes_count(obj):
+        # Use len() on the prefetch cache when available (avoids an extra
+        # COUNT query per row).  Falls back to .count() when lignes is not
+        # prefetched.
+        if hasattr(obj, '_prefetched_objects_cache') and 'lignes' in obj._prefetched_objects_cache:
+            return len(obj._prefetched_objects_cache['lignes'])
         return obj.lignes.count()
 
     def to_representation(self, instance):
@@ -361,11 +366,15 @@ class BaseCreateSerializer(BaseDetailSerializer):
         return instance
 
     def to_representation(self, instance):
-        """Include detailed lignes in response."""
+        """Include detailed lignes in response.
+
+        Uses ``select_related('article')`` to avoid N+1 queries when the
+        line serializer accesses ``article.designation`` / ``article.reference``.
+        """
         representation = super().to_representation(instance)
         line_serializer_class = self.get_line_serializer_class()
         representation["lignes"] = line_serializer_class(
-            instance.lignes.all(), many=True, context=self.context
+            instance.lignes.select_related("article").all(), many=True, context=self.context
         ).data
         return representation
 
@@ -405,34 +414,52 @@ class BaseDetailUpdateSerializer(BaseCreateSerializer):
                         instance.devise = first_line["devise_prix_vente"]
                         instance.save(update_fields=["devise"])
 
-                for line_data in lines_data:
-                    line_id = line_data.get("id")
+                # Suppress per-line signal recalc to avoid O(N²) queries.
+                # We will call recalc_totals() once after all lines are persisted.
+                instance._skip_line_recalc = True
 
-                    # Auto-set devise_prix_vente from document if not provided or if MAD
-                    if "devise_prix_vente" not in line_data or line_data.get("devise_prix_vente") == "MAD":
-                        line_data["devise_prix_vente"] = instance.devise
-                    # Auto-set devise_prix_achat from article if not provided or if MAD
-                    if "article" in line_data:
-                        article = line_data["article"]
-                        if "devise_prix_achat" not in line_data or line_data.get("devise_prix_achat") == "MAD":
-                            line_data["devise_prix_achat"] = article.devise_prix_achat
+                try:
+                    for line_data in lines_data:
+                        line_id = line_data.get("id")
 
-                    if line_id and line_id in existing_lines:
-                        line_obj = existing_lines[line_id]
-                        for field, value in line_data.items():
-                            if field != "id":
-                                setattr(line_obj, field, value)
-                        line_obj.save()
-                        incoming_ids.add(line_id)
-                    else:
-                        create_data = {k: v for k, v in line_data.items() if k != "id"}
-                        line_model.objects.create(
-                            **{relation_field: instance}, **create_data
-                        )
+                        # Auto-set devise_prix_vente from document if not provided or if MAD
+                        if "devise_prix_vente" not in line_data or line_data.get("devise_prix_vente") == "MAD":
+                            line_data["devise_prix_vente"] = instance.devise
+                        # Auto-set devise_prix_achat from article if not provided or if MAD
+                        if "article" in line_data:
+                            article = line_data["article"]
+                            if "devise_prix_achat" not in line_data or line_data.get("devise_prix_achat") == "MAD":
+                                line_data["devise_prix_achat"] = article.devise_prix_achat
 
-                ids_to_delete = set(existing_lines.keys()) - incoming_ids
-                if ids_to_delete:
-                    line_model.objects.filter(id__in=ids_to_delete).delete()
+                        if line_id and line_id in existing_lines:
+                            line_obj = existing_lines[line_id]
+                            for field, value in line_data.items():
+                                if field != "id":
+                                    setattr(line_obj, field, value)
+                            line_obj.save()
+                            incoming_ids.add(line_id)
+                        else:
+                            create_data = {k: v for k, v in line_data.items() if k != "id"}
+                            line_model.objects.create(
+                                **{relation_field: instance}, **create_data
+                            )
+
+                    ids_to_delete = set(existing_lines.keys()) - incoming_ids
+                    if ids_to_delete:
+                        line_model.objects.filter(id__in=ids_to_delete).delete()
+                finally:
+                    instance._skip_line_recalc = False
+
+                # Single recalc after all line operations are complete
+                instance.recalc_totals()
+                instance.save(
+                    update_fields=[
+                        "total_ht",
+                        "total_tva",
+                        "total_ttc",
+                        "total_ttc_apres_remise",
+                    ]
+                )
 
         return instance
 

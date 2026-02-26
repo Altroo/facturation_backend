@@ -1,4 +1,4 @@
-from django.db.models import Count
+from django.db.models import Count, Prefetch
 from django.http import Http404
 from django.utils.translation import gettext_lazy as _
 from rest_framework import permissions
@@ -59,11 +59,9 @@ class CompanyListCreateView(APIView):
     def post(request, *args, **kwargs):
         # Check if user is trying to create a company with a non-Caissier role
         # We need to verify if they already have memberships and what role
-        existing_memberships = Membership.objects.filter(user=request.user)
-        if existing_memberships.exists():
-            # Check if any membership is Commercial or other restricted role
-            for membership in existing_memberships:
-                if membership.role.name in ROLES_RESTRICTED:
+        # Check if any membership is Commercial or other restricted role
+        for membership in Membership.objects.filter(user=request.user).select_related("role"):
+            if membership.role.name in ROLES_RESTRICTED:
                     raise PermissionDenied(
                         detail="Vous n'avez pas les droits pour créer une société."
                     )
@@ -161,6 +159,15 @@ class CompaniesByUserView(APIView):
         queryset = (
             Company.objects.filter(memberships__user=request.user, suspended=False)
             .annotate(_client_count=Count("clients"))
+            .prefetch_related(
+                Prefetch(
+                    "memberships",
+                    queryset=Membership.objects.filter(
+                        user=request.user
+                    ).select_related("role"),
+                    to_attr="_user_memberships",
+                )
+            )
             .order_by("-_client_count")
         )
         serializer = CompanyBasicListSerializer(

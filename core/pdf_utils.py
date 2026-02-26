@@ -1085,7 +1085,7 @@ class BasePDFGenerator:
         table_data = [header_cells]
 
         # Article lines
-        for line in self.document.lignes.all():
+        for line in self.document.lignes.select_related("article").all():
             row = []
 
             # Designation

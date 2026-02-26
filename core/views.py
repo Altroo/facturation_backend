@@ -134,10 +134,19 @@ class BaseDocumentDetailEditDeleteView(CompanyAccessMixin, APIView):
     model = None
     detail_serializer_class = None
     document_name = "document"
+    # FK fields to eagerly load on detail queries (override to extend)
+    detail_select_related = ("client", "mode_paiement", "created_by_user")
+    # Reverse FK / deep relations to prefetch on detail queries
+    detail_prefetch_related = ("lignes__article",)
 
     def get_object(self, pk):
         try:
-            return self.model.objects.get(pk=pk)
+            return (
+                self.model.objects
+                .select_related(*self.detail_select_related)
+                .prefetch_related(*self.detail_prefetch_related)
+                .get(pk=pk)
+            )
         except self.model.DoesNotExist:
             raise Http404(_("Aucun %(name)s ne correspond à la requête.") % {"name": self.document_name})
 
@@ -223,7 +232,7 @@ class BaseStatusUpdateView(CompanyAccessMixin, APIView):
 
     def get_object(self, pk):
         try:
-            return self.model.objects.get(pk=pk)
+            return self.model.objects.select_related("client").get(pk=pk)
         except self.model.DoesNotExist:
             raise Http404(_("Aucun %(name)s ne correspond à la requête.") % {"name": self.document_name})
 
@@ -246,7 +255,7 @@ class BaseStatusUpdateView(CompanyAccessMixin, APIView):
             raise ValidationError({"statut": _("Statut invalide.")})
 
         object_.statut = new_status
-        object_.save()
+        object_.save(update_fields=["statut"])
         return Response({"statut": object_.statut}, status=status.HTTP_200_OK)
 
 
@@ -262,7 +271,7 @@ class BaseConversionView(CompanyAccessMixin, APIView):
 
     def get_object(self, pk):
         try:
-            return self.model.objects.get(pk=pk)
+            return self.model.objects.select_related("client").get(pk=pk)
         except self.model.DoesNotExist:
             raise Http404(_("Aucun %(name)s ne correspond à la requête.") % {"name": self.document_name})
 

@@ -138,10 +138,15 @@ class BaseDeviFactureDocument(models.Model):
     )
 
     def get_lines(self) -> QuerySet:
-        """Default: return related `lignes` queryset or an empty queryset when missing."""
+        """Default: return related `lignes` queryset or an empty queryset when missing.
+
+        Always uses ``select_related('article')`` so that callers
+        (e.g. ``recalc_totals``, conversions) never trigger N+1 queries
+        when they access ``line.article``.
+        """
         related = getattr(self, "lignes", None)
         if related is not None:
-            return related.all()
+            return related.select_related("article").all()
         return type(self).objects.none()
 
     def recalc_totals(self):
@@ -321,12 +326,17 @@ def create_line_signal_receiver(parent_field_name):
     The handler will:
     - safely get the parent object via getattr(..., default=None)
     - return early if parent is missing or has no PK
+    - skip recalculation when ``parent._skip_line_recalc`` is True
+      (set by the bulk-update serializer to avoid O(N²) queries)
     - run totals recalculation inside a transaction and save update_fields
     """
 
     def handler(sender, instance, **kwargs):
         parent = getattr(instance, parent_field_name, None)
         if parent is None or not getattr(parent, "pk", None):
+            return
+        # Allow callers to suppress per-line recalc during bulk operations
+        if getattr(parent, "_skip_line_recalc", False):
             return
         with transaction.atomic():
             parent.recalc_totals()

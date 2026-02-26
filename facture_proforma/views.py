@@ -374,7 +374,7 @@ class FactureProFormaPDFGenerator(BasePDFGenerator):
         table_data = [header_cells]
 
         # Add article lines
-        for line in self.document.lignes.order_by('article__reference').all():
+        for line in self.document.lignes.select_related("article").order_by('article__reference').all():
             row = []
 
             # Designation
