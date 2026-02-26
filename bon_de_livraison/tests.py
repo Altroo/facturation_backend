@@ -1,12 +1,20 @@
+import base64
+from datetime import datetime
 from decimal import Decimal
+from unittest.mock import MagicMock, patch
 
 import pytest
+from django.contrib.admin.sites import site
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
 from account.models import CustomUser, Membership, Role
 from article.models import Article
+from bon_de_livraison.admin import BonDeLivraisonAdmin, BonDeLivraisonLineAdmin
+from bon_de_livraison.serializers import BonDeLivraisonLineSerializer, BonDeLivraisonSerializer
+from bon_de_livraison.utils import get_next_numero_bon_livraison
 from client.models import Client
 from company.models import Company
 from core.tests import (
@@ -373,7 +381,6 @@ class TestBonDeLivraisonAdmin(SharedDocumentAdminTestsMixin):
     LineModel = BonDeLivraisonLine
 
     def setup_method(self):
-        from django.contrib.admin.sites import site
 
         self.user = CustomUser.objects.create_superuser(
             email="admin@bon.com", password="pass"
@@ -429,25 +436,21 @@ class TestBonDeLivraisonAdmin(SharedDocumentAdminTestsMixin):
         self.site = site
 
     def test_document_admin_registration(self):
-        from bon_de_livraison.admin import BonDeLivraisonAdmin
 
         assert self.Model in self.site._registry
         assert isinstance(self.site._registry[self.Model], BonDeLivraisonAdmin)
 
     def test_line_admin_registration(self):
-        from bon_de_livraison.admin import BonDeLivraisonLineAdmin
 
         assert self.LineModel in self.site._registry
         assert isinstance(self.site._registry[self.LineModel], BonDeLivraisonLineAdmin)
 
     def test_document_admin_list_display(self):
-        from bon_de_livraison.admin import BonDeLivraisonAdmin
 
         admin_obj = BonDeLivraisonAdmin(self.Model, self.site)
         assert "numero_bon_livraison" in admin_obj.list_display
 
     def test_line_admin_list_display(self):
-        from bon_de_livraison.admin import BonDeLivraisonLineAdmin
 
         admin_obj = BonDeLivraisonLineAdmin(self.LineModel, self.site)
         assert len(admin_obj.list_display) > 0
@@ -459,8 +462,6 @@ class TestBonDeLivraisonUtilsExtra:
 
     def test_get_next_numero_bon_livraison_with_gaps(self):
         """Test get_next_numero_bon_livraison finds gaps in number sequence."""
-        from bon_de_livraison.utils import get_next_numero_bon_livraison
-        from datetime import datetime
 
         # Create company, client, user, livre_par, and mode_paiement first
         company = Company.objects.create(raison_sociale="Test Co", ICE="123")
@@ -518,8 +519,6 @@ class TestBonDeLivraisonUtilsExtra:
 
     def test_get_next_numero_bon_livraison_with_invalid_format(self):
         """Test get_next_numero_bon_livraison handles invalid formats."""
-        from bon_de_livraison.utils import get_next_numero_bon_livraison
-        from datetime import datetime
 
         # Create fixtures
         company = Company.objects.create(raison_sociale="Test Co2", ICE="456")
@@ -557,8 +556,6 @@ class TestBonDeLivraisonUtilsExtra:
 
     def test_get_next_numero_bon_livraison_empty_db(self):
         """Test get_next_numero_bon_livraison with no existing records."""
-        from bon_de_livraison.utils import get_next_numero_bon_livraison
-        from datetime import datetime
 
         # Clear all bons
         BonDeLivraison.objects.all().delete()
@@ -572,8 +569,6 @@ class TestBonDeLivraisonUtilsExtra:
 
     def test_get_next_numero_bon_livraison_consecutive(self):
         """Test get_next_numero_bon_livraison with consecutive numbers."""
-        from bon_de_livraison.utils import get_next_numero_bon_livraison
-        from datetime import datetime
 
         company = Company.objects.create(raison_sociale="Test Co3", ICE="789")
         ville = Ville.objects.create(nom="TestVille3", company=company)
@@ -622,7 +617,6 @@ class TestBonDeLivraisonUtilsExtra:
 class TestBonDeLivraisonAdminExtra(SharedDocumentAdminTestsMixin):
     """Extra tests for BonDeLivraison admin."""
 
-    from bon_de_livraison.admin import BonDeLivraisonAdmin, BonDeLivraisonLineAdmin
 
     AdminClass = BonDeLivraisonAdmin
     LineAdminClass = BonDeLivraisonLineAdmin
@@ -670,8 +664,6 @@ class TestBonDeLivraisonPDFGeneration:
         bon_de_livraison_with_lines,
     ):
         """Test generating PDF for bon de livraison."""
-        from django.urls import reverse
-        from rest_framework import status
 
         caissier_role, _ = Role.objects.get_or_create(
             name="Caissier",
@@ -705,8 +697,6 @@ class TestBonDeLivraisonPDFGeneration:
         bon_de_livraison_with_lines,
     ):
         """Test PDF fails without company_id."""
-        from django.urls import reverse
-        from rest_framework import status
 
         caissier_role, _ = Role.objects.get_or_create(
             name="Caissier",
@@ -735,8 +725,6 @@ class TestBonDeLivraisonPDFGeneration:
         bon_de_livraison_with_lines,
     ):
         """Test PDF fails when company_id doesn't own the bon de livraison."""
-        from django.urls import reverse
-        from rest_framework import status
 
         other_company = Company.objects.create(
             raison_sociale="Other BL Co", ICE="OTHBL"
@@ -766,8 +754,6 @@ class TestBonDeLivraisonPDFGeneration:
 
     def test_pdf_not_found(self, bon_de_livraison_user, bon_de_livraison_company):
         """Test PDF fails for non-existent bon de livraison."""
-        from django.urls import reverse
-        from rest_framework import status
 
         caissier_role, _ = Role.objects.get_or_create(
             name="Caissier",
@@ -796,8 +782,6 @@ class TestBonDeLivraisonPDFGeneration:
         bon_de_livraison_with_lines,
     ):
         """Test PDF generation with quantity_only type."""
-        from django.urls import reverse
-        from rest_framework import status
 
         caissier_role, _ = Role.objects.get_or_create(
             name="Caissier",
@@ -830,8 +814,6 @@ class TestBonDeLivraisonPDFGeneration:
         bon_de_livraison_with_lines,
     ):
         """Test PDF generation with avec_remise type."""
-        from django.urls import reverse
-        from rest_framework import status
 
         caissier_role, _ = Role.objects.get_or_create(
             name="Caissier",
@@ -864,8 +846,6 @@ class TestBonDeLivraisonPDFGeneration:
         bon_de_livraison_with_lines,
     ):
         """Test PDF generation with avec_unite type."""
-        from django.urls import reverse
-        from rest_framework import status
 
         caissier_role, _ = Role.objects.get_or_create(
             name="Caissier",
@@ -900,8 +880,6 @@ class TestBonDeLivraisonUninvoicedListView:
         self, bon_de_livraison_user, bon_de_livraison_company
     ):
         """Test that uninvoiced list requires company_id parameter."""
-        from django.urls import reverse
-        from rest_framework import status
 
         caissier_role, _ = Role.objects.get_or_create(
             name="Caissier",
@@ -924,8 +902,6 @@ class TestBonDeLivraisonUninvoicedListView:
         self, bon_de_livraison_user, bon_de_livraison_company, bon_de_livraison_client
     ):
         """Test successful retrieval of uninvoiced bons de livraison."""
-        from django.urls import reverse
-        from rest_framework import status
 
         caissier_role, _ = Role.objects.get_or_create(
             name="Caissier",
@@ -975,8 +951,6 @@ class TestBonDeLivraisonUninvoicedListView:
         self, bon_de_livraison_user, bon_de_livraison_company, bon_de_livraison_client
     ):
         """Test uninvoiced list with pagination."""
-        from django.urls import reverse
-        from rest_framework import status
 
         caissier_role, _ = Role.objects.get_or_create(
             name="Caissier",
@@ -1013,8 +987,6 @@ class TestBonDeLivraisonUninvoicedListView:
         self, bon_de_livraison_user, bon_de_livraison_company
     ):
         """Test that POST is disabled for uninvoiced list."""
-        from django.urls import reverse
-        from rest_framework import status
 
         caissier_role, _ = Role.objects.get_or_create(
             name="Caissier",
@@ -1042,10 +1014,6 @@ class TestBonDeLivraisonSerializerCoverage:
 
     def test_get_line_serializer_class(self):
         """Test get_line_serializer_class returns correct serializer (line 105)."""
-        from bon_de_livraison.serializers import (
-            BonDeLivraisonSerializer,
-            BonDeLivraisonLineSerializer,
-        )
 
         serializer = BonDeLivraisonSerializer()
         result = serializer.get_line_serializer_class()
@@ -1058,9 +1026,6 @@ class TestBonDeLivraisonUtilsCoverage:
 
     def test_get_next_numero_with_value_error(self):
         """Test get_next_numero when int() raises ValueError (lines 20-21)."""
-        from unittest.mock import patch, MagicMock
-        from bon_de_livraison.utils import get_next_numero_bon_livraison
-        from datetime import datetime
 
         year_suffix = f"{datetime.now().year % 100:02d}"
 
@@ -1093,8 +1058,6 @@ class TestBonDeLivraisonUtilsCoverage:
         self, bon_de_livraison_user, bon_de_livraison_client, bon_de_livraison_company
     ):
         """Test get_next_numero with consecutive numbers to exercise loop continuation (branch 25->30)."""
-        from bon_de_livraison.utils import get_next_numero_bon_livraison
-        from datetime import datetime
 
         year_suffix = f"{datetime.now().year % 100:02d}"
 
@@ -1139,10 +1102,6 @@ class TestBonDeLivraisonViewsCoverage:
         bon_de_livraison_article,
     ):
         """Test PDF generation when company has a logo (lines 217-219)."""
-        from django.urls import reverse
-        from rest_framework import status
-        from django.core.files.uploadedfile import SimpleUploadedFile
-        import base64
 
         # Create a simple PNG image for logo
         png_data = base64.b64decode(
@@ -1194,8 +1153,6 @@ class TestBonDeLivraisonViewsCoverage:
         bon_de_livraison_article,
     ):
         """Test PDF generation with client type PP (lines 306-307)."""
-        from django.urls import reverse
-        from rest_framework import status
 
         caissier_role, _ = Role.objects.get_or_create(
             name="Caissier",
@@ -1249,8 +1206,6 @@ class TestBonDeLivraisonViewsCoverage:
         bon_de_livraison_article,
     ):
         """Test PDF generation with unite column enabled (lines 416-425)."""
-        from django.urls import reverse
-        from rest_framework import status
 
         caissier_role, _ = Role.objects.get_or_create(
             name="Caissier",
@@ -1297,9 +1252,6 @@ class TestBonDeLivraisonViewsCoverage:
         bon_de_livraison_article,
     ):
         """Test PDF generation with fixed remise type (lines 502, 504, 512, 514, 555)."""
-        from django.urls import reverse
-        from rest_framework import status
-        from decimal import Decimal
 
         caissier_role, _ = Role.objects.get_or_create(
             name="Caissier",
@@ -1351,9 +1303,6 @@ class TestBonDeLivraisonViewsCoverage:
         bon_de_livraison_article,
     ):
         """Test PDF generation with percentage remise type (lines 502, 512)."""
-        from django.urls import reverse
-        from rest_framework import status
-        from decimal import Decimal
 
         caissier_role, _ = Role.objects.get_or_create(
             name="Caissier",
@@ -1404,9 +1353,6 @@ class TestBonDeLivraisonViewsCoverage:
         bon_de_livraison_client,
     ):
         """Test PDF generation with article without reference (branches 136->140, 474->478)."""
-        from django.urls import reverse
-        from rest_framework import status
-        from decimal import Decimal
 
         caissier_role, _ = Role.objects.get_or_create(
             name="Caissier",

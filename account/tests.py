@@ -1,4 +1,6 @@
 import os
+import shutil
+import tempfile
 from datetime import datetime, timezone
 from io import BytesIO
 from typing import Any
@@ -15,10 +17,11 @@ from django.db import connection
 from django.urls import reverse
 from rest_framework import serializers as drf_serializers
 from rest_framework import status
+from rest_framework.exceptions import ValidationError as DRFValidationError
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 
-from account.models import Role
+from account.models import Membership, Role
 from account.serializers import (
     CreateAccountSerializer,
     ProfilePutSerializer,
@@ -27,7 +30,10 @@ from account.serializers import (
     MembershipSerializer,
     ChangePasswordSerializer,
     PasswordResetSerializer,
+    UserDetailSerializer,
+    UserPatchSerializer,
 )
+from account.views import PasswordChangeView, ProfileView
 from company.models import Company
 from .filters import UsersFilter
 from .models import CustomUser
@@ -47,8 +53,6 @@ from .tasks import (
 # Temporary MEDIA_ROOT for avatar file ops - use project-local temp dir
 @pytest.fixture(autouse=True)
 def temp_media_root(settings):
-    import tempfile
-    import shutil
 
     # Create a temp dir in the project folder to avoid Windows permission issues
     temp_dir = tempfile.mkdtemp(dir=".")
@@ -836,8 +840,6 @@ class TestSerializers:
         assert is_url is False
 
         # Create a minimal valid 10x10 JPEG image (complete, not just header)
-        from PIL import Image
-        from io import BytesIO
 
         img = Image.new("RGB", (10, 10), color="white")
         buf = BytesIO()
@@ -917,7 +919,6 @@ class TestSerializers:
         user_model = get_user_model()
         user = user_model.objects.create_user(email="repr@example.com", password="p")
 
-        from django.core.files.base import ContentFile
 
         user.avatar.save("repr.png", ContentFile(b"img"), save=True)
 
@@ -1403,13 +1404,6 @@ class TestCreateAccountSerializerExtra:
         assert serializer.is_valid(), serializer.errors
         user = serializer.save()
         assert user.avatar_cropped is not None
-
-
-from account.serializers import (
-    UserPatchSerializer,
-    UserDetailSerializer,
-)
-from account.models import Membership
 
 
 @pytest.mark.django_db
@@ -2017,7 +2011,6 @@ class TestAccountViewsExtra:
 
     def test_check_email_existing_user(self):
         """Test CheckEmailView raises error for existing email."""
-        from django.urls import reverse
 
         url = reverse("account:check_email")
         response = self.client.post(url, {"email": self.user.email})
@@ -2025,7 +2018,6 @@ class TestAccountViewsExtra:
 
     def test_check_email_nonexisting_user(self):
         """Test CheckEmailView returns 204 for non-existing email."""
-        from django.urls import reverse
 
         url = reverse("account:check_email")
         response = self.client.post(url, {"email": "nonexistent@test.com"})
@@ -2033,7 +2025,6 @@ class TestAccountViewsExtra:
 
     def test_password_change_wrong_old_password(self):
         """Test PasswordChangeView with wrong old password."""
-        from django.urls import reverse
 
         url = reverse("account:password_change")
         response = self.client.put(
@@ -2049,7 +2040,6 @@ class TestAccountViewsExtra:
 
     def test_password_change_mismatched_passwords(self):
         """Test PasswordChangeView with mismatched new passwords."""
-        from django.urls import reverse
 
         url = reverse("account:password_change")
         response = self.client.put(
@@ -2065,7 +2055,6 @@ class TestAccountViewsExtra:
 
     def test_password_change_too_short(self):
         """Test PasswordChangeView with password too short."""
-        from django.urls import reverse
 
         url = reverse("account:password_change")
         response = self.client.put(
@@ -2081,7 +2070,6 @@ class TestAccountViewsExtra:
 
     def test_password_change_success(self):
         """Test PasswordChangeView successful password change."""
-        from django.urls import reverse
 
         url = reverse("account:password_change")
         response = self.client.put(
@@ -2096,7 +2084,6 @@ class TestAccountViewsExtra:
 
     def test_profile_get(self):
         """Test ProfileView GET returns user profile."""
-        from django.urls import reverse
 
         url = reverse("account:profil")
         response = self.client.get(url)
@@ -2107,8 +2094,6 @@ class TestAccountViewsExtra:
 
     def test_group_view(self):
         """Test GroupView returns group titles."""
-        from django.urls import reverse
-        from account.models import Role
 
         Role.objects.get_or_create(name="Caissier")
         url = reverse("account:group")
@@ -2118,7 +2103,6 @@ class TestAccountViewsExtra:
 
     def test_users_list_without_pagination(self):
         """Test UsersListCreateView without pagination."""
-        from django.urls import reverse
 
         url = reverse("account:users")
         response = self.client.get(url)
@@ -2127,7 +2111,6 @@ class TestAccountViewsExtra:
 
     def test_users_list_with_pagination(self):
         """Test UsersListCreateView with pagination."""
-        from django.urls import reverse
 
         url = reverse("account:users")
         response = self.client.get(url + "?pagination=true")
@@ -2136,7 +2119,6 @@ class TestAccountViewsExtra:
 
     def test_user_detail_self_forbidden(self):
         """Test UserDetailEditDeleteView GET for self raises 404."""
-        from django.urls import reverse
 
         url = reverse("account:users_detail", args=[self.user.pk])
         response = self.client.get(url)
@@ -2144,7 +2126,6 @@ class TestAccountViewsExtra:
 
     def test_user_detail_other_user(self):
         """Test UserDetailEditDeleteView GET for other user."""
-        from django.urls import reverse
 
         other_user = CustomUser.objects.create_user(
             email="other@test.com",
@@ -2158,7 +2139,6 @@ class TestAccountViewsExtra:
 
     def test_user_delete_self_forbidden(self):
         """Test UserDetailEditDeleteView DELETE for self raises 404."""
-        from django.urls import reverse
 
         url = reverse("account:users_detail", args=[self.user.pk])
         response = self.client.delete(url)
@@ -2166,7 +2146,6 @@ class TestAccountViewsExtra:
 
     def test_user_put_self_forbidden(self):
         """Test UserDetailEditDeleteView PUT for self raises 404."""
-        from django.urls import reverse
 
         url = reverse("account:users_detail", args=[self.user.pk])
         response = self.client.put(url, {"first_name": "New"})
@@ -2174,7 +2153,6 @@ class TestAccountViewsExtra:
 
     def test_user_put_other_user_success(self):
         """Test UserDetailEditDeleteView PUT for other user succeeds."""
-        from django.urls import reverse
 
         other_user = CustomUser.objects.create_user(
             email="putother@test.com",
@@ -2188,7 +2166,6 @@ class TestAccountViewsExtra:
 
     def test_user_put_with_valid_data(self):
         """Test UserDetailEditDeleteView PUT with valid partial data."""
-        from django.urls import reverse
 
         other_user = CustomUser.objects.create_user(
             email="putvalid@test.com",
@@ -2206,7 +2183,6 @@ class TestAccountViewsExtra:
 
     def test_user_delete_other_user(self):
         """Test UserDetailEditDeleteView DELETE for other user succeeds."""
-        from django.urls import reverse
 
         other_user = CustomUser.objects.create_user(
             email="deleteother@test.com",
@@ -2220,8 +2196,6 @@ class TestAccountViewsExtra:
 
     def test_user_delete_with_avatar(self):
         """Test UserDetailEditDeleteView DELETE removes avatar files."""
-        from django.urls import reverse
-        from django.core.files.base import ContentFile
 
         other_user = CustomUser.objects.create_user(
             email="delavatar@test.com",
@@ -2241,7 +2215,6 @@ class TestAccountViewsExtra:
 
     def test_get_object_not_found(self):
         """Test get_object raises 404 for non-existent user."""
-        from django.urls import reverse
 
         url = reverse("account:users_detail", args=[99999])
         response = self.client.get(url)
@@ -2249,8 +2222,6 @@ class TestAccountViewsExtra:
 
     def test_users_create_post(self):
         """Test UsersListCreateView POST creates user."""
-        from django.urls import reverse
-        from account.models import Role
 
         Role.objects.get_or_create(name="Caissier")
         url = reverse("account:users")
@@ -2267,7 +2238,6 @@ class TestAccountViewsExtra:
 
     def test_users_create_invalid_data(self):
         """Test UsersListCreateView POST with invalid data."""
-        from django.urls import reverse
 
         url = reverse("account:users")
         data = {"email": "invalid-email"}  # Missing required fields
@@ -2276,14 +2246,12 @@ class TestAccountViewsExtra:
 
     def test_password_reset_get_valid(self):
         """Test PasswordResetView GET with valid code."""
-        from django.urls import reverse
 
         # Set a reset code on user
         self.user.password_reset_code = "1234"
         self.user.save()
         url = reverse("account:password_reset_detail", args=[self.user.email, "1234"])
         # Use anonymous client
-        from rest_framework.test import APIClient
 
         anon_client = APIClient()
         response = anon_client.get(url)
@@ -2291,8 +2259,6 @@ class TestAccountViewsExtra:
 
     def test_password_reset_get_invalid_code(self):
         """Test PasswordResetView GET with invalid code."""
-        from django.urls import reverse
-        from rest_framework.test import APIClient
 
         self.user.password_reset_code = "1234"
         self.user.save()
@@ -2303,8 +2269,6 @@ class TestAccountViewsExtra:
 
     def test_password_reset_get_user_not_found(self):
         """Test PasswordResetView GET with non-existent user."""
-        from django.urls import reverse
-        from rest_framework.test import APIClient
 
         url = reverse(
             "account:password_reset_detail", args=["nonexistent@test.com", "1234"]
@@ -2315,8 +2279,6 @@ class TestAccountViewsExtra:
 
     def test_password_reset_put_success(self):
         """Test PasswordResetView PUT resets password."""
-        from django.urls import reverse
-        from rest_framework.test import APIClient
 
         self.user.password_reset_code = "1234"
         self.user.save()
@@ -2336,8 +2298,6 @@ class TestAccountViewsExtra:
 
     def test_password_reset_put_invalid_code(self):
         """Test PasswordResetView PUT with invalid code."""
-        from django.urls import reverse
-        from rest_framework.test import APIClient
 
         self.user.password_reset_code = "1234"
         self.user.save()
@@ -2357,8 +2317,6 @@ class TestAccountViewsExtra:
 
     def test_password_reset_put_user_not_found(self):
         """Test PasswordResetView PUT with non-existent user."""
-        from django.urls import reverse
-        from rest_framework.test import APIClient
 
         url = reverse("account:password_reset")
         anon_client = APIClient()
@@ -2376,7 +2334,6 @@ class TestAccountViewsExtra:
 
     def test_profile_patch_with_all_fields(self):
         """Test ProfileView PATCH updates profile with all required fields."""
-        from django.urls import reverse
 
         url = reverse("account:profil")
         # Provide all fields that the view extracts from request
@@ -2396,7 +2353,6 @@ class TestAccountViewsExtra:
 
     def test_profile_patch_invalid_data(self):
         """Test ProfileView PATCH with invalid data."""
-        from django.urls import reverse
 
         url = reverse("account:profil")
         # Send invalid gender
@@ -2518,10 +2474,6 @@ class TestAccountAdditionalCoverage:
 
         Tests lines 232-233 in views.py.
         """
-        from unittest.mock import patch, MagicMock
-        from account.views import ProfileView
-        from account.models import CustomUser
-        from rest_framework.exceptions import ValidationError as DRFValidationError
 
         # Create a mock request with a user whose pk is invalid
         mock_request = MagicMock()
@@ -2546,9 +2498,6 @@ class TestAccountAdditionalCoverage:
         because the serializer validates password length first.
         Direct unit test of the view method with mocked serializer.
         """
-        from unittest.mock import patch, MagicMock
-        from account.views import PasswordChangeView
-        from rest_framework.exceptions import ValidationError as DRFValidationError
 
         # Create a mock request
         mock_request = MagicMock()
@@ -2584,8 +2533,6 @@ class TestAccountAdditionalCoverage:
 
         Tests lines 129-141 in views.py - task revocation on Windows.
         """
-        from unittest.mock import patch
-        from django.urls import reverse
 
         # Set the user's password reset code and task_id
         self.user.password_reset_code = "1234"
@@ -2618,8 +2565,6 @@ class TestAccountAdditionalCoverage:
 
         Tests lines 136-141 in views.py - Unix task revocation with SIGKILL.
         """
-        from unittest.mock import patch
-        from django.urls import reverse
 
         # Create user with existing task_id
         unix_user = self.user_model.objects.create_user(
@@ -2656,8 +2601,6 @@ class TestAccountAdditionalCoverage:
 
     def test_send_password_reset_post_invalid_serializer(self):
         """Test SendPasswordResetView POST when serializer is invalid (line 211)."""
-        from unittest.mock import patch, MagicMock
-        from django.urls import reverse
 
         # Create user
         self.user_model.objects.create_user(
@@ -2684,8 +2627,6 @@ class TestAccountAdditionalCoverage:
 
     def test_send_password_reset_post_user_email_is_none(self):
         """Test SendPasswordResetView POST when user.email is None (lines 212-213)."""
-        from unittest.mock import patch
-        from django.urls import reverse
 
         # Create user with email that will be patched to None
         self.user_model.objects.create_user(
@@ -2714,8 +2655,6 @@ class TestAccountAdditionalCoverage:
 
         Tests line 178 in views.py - Unix task revocation with SIGKILL.
         """
-        from unittest.mock import patch, MagicMock
-        from django.urls import reverse
 
         # Create user with existing task_id
         unix_user = self.user_model.objects.create_user(
@@ -2748,7 +2687,6 @@ class TestAccountAdditionalCoverage:
 
     def test_users_detail_put_invalid_serializer(self):
         """Test UsersDetail PUT with invalid data (line 362)."""
-        from django.urls import reverse
 
         # Create a target user to update (not the current user)
         target_user = self.user_model.objects.create_user(

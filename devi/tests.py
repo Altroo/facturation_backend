@@ -1,3 +1,4 @@
+from datetime import datetime
 from decimal import Decimal
 
 import pytest
@@ -16,6 +17,8 @@ from core.tests import (
     SharedDocumentModelTestsMixin,
     SharedDocumentAdminTestsMixin,
 )
+from devi.admin import DeviAdmin, DeviLineAdmin
+from devi.utils import get_next_numero_devis
 from parameter.models import ModePaiement, Ville
 from .filters import DeviFilter
 from .models import Devi, DeviLine
@@ -415,8 +418,6 @@ class TestDeviUtilsExtra:
 
     def test_get_next_numero_devis_with_gaps(self):
         """Test get_next_numero_devis finds gaps in number sequence."""
-        from devi.utils import get_next_numero_devis
-        from datetime import datetime
 
         # Create company, client, user, and mode_paiement first
         company = Company.objects.create(raison_sociale="Test Co", ICE="123")
@@ -467,8 +468,6 @@ class TestDeviUtilsExtra:
 
     def test_get_next_numero_devis_with_invalid_format(self):
         """Test get_next_numero_devis handles invalid formats."""
-        from devi.utils import get_next_numero_devis
-        from datetime import datetime
 
         # Create fixtures
         company = Company.objects.create(raison_sociale="Test Co2", ICE="456")
@@ -503,8 +502,6 @@ class TestDeviUtilsExtra:
 
     def test_get_next_numero_devis_empty_db(self):
         """Test get_next_numero_devis with no existing records."""
-        from devi.utils import get_next_numero_devis
-        from datetime import datetime
 
         # Clear all devis
         Devi.objects.all().delete()
@@ -518,8 +515,6 @@ class TestDeviUtilsExtra:
 
     def test_get_next_numero_devis_consecutive(self):
         """Test get_next_numero_devis with consecutive numbers."""
-        from devi.utils import get_next_numero_devis
-        from datetime import datetime
 
         company = Company.objects.create(raison_sociale="Test Co3", ICE="789")
         ville = Ville.objects.create(nom="TestVille3", company=company)
@@ -579,7 +574,6 @@ class TestDeviModelExtra(SharedDocumentModelTestsMixin):
 class TestDeviAdminExtra(SharedDocumentAdminTestsMixin):
     """Extra tests for Devi admin."""
 
-    from devi.admin import DeviAdmin, DeviLineAdmin
 
     AdminClass = DeviAdmin
     LineAdminClass = DeviLineAdmin
@@ -624,8 +618,6 @@ class TestDeviPDFGeneration:
         self, devi_conv_user, devi_conv_company, devi_conv_with_lines
     ):
         """Test generating PDF for devi."""
-        from django.urls import reverse
-        from rest_framework import status
 
         _create_devi_membership(devi_conv_user, devi_conv_company)
 
@@ -646,8 +638,6 @@ class TestDeviPDFGeneration:
         self, devi_conv_user, devi_conv_company, devi_conv_with_lines
     ):
         """Test PDF fails without company_id."""
-        from django.urls import reverse
-        from rest_framework import status
 
         _create_devi_membership(devi_conv_user, devi_conv_company)
 
@@ -663,8 +653,6 @@ class TestDeviPDFGeneration:
         self, devi_conv_user, devi_conv_company, devi_conv_with_lines
     ):
         """Test PDF fails when company_id doesn't own the devis."""
-        from django.urls import reverse
-        from rest_framework import status
 
         other_company = Company.objects.create(
             raison_sociale="Other Devi Co", ICE="OTHDEVI"
@@ -684,8 +672,6 @@ class TestDeviPDFGeneration:
 
     def test_pdf_not_found(self, devi_conv_user, devi_conv_company):
         """Test PDF fails for non-existent devi."""
-        from django.urls import reverse
-        from rest_framework import status
 
         _create_devi_membership(devi_conv_user, devi_conv_company)
 
@@ -704,8 +690,6 @@ class TestDeviPDFGeneration:
         self, devi_conv_user, devi_conv_company, devi_conv_with_lines
     ):
         """Test PDF generation with sans_remise type."""
-        from django.urls import reverse
-        from rest_framework import status
 
         _create_devi_membership(devi_conv_user, devi_conv_company)
 
@@ -725,8 +709,6 @@ class TestDeviPDFGeneration:
         self, devi_conv_user, devi_conv_company, devi_conv_with_lines
     ):
         """Test PDF generation with avec_unite type."""
-        from django.urls import reverse
-        from rest_framework import status
 
         _create_devi_membership(devi_conv_user, devi_conv_company)
 
@@ -751,8 +733,6 @@ class TestDeviSerializerCoverage:
         self, devi_conv_user, devi_conv_company, devi_conv_with_lines
     ):
         """Test that retrieving a Devi calls get_line_serializer_class via to_representation."""
-        from django.urls import reverse
-        from rest_framework import status
 
         _create_devi_membership(devi_conv_user, devi_conv_company)
 
@@ -780,8 +760,6 @@ class TestCoreViewsCoverage:
         self, devi_conv_user, devi_conv_company, devi_conv_client
     ):
         """Test list view when user has no membership (line 34)."""
-        from django.urls import reverse
-        from rest_framework import status
 
         # User has no membership to the company
         client_api = APIClient()
@@ -794,8 +772,6 @@ class TestCoreViewsCoverage:
 
     def test_post_client_not_found(self, devi_conv_user, devi_conv_company):
         """Test POST when client doesn't exist (lines 68-69)."""
-        from django.urls import reverse
-        from rest_framework import status
 
         _create_devi_membership(devi_conv_user, devi_conv_company)
 
@@ -816,8 +792,6 @@ class TestCoreViewsCoverage:
         self, devi_conv_user, devi_conv_company, devi_conv_ville
     ):
         """Test POST when user has no membership to client's company (line 73)."""
-        from django.urls import reverse
-        from rest_framework import status
 
         # Create another company and client
         other_company = Company.objects.create(
@@ -851,8 +825,6 @@ class TestCoreViewsCoverage:
         self, devi_conv_user, devi_conv_company, devi_conv_client
     ):
         """Test GET detail when user has no membership (line 104-105)."""
-        from django.urls import reverse
-        from rest_framework import status
 
         # Create second user who creates the devi
         other_user = CustomUser.objects.create_user(
@@ -880,8 +852,6 @@ class TestCoreViewsCoverage:
         self, devi_conv_user, devi_conv_company, devi_conv_client
     ):
         """Test PUT when user has no membership (line 119)."""
-        from django.urls import reverse
-        from rest_framework import status
 
         # Create second user who creates the devi
         other_user = CustomUser.objects.create_user(
@@ -914,8 +884,6 @@ class TestCoreViewsCoverage:
         self, devi_conv_user, devi_conv_company, devi_conv_client
     ):
         """Test DELETE when user has no membership (line 132)."""
-        from django.urls import reverse
-        from rest_framework import status
 
         # Create second user who creates the devi
         other_user = CustomUser.objects.create_user(
@@ -943,8 +911,6 @@ class TestCoreViewsCoverage:
         self, devi_conv_user, devi_conv_company, devi_conv_client
     ):
         """Test PATCH status when user has no membership (lines 165-166)."""
-        from django.urls import reverse
-        from rest_framework import status
 
         # Create second user who creates the devi
         other_user = CustomUser.objects.create_user(
@@ -973,8 +939,6 @@ class TestCoreViewsCoverage:
         self, devi_conv_user, devi_conv_company, devi_conv_client
     ):
         """Test PATCH with invalid status (line 171)."""
-        from django.urls import reverse
-        from rest_framework import status
 
         # User needs membership
         _create_devi_membership(devi_conv_user, devi_conv_company)
@@ -999,8 +963,6 @@ class TestCoreViewsCoverage:
 
     def test_conversion_not_found(self, devi_conv_user, devi_conv_company):
         """Test conversion when document not found (lines 200-201)."""
-        from django.urls import reverse
-        from rest_framework import status
 
         # User needs membership
         _create_devi_membership(devi_conv_user, devi_conv_company)
@@ -1017,8 +979,6 @@ class TestCoreViewsCoverage:
         self, devi_conv_user, devi_conv_company, devi_conv_client
     ):
         """Test conversion when user has no membership (line 206)."""
-        from django.urls import reverse
-        from rest_framework import status
 
         # Create second user who creates the devi
         other_user = CustomUser.objects.create_user(
@@ -1044,8 +1004,6 @@ class TestCoreViewsCoverage:
 
     def test_get_detail_not_found(self, devi_conv_user, devi_conv_company):
         """Test GET detail when document not found (line 104-105)."""
-        from django.urls import reverse
-        from rest_framework import status
 
         _create_devi_membership(devi_conv_user, devi_conv_company)
 
@@ -1059,8 +1017,6 @@ class TestCoreViewsCoverage:
 
     def test_patch_status_not_found(self, devi_conv_user, devi_conv_company):
         """Test PATCH status when document not found (line 165-166)."""
-        from django.urls import reverse
-        from rest_framework import status
 
         _create_devi_membership(devi_conv_user, devi_conv_company)
 

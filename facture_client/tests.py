@@ -1,3 +1,4 @@
+from datetime import datetime
 from decimal import Decimal
 
 import pytest
@@ -7,6 +8,7 @@ from rest_framework.test import APIClient
 
 from account.models import CustomUser, Membership, Role
 from article.models import Article
+from bon_de_livraison.models import BonDeLivraison
 from client.models import Client
 from company.models import Company
 from core.tests import (
@@ -16,6 +18,8 @@ from core.tests import (
     SharedDocumentModelTestsMixin,
     SharedDocumentAdminTestsMixin,
 )
+from facture_client.admin import FactureClientAdmin, FactureClientLineAdmin
+from facture_client.utils import get_next_numero_facture_client
 from parameter.models import ModePaiement, Ville
 from .filters import FactureClientFilter
 from .models import FactureClient, FactureClientLine
@@ -334,8 +338,6 @@ class TestFactureClientUtilsExtra:
 
     def test_get_next_numero_with_gaps(self):
         """Test get_next_numero_facture_client finds gaps."""
-        from facture_client.utils import get_next_numero_facture_client
-        from datetime import datetime
 
         # Create fixtures
         company = Company.objects.create(raison_sociale="UtilCo", ICE="UTIL123")
@@ -377,8 +379,6 @@ class TestFactureClientUtilsExtra:
 
     def test_get_next_numero_with_invalid_format(self):
         """Test get_next_numero_facture_client handles invalid formats."""
-        from facture_client.utils import get_next_numero_facture_client
-        from datetime import datetime
 
         company = Company.objects.create(raison_sociale="UtilCo2", ICE="UTIL456")
         ville = Ville.objects.create(nom="UtilVille2", company=company)
@@ -411,8 +411,6 @@ class TestFactureClientUtilsExtra:
 
     def test_get_next_numero_empty_db(self):
         """Test get_next_numero_facture_client with no existing records."""
-        from facture_client.utils import get_next_numero_facture_client
-        from datetime import datetime
 
         # Clear all facture_client
         FactureClient.objects.all().delete()
@@ -425,8 +423,6 @@ class TestFactureClientUtilsExtra:
 
     def test_get_next_numero_consecutive(self):
         """Test get_next_numero_facture_client with consecutive numbers."""
-        from facture_client.utils import get_next_numero_facture_client
-        from datetime import datetime
 
         company = Company.objects.create(raison_sociale="UtilCo3", ICE="UTIL789")
         ville = Ville.objects.create(nom="UtilVille3", company=company)
@@ -486,7 +482,6 @@ class TestFactureClientModelExtra(SharedDocumentModelTestsMixin):
 class TestFactureClientAdminExtra(SharedDocumentAdminTestsMixin):
     """Extra tests for FactureClient admin."""
 
-    from facture_client.admin import FactureClientAdmin, FactureClientLineAdmin
 
     AdminClass = FactureClientAdmin
     LineAdminClass = FactureClientLineAdmin
@@ -529,7 +524,6 @@ class TestFactureClientConversionExtra:
 
     def test_convert_to_bon_de_livraison(self, fc_conv_with_lines, fc_conv_user):
         """Test converting FactureClient to BonDeLivraison."""
-        from bon_de_livraison.models import BonDeLivraison
 
         bon_livraison = fc_conv_with_lines.convert_to_bon_de_livraison(
             "BL-001", fc_conv_user
@@ -600,8 +594,6 @@ class TestFactureClientPDFGeneration:
 
     def test_generate_pdf(self, fc_conv_user, fc_conv_company, fc_conv_with_lines):
         """Test generating PDF for facture client."""
-        from django.urls import reverse
-        from rest_framework import status
 
         _create_fc_membership(fc_conv_user, fc_conv_company)
 
@@ -622,8 +614,6 @@ class TestFactureClientPDFGeneration:
 
     def test_pdf_no_company_id(self, fc_conv_user, fc_conv_company, fc_conv_with_lines):
         """Test PDF fails without company_id."""
-        from django.urls import reverse
-        from rest_framework import status
 
         _create_fc_membership(fc_conv_user, fc_conv_company)
 
@@ -641,8 +631,6 @@ class TestFactureClientPDFGeneration:
         self, fc_conv_user, fc_conv_company, fc_conv_with_lines
     ):
         """Test PDF fails when company_id doesn't own the facture."""
-        from django.urls import reverse
-        from rest_framework import status
 
         other_company = Company.objects.create(
             raison_sociale="Other FC Co", ICE="OTHFC"
@@ -664,8 +652,6 @@ class TestFactureClientPDFGeneration:
 
     def test_pdf_not_found(self, fc_conv_user, fc_conv_company):
         """Test PDF fails for non-existent facture client."""
-        from django.urls import reverse
-        from rest_framework import status
 
         _create_fc_membership(fc_conv_user, fc_conv_company)
 
@@ -684,8 +670,6 @@ class TestFactureClientPDFGeneration:
         self, fc_conv_user, fc_conv_company, fc_conv_with_lines
     ):
         """Test PDF generation with sans_remise type."""
-        from django.urls import reverse
-        from rest_framework import status
 
         _create_fc_membership(fc_conv_user, fc_conv_company)
 
@@ -707,8 +691,6 @@ class TestFactureClientPDFGeneration:
         self, fc_conv_user, fc_conv_company, fc_conv_with_lines
     ):
         """Test PDF generation with avec_unite type."""
-        from django.urls import reverse
-        from rest_framework import status
 
         _create_fc_membership(fc_conv_user, fc_conv_company)
 
@@ -733,8 +715,6 @@ class TestFactureClientUnpaidListView:
 
     def test_unpaid_list_requires_company_id(self, fc_conv_user, fc_conv_company):
         """Test that unpaid list requires company_id parameter."""
-        from django.urls import reverse
-        from rest_framework import status
 
         _create_fc_membership(fc_conv_user, fc_conv_company)
 
@@ -748,8 +728,6 @@ class TestFactureClientUnpaidListView:
 
     def test_unpaid_list_success(self, fc_conv_user, fc_conv_company, fc_conv_client):
         """Test successful retrieval of unpaid factures."""
-        from django.urls import reverse
-        from rest_framework import status
 
         _create_fc_membership(fc_conv_user, fc_conv_company)
 
@@ -784,8 +762,6 @@ class TestFactureClientUnpaidListView:
         self, fc_conv_user, fc_conv_company, fc_conv_client
     ):
         """Test unpaid list with pagination."""
-        from django.urls import reverse
-        from rest_framework import status
 
         _create_fc_membership(fc_conv_user, fc_conv_company)
 
@@ -815,8 +791,6 @@ class TestFactureClientUnpaidListView:
 
     def test_unpaid_list_post_disabled(self, fc_conv_user, fc_conv_company):
         """Test that POST is disabled for unpaid list."""
-        from django.urls import reverse
-        from rest_framework import status
 
         _create_fc_membership(fc_conv_user, fc_conv_company)
 
@@ -838,8 +812,6 @@ class TestFactureClientForPaymentView:
 
     def test_for_payment_view_requires_company_id(self, fc_conv_user):
         """Test that for payment view requires company_id parameter."""
-        from django.urls import reverse
-        from rest_framework import status
 
         client_api = APIClient()
         client_api.force_authenticate(user=fc_conv_user)
@@ -853,8 +825,6 @@ class TestFactureClientForPaymentView:
         self, fc_conv_user, fc_conv_company, fc_conv_client
     ):
         """Test successful retrieval of factures for payment."""
-        from django.urls import reverse
-        from rest_framework import status
 
         _create_fc_membership(fc_conv_user, fc_conv_company)
 

@@ -1,7 +1,9 @@
 from decimal import Decimal
 
 import pytest
+from django.contrib.admin.sites import AdminSite
 from django.contrib.auth import get_user_model
+from django.db.utils import DatabaseError
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
@@ -12,6 +14,14 @@ from client.models import Client
 from company.models import Company
 from facture_client.models import FactureClient, FactureClientLine
 from parameter.models import ModePaiement, Ville
+from reglement import filters as reg_filters
+from reglement.admin import ReglementAdmin, ReglementAdminForm
+from reglement.serializers import (
+    ReglementCreateSerializer,
+    ReglementDetailSerializer,
+    ReglementListSerializer,
+    ReglementUpdateSerializer,
+)
 from .filters import ReglementFilter
 from .models import Reglement
 
@@ -945,10 +955,8 @@ class TestReglementFilters:
 
     def test_global_search_database_error_fallback(self, monkeypatch):
         """DatabaseError during FTS should fall back to icontains search."""
-        from reglement import filters as reg_filters
 
         def _raise_db_error(*_args, **_kwargs):
-            from django.db.utils import DatabaseError
 
             raise DatabaseError("forced for test")
 
@@ -1033,8 +1041,6 @@ class TestReglementAdmin:
 
     def test_admin_client_name(self, reglement_obj):
         """Test admin client_name method."""
-        from reglement.admin import ReglementAdmin
-        from django.contrib.admin.sites import AdminSite
 
         admin = ReglementAdmin(Reglement, AdminSite())
         client_name = admin.client_name(reglement_obj)
@@ -1042,8 +1048,6 @@ class TestReglementAdmin:
 
     def test_admin_statut_badge(self, reglement_obj):
         """Test admin statut_badge method."""
-        from reglement.admin import ReglementAdmin
-        from django.contrib.admin.sites import AdminSite
 
         admin = ReglementAdmin(Reglement, AdminSite())
         badge = admin.statut_badge(reglement_obj)
@@ -1054,7 +1058,6 @@ class TestReglementAdmin:
         self, reglement_facture_with_lines, reglement_mode_reglement
     ):
         """Test admin form prevents montant exceeding reste à payer."""
-        from reglement.admin import ReglementAdminForm
 
         # Facture total is 600 TTC, try to create with 700
         form_data = {
@@ -1074,7 +1077,6 @@ class TestReglementAdmin:
         self, reglement_facture_with_lines, reglement_mode_reglement
     ):
         """Test admin form allows valid montant."""
-        from reglement.admin import ReglementAdminForm
 
         # Facture total is 600 TTC, create with 400
         form_data = {
@@ -1091,7 +1093,6 @@ class TestReglementAdmin:
 
     def test_admin_form_update_excludes_self(self, reglement_obj):
         """Test admin form excludes current instance when updating."""
-        from reglement.admin import ReglementAdminForm
 
         # Update with same amount should work
         form_data = {
@@ -1110,7 +1111,6 @@ class TestReglementAdmin:
         self, reglement_facture_with_lines, reglement_mode_reglement
     ):
         """Test admin form prevents negative montant."""
-        from reglement.admin import ReglementAdminForm
 
         form_data = {
             "facture_client": reglement_facture_with_lines.id,
@@ -1129,7 +1129,6 @@ class TestReglementAdmin:
         self, reglement_facture_with_lines, reglement_mode_reglement
     ):
         """Test admin form prevents zero montant."""
-        from reglement.admin import ReglementAdminForm
 
         form_data = {
             "facture_client": reglement_facture_with_lines.id,
@@ -1148,7 +1147,6 @@ class TestReglementAdmin:
         self, reglement_facture_with_lines, reglement_mode_reglement
     ):
         """Test admin form allows Annulé status with exceeding montant (doesn't count)."""
-        from reglement.admin import ReglementAdminForm
 
         # Facture total is 600 TTC, but with Annulé status, 700 should be allowed
         form_data = {
@@ -1173,7 +1171,6 @@ class TestReglementSerializers:
 
     def test_list_serializer_fields(self, reglement_obj):
         """Test ReglementListSerializer contains expected fields."""
-        from reglement.serializers import ReglementListSerializer
 
         serializer = ReglementListSerializer(reglement_obj)
         data = serializer.data
@@ -1192,7 +1189,6 @@ class TestReglementSerializers:
 
     def test_detail_serializer_financial_fields(self, reglement_obj):
         """Test ReglementDetailSerializer contains financial fields."""
-        from reglement.serializers import ReglementDetailSerializer
 
         serializer = ReglementDetailSerializer(reglement_obj)
         data = serializer.data
@@ -1205,7 +1201,6 @@ class TestReglementSerializers:
         self, reglement_facture_with_lines, reglement_mode_reglement
     ):
         """Test that create serializer validates positive montant."""
-        from reglement.serializers import ReglementCreateSerializer
 
         data = {
             "facture_client": reglement_facture_with_lines.id,
@@ -1223,7 +1218,6 @@ class TestReglementSerializers:
         self, reglement_facture_with_lines, reglement_mode_reglement
     ):
         """Test that create serializer validates montant against reste à payer."""
-        from reglement.serializers import ReglementCreateSerializer
 
         # Facture total is 600 TTC
         data = {
@@ -1240,7 +1234,6 @@ class TestReglementSerializers:
 
     def test_update_serializer_excludes_self_from_validation(self, reglement_obj):
         """Test that update serializer excludes current reglement from reste calculation."""
-        from reglement.serializers import ReglementUpdateSerializer
 
         # Update with same amount should work
         data = {
@@ -1276,7 +1269,6 @@ class TestReglementEdgeCases:
         )
 
         # Try to add another payment
-        from reglement.serializers import ReglementCreateSerializer
 
         data = {
             "facture_client": reglement_facture_with_lines.id,
@@ -1303,7 +1295,6 @@ class TestReglementEdgeCases:
         )
 
         # Remaining is 200 (600 - 400)
-        from reglement.serializers import ReglementCreateSerializer
 
         data = {
             "facture_client": reglement_facture_with_lines.id,
@@ -1454,7 +1445,6 @@ class TestReglementFactureStatusValidation:
         """Test that creating règlement for Brouillon facture fails."""
         facture = self._create_facture_with_status("Brouillon", "BROUILLON/01")
 
-        from reglement.serializers import ReglementCreateSerializer
 
         data = {
             "facture_client": facture.id,
@@ -1472,7 +1462,6 @@ class TestReglementFactureStatusValidation:
         """Test that creating règlement for Refusé facture fails."""
         facture = self._create_facture_with_status("Refusé", "REFUSE/01")
 
-        from reglement.serializers import ReglementCreateSerializer
 
         data = {
             "facture_client": facture.id,
@@ -1490,7 +1479,6 @@ class TestReglementFactureStatusValidation:
         """Test that creating règlement for Annulé facture fails."""
         facture = self._create_facture_with_status("Annulé", "ANNULE/01")
 
-        from reglement.serializers import ReglementCreateSerializer
 
         data = {
             "facture_client": facture.id,
@@ -1508,7 +1496,6 @@ class TestReglementFactureStatusValidation:
         """Test that creating règlement for Expiré facture fails."""
         facture = self._create_facture_with_status("Expiré", "EXPIRE/01")
 
-        from reglement.serializers import ReglementCreateSerializer
 
         data = {
             "facture_client": facture.id,
@@ -1526,7 +1513,6 @@ class TestReglementFactureStatusValidation:
         """Test that creating règlement for Envoyé facture succeeds."""
         facture = self._create_facture_with_status("Envoyé", "ENVOYE/01")
 
-        from reglement.serializers import ReglementCreateSerializer
 
         data = {
             "facture_client": facture.id,
@@ -1543,7 +1529,6 @@ class TestReglementFactureStatusValidation:
         """Test that creating règlement for Accepté facture succeeds."""
         facture = self._create_facture_with_status("Accepté", "ACCEPTE/01")
 
-        from reglement.serializers import ReglementCreateSerializer
 
         data = {
             "facture_client": facture.id,
@@ -1590,7 +1575,6 @@ class TestReglementFactureStatusValidation:
 
     def test_admin_form_rejects_brouillon_facture(self):
         """Test admin form rejects règlement for Brouillon facture."""
-        from reglement.admin import ReglementAdminForm
 
         facture = self._create_facture_with_status("Brouillon", "ADMIN-BROUILLON/01")
 
@@ -1609,7 +1593,6 @@ class TestReglementFactureStatusValidation:
 
     def test_admin_form_accepts_accepte_facture(self):
         """Test admin form accepts règlement for Accepté facture."""
-        from reglement.admin import ReglementAdminForm
 
         facture = self._create_facture_with_status("Accepté", "ADMIN-ACCEPTE/01")
 

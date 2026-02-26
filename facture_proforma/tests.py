@@ -1,3 +1,4 @@
+from datetime import datetime
 from decimal import Decimal
 
 import pytest
@@ -16,6 +17,8 @@ from core.tests import (
     SharedDocumentModelTestsMixin,
     SharedDocumentAdminTestsMixin,
 )
+from facture_proforma.admin import FactureProFormaAdmin, FactureProFormaLineAdmin
+from facture_proforma.utils import get_next_numero_facture_pro_forma
 from parameter.models import ModePaiement, Ville
 from .filters import FactureProFormaFilter
 from .models import FactureProForma, FactureProFormaLine
@@ -336,8 +339,6 @@ class TestFactureProFormaUtilsExtra:
 
     def test_get_next_numero_with_gaps(self):
         """Test get_next_numero_facture_pro_forma finds gaps."""
-        from facture_proforma.utils import get_next_numero_facture_pro_forma
-        from datetime import datetime
 
         # Create fixtures
         company = Company.objects.create(raison_sociale="UtilCoPF", ICE="UTILPF123")
@@ -379,8 +380,6 @@ class TestFactureProFormaUtilsExtra:
 
     def test_get_next_numero_with_invalid_format(self):
         """Test get_next_numero_facture_pro_forma handles invalid formats."""
-        from facture_proforma.utils import get_next_numero_facture_pro_forma
-        from datetime import datetime
 
         company = Company.objects.create(raison_sociale="UtilCoPF2", ICE="UTILPF456")
         ville = Ville.objects.create(nom="UtilVillePF2", company=company)
@@ -413,8 +412,6 @@ class TestFactureProFormaUtilsExtra:
 
     def test_get_next_numero_empty_db(self):
         """Test get_next_numero_facture_pro_forma with no existing records."""
-        from facture_proforma.utils import get_next_numero_facture_pro_forma
-        from datetime import datetime
 
         # Clear all
         FactureProForma.objects.all().delete()
@@ -427,8 +424,6 @@ class TestFactureProFormaUtilsExtra:
 
     def test_get_next_numero_consecutive(self):
         """Test get_next_numero_facture_pro_forma with consecutive numbers."""
-        from facture_proforma.utils import get_next_numero_facture_pro_forma
-        from datetime import datetime
 
         company = Company.objects.create(raison_sociale="UtilCoPF3", ICE="UTILPF789")
         ville = Ville.objects.create(nom="UtilVillePF3", company=company)
@@ -516,7 +511,6 @@ class TestFactureProFormaModelExtra(SharedDocumentModelTestsMixin):
 class TestFactureProFormaAdminExtra(SharedDocumentAdminTestsMixin):
     """Extra tests for FactureProForma admin."""
 
-    from facture_proforma.admin import FactureProFormaAdmin, FactureProFormaLineAdmin
 
     AdminClass = FactureProFormaAdmin
     LineAdminClass = FactureProFormaLineAdmin
@@ -559,8 +553,6 @@ class TestFactureProFormaPDFGeneration:
 
     def test_generate_pdf(self, pf_conv_user, pf_conv_company, pf_conv_with_lines):
         """Test generating PDF for facture pro forma."""
-        from django.urls import reverse
-        from rest_framework import status
 
         _create_pf_membership(pf_conv_user, pf_conv_company)
 
@@ -581,8 +573,6 @@ class TestFactureProFormaPDFGeneration:
 
     def test_pdf_no_company_id(self, pf_conv_user, pf_conv_company, pf_conv_with_lines):
         """Test PDF fails without company_id."""
-        from django.urls import reverse
-        from rest_framework import status
 
         _create_pf_membership(pf_conv_user, pf_conv_company)
 
@@ -600,8 +590,6 @@ class TestFactureProFormaPDFGeneration:
         self, pf_conv_user, pf_conv_company, pf_conv_with_lines
     ):
         """Test PDF fails when company_id doesn't own the facture proforma."""
-        from django.urls import reverse
-        from rest_framework import status
 
         other_company = Company.objects.create(
             raison_sociale="Other PF Co", ICE="OTHPF"
@@ -623,8 +611,6 @@ class TestFactureProFormaPDFGeneration:
 
     def test_pdf_not_found(self, pf_conv_user, pf_conv_company):
         """Test PDF fails for non-existent facture proforma."""
-        from django.urls import reverse
-        from rest_framework import status
 
         _create_pf_membership(pf_conv_user, pf_conv_company)
 
@@ -643,8 +629,6 @@ class TestFactureProFormaPDFGeneration:
         self, pf_conv_user, pf_conv_company, pf_conv_with_lines
     ):
         """Test PDF generation with sans_remise type."""
-        from django.urls import reverse
-        from rest_framework import status
 
         _create_pf_membership(pf_conv_user, pf_conv_company)
 
@@ -666,8 +650,6 @@ class TestFactureProFormaPDFGeneration:
         self, pf_conv_user, pf_conv_company, pf_conv_with_lines
     ):
         """Test PDF generation with avec_unite type."""
-        from django.urls import reverse
-        from rest_framework import status
 
         _create_pf_membership(pf_conv_user, pf_conv_company)
 

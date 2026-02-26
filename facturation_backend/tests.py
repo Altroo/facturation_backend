@@ -9,6 +9,7 @@ from PIL import Image
 from django.core.files.base import ContentFile
 from rest_framework import serializers
 from rest_framework.exceptions import (
+    APIException,
     AuthenticationFailed,
     PermissionDenied,
     NotFound,
@@ -350,8 +351,6 @@ class TestApiExceptionHandler:
         req = factory.get("/")
         context = {"request": Request(req)}
 
-        from rest_framework.exceptions import NotFound
-
         exc = NotFound()
         resp = api_exception_handler(exc, context)
 
@@ -365,8 +364,6 @@ class TestApiExceptionHandler:
         req = factory.get("/")
         context = {"request": Request(req)}
 
-        from rest_framework.exceptions import AuthenticationFailed
-
         exc = AuthenticationFailed()
         resp = api_exception_handler(exc, context)
 
@@ -379,8 +376,6 @@ class TestApiExceptionHandler:
         req = factory.get("/")
         context = {"request": Request(req)}
 
-        from rest_framework.exceptions import PermissionDenied
-
         exc = PermissionDenied()
         resp = api_exception_handler(exc, context)
 
@@ -392,8 +387,6 @@ class TestApiExceptionHandler:
         factory = APIRequestFactory()
         req = factory.get("/")
         context = {"request": Request(req)}
-
-        from rest_framework.exceptions import APIException
 
         exc = APIException()
         exc.status_code = 500

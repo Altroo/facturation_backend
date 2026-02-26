@@ -11,6 +11,7 @@ from article.models import Article
 from bon_de_livraison.models import BonDeLivraison, BonDeLivraisonLine
 from client.models import Client
 from company.models import Company
+from dashboard.views import make_aware_datetime_end, make_aware_datetime_start
 from devi.models import Devi, DeviLine
 from facture_client.models import FactureClient, FactureClientLine
 from facture_proforma.models import FactureProForma, FactureProFormaLine
@@ -170,7 +171,6 @@ def bon_de_livraison(client_entity, mode_paiement, user):
 @pytest.fixture
 def mode_reglement(company):
     """Create a test mode reglement."""
-    from parameter.models import ModePaiement
 
     return ModePaiement.objects.create(nom="Carte Bancaire", company=company)
 
@@ -1472,13 +1472,11 @@ class TestHelperFunctionsNoneCases:
 
     def test_make_aware_datetime_start_none(self, authenticated_client):
         """Test make_aware_datetime_start returns None when d is None (line 22)."""
-        from dashboard.views import make_aware_datetime_start
 
         assert make_aware_datetime_start(None) is None
 
     def test_make_aware_datetime_end_none(self, authenticated_client):
         """Test make_aware_datetime_end returns None when d is None (line 29)."""
-        from dashboard.views import make_aware_datetime_end
 
         assert make_aware_datetime_end(None) is None
 
@@ -1637,7 +1635,6 @@ class TestPaymentDelayFiltering:
         self, authenticated_client, client_entity, mode_paiement, user, company
     ):
         """Test payment delay without date_from (line 576)."""
-        from parameter.models import ModePaiement
 
         facture = FactureClient.objects.create(
             numero_facture="FC_PAYDELAY",

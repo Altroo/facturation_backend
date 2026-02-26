@@ -1,14 +1,29 @@
+import base64
+import io
 import os
+import shutil
+import tempfile
 
 import pytest
+from PIL import Image
 from django.contrib.auth import get_user_model
-from account.models import Role
+from django.contrib.postgres.search import SearchQuery
+from django.core.files.base import ContentFile
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.db.utils import DatabaseError
 from django.urls import reverse
-from rest_framework import status
-from rest_framework.test import APIClient
+from rest_framework import serializers as drf_serializers, status
+from rest_framework.test import APIClient, APIRequestFactory
 
-from account.models import Membership
+from account.models import Membership, Role
 from company.models import Company
+from company.serializers import (
+    CompanyBasicListSerializer,
+    CompanyDetailSerializer,
+    CompanyListSerializer,
+    CompanySerializer,
+)
+from company.views import _is_admin_for_company
 from .filters import CompanyFilter
 
 # Minimal valid base64 PNG (1x1 transparent)
@@ -21,8 +36,6 @@ BASE64_PNG = (
 # Use a temporary media root for file operations - use project-local temp dir
 @pytest.fixture(autouse=True)
 def temp_media_root(settings):
-    import tempfile
-    import shutil
 
     # Create a temp dir in the project folder to avoid Windows permission issues
     temp_dir = tempfile.mkdtemp(dir=".")
@@ -484,8 +497,6 @@ class TestCompanyFilters:
 
     def test_search_database_error_fallback(self, monkeypatch):
         """Test search handles DatabaseError gracefully (lines 63-64 coverage)."""
-        from django.db.utils import DatabaseError
-        from django.contrib.postgres.search import SearchQuery
 
         original_init = SearchQuery.__init__
 
@@ -589,7 +600,6 @@ class TestCompanySerializerExtra:
 
     def test_company_list_serializer_no_logo(self):
         """Test CompanyListSerializer when logo/cachet is None."""
-        from company.serializers import CompanyListSerializer
 
         serializer = CompanyListSerializer(self.company)
         assert serializer.data["logo"] is None
@@ -597,8 +607,6 @@ class TestCompanySerializerExtra:
 
     def test_company_list_serializer_with_request(self):
         """Test CompanyListSerializer get_logo/get_cachet with request context."""
-        from company.serializers import CompanyListSerializer
-        from rest_framework.test import APIRequestFactory
 
         factory = APIRequestFactory()
         request = factory.get("/")
@@ -608,8 +616,6 @@ class TestCompanySerializerExtra:
 
     def test_company_basic_list_serializer_role(self):
         """Test CompanyBasicListSerializer get_role method."""
-        from company.serializers import CompanyBasicListSerializer
-        from rest_framework.test import APIRequestFactory
 
         factory = APIRequestFactory()
         request = factory.get("/")
@@ -621,14 +627,12 @@ class TestCompanySerializerExtra:
 
     def test_company_basic_list_serializer_no_request(self):
         """Test CompanyBasicListSerializer get_role without request."""
-        from company.serializers import CompanyBasicListSerializer
 
         serializer = CompanyBasicListSerializer(self.company)
         assert serializer.data["role"] is None
 
     def test_process_image_field_with_http_url(self):
         """Test _process_image_field with existing HTTP URL."""
-        from company.serializers import CompanySerializer
 
         validated_data = {"logo": "http://example.com/image.png"}
         result = CompanySerializer._process_image_field("logo", validated_data, None)
@@ -636,8 +640,6 @@ class TestCompanySerializerExtra:
 
     def test_process_image_field_invalid_format(self):
         """Test _process_image_field with invalid format raises error."""
-        from company.serializers import CompanySerializer
-        from rest_framework import serializers as drf_serializers
 
         validated_data = {"logo": "invalid_format_string"}
         with pytest.raises(drf_serializers.ValidationError):
@@ -645,9 +647,6 @@ class TestCompanySerializerExtra:
 
     def test_company_list_serializer_with_logo_and_request(self):
         """Test CompanyListSerializer get_logo with logo file and request (lines 49-50)."""
-        from company.serializers import CompanyListSerializer
-        from rest_framework.test import APIRequestFactory
-        from django.core.files.base import ContentFile
 
         # Add a logo to the company
         self.company.logo.save(
@@ -666,8 +665,6 @@ class TestCompanySerializerExtra:
 
     def test_company_list_serializer_with_logo_no_request(self):
         """Test CompanyListSerializer get_logo with logo file but no request (line 50 else branch)."""
-        from company.serializers import CompanyListSerializer
-        from django.core.files.base import ContentFile
 
         # Add a logo to the company
         self.company.logo.save(
@@ -681,9 +678,6 @@ class TestCompanySerializerExtra:
 
     def test_company_list_serializer_with_cachet_and_request(self):
         """Test CompanyListSerializer get_cachet with cachet file and request (lines 56-57)."""
-        from company.serializers import CompanyListSerializer
-        from rest_framework.test import APIRequestFactory
-        from django.core.files.base import ContentFile
 
         # Add a cachet to the company
         self.company.cachet.save(
@@ -699,8 +693,6 @@ class TestCompanySerializerExtra:
 
     def test_process_image_field_multipart_upload(self):
         """Test _process_image_field with multipart file upload (lines 121-137)."""
-        from company.serializers import CompanySerializer
-        from django.core.files.uploadedfile import SimpleUploadedFile
 
         # Create a minimal valid 10x10 PNG image
         minimal_png = (
@@ -721,8 +713,6 @@ class TestCompanySerializerExtra:
 
     def test_process_image_field_multipart_without_extension(self):
         """Test _process_image_field with multipart file without extension (line 130)."""
-        from company.serializers import CompanySerializer
-        from django.core.files.uploadedfile import SimpleUploadedFile
 
         # Create a minimal valid 10x10 PNG image
         minimal_png = (
@@ -742,7 +732,6 @@ class TestCompanySerializerExtra:
 
     def test_process_image_field_base64(self):
         """Test _process_image_field with base64 data (lines 141-153)."""
-        from company.serializers import CompanySerializer
 
         validated_data = {"logo": BASE64_PNG}
         result = CompanySerializer._process_image_field("logo", validated_data, None)
@@ -751,9 +740,6 @@ class TestCompanySerializerExtra:
 
     def test_company_serializer_update_with_null_image(self):
         """Test CompanySerializer update with null image deletes file (lines 206-217)."""
-        from company.serializers import CompanySerializer
-        from django.core.files.base import ContentFile
-        from rest_framework.test import APIRequestFactory
 
         # First, add a logo
         self.company.logo.save("to_delete.png", ContentFile(b"fake"), save=True)
@@ -808,7 +794,6 @@ class TestCompanyViewsExtra:
 
     def test_is_admin_for_company_false(self):
         """Test _is_admin_for_company returns False for non-admin."""
-        from company.views import _is_admin_for_company
 
         other_user = self.user_model.objects.create_user(
             email="other@test.com", password="pass"
@@ -817,7 +802,6 @@ class TestCompanyViewsExtra:
 
     def test_is_admin_for_company_true(self):
         """Test _is_admin_for_company returns True for admin."""
-        from company.views import _is_admin_for_company
 
         assert _is_admin_for_company(self.user, self.company) is True
 
@@ -846,10 +830,6 @@ class TestCompanySerializerCoverage:
 
     def test_process_image_field_invalid_file_upload(self):
         """Test _process_image_field with invalid file upload (lines 126-127)."""
-        from company.serializers import CompanySerializer
-        from company.models import Company
-        from django.core.files.uploadedfile import SimpleUploadedFile
-        from rest_framework import serializers as drf_serializers
 
         serializer = CompanySerializer()
 
@@ -873,9 +853,6 @@ class TestCompanySerializerCoverage:
 
     def test_process_image_field_invalid_base64(self):
         """Test _process_image_field with invalid base64 (lines 139-140)."""
-        from company.serializers import CompanySerializer
-        from company.models import Company
-        from rest_framework import serializers as drf_serializers
 
         serializer = CompanySerializer()
 
@@ -896,9 +873,6 @@ class TestCompanySerializerCoverage:
 
     def test_to_representation_without_request(self):
         """Test to_representation without request context (line 253)."""
-        from company.serializers import CompanySerializer
-        from company.models import Company
-        from django.core.files.uploadedfile import SimpleUploadedFile
 
         company = Company.objects.create(
             raison_sociale="Test Co",
@@ -907,8 +881,6 @@ class TestCompanySerializerCoverage:
         )
 
         # Create a minimal valid image file
-        import io
-        from PIL import Image
 
         img = Image.new("RGB", (1, 1), color="red")
         buffer = io.BytesIO()
@@ -934,12 +906,6 @@ class TestCompanySerializerCoverage:
 
     def test_update_managed_by_invalid_role(self):
         """Test update with invalid role raises ValidationError (lines 296-297)."""
-        from django.contrib.auth import get_user_model
-        from account.models import Role
-        from company.serializers import CompanyDetailSerializer
-        from company.models import Company
-        from account.models import Membership
-        from rest_framework import serializers as drf_serializers
 
         user_obj = get_user_model()
         user = user_obj.objects.create_user(email="rolefail@test.com", password="pass")
@@ -968,11 +934,6 @@ class TestCompanySerializerCoverage:
 
     def test_update_delete_logo_explicit_null(self):
         """Test update with logo=None deletes the file (lines 194-204)."""
-        from company.serializers import CompanySerializer
-        from company.models import Company
-        from django.core.files.uploadedfile import SimpleUploadedFile
-        import io
-        from PIL import Image
 
         company = Company.objects.create(
             raison_sociale="Delete Logo Co",
@@ -1005,11 +966,6 @@ class TestCompanySerializerCoverage:
 
     def test_update_replace_logo_deletes_old_file(self):
         """Test replacing logo deletes the old file (lines 228-233)."""
-        from company.serializers import CompanySerializer
-        from company.models import Company
-        from django.core.files.uploadedfile import SimpleUploadedFile
-        import io
-        from PIL import Image
 
         company = Company.objects.create(
             raison_sociale="Replace Logo Co",
@@ -1035,7 +991,6 @@ class TestCompanySerializerCoverage:
         buffer2 = io.BytesIO()
         img2.save(buffer2, format="PNG")
         buffer2.seek(0)
-        import base64
 
         new_logo_base64 = (
             f"data:image/png;base64,{base64.b64encode(buffer2.read()).decode()}"
@@ -1060,11 +1015,6 @@ class TestCompanyViewsCoverage:
 
     def test_create_company_without_admin_group(self):
         """Test create company when Admin group doesn't exist (lines 62-63)."""
-        from django.contrib.auth import get_user_model
-        from account.models import Role
-        from django.urls import reverse
-        from rest_framework import status
-        from rest_framework.test import APIClient
 
         user_obj = get_user_model()
         # User must be staff to pass IsAdminUser permission
@@ -1093,11 +1043,6 @@ class TestCompanyViewsCoverage:
 
     def test_create_company_with_managed_by(self):
         """Test create company with managed_by list (line 76)."""
-        from django.contrib.auth import get_user_model
-        from django.urls import reverse
-        from rest_framework import status
-        from rest_framework.test import APIClient
-        from account.models import Membership
 
         user_obj = get_user_model()
         # User must be staff (is_staff=True) for IsAdminUser permission
@@ -1129,20 +1074,12 @@ class TestCompanyViewsCoverage:
 
         assert response.status_code == status.HTTP_201_CREATED
         # Verify the membership was created
-        from company.models import Company
 
         company = Company.objects.get(raison_sociale="With Managed By Co")
         assert Membership.objects.filter(company=company, user=member_user).exists()
 
     def test_companies_by_user(self):
         """Test CompaniesByUserView.get (lines 126-134)."""
-        from django.contrib.auth import get_user_model
-        from account.models import Role
-        from django.urls import reverse
-        from rest_framework import status
-        from rest_framework.test import APIClient
-        from company.models import Company
-        from account.models import Membership
 
         user_obj = get_user_model()
         user = user_obj.objects.create_user(email="byuser@test.com", password="pass")

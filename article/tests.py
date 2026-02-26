@@ -1,15 +1,23 @@
 import os
+import shutil
+import tempfile
+from pathlib import Path
+from unittest.mock import MagicMock, PropertyMock, patch
 
 import pytest
 from django.contrib.auth import get_user_model
-from django.urls import reverse
-from rest_framework import status
-from rest_framework.test import APIClient
+from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.db.utils import DatabaseError
+from django.urls import reverse
+from rest_framework import serializers, status
+from rest_framework.serializers import ValidationError as DRFValidationError
+from rest_framework.test import APIClient, APIRequestFactory
 
 from account.models import Membership, Role
 from article.models import Article
 from article.serializers import ArticleBaseSerializer, ArticleSerializer
+from article.views import ArchiveToggleArticleView
 from company.models import Company
 from parameter.models import Marque, Categorie, Unite, Emplacement
 from .filters import ArticleFilter
@@ -24,8 +32,6 @@ BASE64_PNG = (
 # Use a temporary media root for file operations - use project-local temp dir
 @pytest.fixture(autouse=True)
 def temp_media_root(settings):
-    import tempfile
-    import shutil
 
     # Create a temp dir in the project folder to avoid Windows permission issues
     temp_dir = tempfile.mkdtemp(dir=".")
@@ -827,7 +833,6 @@ class TestArticleFilters:
 
     def test_search_database_error_fallback(self, monkeypatch):
         """Test search handles DatabaseError gracefully (lines 53-54 coverage)."""
-        from django.db.utils import DatabaseError
 
         original_filter = Article.objects.filter
 
@@ -939,7 +944,6 @@ class TestArticleSerializerExtra:
 
     def test_process_image_field_http_url_with_instance(self):
         """Test _process_image_field with HTTP URL returns existing file."""
-        from django.core.files.base import ContentFile
 
         article = Article.objects.create(
             reference="IMG001",
@@ -964,7 +968,6 @@ class TestArticleSerializerExtra:
 
     def test_process_image_field_multipart_file(self):
         """Test _process_image_field with multipart file upload."""
-        from django.core.files.uploadedfile import SimpleUploadedFile
 
         # Create a minimal valid 10x10 PNG image (complete, not just header)
         minimal_png = (
@@ -984,7 +987,6 @@ class TestArticleSerializerExtra:
 
     def test_process_image_field_multipart_file_no_extension(self):
         """Test _process_image_field with multipart file without extension."""
-        from django.core.files.uploadedfile import SimpleUploadedFile
 
         # Create a minimal valid 10x10 PNG image (complete, not just header)
         minimal_png = (
@@ -1017,7 +1019,6 @@ class TestArticleSerializerExtra:
 
     def test_process_image_field_invalid_base64(self):
         """Test _process_image_field with invalid base64 raises error."""
-        from rest_framework import serializers
 
         invalid_base64 = "data:image/png;base64,invalid!!!"
         with pytest.raises(serializers.ValidationError):
@@ -1027,7 +1028,6 @@ class TestArticleSerializerExtra:
 
     def test_process_image_field_invalid_format(self):
         """Test _process_image_field with invalid format raises error."""
-        from rest_framework import serializers
 
         with pytest.raises(serializers.ValidationError):
             ArticleBaseSerializer._process_image_field(
@@ -1060,8 +1060,6 @@ class TestArticleSerializerExtra:
 
     def test_to_representation_with_photo_and_request(self):
         """Test to_representation with photo and request context."""
-        from django.core.files.base import ContentFile
-        from rest_framework.test import APIRequestFactory
 
         article = Article.objects.create(
             reference="REP001",
@@ -1081,7 +1079,6 @@ class TestArticleSerializerExtra:
 
     def test_to_representation_with_photo_no_request(self):
         """Test to_representation with photo but no request."""
-        from django.core.files.base import ContentFile
 
         article = Article.objects.create(
             reference="REP002",
@@ -1098,7 +1095,6 @@ class TestArticleSerializerExtra:
 
     def test_update_delete_existing_photo(self):
         """Test update deletes photo when set to None."""
-        from django.core.files.base import ContentFile
 
         article = Article.objects.create(
             reference="DEL001",
@@ -1120,7 +1116,6 @@ class TestArticleSerializerExtra:
 
     def test_update_replace_photo(self):
         """Test update replaces existing photo."""
-        from django.core.files.base import ContentFile
 
         article = Article.objects.create(
             reference="RPL001",
@@ -1183,8 +1178,6 @@ class TestArticleSerializerExtra:
 
         Tests lines 79-80 in serializers.py - exception handling for file upload.
         """
-        from unittest.mock import MagicMock
-        from rest_framework.serializers import ValidationError as DRFValidationError
 
         # Create mock file that raises error when read
         mock_file = MagicMock()
@@ -1201,7 +1194,6 @@ class TestArticleSerializerExtra:
 
         Tests lines 93-94 in serializers.py - exception handling for base64 decode.
         """
-        from rest_framework.serializers import ValidationError as DRFValidationError
 
         # Invalid base64 data
         invalid_base64 = "data:image/png;base64,INVALID_DATA!!!"
@@ -1218,8 +1210,6 @@ class TestArticleSerializerExtra:
 
         Tests lines 166-168 and 188-189 in serializers.py.
         """
-        from unittest.mock import patch
-        from django.core.files.base import ContentFile
 
         # Create article with photo
         article = Article.objects.create(
@@ -1252,9 +1242,6 @@ class TestArticleSerializerExtra:
 
         Tests branch 164->170 in serializers.py - when Path().exists() raises error.
         """
-        from unittest.mock import patch
-        from django.core.files.base import ContentFile
-        from pathlib import Path
 
         # Create article with photo
         article = Article.objects.create(
@@ -1285,7 +1272,6 @@ class TestArticleSerializerExtra:
 
         Tests branch 164->170 in serializers.py - when Path().exists() returns False.
         """
-        from django.core.files.base import ContentFile
 
         # Create article with photo
         article = Article.objects.create(
@@ -1298,7 +1284,6 @@ class TestArticleSerializerExtra:
         article.photo.save("test.png", ContentFile(b"test_content"), save=True)
 
         # Delete the physical file to make Path.exists() return False
-        import os
 
         try:
             os.remove(article.photo.path)
@@ -1322,8 +1307,6 @@ class TestArticleSerializerExtra:
 
         Tests lines 188-189 in serializers.py - handling deletion errors during replacement.
         """
-        from unittest.mock import patch
-        from django.core.files.base import ContentFile
 
         # Create article with photo
         article = Article.objects.create(
@@ -1386,8 +1369,6 @@ class TestArticleSerializerExtra:
 
         Tests branch 186->191 in serializers.py.
         """
-        from unittest.mock import patch, PropertyMock
-        from django.core.files.base import ContentFile
 
         # Create article with photo
         article = Article.objects.create(
@@ -1456,7 +1437,6 @@ class TestArticleViewsCoverage:
 
     def test_delete_article_no_membership(self):
         """Test delete article when user has no membership."""
-        from django.urls import reverse
 
         # Create another company and article
         other_company = Company.objects.create(
@@ -1481,7 +1461,6 @@ class TestArticleViewsCoverage:
 
     def test_patch_article_no_membership(self):
         """Test patch article when user has no membership (line 131)."""
-        from django.urls import reverse
 
         # Create another company and article
         other_company = Company.objects.create(
@@ -1506,7 +1485,6 @@ class TestArticleViewsCoverage:
 
     def test_generate_reference_with_empty_refs(self):
         """Test generate reference with empty reference values (line 154)."""
-        from django.urls import reverse
 
         # Create articles with empty and None references
         Article.objects.create(
@@ -1525,7 +1503,6 @@ class TestArticleViewsCoverage:
 
     def test_generate_reference_with_non_standard_format(self):
         """Test generate reference with non-ART format (lines 159-160)."""
-        from django.urls import reverse
 
         # Create article with different format (no ART prefix)
         Article.objects.create(
@@ -1545,7 +1522,6 @@ class TestArticleViewsCoverage:
 
     def test_generate_reference_with_no_numbers(self):
         """Test generate reference with reference containing no numbers (line 162)."""
-        from django.urls import reverse
 
         # Create article with no numbers in reference
         Article.objects.create(
@@ -1564,8 +1540,6 @@ class TestArticleViewsCoverage:
 
     def test_generate_reference_with_invalid_number_format(self):
         """Test generate reference with invalid number that raises ValueError (lines 165-166)."""
-        from unittest.mock import patch, MagicMock
-        from django.urls import reverse
 
         # Mock Article.objects.filter to return a reference with invalid number format
         with patch("article.utils.Article.objects.filter") as mock_filter:
@@ -1587,7 +1561,6 @@ class TestArticleViewsCoverage:
 
     def test_to_bool_with_string_values(self):
         """Test _to_bool with various string values (line 188)."""
-        from article.views import ArchiveToggleArticleView
 
         view = ArchiveToggleArticleView()
 
@@ -1604,7 +1577,6 @@ class TestArticleViewsCoverage:
 
     def test_to_bool_with_bool_values(self):
         """Test _to_bool with actual bool values (line 184)."""
-        from article.views import ArchiveToggleArticleView
 
         view = ArchiveToggleArticleView()
 
@@ -1614,7 +1586,6 @@ class TestArticleViewsCoverage:
 
     def test_to_bool_with_int_float_values(self):
         """Test _to_bool with int/float values (line 186)."""
-        from article.views import ArchiveToggleArticleView
 
         view = ArchiveToggleArticleView()
 
@@ -1628,7 +1599,6 @@ class TestArticleViewsCoverage:
 
     def test_to_bool_with_none_type(self):
         """Test _to_bool with unsupported type (line 186)."""
-        from article.views import ArchiveToggleArticleView
 
         view = ArchiveToggleArticleView()
 
@@ -1639,7 +1609,6 @@ class TestArticleViewsCoverage:
 
     def test_archive_toggle_article_not_found(self):
         """Test archive toggle with non-existent article (line 189)."""
-        from django.urls import reverse
 
         url = reverse("article:article-archive", args=[99999])
         response = self.client.patch(url, {"archived": True})

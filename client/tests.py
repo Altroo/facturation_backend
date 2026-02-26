@@ -6,6 +6,8 @@ from rest_framework.test import APIClient
 
 from account.models import Membership, Role
 from client.models import Client
+from client.serializers import ClientListSerializer
+from client.views import ArchiveToggleClientView
 from company.models import Company
 from parameter.models import Ville
 from .filters import ClientFilter
@@ -816,9 +818,6 @@ class TestClientSerializerCoverage:
 
     def test_client_list_serializer_get_client_type_with_value(self):
         """Test ClientListSerializer.get_client_type with non-empty client_type (line 115)."""
-        from client.serializers import ClientListSerializer
-        from client.models import Client
-        from company.models import Company
 
         company = Company.objects.create(
             raison_sociale="Test Company",
@@ -842,9 +841,6 @@ class TestClientSerializerCoverage:
 
     def test_client_list_serializer_get_client_type_empty(self):
         """Test ClientListSerializer.get_client_type with empty client_type (returns None)."""
-        from client.serializers import ClientListSerializer
-        from client.models import Client
-        from company.models import Company
 
         company = Company.objects.create(
             raison_sociale="Test Company 2",
@@ -875,10 +871,6 @@ class TestClientViewsCoverage:
 
     def test_patch_client_without_membership(self):
         """Test PATCH client without membership raises PermissionDenied (line 119)."""
-        from django.contrib.auth import get_user_model
-        from django.urls import reverse
-        from rest_framework import status
-        from rest_framework.test import APIClient
 
         user_obj = get_user_model()
         user = user_obj.objects.create_user(email="noaccess@test.com", password="pass")
@@ -907,11 +899,6 @@ class TestClientViewsCoverage:
 
     def test_generate_code_with_non_clt_codes(self):
         """Test GenerateClientCodeView with non-CLT codes (line 140)."""
-        from django.contrib.auth import get_user_model
-        from django.urls import reverse
-        from rest_framework import status
-        from rest_framework.test import APIClient
-        from account.models import Membership
 
         user_obj = get_user_model()
         user = user_obj.objects.create_user(email="gencode@test.com", password="pass")
@@ -945,11 +932,6 @@ class TestClientViewsCoverage:
 
     def test_generate_code_with_invalid_number(self):
         """Test GenerateClientCodeView with invalid number in code (lines 143-144)."""
-        from django.contrib.auth import get_user_model
-        from django.urls import reverse
-        from rest_framework import status
-        from rest_framework.test import APIClient
-        from account.models import Membership
 
         user_obj = get_user_model()
         user = user_obj.objects.create_user(email="gencode2@test.com", password="pass")
@@ -983,7 +965,6 @@ class TestClientViewsCoverage:
 
     def test_archive_toggle_to_bool_with_int(self):
         """Test _to_bool with int value (line 166)."""
-        from client.views import ArchiveToggleClientView
 
         view = ArchiveToggleClientView()
         assert view._to_bool(1) is True
@@ -991,7 +972,6 @@ class TestClientViewsCoverage:
 
     def test_archive_toggle_to_bool_with_float(self):
         """Test _to_bool with float value (line 166)."""
-        from client.views import ArchiveToggleClientView
 
         view = ArchiveToggleClientView()
         assert view._to_bool(1.0) is True
@@ -999,7 +979,6 @@ class TestClientViewsCoverage:
 
     def test_archive_toggle_to_bool_with_string(self):
         """Test _to_bool with string value (line 168)."""
-        from client.views import ArchiveToggleClientView
 
         view = ArchiveToggleClientView()
         assert view._to_bool("true") is True
@@ -1012,7 +991,6 @@ class TestClientViewsCoverage:
 
     def test_archive_toggle_to_bool_with_bool(self):
         """Test _to_bool with bool value (line 166)."""
-        from client.views import ArchiveToggleClientView
 
         view = ArchiveToggleClientView()
         assert view._to_bool(True) is True
@@ -1020,7 +998,6 @@ class TestClientViewsCoverage:
 
     def test_archive_toggle_to_bool_with_none(self):
         """Test _to_bool with None value (line 171)."""
-        from client.views import ArchiveToggleClientView
 
         view = ArchiveToggleClientView()
         assert view._to_bool(None) is None

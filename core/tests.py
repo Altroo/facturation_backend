@@ -1,30 +1,78 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
+from io import BytesIO
 from re import match
 from types import SimpleNamespace
 from typing import Any, Mapping, Optional, Protocol
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 from urllib.parse import quote
 
 import pytest
 from django.contrib.admin.sites import AdminSite
 from django.contrib.auth import get_user_model
-from account.models import Role
+from django.contrib.postgres.search import SearchQuery
+from django.db import DatabaseError
+from django.db.models import QuerySet
 from django.urls import reverse
-from rest_framework import serializers as drf_serializers
-from rest_framework import status
-from rest_framework.test import APIClient, force_authenticate
+from reportlab.pdfgen import canvas
+from reportlab.platypus import Table
+from rest_framework import serializers as drf_serializers, status
+from rest_framework.exceptions import PermissionDenied
+from rest_framework.request import Request
+from rest_framework.test import APIClient, APIRequestFactory, force_authenticate
+from rest_framework_simplejwt.exceptions import InvalidToken
+from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 
-from account.models import CustomUser, Membership
+from account.filters import UsersFilter
+from account.models import CustomUser, Membership, Role
+from article.filters import ArticleFilter
 from article.models import Article
+from bon_de_livraison.models import BonDeLivraison, BonDeLivraisonLine
+from bon_de_livraison.serializers import BonDeLivraisonSerializer
+from bon_de_livraison.utils import get_next_numero_bon_livraison
+from bon_de_livraison.views import BonDeLivraisonPDFGenerator
+from client.filters import ClientFilter
 from client.models import Client
+from client.serializers import ClientListSerializer
 from company.models import Company
+from core.authentication import JWTQueryParamAuthentication
+from core.filters import BaseDocumentFilter, IsEmptyFilter
+from core.models import create_line_signal_receiver
+from core.pdf_utils import BasePDFGenerator, number_to_french_words
+from core.views import (
+    BaseConversionView,
+    BaseDocumentDetailEditDeleteView,
+    BaseDocumentListCreateView,
+    BaseStatusUpdateView,
+)
 from devi.admin import DeviAdmin
+from devi.filters import DeviFilter
 from devi.models import Devi, DeviLine
-from parameter.models import ModePaiement, Ville
+from devi.serializers import (
+    DeviDetailSerializer,
+    DeviLineWriteSerializer,
+    DeviListSerializer,
+    DeviSerializer,
+)
+from devi.utils import get_next_numero_devis
+from devi.views import DeviPDFGenerator
+from facture_client.filters import FactureClientFilter
+from facture_client.models import FactureClient, FactureClientLine
+from facture_client.serializers import FactureClientSerializer
+from facture_client.utils import get_next_numero_facture_client
+from facture_client.views import FactureClientPDFGenerator
+from facture_proforma.filters import FactureProFormaFilter
+from facture_proforma.models import FactureProForma, FactureProFormaLine
+from facture_proforma.serializers import FactureProformaSerializer
+from facture_proforma.utils import get_next_numero_facture_pro_forma
+from facture_proforma.views import FactureProFormaPDFGenerator
+from parameter.models import LivrePar, ModePaiement, Unite, Ville
+from reglement.filters import ReglementFilter
+from reglement.models import Reglement
+from reglement.views import ReglementPDFGenerator
 
 
 # -----------------------------------------------------------------------------
@@ -692,21 +740,18 @@ class SharedDocumentAdminTestsMixin:
 
     def shared_test_admin_get_numero_field_name(self) -> None:
         """Test admin get_numero_field_name method."""
-        from django.contrib.admin.sites import AdminSite
 
         admin = self.AdminClass(self.Model, AdminSite())
         assert admin.get_numero_field_name() == self.numero_field
 
     def shared_test_admin_get_date_field_name(self) -> None:
         """Test admin get_date_field_name method."""
-        from django.contrib.admin.sites import AdminSite
 
         admin = self.AdminClass(self.Model, AdminSite())
         assert admin.get_date_field_name() == self.date_field
 
     def shared_test_line_admin_numero(self, doc_with_lines: Any) -> None:
         """Test line admin numero display method."""
-        from django.contrib.admin.sites import AdminSite
 
         admin = self.LineAdminClass(self.LineModel, AdminSite())
         line = doc_with_lines.lignes.first()
@@ -715,7 +760,6 @@ class SharedDocumentAdminTestsMixin:
 
     def shared_test_line_admin_article_reference(self, doc_with_lines: Any) -> None:
         """Test line admin article_reference display method."""
-        from django.contrib.admin.sites import AdminSite
 
         admin = self.LineAdminClass(self.LineModel, AdminSite())
         line = doc_with_lines.lignes.first()
@@ -723,7 +767,6 @@ class SharedDocumentAdminTestsMixin:
 
     def shared_test_line_admin_article_designation(self, doc_with_lines: Any) -> None:
         """Test line admin article_designation display method."""
-        from django.contrib.admin.sites import AdminSite
 
         admin = self.LineAdminClass(self.LineModel, AdminSite())
         line = doc_with_lines.lignes.first()
@@ -1013,7 +1056,6 @@ class TestCoreSerializerValidation:
 
     def test_validate_remise_invalid_type(self, extra_client, extra_mode_paiement):
         """Test validate with invalid remise_type."""
-        from devi.serializers import DeviDetailSerializer
 
         serializer = DeviDetailSerializer(
             data={
@@ -1031,7 +1073,6 @@ class TestCoreSerializerValidation:
 
     def test_validate_remise_invalid_value(self, extra_client, extra_mode_paiement):
         """Test validate with invalid remise value."""
-        from devi.serializers import DeviDetailSerializer
 
         serializer = DeviDetailSerializer(
             data={
@@ -1049,7 +1090,6 @@ class TestCoreSerializerValidation:
 
     def test_validate_remise_negative(self, extra_client, extra_mode_paiement):
         """Test validate with negative remise."""
-        from devi.serializers import DeviDetailSerializer
 
         serializer = DeviDetailSerializer(
             data={
@@ -1070,7 +1110,6 @@ class TestCoreSerializerValidation:
         self, extra_client, extra_mode_paiement
     ):
         """Test validate with percentage > 100."""
-        from devi.serializers import DeviDetailSerializer
 
         serializer = DeviDetailSerializer(
             data={
@@ -1089,7 +1128,6 @@ class TestCoreSerializerValidation:
 
     def test_validate_remise_fixe_type(self, extra_client, extra_mode_paiement):
         """Test validate with Fixe type."""
-        from devi.serializers import DeviDetailSerializer
 
         serializer = DeviDetailSerializer(
             data={
@@ -1108,7 +1146,6 @@ class TestCoreSerializerValidation:
 
     def test_validate_remise_empty_type(self, extra_client, extra_mode_paiement):
         """Test validate with empty remise_type."""
-        from devi.serializers import DeviDetailSerializer
 
         serializer = DeviDetailSerializer(
             data={
@@ -1133,7 +1170,6 @@ class TestBaseLineWriteSerializerValidation:
 
     def test_line_prix_vente_less_than_achat(self, extra_article):
         """Test validation fails when prix_vente < prix_achat."""
-        from devi.serializers import DeviLineWriteSerializer
 
         serializer = DeviLineWriteSerializer(
             data={
@@ -1148,7 +1184,6 @@ class TestBaseLineWriteSerializerValidation:
 
     def test_line_remise_negative(self, extra_article):
         """Test validation fails when remise is negative."""
-        from devi.serializers import DeviLineWriteSerializer
 
         serializer = DeviLineWriteSerializer(
             data={
@@ -1164,7 +1199,6 @@ class TestBaseLineWriteSerializerValidation:
 
     def test_line_remise_percentage_out_of_range(self, extra_article):
         """Test validation fails when percentage remise > 100."""
-        from devi.serializers import DeviLineWriteSerializer
 
         serializer = DeviLineWriteSerializer(
             data={
@@ -1181,7 +1215,6 @@ class TestBaseLineWriteSerializerValidation:
 
     def test_line_remise_fixe_exceeds_total(self, extra_article):
         """Test validation fails when fixe remise > line total."""
-        from devi.serializers import DeviLineWriteSerializer
 
         serializer = DeviLineWriteSerializer(
             data={
@@ -1198,7 +1231,6 @@ class TestBaseLineWriteSerializerValidation:
 
     def test_line_remise_invalid_type(self, extra_article):
         """Test validation fails with invalid remise_type."""
-        from devi.serializers import DeviLineWriteSerializer
 
         serializer = DeviLineWriteSerializer(
             data={
@@ -1242,7 +1274,6 @@ class TestCoreFiltersExtra:
 
     def test_empty_search_returns_all(self, extra_devi):
         """Test empty search returns all results."""
-        from devi.filters import DeviFilter
 
         qs = Devi.objects.all()
         count_before = qs.count()
@@ -1251,7 +1282,6 @@ class TestCoreFiltersExtra:
 
     def test_whitespace_search_returns_all(self, extra_devi):
         """Test whitespace-only search returns all results."""
-        from devi.filters import DeviFilter
 
         qs = Devi.objects.all()
         count_before = qs.count()
@@ -1260,7 +1290,6 @@ class TestCoreFiltersExtra:
 
     def test_filter_statut_with_none_value(self, extra_devi):
         """Test filter_statut with None value returns all."""
-        from devi.filters import DeviFilter
 
         qs = Devi.objects.all()
         count_before = qs.count()
@@ -1269,7 +1298,6 @@ class TestCoreFiltersExtra:
 
     def test_filter_statut_with_empty_value(self, extra_devi):
         """Test filter_statut with empty string returns all."""
-        from devi.filters import DeviFilter
 
         qs = Devi.objects.all()
         count_before = qs.count()
@@ -1320,7 +1348,6 @@ class TestCoreModelRecalcTotals:
 
     def test_totals_are_decimal(self, extra_devi, extra_devi_line):
         """Test that total fields store Decimal values directly."""
-        from decimal import Decimal
 
         extra_devi.recalc_totals()
         assert isinstance(extra_devi.total_ht, Decimal)
@@ -1346,9 +1373,6 @@ class TestCoreViewsPermissions:
 
     def test_base_get_bool_param_true(self):
         """Test _get_bool_param with 'true' string."""
-        from core.views import BaseDocumentListCreateView
-        from rest_framework.test import APIRequestFactory
-        from rest_framework.request import Request
 
         factory = APIRequestFactory()
         wsgi_request = factory.get("/", {"pagination": "true"})
@@ -1358,9 +1382,6 @@ class TestCoreViewsPermissions:
 
     def test_base_get_bool_param_false(self):
         """Test _get_bool_param with 'false' string."""
-        from core.views import BaseDocumentListCreateView
-        from rest_framework.test import APIRequestFactory
-        from rest_framework.request import Request
 
         factory = APIRequestFactory()
         wsgi_request = factory.get("/", {"pagination": "false"})
@@ -1370,9 +1391,6 @@ class TestCoreViewsPermissions:
 
     def test_base_get_bool_param_default(self):
         """Test _get_bool_param with default value."""
-        from core.views import BaseDocumentListCreateView
-        from rest_framework.test import APIRequestFactory
-        from rest_framework.request import Request
 
         factory = APIRequestFactory()
         wsgi_request = factory.get("/")
@@ -1384,10 +1402,6 @@ class TestCoreViewsPermissions:
 
     def test_has_membership_method(self, extra_company):
         """Test _has_membership static method."""
-        from core.views import BaseDocumentDetailEditDeleteView
-        from account.models import Membership
-        from django.contrib.auth import get_user_model
-        from account.models import Role
 
         user_obj = get_user_model()
         test_user = user_obj.objects.create_user(
@@ -1417,7 +1431,6 @@ class TestFilterDatabaseErrorBranch:
 
     def test_devi_filter_database_error(self, extra_devi, monkeypatch):
         """Test DeviFilter handles DatabaseError gracefully."""
-        from devi.filters import DeviFilter
 
         def mock_search_query(*_args, **_kwargs):
             class MockQuery:
@@ -1437,8 +1450,6 @@ class TestFilterDatabaseErrorBranch:
 
     def test_facture_client_filter_database_error(self, extra_devi, monkeypatch):
         """Test FactureClientFilter handles DatabaseError gracefully."""
-        from facture_client.filters import FactureClientFilter
-        from facture_client.models import FactureClient
 
         qs = FactureClient.objects.all()
         filterset = FactureClientFilter(data={"search": "test"}, queryset=qs)
@@ -1447,8 +1458,6 @@ class TestFilterDatabaseErrorBranch:
 
     def test_facture_proforma_filter_database_error(self, extra_devi, monkeypatch):
         """Test FactureProFormaFilter handles DatabaseError gracefully."""
-        from facture_proforma.filters import FactureProFormaFilter
-        from facture_proforma.models import FactureProForma
 
         qs = FactureProForma.objects.all()
         filterset = FactureProFormaFilter(data={"search": "test"}, queryset=qs)
@@ -1462,9 +1471,6 @@ class TestBaseDocumentListCreateViewPermissions:
 
     def test_check_company_access_permission_denied(self):
         """Test _check_company_access raises PermissionDenied when user is not member."""
-        from core.views import BaseDocumentListCreateView
-        from rest_framework.exceptions import PermissionDenied
-        from rest_framework.test import APIRequestFactory
 
         user_obj = get_user_model()
         user = user_obj.objects.create_user(email="test@test.com", password="testpass")
@@ -1480,8 +1486,6 @@ class TestBaseDocumentListCreateViewPermissions:
 
     def test_post_client_not_found(self):
         """Test POST raises Http404 when client doesn't exist."""
-        from core.views import BaseDocumentListCreateView
-        from rest_framework.test import APIRequestFactory, APIClient
 
         user_obj = get_user_model()
         user = user_obj.objects.create_user(email="test@test.com", password="testpass")
@@ -1501,8 +1505,6 @@ class TestBaseDocumentListCreateViewPermissions:
 
     def test_post_permission_denied_not_member(self, extra_ville):
         """Test POST raises PermissionDenied when user is not member of client's company."""
-        from core.views import BaseDocumentListCreateView
-        from rest_framework.test import APIRequestFactory
 
         user_obj = get_user_model()
         user = user_obj.objects.create_user(email="test@test.com", password="testpass")
@@ -1535,9 +1537,6 @@ class TestBaseStatusUpdateViewPermissions:
 
     def test_status_update_permission_denied(self, extra_ville):
         """Test PATCH raises PermissionDenied when user is not member."""
-        from core.views import BaseStatusUpdateView
-        from rest_framework.test import APIRequestFactory
-        from account.models import Role
 
         user_obj = get_user_model()
         user = user_obj.objects.create_user(email="test@test.com", password="testpass")
@@ -1580,8 +1579,6 @@ class TestBaseStatusUpdateViewPermissions:
 
     def test_status_update_not_found(self):
         """Test PATCH raises Http404 when document doesn't exist."""
-        from core.views import BaseStatusUpdateView
-        from rest_framework.test import APIRequestFactory
 
         user_obj = get_user_model()
         user = user_obj.objects.create_user(email="test@test.com", password="testpass")
@@ -1605,9 +1602,6 @@ class TestBaseConversionViewPermissions:
 
     def test_conversion_permission_denied(self, extra_ville):
         """Test POST raises PermissionDenied when user is not member."""
-        from core.views import BaseConversionView
-        from rest_framework.test import APIRequestFactory
-        from account.models import Role
 
         user_obj = get_user_model()
         user = user_obj.objects.create_user(email="test@test.com", password="testpass")
@@ -1656,8 +1650,6 @@ class TestBaseConversionViewPermissions:
 
     def test_conversion_not_found(self):
         """Test POST raises Http404 when document doesn't exist."""
-        from core.views import BaseConversionView
-        from rest_framework.test import APIRequestFactory
 
         user_obj = get_user_model()
         user = user_obj.objects.create_user(email="test@test.com", password="testpass")
@@ -1687,10 +1679,6 @@ class TestBaseDocumentDetailEditDeleteViewPermissions:
 
     def test_put_permission_denied(self, extra_ville):
         """Test PUT raises PermissionDenied when user is not member."""
-        from core.views import BaseDocumentDetailEditDeleteView
-        from rest_framework.test import APIRequestFactory
-        from account.models import Role
-        from devi.serializers import DeviDetailSerializer
 
         user_obj = get_user_model()
         user = user_obj.objects.create_user(email="test@test.com", password="testpass")
@@ -1734,10 +1722,6 @@ class TestBaseDocumentDetailEditDeleteViewPermissions:
 
     def test_delete_permission_denied(self, extra_ville):
         """Test DELETE raises PermissionDenied when user is not member."""
-        from core.views import BaseDocumentDetailEditDeleteView
-        from rest_framework.test import APIRequestFactory
-        from account.models import Role
-        from devi.serializers import DeviDetailSerializer
 
         user_obj = get_user_model()
         user = user_obj.objects.create_user(email="test@test.com", password="testpass")
@@ -1781,9 +1765,6 @@ class TestBaseDocumentDetailEditDeleteViewPermissions:
 
     def test_get_not_found(self):
         """Test GET raises Http404 when document doesn't exist."""
-        from core.views import BaseDocumentDetailEditDeleteView
-        from rest_framework.test import APIRequestFactory
-        from devi.serializers import DeviDetailSerializer
 
         user_obj = get_user_model()
         user = user_obj.objects.create_user(email="test@test.com", password="testpass")
@@ -1813,13 +1794,11 @@ class TestNumberToFrenchWords:
 
     def test_zero(self):
         """Test conversion of zero."""
-        from core.pdf_utils import number_to_french_words
 
         assert number_to_french_words(Decimal("0")) == "ZÉRO DIRHAMS"
 
     def test_units(self):
         """Test conversion of units (1-19)."""
-        from core.pdf_utils import number_to_french_words
 
         assert number_to_french_words(Decimal("1")) == "UN DIRHAMS"
         assert number_to_french_words(Decimal("5")) == "CINQ DIRHAMS"
@@ -1829,7 +1808,6 @@ class TestNumberToFrenchWords:
 
     def test_tens(self):
         """Test conversion of tens (20-90)."""
-        from core.pdf_utils import number_to_french_words
 
         assert number_to_french_words(Decimal("20")) == "VINGT DIRHAMS"
         assert number_to_french_words(Decimal("21")) == "VINGT ET UN DIRHAMS"
@@ -1848,7 +1826,6 @@ class TestNumberToFrenchWords:
 
     def test_hundreds(self):
         """Test conversion of hundreds."""
-        from core.pdf_utils import number_to_french_words
 
         assert number_to_french_words(Decimal("100")) == "CENT DIRHAMS"
         assert number_to_french_words(Decimal("101")) == "CENT UN DIRHAMS"
@@ -1861,7 +1838,6 @@ class TestNumberToFrenchWords:
 
     def test_thousands(self):
         """Test conversion of thousands."""
-        from core.pdf_utils import number_to_french_words
 
         assert number_to_french_words(Decimal("1000")) == "MILLE DIRHAMS"
         assert number_to_french_words(Decimal("1001")) == "MILLE UN DIRHAMS"
@@ -1876,7 +1852,6 @@ class TestNumberToFrenchWords:
 
     def test_millions(self):
         """Test conversion of millions."""
-        from core.pdf_utils import number_to_french_words
 
         assert number_to_french_words(Decimal("1000000")) == "UN MILLION DIRHAMS"
         assert number_to_french_words(Decimal("2000000")) == "DEUX MILLIONS DIRHAMS"
@@ -1887,7 +1862,6 @@ class TestNumberToFrenchWords:
 
     def test_with_centimes(self):
         """Test conversion with centimes."""
-        from core.pdf_utils import number_to_french_words
 
         assert (
             number_to_french_words(Decimal("1.50"))
@@ -1909,7 +1883,6 @@ class TestNumberToFrenchWords:
 
     def test_edge_cases(self):
         """Test edge cases for number conversion."""
-        from core.pdf_utils import number_to_french_words
 
         # 71 (special case for soixante et onze)
         assert number_to_french_words(Decimal("71")) == "SOIXANTE ET ONZE DIRHAMS"
@@ -1972,7 +1945,6 @@ class TestBasePDFGenerator:
 
     def test_init(self, pdf_devi, pdf_company):
         """Test PDF generator initialization."""
-        from core.pdf_utils import BasePDFGenerator
 
         generator = BasePDFGenerator(pdf_devi, pdf_company)
         assert generator.document == pdf_devi
@@ -1984,14 +1956,12 @@ class TestBasePDFGenerator:
 
     def test_init_with_pdf_type(self, pdf_devi, pdf_company):
         """Test PDF generator initialization with custom PDF_type."""
-        from core.pdf_utils import BasePDFGenerator
 
         generator = BasePDFGenerator(pdf_devi, pdf_company, pdf_type="avec_remise")
         assert generator.pdf_type == "avec_remise"
 
     def test_setup_custom_styles(self, pdf_devi, pdf_company):
         """Test custom styles are set up correctly."""
-        from core.pdf_utils import BasePDFGenerator
 
         generator = BasePDFGenerator(pdf_devi, pdf_company)
         # Check that custom styles are added
@@ -2011,7 +1981,6 @@ class TestBasePDFGenerator:
 
     def test_get_logo_image_no_logo(self, pdf_devi, pdf_company):
         """Test getting logo when company has no logo."""
-        from core.pdf_utils import BasePDFGenerator
 
         generator = BasePDFGenerator(pdf_devi, pdf_company)
         logo = generator._get_logo_image()
@@ -2019,7 +1988,6 @@ class TestBasePDFGenerator:
 
     def test_get_cachet_image_no_cachet(self, pdf_devi, pdf_company):
         """Test getting cachet when company has no cachet."""
-        from core.pdf_utils import BasePDFGenerator
 
         generator = BasePDFGenerator(pdf_devi, pdf_company)
         cachet = generator._get_cachet_image()
@@ -2027,7 +1995,6 @@ class TestBasePDFGenerator:
 
     def test_get_filename(self, pdf_devi, pdf_company):
         """Test _get_filename is abstract and raises NotImplementedError."""
-        from core.pdf_utils import BasePDFGenerator
 
         generator = BasePDFGenerator(pdf_devi, pdf_company)
         with pytest.raises(NotImplementedError):
@@ -2035,7 +2002,6 @@ class TestBasePDFGenerator:
 
     def test_get_pdf_title(self, pdf_devi, pdf_company):
         """Test _get_pdf_title is abstract and raises NotImplementedError."""
-        from core.pdf_utils import BasePDFGenerator
 
         generator = BasePDFGenerator(pdf_devi, pdf_company)
         with pytest.raises(NotImplementedError):
@@ -2043,7 +2009,6 @@ class TestBasePDFGenerator:
 
     def test_build_content(self, pdf_devi, pdf_company):
         """Test _build_content is abstract and raises NotImplementedError."""
-        from core.pdf_utils import BasePDFGenerator
 
         generator = BasePDFGenerator(pdf_devi, pdf_company)
         with pytest.raises(NotImplementedError):
@@ -2051,7 +2016,6 @@ class TestBasePDFGenerator:
 
     def test_create_header(self, pdf_devi, pdf_company):
         """Test _create_header creates proper header elements."""
-        from core.pdf_utils import BasePDFGenerator
 
         generator = BasePDFGenerator(pdf_devi, pdf_company)
         header = generator._create_header("Test Title")
@@ -2060,8 +2024,6 @@ class TestBasePDFGenerator:
 
     def test_create_info_grid(self, pdf_devi, pdf_company):
         """Test _create_info_grid creates proper info table."""
-        from core.pdf_utils import BasePDFGenerator
-        from reportlab.platypus import Table
 
         generator = BasePDFGenerator(pdf_devi, pdf_company)
         left_data = [["Field1", "Value1"]]
@@ -2071,8 +2033,6 @@ class TestBasePDFGenerator:
 
     def test_create_info_grid_with_company_details(self, pdf_devi, pdf_company):
         """Test _create_info_grid with full company details."""
-        from core.pdf_utils import BasePDFGenerator
-        from reportlab.platypus import Table
 
         # Add more company details
         pdf_company.registre_de_commerce = "RC123456"
@@ -2089,9 +2049,6 @@ class TestBasePDFGenerator:
 
     def test_add_page_footer(self, pdf_devi, pdf_company):
         """Test _add_page_footer method."""
-        from core.pdf_utils import BasePDFGenerator
-        from reportlab.pdfgen import canvas
-        from io import BytesIO
 
         generator = BasePDFGenerator(pdf_devi, pdf_company)
         generator.total_pages = 5
@@ -2105,9 +2062,6 @@ class TestBasePDFGenerator:
 
     def test_add_page_footer_with_empty_company_fields(self, pdf_devi):
         """Test _add_page_footer with empty company fields."""
-        from core.pdf_utils import BasePDFGenerator
-        from reportlab.pdfgen import canvas
-        from io import BytesIO
 
         # Create company with no optional fields
         empty_company = Company.objects.create(
@@ -2124,10 +2078,6 @@ class TestBasePDFGenerator:
 
     def test_create_articles_table_with_lines(self, pdf_devi, pdf_company, pdf_client):
         """Test _create_articles_table with actual document lines."""
-        from core.pdf_utils import BasePDFGenerator
-        from reportlab.platypus import Table
-        from article.models import Article
-        from parameter.models import Unite
 
         # Create articles with lines
         unite = Unite.objects.create(nom="Pièce", company=pdf_company)
@@ -2178,10 +2128,6 @@ class TestBasePDFGenerator:
 
     def test_create_articles_table_with_unite(self, pdf_devi, pdf_company, pdf_client):
         """Test _create_articles_table with unite column."""
-        from core.pdf_utils import BasePDFGenerator
-        from reportlab.platypus import Table
-        from article.models import Article
-        from parameter.models import Unite
 
         unite = Unite.objects.create(nom="Kg", company=pdf_company)
         article = Article.objects.create(
@@ -2214,9 +2160,6 @@ class TestBasePDFGenerator:
         self, pdf_devi, pdf_company, pdf_client
     ):
         """Test _create_articles_table with fixed remise."""
-        from core.pdf_utils import BasePDFGenerator
-        from reportlab.platypus import Table
-        from article.models import Article
 
         article = Article.objects.create(
             company=pdf_company,
@@ -2247,8 +2190,6 @@ class TestBasePDFGenerator:
 
     def test_create_totals_table(self, pdf_devi, pdf_company):
         """Test _create_totals_table method."""
-        from core.pdf_utils import BasePDFGenerator
-        from reportlab.platypus import Table
 
         pdf_devi.total_ht = Decimal("1000.00")
         pdf_devi.total_tva = Decimal("200.00")
@@ -2261,8 +2202,6 @@ class TestBasePDFGenerator:
 
     def test_create_totals_table_with_remise(self, pdf_devi, pdf_company):
         """Test _create_totals_table with remise."""
-        from core.pdf_utils import BasePDFGenerator
-        from reportlab.platypus import Table
 
         pdf_devi.total_ht = Decimal("1000.00")
         pdf_devi.total_tva = Decimal("200.00")
@@ -2278,8 +2217,6 @@ class TestBasePDFGenerator:
 
     def test_create_totals_table_with_remise_fixe(self, pdf_devi, pdf_company):
         """Test _create_totals_table with fixed remise."""
-        from core.pdf_utils import BasePDFGenerator
-        from reportlab.platypus import Table
 
         pdf_devi.total_ht = Decimal("1000.00")
         pdf_devi.total_tva = Decimal("200.00")
@@ -2295,7 +2232,6 @@ class TestBasePDFGenerator:
 
     def test_create_price_in_words_section(self, pdf_devi, pdf_company):
         """Test _create_price_in_words_section method."""
-        from core.pdf_utils import BasePDFGenerator
 
         pdf_devi.total_ttc = Decimal("1234.56")
         pdf_devi.save()
@@ -2307,7 +2243,6 @@ class TestBasePDFGenerator:
 
     def test_create_price_in_words_section_with_remise(self, pdf_devi, pdf_company):
         """Test _create_price_in_words_section with remise."""
-        from core.pdf_utils import BasePDFGenerator
 
         pdf_devi.total_ttc = Decimal("1200.00")
         pdf_devi.remise_type = "Pourcentage"
@@ -2321,7 +2256,6 @@ class TestBasePDFGenerator:
 
     def test_create_remarks_section(self, pdf_devi, pdf_company):
         """Test _create_remarks_section method."""
-        from core.pdf_utils import BasePDFGenerator
 
         pdf_devi.remarque = "This is a test remark."
         pdf_devi.save()
@@ -2333,7 +2267,6 @@ class TestBasePDFGenerator:
 
     def test_create_remarks_section_with_custom_remarks(self, pdf_devi, pdf_company):
         """Test _create_remarks_section with custom remarks."""
-        from core.pdf_utils import BasePDFGenerator
 
         pdf_devi.remarque = "Document remark"
         pdf_devi.save()
@@ -2345,7 +2278,6 @@ class TestBasePDFGenerator:
 
     def test_create_remarks_section_no_remarks(self, pdf_devi, pdf_company):
         """Test _create_remarks_section with no remarks."""
-        from core.pdf_utils import BasePDFGenerator
 
         pdf_devi.remarque = ""
         pdf_devi.save()
@@ -2356,7 +2288,6 @@ class TestBasePDFGenerator:
 
     def test_number_to_french_words_large_numbers(self):
         """Test conversion of very large numbers."""
-        from core.pdf_utils import number_to_french_words
 
         # Test a large number with millions
         assert "MILLIONS" in number_to_french_words(Decimal("5000000"))
@@ -2386,9 +2317,6 @@ class TestJWTQueryParamAuthentication:
 
     def test_authenticate_with_header(self, auth_user):
         """Test authentication with Authorization header."""
-        from core.authentication import JWTQueryParamAuthentication
-        from rest_framework.test import APIRequestFactory
-        from rest_framework_simplejwt.tokens import RefreshToken
 
         factory = APIRequestFactory()
         refresh = RefreshToken.for_user(auth_user)
@@ -2404,10 +2332,6 @@ class TestJWTQueryParamAuthentication:
 
     def test_authenticate_with_query_param(self, auth_user):
         """Test authentication with query parameter."""
-        from core.authentication import JWTQueryParamAuthentication
-        from rest_framework.test import APIRequestFactory
-        from rest_framework_simplejwt.tokens import RefreshToken
-        from rest_framework.request import Request
 
         factory = APIRequestFactory()
         refresh = RefreshToken.for_user(auth_user)
@@ -2424,9 +2348,6 @@ class TestJWTQueryParamAuthentication:
 
     def test_authenticate_no_token(self):
         """Test authentication with no token."""
-        from core.authentication import JWTQueryParamAuthentication
-        from rest_framework.test import APIRequestFactory
-        from rest_framework.request import Request
 
         factory = APIRequestFactory()
         django_request = factory.get("/")
@@ -2438,10 +2359,6 @@ class TestJWTQueryParamAuthentication:
 
     def test_authenticate_invalid_token(self):
         """Test authentication with invalid token."""
-        from core.authentication import JWTQueryParamAuthentication
-        from rest_framework.test import APIRequestFactory
-        from rest_framework_simplejwt.exceptions import InvalidToken
-        from rest_framework.request import Request
 
         factory = APIRequestFactory()
         django_request = factory.get("/?token=invalid_token_here")
@@ -2453,10 +2370,6 @@ class TestJWTQueryParamAuthentication:
 
     def test_authenticate_header_priority(self, auth_user):
         """Test that header authentication takes priority over query param."""
-        from core.authentication import JWTQueryParamAuthentication
-        from rest_framework.test import APIRequestFactory
-        from rest_framework_simplejwt.tokens import RefreshToken
-        from rest_framework.request import Request
 
         factory = APIRequestFactory()
         refresh = RefreshToken.for_user(auth_user)
@@ -2504,8 +2417,6 @@ class TestCoreSerializerAdditional:
         self, test_client_extra, test_mode_paiement
     ):
         """Test BaseListSerializer with user without first/last name."""
-        from devi.models import Devi
-        from devi.serializers import DeviListSerializer
 
         # Create user with no first/last name
         user_no_name = CustomUser.objects.create_user(
@@ -2528,8 +2439,6 @@ class TestCoreSerializerAdditional:
         self, test_client_extra, test_mode_paiement
     ):
         """Test BaseListSerializer with no created_by_user."""
-        from devi.models import Devi
-        from devi.serializers import DeviListSerializer
 
         devi = Devi.objects.create(
             client=test_client_extra,
@@ -2546,8 +2455,6 @@ class TestCoreSerializerAdditional:
         self, test_client_extra, test_mode_paiement
     ):
         """Test BaseDetailSerializer with no created_by_user."""
-        from devi.models import Devi
-        from devi.serializers import DeviDetailSerializer
 
         devi = Devi.objects.create(
             client=test_client_extra,
@@ -2562,7 +2469,6 @@ class TestCoreSerializerAdditional:
 
     def test_line_serializer_validation_remise_negative(self, extra_article):
         """Test line serializer validation with negative remise."""
-        from devi.serializers import DeviLineWriteSerializer
 
         data = {
             "article": extra_article.id,
@@ -2582,7 +2488,6 @@ class TestCoreSerializerAdditional:
 
     def test_line_serializer_prix_vente_below_achat(self, extra_article):
         """Test line serializer validation with prix_vente < prix_achat."""
-        from devi.serializers import DeviLineWriteSerializer
 
         data = {
             "article": extra_article.id,
@@ -2619,8 +2524,6 @@ class TestCoreFilterAdditional:
 
     def test_filter_date_after(self, test_client_filter, extra_mode_paiement):
         """Test date_after filter."""
-        from devi.models import Devi
-        from devi.filters import DeviFilter
 
         devi1 = Devi.objects.create(
             client=test_client_filter,
@@ -2642,8 +2545,6 @@ class TestCoreFilterAdditional:
 
     def test_filter_date_before(self, test_client_filter, extra_mode_paiement):
         """Test date_before filter."""
-        from devi.models import Devi
-        from devi.filters import DeviFilter
 
         devi1 = Devi.objects.create(
             client=test_client_filter,
@@ -2665,8 +2566,6 @@ class TestCoreFilterAdditional:
 
     def test_filter_date_after_with_none(self, test_client_filter, extra_mode_paiement):
         """Test date_after filter with None value."""
-        from devi.models import Devi
-        from devi.filters import DeviFilter
 
         devi = Devi.objects.create(
             client=test_client_filter,
@@ -2683,8 +2582,6 @@ class TestCoreFilterAdditional:
         self, test_client_filter, extra_mode_paiement
     ):
         """Test date_before filter with None value."""
-        from devi.models import Devi
-        from devi.filters import DeviFilter
 
         devi = Devi.objects.create(
             client=test_client_filter,
@@ -2701,8 +2598,6 @@ class TestCoreFilterAdditional:
         self, test_client_filter, extra_mode_paiement
     ):
         """Test global_search with empty string."""
-        from devi.models import Devi
-        from devi.filters import DeviFilter
 
         devi = Devi.objects.create(
             client=test_client_filter,
@@ -2719,8 +2614,6 @@ class TestCoreFilterAdditional:
         self, test_client_filter, extra_mode_paiement
     ):
         """Test global_search with whitespace."""
-        from devi.models import Devi
-        from devi.filters import DeviFilter
 
         devi = Devi.objects.create(
             client=test_client_filter,
@@ -2735,8 +2628,6 @@ class TestCoreFilterAdditional:
 
     def test_filter_date_no_date_field(self, test_client_filter, extra_mode_paiement):
         """Test date filter when date_field is not set."""
-        from devi.models import Devi
-        from devi.filters import DeviFilter
 
         # Create a filter with no date_field
         class NoDateFieldFilter(DeviFilter):
@@ -2762,8 +2653,6 @@ class TestCoreFilterAdditional:
         self, test_client_filter, extra_mode_paiement
     ):
         """Test global_search raises NotImplementedError when required fields not set."""
-        from devi.models import Devi
-        from core.filters import BaseDocumentFilter
 
         # Create a filter without numero_field and req_field
         class IncompleteFilter(BaseDocumentFilter):
@@ -2787,9 +2676,6 @@ class TestCoreFilterAdditional:
         self, test_client_filter, extra_mode_paiement, monkeypatch
     ):
         """Test global_search handles DatabaseError gracefully."""
-        from devi.models import Devi
-        from devi.filters import DeviFilter
-        from django.db import DatabaseError
 
         devi = Devi.objects.create(
             client=test_client_filter,
@@ -2799,7 +2685,6 @@ class TestCoreFilterAdditional:
         )
 
         # Mock SearchQuery to raise DatabaseError
-        from django.contrib.postgres.search import SearchQuery
 
         original_init = SearchQuery.__init__
 
@@ -2818,8 +2703,6 @@ class TestCoreFilterAdditional:
 
     def test_client_name_icontains_filter(self, test_client_filter, extra_mode_paiement):
         """Test client_name__icontains text lookup filter on BaseDocumentFilter."""
-        from devi.models import Devi
-        from devi.filters import DeviFilter
 
         devi = Devi.objects.create(
             client=test_client_filter,
@@ -2834,8 +2717,6 @@ class TestCoreFilterAdditional:
 
     def test_client_name_istartswith_filter(self, test_client_filter, extra_mode_paiement):
         """Test client_name__istartswith filter."""
-        from devi.models import Devi
-        from devi.filters import DeviFilter
 
         devi = Devi.objects.create(
             client=test_client_filter,
@@ -2850,8 +2731,6 @@ class TestCoreFilterAdditional:
 
     def test_client_name_isempty_true(self, extra_ville, extra_company, extra_mode_paiement):
         """Test client_name__isempty=true on BaseDocumentFilter."""
-        from devi.models import Devi
-        from devi.filters import DeviFilter
 
         client_empty = Client.objects.create(
             code_client="EMPTY001",
@@ -2873,8 +2752,6 @@ class TestCoreFilterAdditional:
 
     def test_client_name_isempty_false(self, test_client_filter, extra_mode_paiement):
         """Test client_name__isempty=false on BaseDocumentFilter."""
-        from devi.models import Devi
-        from devi.filters import DeviFilter
 
         devi = Devi.objects.create(
             client=test_client_filter,
@@ -2889,8 +2766,6 @@ class TestCoreFilterAdditional:
 
     def test_dynamic_numero_icontains_filter(self, test_client_filter, extra_mode_paiement):
         """Test dynamically generated numero_field__icontains filter."""
-        from devi.models import Devi
-        from devi.filters import DeviFilter
 
         devi = Devi.objects.create(
             client=test_client_filter,
@@ -2905,8 +2780,6 @@ class TestCoreFilterAdditional:
 
     def test_total_ttc_numeric_filters(self, test_client_filter, extra_mode_paiement):
         """Test total_ttc_apres_remise numeric filters."""
-        from devi.models import Devi
-        from devi.filters import DeviFilter
 
         devi = Devi.objects.create(
             client=test_client_filter,
@@ -2922,8 +2795,6 @@ class TestCoreFilterAdditional:
 
     def test_is_empty_filter_class(self, extra_ville, extra_company):
         """Test IsEmptyFilter handles both NULL and empty string."""
-        from core.filters import IsEmptyFilter
-        from django.db.models import QuerySet
 
         # Test with a real model - Company has nullable and blank fields
         c_full = Company.objects.create(raison_sociale="Full Corp", ICE="ICE001")
@@ -2949,9 +2820,6 @@ class TestCoreFilterAdditional:
 
     def test_lignes_count_filters(self, test_client_filter, extra_mode_paiement):
         """Test lignes_count numeric filters (annotated Count on related lignes)."""
-        from devi.models import Devi, DeviLine
-        from devi.filters import DeviFilter
-        from article.models import Article
 
         article = Article.objects.create(
             company=test_client_filter.company,
@@ -3008,8 +2876,6 @@ class TestCoreFilterAdditional:
 
     def test_lignes_count_filter_none_value(self, test_client_filter, extra_mode_paiement):
         """Test lignes_count filter with None value returns all."""
-        from devi.models import Devi
-        from devi.filters import DeviFilter
 
         devi = Devi.objects.create(
             client=test_client_filter,
@@ -3064,7 +2930,6 @@ class TestAdditionalCoverageEdgeCases:
     @pytest.fixture
     def authenticated_client(self, user_staff):
         """Return authenticated API client."""
-        from rest_framework_simplejwt.tokens import AccessToken
 
         client = APIClient()
         token = str(AccessToken.for_user(user_staff))
@@ -3074,14 +2939,12 @@ class TestAdditionalCoverageEdgeCases:
     # Test number_to_french_words edge cases
     def test_number_to_french_words_80_exact(self):
         """Test 80 (quatre-vingts with 's')."""
-        from core.pdf_utils import number_to_french_words
 
         result = number_to_french_words(Decimal("80"))
         assert "QUATRE-VINGTS" in result
 
     def test_number_to_french_words_tens_without_unit_1(self):
         """Test tens where unit != 1 and ten == 8 (eighty)."""
-        from core.pdf_utils import number_to_french_words
 
         # 82 - ten=8, unit=2
         result = number_to_french_words(Decimal("82"))
@@ -3089,7 +2952,6 @@ class TestAdditionalCoverageEdgeCases:
 
     def test_number_to_french_words_larger_numbers(self):
         """Test large number conversions."""
-        from core.pdf_utils import number_to_french_words
 
         # Test a very large number - function converts to MILLIONS
         result = number_to_french_words(Decimal("1000000000"))
@@ -3099,7 +2961,6 @@ class TestAdditionalCoverageEdgeCases:
     # Test core/models.py edge case - BaseDeviFacture.get_lines with missing related
     def test_base_devi_facture_get_lines_no_related(self):
         """Test get_lines returns empty queryset when no lines."""
-        from devi.models import Devi
 
         company = Company.objects.create(raison_sociale="Lines Test Co")
         ville = Ville.objects.create(nom="Test Ville", company=company)
@@ -3123,8 +2984,6 @@ class TestAdditionalCoverageEdgeCases:
     # Test core/admin.py edge cases
     def test_admin_display_remise_percentage(self):
         """Test display_remise with Pourcentage type."""
-        from devi.admin import DeviAdmin
-        from devi.models import Devi
 
         company = Company.objects.create(raison_sociale="Admin Test Co")
         ville = Ville.objects.create(nom="Admin Test Ville", company=company)
@@ -3150,8 +3009,6 @@ class TestAdditionalCoverageEdgeCases:
 
     def test_admin_display_remise_fixe(self):
         """Test display_remise with Fixe type."""
-        from devi.admin import DeviAdmin
-        from devi.models import Devi
 
         company = Company.objects.create(raison_sociale="Admin Fixe Co")
         ville = Ville.objects.create(nom="Admin Fixe Ville", company=company)
@@ -3177,8 +3034,6 @@ class TestAdditionalCoverageEdgeCases:
 
     def test_admin_display_remise_none(self):
         """Test display_remise with no object."""
-        from devi.admin import DeviAdmin
-        from devi.models import Devi
 
         site = AdminSite()
         admin = DeviAdmin(Devi, site)
@@ -3188,7 +3043,6 @@ class TestAdditionalCoverageEdgeCases:
     # Test core/serializers edge cases - remise_type empty
     def test_base_detail_serializer_validate_remise_empty_type(self):
         """Test validation passes when remise_type is empty."""
-        from devi.serializers import DeviSerializer
 
         company = Company.objects.create(raison_sociale="Ser Empty Co")
         ville = Ville.objects.create(nom="Ser Empty Ville", company=company)
@@ -3214,7 +3068,6 @@ class TestAdditionalCoverageEdgeCases:
 
     def test_base_detail_serializer_validate_invalid_remise_type(self):
         """Test validation fails with invalid remise_type."""
-        from devi.serializers import DeviSerializer
 
         company = Company.objects.create(raison_sociale="Ser Invalid Co")
         ville = Ville.objects.create(nom="Ser Invalid Ville", company=company)
@@ -3241,8 +3094,6 @@ class TestAdditionalCoverageEdgeCases:
     # Test utils functions - gap finding in numero sequences
     def test_devi_utils_finds_gap(self):
         """Test get_next_numero_devis finds gaps."""
-        from devi.utils import get_next_numero_devis
-        from devi.models import Devi
 
         company = Company.objects.create(raison_sociale="Gap Test Co")
         ville = Ville.objects.create(nom="Gap Test Ville", company=company)
@@ -3276,8 +3127,6 @@ class TestAdditionalCoverageEdgeCases:
 
     def test_facture_client_utils_finds_gap(self):
         """Test get_next_numero_facture_client finds gaps."""
-        from facture_client.utils import get_next_numero_facture_client
-        from facture_client.models import FactureClient
 
         company = Company.objects.create(raison_sociale="FC Gap Co")
         ville = Ville.objects.create(nom="FC Gap Ville", company=company)
@@ -3315,8 +3164,6 @@ class TestAdditionalCoverageEdgeCases:
 
     def test_facture_proforma_utils_finds_gap(self):
         """Test get_next_numero_facture_pro_forma finds gaps."""
-        from facture_proforma.utils import get_next_numero_facture_pro_forma
-        from facture_proforma.models import FactureProForma
 
         company = Company.objects.create(raison_sociale="FP Gap Co")
         ville = Ville.objects.create(nom="FP Gap Ville", company=company)
@@ -3353,8 +3200,6 @@ class TestAdditionalCoverageEdgeCases:
 
     def test_bon_de_livraison_utils_finds_gap(self):
         """Test get_next_numero_bon_livraison finds gaps."""
-        from bon_de_livraison.utils import get_next_numero_bon_livraison
-        from bon_de_livraison.models import BonDeLivraison
 
         company = Company.objects.create(raison_sociale="BL Gap Co")
         ville = Ville.objects.create(nom="BL Gap Ville", company=company)
@@ -3397,7 +3242,6 @@ class TestFilterDatabaseErrorBranches:
     @pytest.fixture
     def setup_company_client(self):
         """Create company and client for filter tests."""
-        from article.models import Article
 
         company = Company.objects.create(raison_sociale="Filter Err Co")
         ville = Ville.objects.create(nom="Filter Err Ville", company=company)
@@ -3417,9 +3261,6 @@ class TestFilterDatabaseErrorBranches:
 
     def test_account_filter_database_error(self, setup_company_client, monkeypatch):
         """Test account filter handles DatabaseError."""
-        from account.filters import UsersFilter
-        from django.db import DatabaseError
-        from django.contrib.postgres.search import SearchQuery
 
         user = get_user_model().objects.create_user(
             email="filtertest@test.com",
@@ -3441,10 +3282,6 @@ class TestFilterDatabaseErrorBranches:
 
     def test_article_filter_database_error(self, setup_company_client, monkeypatch):
         """Test article filter handles DatabaseError."""
-        from article.filters import ArticleFilter
-        from article.models import Article
-        from django.db import DatabaseError
-        from django.contrib.postgres.search import SearchQuery
 
         company, _, article = setup_company_client
 
@@ -3459,9 +3296,6 @@ class TestFilterDatabaseErrorBranches:
 
     def test_client_filter_database_error(self, setup_company_client, monkeypatch):
         """Test client filter handles DatabaseError."""
-        from client.filters import ClientFilter
-        from django.db import DatabaseError
-        from django.contrib.postgres.search import SearchQuery
 
         company, client, _ = setup_company_client
 
@@ -3476,12 +3310,6 @@ class TestFilterDatabaseErrorBranches:
 
     def test_reglement_filter_database_error(self, setup_company_client, monkeypatch):
         """Test reglement filter handles DatabaseError."""
-        from reglement.filters import ReglementFilter
-        from reglement.models import Reglement
-        from facture_client.models import FactureClient
-        from parameter.models import ModePaiement
-        from django.db import DatabaseError
-        from django.contrib.postgres.search import SearchQuery
 
         company, client, _ = setup_company_client
         mode_paiement = ModePaiement.objects.create(nom="Regl Mode", company=company)
@@ -3541,7 +3369,6 @@ class TestSerializersEdgeCases:
 
     def test_bon_de_livraison_serializer_validate_numero(self, setup_basic):
         """Test BL serializer numero validation."""
-        from bon_de_livraison.serializers import BonDeLivraisonSerializer
 
         company, client, mode, user, _ = setup_basic
 
@@ -3558,7 +3385,6 @@ class TestSerializersEdgeCases:
 
     def test_devi_serializer_validate_numero(self, setup_basic):
         """Test Devi serializer numero validation."""
-        from devi.serializers import DeviSerializer
 
         company, client, mode, user, _ = setup_basic
 
@@ -3575,7 +3401,6 @@ class TestSerializersEdgeCases:
 
     def test_facture_client_serializer_validate_numero(self, setup_basic):
         """Test FactureClient serializer numero validation."""
-        from facture_client.serializers import FactureClientSerializer
 
         company, client, mode, user, _ = setup_basic
 
@@ -3592,7 +3417,6 @@ class TestSerializersEdgeCases:
 
     def test_facture_proforma_serializer_validate_numero(self, setup_basic):
         """Test FactureProForma serializer numero validation."""
-        from facture_proforma.serializers import FactureProformaSerializer
 
         company, client, mode, user, _ = setup_basic
 
@@ -3609,7 +3433,6 @@ class TestSerializersEdgeCases:
 
     def test_client_list_serializer_client_type_empty(self, setup_basic):
         """Test ClientListSerializer with empty client_type."""
-        from client.serializers import ClientListSerializer
 
         company, client, mode, user, ville = setup_basic
 
@@ -3633,8 +3456,6 @@ class TestPDFGeneratorEdgeCases:
     @pytest.fixture
     def setup_pdf(self):
         """Create entities for PDF testing."""
-        from article.models import Article
-        from parameter.models import Unite
 
         company = Company.objects.create(
             raison_sociale="PDF Edge Co",
@@ -3668,9 +3489,6 @@ class TestPDFGeneratorEdgeCases:
 
     def test_devi_pdf_sans_remise(self, setup_pdf):
         """Test Devi PDF without remise."""
-        from devi.models import Devi, DeviLine
-        from devi.views import DeviPDFGenerator
-        from datetime import date
 
         company, client, mode, article, user, _ = setup_pdf
 
@@ -3698,9 +3516,6 @@ class TestPDFGeneratorEdgeCases:
 
     def test_devi_pdf_avec_unite(self, setup_pdf):
         """Test Devi PDF with unite column."""
-        from devi.models import Devi, DeviLine
-        from devi.views import DeviPDFGenerator
-        from datetime import date
 
         company, client, mode, article, user, _ = setup_pdf
 
@@ -3726,9 +3541,6 @@ class TestPDFGeneratorEdgeCases:
 
     def test_facture_client_pdf_with_fixe_remise(self, setup_pdf):
         """Test FactureClient PDF with fixed remise."""
-        from facture_client.models import FactureClient, FactureClientLine
-        from facture_client.views import FactureClientPDFGenerator
-        from datetime import date
 
         company, client, mode, article, user, _ = setup_pdf
 
@@ -3759,9 +3571,6 @@ class TestPDFGeneratorEdgeCases:
 
     def test_facture_proforma_pdf_with_percentage_remise(self, setup_pdf):
         """Test FactureProForma PDF with percentage remise."""
-        from facture_proforma.models import FactureProForma, FactureProFormaLine
-        from facture_proforma.views import FactureProFormaPDFGenerator
-        from datetime import date
 
         company, client, mode, article, user, _ = setup_pdf
 
@@ -3792,14 +3601,10 @@ class TestPDFGeneratorEdgeCases:
 
     def test_bon_de_livraison_pdf_without_logo(self, setup_pdf):
         """Test BonDeLivraison PDF without company logo."""
-        from bon_de_livraison.models import BonDeLivraison, BonDeLivraisonLine
-        from bon_de_livraison.views import BonDeLivraisonPDFGenerator
-        from parameter.models import LivrePar
 
         company, client, mode, article, user, _ = setup_pdf
 
         livre_par = LivrePar.objects.create(nom="PDF Livreur", company=company)
-        from datetime import date
 
         bl = BonDeLivraison.objects.create(
             client=client,
@@ -3825,15 +3630,10 @@ class TestPDFGeneratorEdgeCases:
 
     def test_reglement_pdf_without_cachet(self, setup_pdf):
         """Test Reglement PDF without company cachet."""
-        from facture_client.models import FactureClient, FactureClientLine
-        from reglement.models import Reglement
-        from reglement.views import ReglementPDFGenerator
-        from parameter.models import ModePaiement
 
         company, client, mode, article, user, _ = setup_pdf
 
         mode_reglement = ModePaiement.objects.create(nom="PDF Reglement Mode", company=company)
-        from datetime import date
 
         facture = FactureClient.objects.create(
             client=client,
@@ -3872,10 +3672,6 @@ class TestCoreModelsCoverage:
 
     def test_get_lines_returns_empty_when_no_lignes(self):
         """Test get_lines returns empty queryset when lignes relation is missing."""
-        from devi.models import Devi
-        from parameter.models import Ville, ModePaiement
-        from datetime import date
-        from unittest.mock import patch
 
         # Create a real Devi instance
         company = Company.objects.create(
@@ -3933,8 +3729,6 @@ class TestCoreModelsCoverage:
 
     def test_create_line_signal_receiver_parent_none(self):
         """Test create_line_signal_receiver when parent is None."""
-        from core.models import create_line_signal_receiver
-        from unittest.mock import MagicMock
 
         handler = create_line_signal_receiver("parent_field")
 
@@ -3947,8 +3741,6 @@ class TestCoreModelsCoverage:
 
     def test_create_line_signal_receiver_parent_no_pk(self):
         """Test create_line_signal_receiver when parent has no pk."""
-        from core.models import create_line_signal_receiver
-        from unittest.mock import MagicMock
 
         handler = create_line_signal_receiver("parent_field")
 
