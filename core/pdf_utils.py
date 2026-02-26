@@ -735,6 +735,30 @@ class BasePDFGenerator:
 
         canvas.restoreState()
 
+    @staticmethod
+    def _measure_element_height(elem, available_width, available_height):
+        """Measure the height of an element, handling KeepTogether specially.
+
+        KeepTogether.wrap() requires a canvas and fails when called
+        standalone. We measure its children individually instead.
+        """
+        if isinstance(elem, KeepTogether):
+            # KeepTogether stores its sub-flowables in _content
+            children = getattr(elem, '_content', [])
+            total = 0.0
+            for child in children:
+                try:
+                    _w, h = child.wrap(available_width, available_height)
+                    total += h
+                except Exception:
+                    pass
+            return total
+        try:
+            _w, h = elem.wrap(available_width, available_height)
+            return h
+        except Exception:
+            return 0.0
+
     def _balance_elements(self, elements):
         """Balance content across pages by splitting the articles table
         so the last page carries articles alongside the tail (totals,
@@ -762,11 +786,8 @@ class BasePDFGenerator:
         measure_elements = self._build_content()
         heights = []
         for elem in measure_elements:
-            try:
-                _w, h = elem.wrap(available_width, available_height)
-                heights.append(h)
-            except Exception:
-                heights.append(0)
+            h = self._measure_element_height(elem, available_width, available_height)
+            heights.append(h)
 
         total_height = sum(heights)
         if total_height <= available_height:
@@ -805,11 +826,9 @@ class BasePDFGenerator:
 
         num_data = num_total_rows - 1  # exclude header
 
-        # After wrap(), ReportLab stores calculated row heights in _rowH.
-        # _rowHeights is the user-specified heights (often None).
-        row_h = getattr(measure_table, '_rowH', None)
-        if not row_h or len(row_h) != num_total_rows:
-            row_h = getattr(measure_table, '_rowHeights', None)
+        # After wrap(), ReportLab stores calculated row heights in _rowHeights.
+        # _argH stores the user-specified heights (often None).
+        row_h = getattr(measure_table, '_rowHeights', None)
 
         if (
             row_h
@@ -829,8 +848,6 @@ class BasePDFGenerator:
         cum[0] = header_h
         for k in range(1, num_data + 1):
             cum[k] = cum[k - 1] + data_rh[k - 1]
-
-        total_data_h = cum[num_data] - header_h  # pure data height
 
         # ---- max rows that fit on page 1 ----
         p1_budget = available_height - pre_height - header_h
@@ -868,7 +885,7 @@ class BasePDFGenerator:
             p1_rows = max(min_p1, min(ideal, max_p1))
         else:
             # 3+ pages: fill the last page alongside the tail.
-            # part1 auto-splits across pages 1..N-1 via repeatRows.
+            # part1 auto-splits across pages 1.N-1 via repeatRows.
             last_rows = max_last
             p1_rows = max(1, num_data - last_rows)
 
