@@ -47,9 +47,9 @@ def get_stats_by_currency(company_id: int) -> dict:
             }
     else:
         # Only send MAD stats if company doesn't use foreign currency
-        chiffre_affaire = factures.aggregate(
-            total=Sum("total_ttc_apres_remise")
-        )["total"] or Decimal("0.00")
+        chiffre_affaire = factures.aggregate(total=Sum("total_ttc_apres_remise"))[
+            "total"
+        ] or Decimal("0.00")
 
         reglements = Reglement.objects.filter(
             facture_client__client__company_id=company_id, statut="Valide"

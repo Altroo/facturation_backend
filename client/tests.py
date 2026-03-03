@@ -1012,13 +1012,17 @@ class TestClientViewsCoverage:
 class TestBulkDeleteClientAPI:
     def setup_method(self):
         User = get_user_model()
-        self.user = User.objects.create_user(email="bulk_clt_d@example.com", password="pass")
+        self.user = User.objects.create_user(
+            email="bulk_clt_d@example.com", password="pass"
+        )
         self.api_client = APIClient()
         self.api_client.force_authenticate(user=self.user)
 
         self.company = Company.objects.create(raison_sociale="BulkCltCo", ICE="BDCLTC1")
         caissier_role, _ = Role.objects.get_or_create(name="Caissier")
-        Membership.objects.create(user=self.user, company=self.company, role=caissier_role)
+        Membership.objects.create(
+            user=self.user, company=self.company, role=caissier_role
+        )
 
         self.ville = Ville.objects.create(nom="BulkCltVille", company=self.company)
         self.clt1 = Client.objects.create(
@@ -1068,7 +1072,9 @@ class TestBulkDeleteClientAPI:
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_bulk_delete_wrong_company_returns_403(self):
-        other_company = Company.objects.create(raison_sociale="OtherCltCo", ICE="OTHCLT1")
+        other_company = Company.objects.create(
+            raison_sociale="OtherCltCo", ICE="OTHCLT1"
+        )
         other_ville = Ville.objects.create(nom="OtherCltVille", company=other_company)
         other_clt = Client.objects.create(
             code_client="OTHCLT01",
@@ -1086,13 +1092,19 @@ class TestBulkDeleteClientAPI:
 class TestBulkArchiveClientAPI:
     def setup_method(self):
         User = get_user_model()
-        self.user = User.objects.create_user(email="bulk_clt_a@example.com", password="pass")
+        self.user = User.objects.create_user(
+            email="bulk_clt_a@example.com", password="pass"
+        )
         self.api_client = APIClient()
         self.api_client.force_authenticate(user=self.user)
 
-        self.company = Company.objects.create(raison_sociale="BulkCltArcCo", ICE="BACLTC1")
+        self.company = Company.objects.create(
+            raison_sociale="BulkCltArcCo", ICE="BACLTC1"
+        )
         caissier_role, _ = Role.objects.get_or_create(name="Caissier")
-        Membership.objects.create(user=self.user, company=self.company, role=caissier_role)
+        Membership.objects.create(
+            user=self.user, company=self.company, role=caissier_role
+        )
 
         self.ville = Ville.objects.create(nom="BulkCltArcVille", company=self.company)
         self.clt1 = Client.objects.create(
@@ -1141,7 +1153,9 @@ class TestBulkArchiveClientAPI:
 
     def test_bulk_archive_empty_ids_returns_400(self):
         url = reverse("client:client-bulk-archive")
-        response = self.api_client.patch(url, {"ids": [], "archived": True}, format="json")
+        response = self.api_client.patch(
+            url, {"ids": [], "archived": True}, format="json"
+        )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     def test_bulk_archive_missing_archived_field_returns_400(self):
@@ -1152,12 +1166,18 @@ class TestBulkArchiveClientAPI:
     def test_bulk_archive_unauthenticated_returns_401(self):
         url = reverse("client:client-bulk-archive")
         anon = APIClient()
-        response = anon.patch(url, {"ids": [self.clt1.id], "archived": True}, format="json")
+        response = anon.patch(
+            url, {"ids": [self.clt1.id], "archived": True}, format="json"
+        )
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_bulk_archive_wrong_company_returns_403(self):
-        other_company = Company.objects.create(raison_sociale="OtherCltArcCo", ICE="OTHBAC1")
-        other_ville = Ville.objects.create(nom="OtherCltArcVille", company=other_company)
+        other_company = Company.objects.create(
+            raison_sociale="OtherCltArcCo", ICE="OTHBAC1"
+        )
+        other_ville = Ville.objects.create(
+            nom="OtherCltArcVille", company=other_company
+        )
         other_clt = Client.objects.create(
             code_client="OTHBAC01",
             client_type="PM",

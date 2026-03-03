@@ -872,9 +872,7 @@ class TestSerializers:
         assert ProfileGETSerializer.get_gender(u_h) == u_h.get_gender_display()
 
     def test_membershipserializer_get_group_found_and_notfound(self):
-        g, _ = Role.objects.get_or_create(
-            name="TesterRole"
-        )
+        g, _ = Role.objects.get_or_create(name="TesterRole")
         found = MembershipSerializer._get_role("TesterRole")
         assert found == g
 
@@ -918,7 +916,6 @@ class TestSerializers:
         image fields to full URLs when request is in context."""
         user_model = get_user_model()
         user = user_model.objects.create_user(email="repr@example.com", password="p")
-
 
         user.avatar.save("repr.png", ContentFile(b"img"), save=True)
 
@@ -1064,8 +1061,10 @@ class TestSerializers:
             assert True
 
 
-IMG_B64_EXTRA = ("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+"
-                 "9AAAADklEQVR4nGNgGAWDEwAAAZoAAR2CVqgAAAAASUVORK5CYII=")
+IMG_B64_EXTRA = (
+    "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+"
+    "9AAAADklEQVR4nGNgGAWDEwAAAZoAAR2CVqgAAAAASUVORK5CYII="
+)
 
 
 @pytest.fixture
@@ -1272,9 +1271,7 @@ class TestMembershipSerializerExtra:
 
     def test_membership_create(self, user_extra, company_extra):
         """Test MembershipSerializer.create method."""
-        role, _ = Role.objects.get_or_create(
-            name="MemberRole"
-        )
+        role, _ = Role.objects.get_or_create(name="MemberRole")
         context = {"user": user_extra}
         serializer = MembershipSerializer(
             data={"company_id": company_extra.pk, "role": "MemberRole"},
@@ -1288,9 +1285,7 @@ class TestMembershipSerializerExtra:
 
     def test_membership_update_company(self, user_extra, company_extra):
         """Test MembershipSerializer.update changes company."""
-        role, _ = Role.objects.get_or_create(
-            name="UpdateRole"
-        )
+        role, _ = Role.objects.get_or_create(name="UpdateRole")
         membership = Membership.objects.create(
             user=user_extra, company=company_extra, role=role
         )
@@ -1307,12 +1302,8 @@ class TestMembershipSerializerExtra:
 
     def test_membership_update_role(self, user_extra, company_extra):
         """Test MembershipSerializer.update changes role."""
-        old_role, _ = Role.objects.get_or_create(
-            name="OldRole"
-        )
-        new_role, _ = Role.objects.get_or_create(
-            name="NewRole"
-        )
+        old_role, _ = Role.objects.get_or_create(name="OldRole")
+        new_role, _ = Role.objects.get_or_create(name="NewRole")
         membership = Membership.objects.create(
             user=user_extra, company=company_extra, role=old_role
         )
@@ -1438,9 +1429,7 @@ class TestUserPatchSerializerExtra:
 
     def test_update_removes_missing_memberships(self, user_extra, company_extra):
         """Test UserPatchSerializer removes memberships not in payload."""
-        role, _ = Role.objects.get_or_create(
-            name="RemoveRole"
-        )
+        role, _ = Role.objects.get_or_create(name="RemoveRole")
         # Create existing membership
         Membership.objects.create(user=user_extra, company=company_extra, role=role)
         assert user_extra.memberships.count() == 1
@@ -1457,12 +1446,8 @@ class TestUserPatchSerializerExtra:
 
     def test_update_existing_membership_by_id(self, user_extra, company_extra):
         """Test UserPatchSerializer updates existing membership by id."""
-        old_role, _ = Role.objects.get_or_create(
-            name="UpdateOldRole"
-        )
-        new_role, _ = Role.objects.get_or_create(
-            name="UpdateNewRole"
-        )
+        old_role, _ = Role.objects.get_or_create(name="UpdateOldRole")
+        new_role, _ = Role.objects.get_or_create(name="UpdateNewRole")
         membership = Membership.objects.create(
             user=user_extra, company=company_extra, role=old_role
         )
@@ -1487,12 +1472,8 @@ class TestUserPatchSerializerExtra:
 
     def test_update_existing_membership_by_company(self, user_extra, company_extra):
         """Test UserPatchSerializer finds existing membership by company_id."""
-        role, _ = Role.objects.get_or_create(
-            name="ByCompanyRole"
-        )
-        new_role, _ = Role.objects.get_or_create(
-            name="ByCompanyNewRole"
-        )
+        role, _ = Role.objects.get_or_create(name="ByCompanyRole")
+        new_role, _ = Role.objects.get_or_create(name="ByCompanyNewRole")
         Membership.objects.create(user=user_extra, company=company_extra, role=role)
 
         serializer = UserPatchSerializer(
@@ -1677,9 +1658,7 @@ class TestUserDetailSerializerExtra:
 
     def test_serializer_includes_companies(self, user_extra, company_extra):
         """Test serializer includes companies relationship."""
-        role, _ = Role.objects.get_or_create(
-            name="DetailRole"
-        )
+        role, _ = Role.objects.get_or_create(name="DetailRole")
         Membership.objects.create(user=user_extra, company=company_extra, role=role)
 
         serializer = UserDetailSerializer(instance=user_extra)
@@ -2675,7 +2654,9 @@ class TestAccountAdditionalCoverage:
         ) as mock_start_delete:
 
             mock_send_email.apply_async = MagicMock()
-            mock_start_delete.apply_async = MagicMock(return_value="new-task-id")
+            mock_start_delete.apply_async = MagicMock(
+                return_value=MagicMock(id="new-task-id")
+            )
 
             response = self.client.post(url, {"email": "send_reset_unix@test.com"})
 
@@ -2737,13 +2718,13 @@ class TestBulkDeleteUsersAPI:
             url, {"ids": [self.user1.id, self.user2.id]}, format="json"
         )
         assert response.status_code == status.HTTP_204_NO_CONTENT
-        assert not self.User.objects.filter(pk__in=[self.user1.id, self.user2.id]).exists()
+        assert not self.User.objects.filter(
+            pk__in=[self.user1.id, self.user2.id]
+        ).exists()
 
     def test_bulk_delete_single_user(self):
         url = reverse("account:users-bulk-delete")
-        response = self.api_client.delete(
-            url, {"ids": [self.user1.id]}, format="json"
-        )
+        response = self.api_client.delete(url, {"ids": [self.user1.id]}, format="json")
         assert response.status_code == status.HTTP_204_NO_CONTENT
         assert not self.User.objects.filter(pk=self.user1.id).exists()
         assert self.User.objects.filter(pk=self.user2.id).exists()

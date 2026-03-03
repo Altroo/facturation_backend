@@ -1039,7 +1039,9 @@ class TestCompanyViewsCoverage:
         assert "Caissier" in str(response.data)
 
         # Re-create Admin group for other tests
-        Role.objects.get_or_create(name="Caissier", )
+        Role.objects.get_or_create(
+            name="Caissier",
+        )
 
     def test_create_company_with_managed_by(self):
         """Test create company with managed_by list (line 76)."""

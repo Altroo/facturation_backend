@@ -176,15 +176,14 @@ class Client(models.Model):
     )
 
     history = HistoricalRecords(
-        verbose_name="Historique Client",
-        verbose_name_plural="Historiques Clients"
+        verbose_name="Historique Client", verbose_name_plural="Historiques Clients"
     )
 
     class Meta:
         verbose_name = "Client"
         verbose_name_plural = "Clients"
         ordering = ("-date_created",)
-        unique_together = [('code_client', 'company')]
+        unique_together = [("code_client", "company")]
         indexes = [
             models.Index(fields=["company", "archived"]),
         ]

@@ -414,7 +414,7 @@ class TestFactureClientUtilsExtra:
 
         # Clear all facture_client
         FactureClient.objects.all().delete()
-        
+
         company = Company.objects.create(raison_sociale="Empty Test Co", ICE="EMPTY123")
 
         year_suffix = f"{datetime.now().year % 100:02d}"
@@ -481,7 +481,6 @@ class TestFactureClientModelExtra(SharedDocumentModelTestsMixin):
 @pytest.mark.django_db
 class TestFactureClientAdminExtra(SharedDocumentAdminTestsMixin):
     """Extra tests for FactureClient admin."""
-
 
     AdminClass = FactureClientAdmin
     LineAdminClass = FactureClientLineAdmin
@@ -865,10 +864,14 @@ class TestBulkDeleteFactureClientAPI:
 
         self.company = Company.objects.create(raison_sociale="BulkFCCo", ICE="BDFCC01")
         caissier_role, _ = Role.objects.get_or_create(name="Caissier")
-        Membership.objects.create(user=self.user, company=self.company, role=caissier_role)
+        Membership.objects.create(
+            user=self.user, company=self.company, role=caissier_role
+        )
 
         self.ville = Ville.objects.create(nom="BulkFCVille", company=self.company)
-        self.mode_paiement = ModePaiement.objects.create(nom="BulkFCPay", company=self.company)
+        self.mode_paiement = ModePaiement.objects.create(
+            nom="BulkFCPay", company=self.company
+        )
         self.client_obj = Client.objects.create(
             code_client="BDFC001",
             client_type="PM",
@@ -903,13 +906,13 @@ class TestBulkDeleteFactureClientAPI:
             url, {"ids": [self.fc1.id, self.fc2.id]}, format="json"
         )
         assert response.status_code == status.HTTP_204_NO_CONTENT
-        assert not FactureClient.objects.filter(pk__in=[self.fc1.id, self.fc2.id]).exists()
+        assert not FactureClient.objects.filter(
+            pk__in=[self.fc1.id, self.fc2.id]
+        ).exists()
 
     def test_bulk_delete_single_record(self):
         url = reverse("facture_client:facture-client-bulk-delete")
-        response = self.api_client.delete(
-            url, {"ids": [self.fc1.id]}, format="json"
-        )
+        response = self.api_client.delete(url, {"ids": [self.fc1.id]}, format="json")
         assert response.status_code == status.HTTP_204_NO_CONTENT
         assert not FactureClient.objects.filter(pk=self.fc1.id).exists()
         assert FactureClient.objects.filter(pk=self.fc2.id).exists()
@@ -933,7 +936,9 @@ class TestBulkDeleteFactureClientAPI:
     def test_bulk_delete_wrong_company_returns_403(self):
         other_company = Company.objects.create(raison_sociale="OtherCo", ICE="OTHFC1")
         other_ville = Ville.objects.create(nom="OtherFCVille", company=other_company)
-        other_mode = ModePaiement.objects.create(nom="OtherFCPay", company=other_company)
+        other_mode = ModePaiement.objects.create(
+            nom="OtherFCPay", company=other_company
+        )
         other_client = Client.objects.create(
             code_client="OTHFC01",
             client_type="PM",
@@ -952,7 +957,5 @@ class TestBulkDeleteFactureClientAPI:
             remise_type="Pourcentage",
         )
         url = reverse("facture_client:facture-client-bulk-delete")
-        response = self.api_client.delete(
-            url, {"ids": [other_fc.id]}, format="json"
-        )
+        response = self.api_client.delete(url, {"ids": [other_fc.id]}, format="json")
         assert response.status_code == status.HTTP_403_FORBIDDEN

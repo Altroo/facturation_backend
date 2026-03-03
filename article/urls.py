@@ -19,7 +19,9 @@ urlpatterns = [
     # DELETE bulk delete articles
     path("bulk_delete/", BulkDeleteArticleView.as_view(), name="article-bulk-delete"),
     # PATCH bulk archive/unarchive articles
-    path("bulk_archive/", BulkArchiveArticleView.as_view(), name="article-bulk-archive"),
+    path(
+        "bulk_archive/", BulkArchiveArticleView.as_view(), name="article-bulk-archive"
+    ),
     # GET Article detail, PUT update, DELETE
     path("<int:pk>/", ArticleDetailEditDeleteView.as_view(), name="article-detail"),
     # GET generated reference Article

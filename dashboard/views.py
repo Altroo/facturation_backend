@@ -1,8 +1,22 @@
 from datetime import timedelta, datetime, time
 from decimal import Decimal
 
-from django.db.models import (Sum, Count, F, Avg, Subquery, OuterRef, DecimalField, Case,
-                              When, Value, IntegerField, ExpressionWrapper, DurationField, Q)
+from django.db.models import (
+    Sum,
+    Count,
+    F,
+    Avg,
+    Subquery,
+    OuterRef,
+    DecimalField,
+    Case,
+    When,
+    Value,
+    IntegerField,
+    ExpressionWrapper,
+    DurationField,
+    Q,
+)
 from django.db.models.functions import TruncMonth, TruncDate, Coalesce, Greatest
 from django.utils import timezone
 from rest_framework import status
@@ -32,13 +46,11 @@ def make_aware_datetime_start(d):
 def _annotate_total_reglements(queryset):
     """Annotate a FactureClient queryset with total valid reglements (avoids N+1)."""
     total_reglements_subquery = Subquery(
-        Reglement.objects.filter(
-            facture_client_id=OuterRef('id'),
-            statut="Valide"
-        ).values('facture_client_id').annotate(
-            total=Sum('montant')
-        ).values('total')[:1],
-        output_field=DecimalField()
+        Reglement.objects.filter(facture_client_id=OuterRef("id"), statut="Valide")
+        .values("facture_client_id")
+        .annotate(total=Sum("montant"))
+        .values("total")[:1],
+        output_field=DecimalField(),
     )
     return queryset.annotate(
         total_reglements=Coalesce(total_reglements_subquery, Decimal("0"))
@@ -88,20 +100,18 @@ def parse_date_filters(request):
         try:
             company_id = int(company_id_str)
         except (ValueError, TypeError):
-            raise ValidationError({"company_id": "company_id doit être un entier valide."})
+            raise ValidationError(
+                {"company_id": "company_id doit être un entier valide."}
+            )
     else:
         raise ValidationError({"company_id": "company_id est requis."})
 
     # Verify user has membership in this company
-    if not Membership.objects.filter(
-        user=request.user, company_id=company_id
-    ).exists():
-        raise PermissionDenied(
-            "Vous n'avez pas accès aux données de cette société."
-        )
+    if not Membership.objects.filter(user=request.user, company_id=company_id).exists():
+        raise PermissionDenied("Vous n'avez pas accès aux données de cette société.")
 
     # Validate devise if provided
-    if devise and devise not in ['MAD', 'EUR', 'USD']:
+    if devise and devise not in ["MAD", "EUR", "USD"]:
         devise = None
 
     return date_from, date_to, company_id, devise
@@ -126,7 +136,7 @@ class MonthlyRevenueEvolutionView(APIView):
 
         if company_id:
             queryset = queryset.filter(client__company_id=company_id)
-        
+
         if devise:
             queryset = queryset.filter(devise=devise)
 
@@ -174,7 +184,7 @@ class RevenueByDocumentTypeView(APIView):
             proforma_filter["client__company_id"] = company_id
             facture_filter["client__company_id"] = company_id
             bdl_filter["client__company_id"] = company_id
-        
+
         if devise:
             devi_filter["devise"] = devise
             proforma_filter["devise"] = devise
@@ -231,21 +241,35 @@ class PaymentStatusOverviewView(APIView):
         if company_id:
             facture_filter["client__company_id"] = company_id
 
-        factures = _annotate_total_reglements(FactureClient.objects.filter(**facture_filter))
+        factures = _annotate_total_reglements(
+            FactureClient.objects.filter(**facture_filter)
+        )
 
         counts = factures.aggregate(
-            fully_paid=Count(Case(
-                When(total_reglements__gte=F('total_ttc_apres_remise'), then=Value(1)),
-                output_field=IntegerField(),
-            )),
-            partially_paid=Count(Case(
-                When(total_reglements__gt=Decimal("0"), total_reglements__lt=F('total_ttc_apres_remise'), then=Value(1)),
-                output_field=IntegerField(),
-            )),
-            unpaid=Count(Case(
-                When(total_reglements__lte=Decimal("0"), then=Value(1)),
-                output_field=IntegerField(),
-            )),
+            fully_paid=Count(
+                Case(
+                    When(
+                        total_reglements__gte=F("total_ttc_apres_remise"), then=Value(1)
+                    ),
+                    output_field=IntegerField(),
+                )
+            ),
+            partially_paid=Count(
+                Case(
+                    When(
+                        total_reglements__gt=Decimal("0"),
+                        total_reglements__lt=F("total_ttc_apres_remise"),
+                        then=Value(1),
+                    ),
+                    output_field=IntegerField(),
+                )
+            ),
+            unpaid=Count(
+                Case(
+                    When(total_reglements__lte=Decimal("0"), then=Value(1)),
+                    output_field=IntegerField(),
+                )
+            ),
         )
 
         result = [
@@ -276,7 +300,7 @@ class CollectionRateView(APIView):
         if company_id:
             facture_filter["client__company_id"] = company_id
             reglement_filter["facture_client__client__company_id"] = company_id
-        
+
         if devise:
             facture_filter["devise"] = devise
             reglement_filter["facture_client__devise"] = devise
@@ -665,7 +689,7 @@ class PaymentTimelineView(APIView):
             payment_query = payment_query.filter(
                 facture_client__client__company_id=company_id
             )
-        
+
         if devise:
             invoice_query = invoice_query.filter(devise=devise)
             payment_query = payment_query.filter(facture_client__devise=devise)
@@ -966,18 +990,25 @@ class KPICardsWithTrendsView(APIView):
     permission_classes = [IsAuthenticated]
 
     @staticmethod
-    def calculate_kpi_for_currency(devise, date_from, date_to, company_id, current_period_start, seven_days_before_date_to):
+    def calculate_kpi_for_currency(
+        devise,
+        date_from,
+        date_to,
+        company_id,
+        current_period_start,
+        seven_days_before_date_to,
+    ):
         """Calculate KPIs for a specific currency."""
         # CA total with trend
         current_month_query = FactureClient.objects.filter(
-            date_facture__gte=current_period_start, 
+            date_facture__gte=current_period_start,
             date_facture__lte=date_to,
-            devise=devise
+            devise=devise,
         )
         daily_revenue_query = FactureClient.objects.filter(
-            date_facture__gte=seven_days_before_date_to, 
+            date_facture__gte=seven_days_before_date_to,
             date_facture__lte=date_to,
-            devise=devise
+            devise=devise,
         )
 
         if company_id:
@@ -1009,12 +1040,16 @@ class KPICardsWithTrendsView(APIView):
         if company_id:
             facture_filter["client__company_id"] = company_id
 
-        factures = _annotate_total_reglements(FactureClient.objects.filter(**facture_filter))
-        outstanding_current = factures.annotate(
-            outstanding=F('total_ttc_apres_remise') - F('total_reglements')
-        ).filter(outstanding__gt=0).aggregate(
-            total=Coalesce(Sum('outstanding'), Decimal("0"))
-        )["total"]
+        factures = _annotate_total_reglements(
+            FactureClient.objects.filter(**facture_filter)
+        )
+        outstanding_current = (
+            factures.annotate(
+                outstanding=F("total_ttc_apres_remise") - F("total_reglements")
+            )
+            .filter(outstanding__gt=0)
+            .aggregate(total=Coalesce(Sum("outstanding"), Decimal("0")))["total"]
+        )
 
         outstanding_trend = [
             float(outstanding_current * Decimal("0.95")),
@@ -1070,13 +1105,28 @@ class KPICardsWithTrendsView(APIView):
         result = {
             "currency_data": {
                 "MAD": KPICardsWithTrendsView.calculate_kpi_for_currency(
-                    "MAD", date_from, date_to, company_id, current_period_start, seven_days_before_date_to
+                    "MAD",
+                    date_from,
+                    date_to,
+                    company_id,
+                    current_period_start,
+                    seven_days_before_date_to,
                 ),
                 "EUR": KPICardsWithTrendsView.calculate_kpi_for_currency(
-                    "EUR", date_from, date_to, company_id, current_period_start, seven_days_before_date_to
+                    "EUR",
+                    date_from,
+                    date_to,
+                    company_id,
+                    current_period_start,
+                    seven_days_before_date_to,
                 ),
                 "USD": KPICardsWithTrendsView.calculate_kpi_for_currency(
-                    "USD", date_from, date_to, company_id, current_period_start, seven_days_before_date_to
+                    "USD",
+                    date_from,
+                    date_to,
+                    company_id,
+                    current_period_start,
+                    seven_days_before_date_to,
                 ),
             }
         }
@@ -1184,7 +1234,10 @@ class MonthlyObjectivesView(APIView):
                 "current": float(current_revenue_eur),
                 "objective": revenue_objective_eur,
                 "percentage": (
-                    min(100, int(float(current_revenue_eur) / revenue_objective_eur * 100))
+                    min(
+                        100,
+                        int(float(current_revenue_eur) / revenue_objective_eur * 100),
+                    )
                     if revenue_objective_eur > 0
                     else 0
                 ),
@@ -1193,7 +1246,10 @@ class MonthlyObjectivesView(APIView):
                 "current": float(current_revenue_usd),
                 "objective": revenue_objective_usd,
                 "percentage": (
-                    min(100, int(float(current_revenue_usd) / revenue_objective_usd * 100))
+                    min(
+                        100,
+                        int(float(current_revenue_usd) / revenue_objective_usd * 100),
+                    )
                     if revenue_objective_usd > 0
                     else 0
                 ),

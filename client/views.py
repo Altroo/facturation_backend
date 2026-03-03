@@ -31,14 +31,14 @@ class ClientListCreateView(CompanyAccessMixin, APIView):
         try:
             company_id = int(company_id_str)
         except (ValueError, TypeError):
-            raise ValidationError({"company_id": _("company_id doit être un entier valide.")})
+            raise ValidationError(
+                {"company_id": _("company_id doit être un entier valide.")}
+            )
         self._check_company_access(request, company_id)
         qs_filter = {"company_id": company_id}
         if archived_param is not None:
             qs_filter["archived"] = archived_param.lower() == "true"
-        base_queryset = Client.objects.filter(
-            **qs_filter
-        ).select_related(
+        base_queryset = Client.objects.filter(**qs_filter).select_related(
             "company", "ville"
         )
         filterset = ClientFilter(request.GET, queryset=base_queryset)
@@ -190,8 +190,6 @@ class ArchiveToggleClientView(CompanyAccessMixin, APIView):
             return Client.objects.get(pk=pk)
         except Client.DoesNotExist:
             raise Http404(_("Aucun client ne correspond à la requête."))
-
-
 
     def patch(self, request, pk, *args, **kwargs):
         client = self.get_object(pk)

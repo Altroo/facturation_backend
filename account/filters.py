@@ -23,21 +23,39 @@ class UsersFilter(IsEmptyAutoMixin, django_filters.FilterSet):
     )
 
     # Text lookup filters for first_name
-    first_name__icontains = django_filters.CharFilter(field_name="first_name", lookup_expr="icontains")
-    first_name__istartswith = django_filters.CharFilter(field_name="first_name", lookup_expr="istartswith")
-    first_name__iendswith = django_filters.CharFilter(field_name="first_name", lookup_expr="iendswith")
+    first_name__icontains = django_filters.CharFilter(
+        field_name="first_name", lookup_expr="icontains"
+    )
+    first_name__istartswith = django_filters.CharFilter(
+        field_name="first_name", lookup_expr="istartswith"
+    )
+    first_name__iendswith = django_filters.CharFilter(
+        field_name="first_name", lookup_expr="iendswith"
+    )
     first_name = django_filters.CharFilter(field_name="first_name", lookup_expr="exact")
 
     # Text lookup filters for last_name
-    last_name__icontains = django_filters.CharFilter(field_name="last_name", lookup_expr="icontains")
-    last_name__istartswith = django_filters.CharFilter(field_name="last_name", lookup_expr="istartswith")
-    last_name__iendswith = django_filters.CharFilter(field_name="last_name", lookup_expr="iendswith")
+    last_name__icontains = django_filters.CharFilter(
+        field_name="last_name", lookup_expr="icontains"
+    )
+    last_name__istartswith = django_filters.CharFilter(
+        field_name="last_name", lookup_expr="istartswith"
+    )
+    last_name__iendswith = django_filters.CharFilter(
+        field_name="last_name", lookup_expr="iendswith"
+    )
     last_name = django_filters.CharFilter(field_name="last_name", lookup_expr="exact")
 
     # Text lookup filters for email
-    email__icontains = django_filters.CharFilter(field_name="email", lookup_expr="icontains")
-    email__istartswith = django_filters.CharFilter(field_name="email", lookup_expr="istartswith")
-    email__iendswith = django_filters.CharFilter(field_name="email", lookup_expr="iendswith")
+    email__icontains = django_filters.CharFilter(
+        field_name="email", lookup_expr="icontains"
+    )
+    email__istartswith = django_filters.CharFilter(
+        field_name="email", lookup_expr="istartswith"
+    )
+    email__iendswith = django_filters.CharFilter(
+        field_name="email", lookup_expr="iendswith"
+    )
     email = django_filters.CharFilter(field_name="email", lookup_expr="exact")
 
     # Gender filter (maps display label to stored value)
@@ -54,10 +72,21 @@ class UsersFilter(IsEmptyAutoMixin, django_filters.FilterSet):
             "date_joined_before",
             "last_login_after",
             "last_login_before",
-            "first_name", "first_name__icontains", "first_name__istartswith", "first_name__iendswith",
-            "last_name", "last_name__icontains", "last_name__istartswith", "last_name__iendswith",
-            "email", "email__icontains", "email__istartswith", "email__iendswith",
-            "gender", "is_staff", "is_active",
+            "first_name",
+            "first_name__icontains",
+            "first_name__istartswith",
+            "first_name__iendswith",
+            "last_name",
+            "last_name__icontains",
+            "last_name__istartswith",
+            "last_name__iendswith",
+            "email",
+            "email__icontains",
+            "email__istartswith",
+            "email__iendswith",
+            "gender",
+            "is_staff",
+            "is_active",
         ]
 
     @staticmethod

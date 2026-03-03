@@ -90,7 +90,9 @@ class Command(BaseCommand):
             return
 
         if dry_run:
-            self.stdout.write(self.style.WARNING("\nDRY RUN — no changes will be made.\n"))
+            self.stdout.write(
+                self.style.WARNING("\nDRY RUN — no changes will be made.\n")
+            )
 
         # --- delete photos ---------------------------------------------------
         media_root = settings.MEDIA_ROOT
@@ -102,9 +104,7 @@ class Command(BaseCommand):
                 photo_path = os.path.join(media_root, str(article.photo))
                 if os.path.isfile(photo_path):
                     if dry_run:
-                        self.stdout.write(
-                            f"  Would delete photo: {photo_path}"
-                        )
+                        self.stdout.write(f"  Would delete photo: {photo_path}")
                     else:
                         os.remove(photo_path)
                         self.stdout.write(
@@ -119,9 +119,7 @@ class Command(BaseCommand):
 
         # --- delete articles -------------------------------------------------
         if dry_run:
-            self.stdout.write(
-                f"\n  Would delete {found_count} articles.\n"
-            )
+            self.stdout.write(f"\n  Would delete {found_count} articles.\n")
         else:
             deleted_count, _ = articles.delete()
             self.stdout.write(

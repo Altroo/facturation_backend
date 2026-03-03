@@ -31,9 +31,8 @@ def validate_line_currency(data, instance, parent_field_name):
             if devise_prix_vente != parent.devise:
                 raise serializers.ValidationError(
                     {
-                        "devise_prix_vente":
-                            f"La devise doit correspondre à celle du document ({parent.devise}). "
-                            f"Impossible de mélanger les devises."
+                        "devise_prix_vente": f"La devise doit correspondre à celle du document ({parent.devise}). "
+                        f"Impossible de mélanger les devises."
                     }
                 )
 
@@ -86,8 +85,11 @@ class BaseListSerializer(serializers.ModelSerializer):
         # Use len() on the prefetch cache when available (avoids an extra
         # COUNT query per row).  Falls back to .count() when lignes is not
         # prefetched.
-        if hasattr(obj, '_prefetched_objects_cache') and 'lignes' in obj._prefetched_objects_cache:
-            return len(obj._prefetched_objects_cache['lignes'])
+        if (
+            hasattr(obj, "_prefetched_objects_cache")
+            and "lignes" in obj._prefetched_objects_cache
+        ):
+            return len(obj._prefetched_objects_cache["lignes"])
         return obj.lignes.count()
 
     def to_representation(self, instance):
@@ -264,9 +266,8 @@ class BaseLineWriteSerializer(serializers.ModelSerializer):
             if devise_prix_vente != document_devise:
                 raise serializers.ValidationError(
                     {
-                        "devise_prix_vente":
-                            f"La devise doit correspondre à celle du document ({document_devise}). "
-                            f"Impossible de mélanger les devises."
+                        "devise_prix_vente": f"La devise doit correspondre à celle du document ({document_devise}). "
+                        f"Impossible de mélanger les devises."
                     }
                 )
 
@@ -280,9 +281,7 @@ class BaseLineWriteSerializer(serializers.ModelSerializer):
         quantity = data.get("quantity", 1)
 
         if quantity <= 0:
-            raise serializers.ValidationError(
-                "La quantité doit être supérieure à 0."
-            )
+            raise serializers.ValidationError("La quantité doit être supérieure à 0.")
 
         line_total = data["prix_vente"] * quantity
 
@@ -354,12 +353,18 @@ class BaseCreateSerializer(BaseDetailSerializer):
         for line_data in lines_data:
             line_data.pop("id", None)
             # Auto-set devise_prix_vente from document if not provided or if MAD
-            if "devise_prix_vente" not in line_data or line_data.get("devise_prix_vente") == "MAD":
+            if (
+                "devise_prix_vente" not in line_data
+                or line_data.get("devise_prix_vente") == "MAD"
+            ):
                 line_data["devise_prix_vente"] = instance.devise
             # Auto-set devise_prix_achat from article if not provided or if MAD
             if "article" in line_data:
                 article = line_data["article"]
-                if "devise_prix_achat" not in line_data or line_data.get("devise_prix_achat") == "MAD":
+                if (
+                    "devise_prix_achat" not in line_data
+                    or line_data.get("devise_prix_achat") == "MAD"
+                ):
                     line_data["devise_prix_achat"] = article.devise_prix_achat
             line_model.objects.create(**{relation_field: instance}, **line_data)
 
@@ -374,7 +379,9 @@ class BaseCreateSerializer(BaseDetailSerializer):
         representation = super().to_representation(instance)
         line_serializer_class = self.get_line_serializer_class()
         representation["lignes"] = line_serializer_class(
-            instance.lignes.select_related("article").all(), many=True, context=self.context
+            instance.lignes.select_related("article").all(),
+            many=True,
+            context=self.context,
         ).data
         return representation
 
@@ -423,13 +430,21 @@ class BaseDetailUpdateSerializer(BaseCreateSerializer):
                         line_id = line_data.get("id")
 
                         # Auto-set devise_prix_vente from document if not provided or if MAD
-                        if "devise_prix_vente" not in line_data or line_data.get("devise_prix_vente") == "MAD":
+                        if (
+                            "devise_prix_vente" not in line_data
+                            or line_data.get("devise_prix_vente") == "MAD"
+                        ):
                             line_data["devise_prix_vente"] = instance.devise
                         # Auto-set devise_prix_achat from article if not provided or if MAD
                         if "article" in line_data:
                             article = line_data["article"]
-                            if "devise_prix_achat" not in line_data or line_data.get("devise_prix_achat") == "MAD":
-                                line_data["devise_prix_achat"] = article.devise_prix_achat
+                            if (
+                                "devise_prix_achat" not in line_data
+                                or line_data.get("devise_prix_achat") == "MAD"
+                            ):
+                                line_data["devise_prix_achat"] = (
+                                    article.devise_prix_achat
+                                )
 
                         if line_id and line_id in existing_lines:
                             line_obj = existing_lines[line_id]
@@ -439,7 +454,9 @@ class BaseDetailUpdateSerializer(BaseCreateSerializer):
                             line_obj.save()
                             incoming_ids.add(line_id)
                         else:
-                            create_data = {k: v for k, v in line_data.items() if k != "id"}
+                            create_data = {
+                                k: v for k, v in line_data.items() if k != "id"
+                            }
                             line_model.objects.create(
                                 **{relation_field: instance}, **create_data
                             )

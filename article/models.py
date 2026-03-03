@@ -164,9 +164,11 @@ class Article(models.Model):
         verbose_name = "Article"
         verbose_name_plural = "Articles"
         ordering = ("-date_created",)
-        unique_together = [('reference', 'company')]
+        unique_together = [("reference", "company")]
         indexes = [
-            models.Index(fields=['company', 'archived'], name='article_company_archived_idx'),
+            models.Index(
+                fields=["company", "archived"], name="article_company_archived_idx"
+            ),
         ]
 
     def __str__(self):

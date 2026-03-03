@@ -146,13 +146,23 @@ class PasswordResetView(APIView):
         try:
             user = CustomUser.objects.get(email=email)
             stored_code = user.password_reset_code or ""
-            if code is not None and stored_code and hmac.compare_digest(str(code), stored_code):
+            if (
+                code is not None
+                and stored_code
+                and hmac.compare_digest(str(code), stored_code)
+            ):
                 # Check if code is still valid (5-minute window)
                 if user.password_reset_code_created_at:
-                    time_elapsed = datetime.now(timezone.utc) - user.password_reset_code_created_at
+                    time_elapsed = (
+                        datetime.now(timezone.utc) - user.password_reset_code_created_at
+                    )
                     if time_elapsed > timedelta(minutes=5):
                         raise ValidationError(
-                            {"code": ["Le code de réinitialisation a expiré. Veuillez demander un nouveau code."]}
+                            {
+                                "code": [
+                                    "Le code de réinitialisation a expiré. Veuillez demander un nouveau code."
+                                ]
+                            }
                         )
                 return Response(status=status.HTTP_204_NO_CONTENT)
             raise ValidationError(self.errors)
@@ -173,10 +183,16 @@ class PasswordResetView(APIView):
             ):
                 # Check if code is still valid (5-minute window)
                 if user.password_reset_code_created_at:
-                    time_elapsed = datetime.now(timezone.utc) - user.password_reset_code_created_at
+                    time_elapsed = (
+                        datetime.now(timezone.utc) - user.password_reset_code_created_at
+                    )
                     if time_elapsed > timedelta(minutes=5):
-                        raise ValidationError({
-                            "code": ["Le code de réinitialisation a expiré. Veuillez demander un nouveau code."]}
+                        raise ValidationError(
+                            {
+                                "code": [
+                                    "Le code de réinitialisation a expiré. Veuillez demander un nouveau code."
+                                ]
+                            }
                         )
 
                 serializer = PasswordResetSerializer(data=request.data)
@@ -211,8 +227,14 @@ class PasswordResetView(APIView):
                         user.password_reset_code = None
                         user.password_reset_code_created_at = None
                         user.default_password_set = False
-                        user.save(update_fields=["password", "password_reset_code", "password_reset_code_created_at",
-                                                 "default_password_set"])
+                        user.save(
+                            update_fields=[
+                                "password",
+                                "password_reset_code",
+                                "password_reset_code_created_at",
+                                "default_password_set",
+                            ]
+                        )
 
                     return Response(status=status.HTTP_204_NO_CONTENT)
                 raise ValidationError(serializer.errors)
@@ -227,7 +249,9 @@ class SendPasswordResetView(APIView):
     throttle_classes = [ScopedRateThrottle]
     throttle_scope = "password_reset"
     # Generic message to prevent account enumeration
-    success_message = "Si un compte existe avec cet email, un code de vérification vous sera envoyé."
+    success_message = (
+        "Si un compte existe avec cet email, un code de vérification vous sera envoyé."
+    )
     errors = {"email": ["Aucun compte existant utilisant cette adresse électronique."]}
 
     @staticmethod
@@ -308,8 +332,13 @@ class SendPasswordResetView(APIView):
                                 (user.pk, "password_reset"), eta=shift
                             )
                         )
-                        user.task_id_password_reset = str(task_id_password_reset)
-                        user.save(update_fields=["task_id_password_reset", "password_reset_code_created_at"])
+                        user.task_id_password_reset = task_id_password_reset.id
+                        user.save(
+                            update_fields=[
+                                "task_id_password_reset",
+                                "password_reset_code_created_at",
+                            ]
+                        )
                     return Response(status=status.HTTP_204_NO_CONTENT)
                 raise ValidationError(serializer.errors)
             else:
@@ -402,7 +431,9 @@ class UsersListCreateView(APIView):
 
     def post(self, request):
         # Check if user is Commercial - they cannot create users
-        for membership in Membership.objects.filter(user=request.user).select_related("role"):
+        for membership in Membership.objects.filter(user=request.user).select_related(
+            "role"
+        ):
             if membership.role.name in ROLES_RESTRICTED:
                 raise PermissionDenied(
                     _("Vous n'avez pas les droits pour créer des utilisateurs.")
@@ -464,7 +495,9 @@ class UserDetailEditDeleteView(APIView):
 
     def put(self, request, *args, **kwargs):
         # Check if user is Commercial - they cannot update users
-        for membership in Membership.objects.filter(user=request.user).select_related("role"):
+        for membership in Membership.objects.filter(user=request.user).select_related(
+            "role"
+        ):
             if membership.role.name in ROLES_RESTRICTED:
                 raise PermissionDenied(
                     _("Vous n'avez pas les droits pour modifier des utilisateurs.")
@@ -486,7 +519,9 @@ class UserDetailEditDeleteView(APIView):
 
     def delete(self, request, *args, **kwargs):
         # Check if user is Commercial - they cannot delete users
-        for membership in Membership.objects.filter(user=request.user).select_related("role"):
+        for membership in Membership.objects.filter(user=request.user).select_related(
+            "role"
+        ):
             if membership.role.name in ROLES_RESTRICTED:
                 raise PermissionDenied(
                     _("Vous n'avez pas les droits pour supprimer des utilisateurs.")
@@ -515,7 +550,8 @@ class BulkDeleteUsersView(APIView):
 
     permission_classes = (permissions.IsAdminUser,)
 
-    def delete(self, request, *args, **kwargs):
+    @staticmethod
+    def delete(request, *args, **kwargs):
         ids = request.data.get("ids")
         if not ids or not isinstance(ids, list):
             raise ValidationError({"ids": _("Une liste d'identifiants est requise.")})

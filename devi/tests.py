@@ -505,7 +505,7 @@ class TestDeviUtilsExtra:
 
         # Clear all devis
         Devi.objects.all().delete()
-        
+
         # Create a company for testing
         company = Company.objects.create(raison_sociale="Empty Test Co", ICE="EMPTY123")
 
@@ -573,7 +573,6 @@ class TestDeviModelExtra(SharedDocumentModelTestsMixin):
 @pytest.mark.django_db
 class TestDeviAdminExtra(SharedDocumentAdminTestsMixin):
     """Extra tests for Devi admin."""
-
 
     AdminClass = DeviAdmin
     LineAdminClass = DeviLineAdmin
@@ -1044,10 +1043,14 @@ class TestBulkDeleteDeviAPI:
 
         self.company = Company.objects.create(raison_sociale="BulkDeviCo", ICE="BDVCO1")
         caissier_role, _ = Role.objects.get_or_create(name="Caissier")
-        Membership.objects.create(user=self.user, company=self.company, role=caissier_role)
+        Membership.objects.create(
+            user=self.user, company=self.company, role=caissier_role
+        )
 
         self.ville = Ville.objects.create(nom="BulkDeviVille", company=self.company)
-        self.mode_paiement = ModePaiement.objects.create(nom="BulkDeviPay", company=self.company)
+        self.mode_paiement = ModePaiement.objects.create(
+            nom="BulkDeviPay", company=self.company
+        )
         self.client_obj = Client.objects.create(
             code_client="BDD001",
             client_type="PM",
@@ -1086,9 +1089,7 @@ class TestBulkDeleteDeviAPI:
 
     def test_bulk_delete_single_record(self):
         url = reverse("devi:devi-bulk-delete")
-        response = self.api_client.delete(
-            url, {"ids": [self.devi1.id]}, format="json"
-        )
+        response = self.api_client.delete(url, {"ids": [self.devi1.id]}, format="json")
         assert response.status_code == status.HTTP_204_NO_CONTENT
         assert not Devi.objects.filter(pk=self.devi1.id).exists()
         assert Devi.objects.filter(pk=self.devi2.id).exists()
@@ -1131,7 +1132,5 @@ class TestBulkDeleteDeviAPI:
             remise_type="Pourcentage",
         )
         url = reverse("devi:devi-bulk-delete")
-        response = self.api_client.delete(
-            url, {"ids": [other_devi.id]}, format="json"
-        )
+        response = self.api_client.delete(url, {"ids": [other_devi.id]}, format="json")
         assert response.status_code == status.HTTP_403_FORBIDDEN

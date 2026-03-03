@@ -43,33 +43,48 @@ def send_csv_example_email(self, user_pk, email_):
     """Send import guide via email with CSV and Excel templates attached."""
     try:
         user = CustomUser.objects.get(pk=user_pk)
-        
+
         # Create CSV content with headers only
-        csv_headers = ("reference;type_article;designation;prix_achat;devise_prix_achat;"
-                       "prix_vente;devise_prix_vente;tva;remarque;marque;categorie;emplacement;unite\n")
-        
+        csv_headers = (
+            "reference;type_article;designation;prix_achat;devise_prix_achat;"
+            "prix_vente;devise_prix_vente;tva;remarque;marque;categorie;emplacement;unite\n"
+        )
+
         # Create Excel template
         wb = openpyxl.Workbook()
         ws = wb.active
         ws.title = "Articles"
-        
+
         # Headers for Excel
         headers = [
-            "reference", "type_article", "designation", "prix_achat", "devise_prix_achat",
-            "prix_vente", "devise_prix_vente", "tva", "remarque", "marque", "categorie", 
-            "emplacement", "unite"
+            "reference",
+            "type_article",
+            "designation",
+            "prix_achat",
+            "devise_prix_achat",
+            "prix_vente",
+            "devise_prix_vente",
+            "tva",
+            "remarque",
+            "marque",
+            "categorie",
+            "emplacement",
+            "unite",
         ]
         ws.append(headers)
-        
+
         # Style headers
         from openpyxl.styles import Font, PatternFill
+
         header_font = Font(bold=True)
-        header_fill = PatternFill(start_color="CCE5FF", end_color="CCE5FF", fill_type="solid")
-        
+        header_fill = PatternFill(
+            start_color="CCE5FF", end_color="CCE5FF", fill_type="solid"
+        )
+
         for cell in ws[1]:
             cell.font = header_font
             cell.fill = header_fill
-        
+
         # Adjust column widths
         for col in ws.columns:
             max_length = 0
@@ -79,13 +94,13 @@ def send_csv_example_email(self, user_pk, email_):
                     max_length = max(max_length, len(str(cell.value)))
             adjusted_width = min(max_length + 2, 50)
             ws.column_dimensions[column].width = adjusted_width
-        
+
         # Save Excel to bytes
         excel_buffer = BytesIO()
         wb.save(excel_buffer)
         excel_content = excel_buffer.getvalue()
         excel_buffer.close()
-        
+
         # Render HTML template
         mail_subject = "Guide d'importation des articles - Facturation"
         mail_template = "import_email_guide.html"
@@ -95,28 +110,31 @@ def send_csv_example_email(self, user_pk, email_):
                 "first_name": user.first_name,
             },
         )
-        
+
         # Create email with HTML content
-        email = EmailMessage(
-            subject=mail_subject,
-            body=message,
-            to=(email_,)
-        )
+        email = EmailMessage(subject=mail_subject, body=message, to=(email_,))
         email.content_subtype = "html"
-        
+
         # Attach both CSV and Excel files
         email.attach("modele_articles.csv", csv_headers, "text/csv")
-        email.attach("modele_articles.xlsx", excel_content, 
-                     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-        
+        email.attach(
+            "modele_articles.xlsx",
+            excel_content,
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+
         # Send email
         email.send(fail_silently=False)
-        
+
     except ObjectDoesNotExist:
-        logger.error(f"Utilisateur {user_pk} introuvable pour l'envoi du guide d'importation")
+        logger.error(
+            f"Utilisateur {user_pk} introuvable pour l'envoi du guide d'importation"
+        )
         return
     except Exception as e:
-        logger.error(f"Échec de l'envoi du guide d'importation pour l'utilisateur {user_pk} : {e}")
+        logger.error(
+            f"Échec de l'envoi du guide d'importation pour l'utilisateur {user_pk} : {e}"
+        )
         raise self.retry(exc=e, countdown=60)
 
 

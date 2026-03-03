@@ -19,52 +19,105 @@ class ClientFilter(IsEmptyAutoMixin, django_filters.FilterSet):
     )
 
     # Chip select multi-ID filter
-    ville_ids = CommaSeparatedIDsFilter(
-        field_name="ville_id", label="Ville IDs"
-    )
+    ville_ids = CommaSeparatedIDsFilter(field_name="ville_id", label="Ville IDs")
 
     # Text field filters
-    code_client__icontains = django_filters.CharFilter(field_name="code_client", lookup_expr="icontains")
-    code_client__istartswith = django_filters.CharFilter(field_name="code_client", lookup_expr="istartswith")
-    code_client__iendswith = django_filters.CharFilter(field_name="code_client", lookup_expr="iendswith")
-    code_client = django_filters.CharFilter(field_name="code_client", lookup_expr="exact")
+    code_client__icontains = django_filters.CharFilter(
+        field_name="code_client", lookup_expr="icontains"
+    )
+    code_client__istartswith = django_filters.CharFilter(
+        field_name="code_client", lookup_expr="istartswith"
+    )
+    code_client__iendswith = django_filters.CharFilter(
+        field_name="code_client", lookup_expr="iendswith"
+    )
+    code_client = django_filters.CharFilter(
+        field_name="code_client", lookup_expr="exact"
+    )
 
-    raison_sociale__icontains = django_filters.CharFilter(field_name="raison_sociale", lookup_expr="icontains")
-    raison_sociale__istartswith = django_filters.CharFilter(field_name="raison_sociale", lookup_expr="istartswith")
-    raison_sociale__iendswith = django_filters.CharFilter(field_name="raison_sociale", lookup_expr="iendswith")
-    raison_sociale = django_filters.CharFilter(field_name="raison_sociale", lookup_expr="exact")
+    raison_sociale__icontains = django_filters.CharFilter(
+        field_name="raison_sociale", lookup_expr="icontains"
+    )
+    raison_sociale__istartswith = django_filters.CharFilter(
+        field_name="raison_sociale", lookup_expr="istartswith"
+    )
+    raison_sociale__iendswith = django_filters.CharFilter(
+        field_name="raison_sociale", lookup_expr="iendswith"
+    )
+    raison_sociale = django_filters.CharFilter(
+        field_name="raison_sociale", lookup_expr="exact"
+    )
 
-    nom__icontains = django_filters.CharFilter(field_name="nom", lookup_expr="icontains")
-    nom__istartswith = django_filters.CharFilter(field_name="nom", lookup_expr="istartswith")
-    nom__iendswith = django_filters.CharFilter(field_name="nom", lookup_expr="iendswith")
+    nom__icontains = django_filters.CharFilter(
+        field_name="nom", lookup_expr="icontains"
+    )
+    nom__istartswith = django_filters.CharFilter(
+        field_name="nom", lookup_expr="istartswith"
+    )
+    nom__iendswith = django_filters.CharFilter(
+        field_name="nom", lookup_expr="iendswith"
+    )
     nom = django_filters.CharFilter(field_name="nom", lookup_expr="exact")
 
     # Text lookup filters for prenom
-    prenom__icontains = django_filters.CharFilter(field_name="prenom", lookup_expr="icontains")
-    prenom__istartswith = django_filters.CharFilter(field_name="prenom", lookup_expr="istartswith")
-    prenom__iendswith = django_filters.CharFilter(field_name="prenom", lookup_expr="iendswith")
+    prenom__icontains = django_filters.CharFilter(
+        field_name="prenom", lookup_expr="icontains"
+    )
+    prenom__istartswith = django_filters.CharFilter(
+        field_name="prenom", lookup_expr="istartswith"
+    )
+    prenom__iendswith = django_filters.CharFilter(
+        field_name="prenom", lookup_expr="iendswith"
+    )
     prenom = django_filters.CharFilter(field_name="prenom", lookup_expr="exact")
 
     # Dropdown filters
-    client_type = django_filters.CharFilter(field_name="client_type", lookup_expr="exact")
+    client_type = django_filters.CharFilter(
+        field_name="client_type", lookup_expr="exact"
+    )
     ville = django_filters.NumberFilter(field_name="ville_id", lookup_expr="exact")
 
     # Text lookup filters for ville_name (mapped to ville__nom)
-    ville_name__icontains = django_filters.CharFilter(field_name="ville__nom", lookup_expr="icontains")
-    ville_name__istartswith = django_filters.CharFilter(field_name="ville__nom", lookup_expr="istartswith")
-    ville_name__iendswith = django_filters.CharFilter(field_name="ville__nom", lookup_expr="iendswith")
+    ville_name__icontains = django_filters.CharFilter(
+        field_name="ville__nom", lookup_expr="icontains"
+    )
+    ville_name__istartswith = django_filters.CharFilter(
+        field_name="ville__nom", lookup_expr="istartswith"
+    )
+    ville_name__iendswith = django_filters.CharFilter(
+        field_name="ville__nom", lookup_expr="iendswith"
+    )
     ville_name = django_filters.CharFilter(field_name="ville__nom", lookup_expr="exact")
 
     class Meta:
         model = Client
         fields = [
-            "archived", "company_id", "date_created_after", "date_created_before",
-            "code_client", "code_client__icontains", "code_client__istartswith", "code_client__iendswith",
-            "raison_sociale", "raison_sociale__icontains", "raison_sociale__istartswith", "raison_sociale__iendswith",
-            "nom", "nom__icontains", "nom__istartswith", "nom__iendswith",
-            "prenom", "prenom__icontains", "prenom__istartswith", "prenom__iendswith",
-            "client_type", "ville",
-            "ville_name", "ville_name__icontains", "ville_name__istartswith", "ville_name__iendswith",
+            "archived",
+            "company_id",
+            "date_created_after",
+            "date_created_before",
+            "code_client",
+            "code_client__icontains",
+            "code_client__istartswith",
+            "code_client__iendswith",
+            "raison_sociale",
+            "raison_sociale__icontains",
+            "raison_sociale__istartswith",
+            "raison_sociale__iendswith",
+            "nom",
+            "nom__icontains",
+            "nom__istartswith",
+            "nom__iendswith",
+            "prenom",
+            "prenom__icontains",
+            "prenom__istartswith",
+            "prenom__iendswith",
+            "client_type",
+            "ville",
+            "ville_name",
+            "ville_name__icontains",
+            "ville_name__istartswith",
+            "ville_name__iendswith",
         ]
 
     @staticmethod

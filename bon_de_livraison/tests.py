@@ -13,7 +13,10 @@ from rest_framework.test import APIClient
 from account.models import CustomUser, Membership, Role
 from article.models import Article
 from bon_de_livraison.admin import BonDeLivraisonAdmin, BonDeLivraisonLineAdmin
-from bon_de_livraison.serializers import BonDeLivraisonLineSerializer, BonDeLivraisonSerializer
+from bon_de_livraison.serializers import (
+    BonDeLivraisonLineSerializer,
+    BonDeLivraisonSerializer,
+)
 from bon_de_livraison.utils import get_next_numero_bon_livraison
 from client.models import Client
 from company.models import Company
@@ -72,7 +75,9 @@ def bon_de_livraison_client(bon_de_livraison_ville, bon_de_livraison_company):
 
 @pytest.fixture
 def bon_de_livraison_mode_paiement(bon_de_livraison_company):
-    return ModePaiement.objects.create(nom="LivraisonPay", company=bon_de_livraison_company)
+    return ModePaiement.objects.create(
+        nom="LivraisonPay", company=bon_de_livraison_company
+    )
 
 
 @pytest.fixture
@@ -151,7 +156,9 @@ class TestBonDeLivraisonAPI(SharedDocumentAPITestsMixin):
         self.base_setup_method()
 
         # Create bon_de_livraison-specific field
-        self.livre_par = LivrePar.objects.create(nom="Jean Dupont", company=self.company)
+        self.livre_par = LivrePar.objects.create(
+            nom="Jean Dupont", company=self.company
+        )
 
         # Create bon_de_livraison-specific document and line
         self.doc = BonDeLivraison.objects.create(
@@ -250,7 +257,9 @@ class TestBonDeLivraisonFilters(SharedDocumentFilterTestsMixin):
         self.base_filter_setup_method()
 
         # Create bon_de_livraison-specific field
-        self.livre_par = LivrePar.objects.create(nom="Livreur Test", company=self.company)
+        self.livre_par = LivrePar.objects.create(
+            nom="Livreur Test", company=self.company
+        )
 
         # Create bon_de_livraison-specific documents
         self.doc1 = BonDeLivraison.objects.create(
@@ -316,8 +325,12 @@ class TestBonDeLivraisonModels(SharedDocumentModelTestsMixin):
             company=self.company,
             ville=self.ville,
         )
-        self.mode_paiement = ModePaiement.objects.create(nom="ModPay", company=self.company)
-        self.livre_par = LivrePar.objects.create(nom="Model Livreur", company=self.company)
+        self.mode_paiement = ModePaiement.objects.create(
+            nom="ModPay", company=self.company
+        )
+        self.livre_par = LivrePar.objects.create(
+            nom="Model Livreur", company=self.company
+        )
 
         self.article = Article.objects.create(
             company=self.company,
@@ -401,8 +414,12 @@ class TestBonDeLivraisonAdmin(SharedDocumentAdminTestsMixin):
             company=self.company,
             ville=self.ville,
         )
-        self.mode_paiement = ModePaiement.objects.create(nom="AdminPay", company=self.company)
-        self.livre_par = LivrePar.objects.create(nom="Admin Livreur", company=self.company)
+        self.mode_paiement = ModePaiement.objects.create(
+            nom="AdminPay", company=self.company
+        )
+        self.livre_par = LivrePar.objects.create(
+            nom="Admin Livreur", company=self.company
+        )
 
         self.article = Article.objects.create(
             company=self.company,
@@ -559,7 +576,7 @@ class TestBonDeLivraisonUtilsExtra:
 
         # Clear all bons
         BonDeLivraison.objects.all().delete()
-        
+
         # Create a company for testing
         company = Company.objects.create(raison_sociale="Empty Test Co", ICE="EMPTY123")
 
@@ -616,7 +633,6 @@ class TestBonDeLivraisonUtilsExtra:
 @pytest.mark.django_db
 class TestBonDeLivraisonAdminExtra(SharedDocumentAdminTestsMixin):
     """Extra tests for BonDeLivraison admin."""
-
 
     AdminClass = BonDeLivraisonAdmin
     LineAdminClass = BonDeLivraisonLineAdmin
@@ -1424,11 +1440,17 @@ class TestBulkDeleteBonDeLivraisonAPI:
 
         self.company = Company.objects.create(raison_sociale="BulkBLCo", ICE="BDBLC01")
         caissier_role, _ = Role.objects.get_or_create(name="Caissier")
-        Membership.objects.create(user=self.user, company=self.company, role=caissier_role)
+        Membership.objects.create(
+            user=self.user, company=self.company, role=caissier_role
+        )
 
         self.ville = Ville.objects.create(nom="BulkBLVille", company=self.company)
-        self.mode_paiement = ModePaiement.objects.create(nom="BulkBLPay", company=self.company)
-        self.livre_par = LivrePar.objects.create(nom="BulkLivreur", company=self.company)
+        self.mode_paiement = ModePaiement.objects.create(
+            nom="BulkBLPay", company=self.company
+        )
+        self.livre_par = LivrePar.objects.create(
+            nom="BulkLivreur", company=self.company
+        )
         self.client_obj = Client.objects.create(
             code_client="BDBL001",
             client_type="PM",
@@ -1465,13 +1487,13 @@ class TestBulkDeleteBonDeLivraisonAPI:
             url, {"ids": [self.bl1.id, self.bl2.id]}, format="json"
         )
         assert response.status_code == status.HTTP_204_NO_CONTENT
-        assert not BonDeLivraison.objects.filter(pk__in=[self.bl1.id, self.bl2.id]).exists()
+        assert not BonDeLivraison.objects.filter(
+            pk__in=[self.bl1.id, self.bl2.id]
+        ).exists()
 
     def test_bulk_delete_single_record(self):
         url = reverse("bon_de_livraison:bon-de-livraison-bulk-delete")
-        response = self.api_client.delete(
-            url, {"ids": [self.bl1.id]}, format="json"
-        )
+        response = self.api_client.delete(url, {"ids": [self.bl1.id]}, format="json")
         assert response.status_code == status.HTTP_204_NO_CONTENT
         assert not BonDeLivraison.objects.filter(pk=self.bl1.id).exists()
         assert BonDeLivraison.objects.filter(pk=self.bl2.id).exists()
@@ -1495,8 +1517,12 @@ class TestBulkDeleteBonDeLivraisonAPI:
     def test_bulk_delete_wrong_company_returns_403(self):
         other_company = Company.objects.create(raison_sociale="OtherCo", ICE="OTHBL1")
         other_ville = Ville.objects.create(nom="OtherBLVille", company=other_company)
-        other_mode = ModePaiement.objects.create(nom="OtherBLPay", company=other_company)
-        other_livre_par = LivrePar.objects.create(nom="OtherLivreur", company=other_company)
+        other_mode = ModePaiement.objects.create(
+            nom="OtherBLPay", company=other_company
+        )
+        other_livre_par = LivrePar.objects.create(
+            nom="OtherLivreur", company=other_company
+        )
         other_client = Client.objects.create(
             code_client="OTHBL01",
             client_type="PM",
@@ -1516,7 +1542,5 @@ class TestBulkDeleteBonDeLivraisonAPI:
             remise_type="Pourcentage",
         )
         url = reverse("bon_de_livraison:bon-de-livraison-bulk-delete")
-        response = self.api_client.delete(
-            url, {"ids": [other_bl.id]}, format="json"
-        )
+        response = self.api_client.delete(url, {"ids": [other_bl.id]}, format="json")
         assert response.status_code == status.HTTP_403_FORBIDDEN

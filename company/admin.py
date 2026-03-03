@@ -42,7 +42,12 @@ class CompanyAdmin(SimpleHistoryAdmin):
         "date_created",
         "date_updated",
     )
-    list_filter = ("civilite_responsable", "nbr_employe", "suspended", "uses_foreign_currency")
+    list_filter = (
+        "civilite_responsable",
+        "nbr_employe",
+        "suspended",
+        "uses_foreign_currency",
+    )
     search_fields = (
         "raison_sociale",
         "email",

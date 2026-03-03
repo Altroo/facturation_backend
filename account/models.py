@@ -35,9 +35,15 @@ def get_avatar_path(_, filename):
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
     # Password (hidden)
-    email = models.EmailField("Adresse e‑mail", unique=True, help_text="Adresse e‑mail de l'utilisateur")
-    first_name = models.CharField("Prénom", max_length=30, blank=True, help_text="Prénom de l'utilisateur")
-    last_name = models.CharField("Nom", max_length=30, blank=True, help_text="Nom de famille de l'utilisateur")
+    email = models.EmailField(
+        "Adresse e‑mail", unique=True, help_text="Adresse e‑mail de l'utilisateur"
+    )
+    first_name = models.CharField(
+        "Prénom", max_length=30, blank=True, help_text="Prénom de l'utilisateur"
+    )
+    last_name = models.CharField(
+        "Nom", max_length=30, blank=True, help_text="Nom de famille de l'utilisateur"
+    )
     GENDER_CHOICES = (("", "Unset"), ("H", "Homme"), ("F", "Femme"))
     gender = models.CharField(
         verbose_name="Sexe",
@@ -127,7 +133,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     objects = CustomUserManager()
     history = HistoricalRecords(
         verbose_name="Historique Utilisateur",
-        verbose_name_plural="Historiques Utilisateurs"
+        verbose_name_plural="Historiques Utilisateurs",
     )
 
     def __str__(self):
@@ -185,8 +191,7 @@ class Membership(models.Model):
     )
 
     history = HistoricalRecords(
-        verbose_name="Historique Membre",
-        verbose_name_plural="Historiques Membres"
+        verbose_name="Historique Membre", verbose_name_plural="Historiques Membres"
     )
 
     class Meta:
@@ -194,7 +199,9 @@ class Membership(models.Model):
         verbose_name_plural = "Membres"
         ordering = ("role",)
         constraints = [
-            models.UniqueConstraint(fields=["user", "company"], name="unique_user_company_membership"),
+            models.UniqueConstraint(
+                fields=["user", "company"], name="unique_user_company_membership"
+            ),
         ]
         indexes = [
             models.Index(fields=["user", "role"]),

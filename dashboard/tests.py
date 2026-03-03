@@ -1234,11 +1234,7 @@ class TestPaymentStatusScenarios:
         )
         assert response.status_code == status.HTTP_200_OK
         partial_count = next(
-            (
-                s["count"]
-                for s in response.data
-                if s["status"] == "Partiellement payée"
-            ),
+            (s["count"] for s in response.data if s["status"] == "Partiellement payée"),
             0,
         )
         assert partial_count >= 1

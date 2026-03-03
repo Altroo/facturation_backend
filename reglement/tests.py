@@ -309,8 +309,12 @@ class TestReglementAPI:
             ville=self.ville,
             company=self.company,
         )
-        self.mode_paiement = ModePaiement.objects.create(nom="API Payment", company=self.company)
-        self.mode_reglement = ModePaiement.objects.create(nom="API Règlement", company=self.company)
+        self.mode_paiement = ModePaiement.objects.create(
+            nom="API Payment", company=self.company
+        )
+        self.mode_reglement = ModePaiement.objects.create(
+            nom="API Règlement", company=self.company
+        )
 
         self.article = Article.objects.create(
             company=self.company,
@@ -798,9 +802,15 @@ class TestReglementFilters:
             company=self.company,
             ville=self.ville,
         )
-        self.mode_paiement = ModePaiement.objects.create(nom="FilterPay", company=self.company)
-        self.mode_reglement = ModePaiement.objects.create(nom="FilterReg", company=self.company)
-        self.mode_reglement2 = ModePaiement.objects.create(nom="FilterReg2", company=self.company)
+        self.mode_paiement = ModePaiement.objects.create(
+            nom="FilterPay", company=self.company
+        )
+        self.mode_reglement = ModePaiement.objects.create(
+            nom="FilterReg", company=self.company
+        )
+        self.mode_reglement2 = ModePaiement.objects.create(
+            nom="FilterReg2", company=self.company
+        )
 
         self.article = Article.objects.create(
             company=self.company,
@@ -979,7 +989,9 @@ class TestReglementFilters:
     def test_facture_client_numero_icontains_filter(self):
         """Test facture_client_numero__icontains maps to facture_client__numero_facture."""
         base_qs = Reglement.objects.all()
-        filt = ReglementFilter({"facture_client_numero__icontains": "FILT"}, queryset=base_qs)
+        filt = ReglementFilter(
+            {"facture_client_numero__icontains": "FILT"}, queryset=base_qs
+        )
         assert self.reg1 in filt.qs
 
     def test_client_name_icontains_filter(self):
@@ -991,9 +1003,13 @@ class TestReglementFilters:
     def test_mode_reglement_name_icontains_filter(self):
         """Test mode_reglement_name__icontains maps to mode_reglement__nom."""
         base_qs = Reglement.objects.all()
-        filt = ReglementFilter({"mode_reglement_name__icontains": "FilterPay"}, queryset=base_qs)
+        filt = ReglementFilter(
+            {"mode_reglement_name__icontains": "FilterPay"}, queryset=base_qs
+        )
         # self.reg1 uses self.mode_reglement which has nom="FilterReg"
-        filt2 = ReglementFilter({"mode_reglement_name__icontains": "FilterReg2"}, queryset=base_qs)
+        filt2 = ReglementFilter(
+            {"mode_reglement_name__icontains": "FilterReg2"}, queryset=base_qs
+        )
         assert self.reg2 in filt2.qs
         assert self.reg1 not in filt2.qs
 
@@ -1408,8 +1424,12 @@ class TestReglementFactureStatusValidation:
             ville=self.ville,
             company=self.company,
         )
-        self.mode_paiement = ModePaiement.objects.create(nom="Status Payment", company=self.company)
-        self.mode_reglement = ModePaiement.objects.create(nom="Status Règlement", company=self.company)
+        self.mode_paiement = ModePaiement.objects.create(
+            nom="Status Payment", company=self.company
+        )
+        self.mode_reglement = ModePaiement.objects.create(
+            nom="Status Règlement", company=self.company
+        )
 
         self.article = Article.objects.create(
             company=self.company,
@@ -1445,7 +1465,6 @@ class TestReglementFactureStatusValidation:
         """Test that creating règlement for Brouillon facture fails."""
         facture = self._create_facture_with_status("Brouillon", "BROUILLON/01")
 
-
         data = {
             "facture_client": facture.id,
             "mode_reglement": self.mode_reglement.id,
@@ -1461,7 +1480,6 @@ class TestReglementFactureStatusValidation:
     def test_create_reglement_for_refuse_fails(self):
         """Test that creating règlement for Refusé facture fails."""
         facture = self._create_facture_with_status("Refusé", "REFUSE/01")
-
 
         data = {
             "facture_client": facture.id,
@@ -1479,7 +1497,6 @@ class TestReglementFactureStatusValidation:
         """Test that creating règlement for Annulé facture fails."""
         facture = self._create_facture_with_status("Annulé", "ANNULE/01")
 
-
         data = {
             "facture_client": facture.id,
             "mode_reglement": self.mode_reglement.id,
@@ -1495,7 +1512,6 @@ class TestReglementFactureStatusValidation:
     def test_create_reglement_for_expire_fails(self):
         """Test that creating règlement for Expiré facture fails."""
         facture = self._create_facture_with_status("Expiré", "EXPIRE/01")
-
 
         data = {
             "facture_client": facture.id,
@@ -1513,7 +1529,6 @@ class TestReglementFactureStatusValidation:
         """Test that creating règlement for Envoyé facture succeeds."""
         facture = self._create_facture_with_status("Envoyé", "ENVOYE/01")
 
-
         data = {
             "facture_client": facture.id,
             "mode_reglement": self.mode_reglement.id,
@@ -1528,7 +1543,6 @@ class TestReglementFactureStatusValidation:
     def test_create_reglement_for_accepte_succeeds(self):
         """Test that creating règlement for Accepté facture succeeds."""
         facture = self._create_facture_with_status("Accepté", "ACCEPTE/01")
-
 
         data = {
             "facture_client": facture.id,
@@ -1774,13 +1788,21 @@ class TestBulkDeleteReglementAPI:
         self.api_client = APIClient()
         self.api_client.force_authenticate(user=self.user)
 
-        self.company = Company.objects.create(raison_sociale="BulkReglCo", ICE="BDRGLC1")
+        self.company = Company.objects.create(
+            raison_sociale="BulkReglCo", ICE="BDRGLC1"
+        )
         caissier_role, _ = Role.objects.get_or_create(name="Caissier")
-        Membership.objects.create(user=self.user, company=self.company, role=caissier_role)
+        Membership.objects.create(
+            user=self.user, company=self.company, role=caissier_role
+        )
 
         self.ville = Ville.objects.create(nom="BulkReglVille", company=self.company)
-        self.mode_paiement = ModePaiement.objects.create(nom="BulkReglPay", company=self.company)
-        self.mode_reglement = ModePaiement.objects.create(nom="BulkReglMode", company=self.company)
+        self.mode_paiement = ModePaiement.objects.create(
+            nom="BulkReglPay", company=self.company
+        )
+        self.mode_reglement = ModePaiement.objects.create(
+            nom="BulkReglMode", company=self.company
+        )
         self.client_obj = Client.objects.create(
             code_client="BDRGL001",
             client_type="PM",
@@ -1821,13 +1843,13 @@ class TestBulkDeleteReglementAPI:
             url, {"ids": [self.regl1.id, self.regl2.id]}, format="json"
         )
         assert response.status_code == status.HTTP_204_NO_CONTENT
-        assert not Reglement.objects.filter(pk__in=[self.regl1.id, self.regl2.id]).exists()
+        assert not Reglement.objects.filter(
+            pk__in=[self.regl1.id, self.regl2.id]
+        ).exists()
 
     def test_bulk_delete_single_record(self):
         url = reverse("reglement:reglement-bulk-delete")
-        response = self.api_client.delete(
-            url, {"ids": [self.regl1.id]}, format="json"
-        )
+        response = self.api_client.delete(url, {"ids": [self.regl1.id]}, format="json")
         assert response.status_code == status.HTTP_204_NO_CONTENT
         assert not Reglement.objects.filter(pk=self.regl1.id).exists()
         assert Reglement.objects.filter(pk=self.regl2.id).exists()
@@ -1851,8 +1873,12 @@ class TestBulkDeleteReglementAPI:
     def test_bulk_delete_wrong_company_returns_403(self):
         other_company = Company.objects.create(raison_sociale="OtherCo", ICE="OTHRGL1")
         other_ville = Ville.objects.create(nom="OtherReglVille", company=other_company)
-        other_mode_p = ModePaiement.objects.create(nom="OtherReglPay", company=other_company)
-        other_mode_r = ModePaiement.objects.create(nom="OtherReglMode", company=other_company)
+        other_mode_p = ModePaiement.objects.create(
+            nom="OtherReglPay", company=other_company
+        )
+        other_mode_r = ModePaiement.objects.create(
+            nom="OtherReglMode", company=other_company
+        )
         other_client = Client.objects.create(
             code_client="OTHRGL01",
             client_type="PM",
@@ -1879,7 +1905,5 @@ class TestBulkDeleteReglementAPI:
             statut="Valide",
         )
         url = reverse("reglement:reglement-bulk-delete")
-        response = self.api_client.delete(
-            url, {"ids": [other_regl.id]}, format="json"
-        )
+        response = self.api_client.delete(url, {"ids": [other_regl.id]}, format="json")
         assert response.status_code == status.HTTP_403_FORBIDDEN

@@ -17,47 +17,99 @@ class CompanyFilter(IsEmptyAutoMixin, django_filters.FilterSet):
     )
 
     # Text lookup filters for raison_sociale
-    raison_sociale__icontains = django_filters.CharFilter(field_name="raison_sociale", lookup_expr="icontains")
-    raison_sociale__istartswith = django_filters.CharFilter(field_name="raison_sociale", lookup_expr="istartswith")
-    raison_sociale__iendswith = django_filters.CharFilter(field_name="raison_sociale", lookup_expr="iendswith")
-    raison_sociale = django_filters.CharFilter(field_name="raison_sociale", lookup_expr="exact")
+    raison_sociale__icontains = django_filters.CharFilter(
+        field_name="raison_sociale", lookup_expr="icontains"
+    )
+    raison_sociale__istartswith = django_filters.CharFilter(
+        field_name="raison_sociale", lookup_expr="istartswith"
+    )
+    raison_sociale__iendswith = django_filters.CharFilter(
+        field_name="raison_sociale", lookup_expr="iendswith"
+    )
+    raison_sociale = django_filters.CharFilter(
+        field_name="raison_sociale", lookup_expr="exact"
+    )
 
     # Text lookup filters for ICE
-    ICE__icontains = django_filters.CharFilter(field_name="ICE", lookup_expr="icontains")
-    ICE__istartswith = django_filters.CharFilter(field_name="ICE", lookup_expr="istartswith")
-    ICE__iendswith = django_filters.CharFilter(field_name="ICE", lookup_expr="iendswith")
+    ICE__icontains = django_filters.CharFilter(
+        field_name="ICE", lookup_expr="icontains"
+    )
+    ICE__istartswith = django_filters.CharFilter(
+        field_name="ICE", lookup_expr="istartswith"
+    )
+    ICE__iendswith = django_filters.CharFilter(
+        field_name="ICE", lookup_expr="iendswith"
+    )
     ICE = django_filters.CharFilter(field_name="ICE", lookup_expr="exact")
 
     # Text lookup filters for nom_responsable
-    nom_responsable__icontains = django_filters.CharFilter(field_name="nom_responsable", lookup_expr="icontains")
-    nom_responsable__istartswith = django_filters.CharFilter(field_name="nom_responsable", lookup_expr="istartswith")
-    nom_responsable__iendswith = django_filters.CharFilter(field_name="nom_responsable", lookup_expr="iendswith")
-    nom_responsable = django_filters.CharFilter(field_name="nom_responsable", lookup_expr="exact")
+    nom_responsable__icontains = django_filters.CharFilter(
+        field_name="nom_responsable", lookup_expr="icontains"
+    )
+    nom_responsable__istartswith = django_filters.CharFilter(
+        field_name="nom_responsable", lookup_expr="istartswith"
+    )
+    nom_responsable__iendswith = django_filters.CharFilter(
+        field_name="nom_responsable", lookup_expr="iendswith"
+    )
+    nom_responsable = django_filters.CharFilter(
+        field_name="nom_responsable", lookup_expr="exact"
+    )
 
     # Text lookup filters for email
-    email__icontains = django_filters.CharFilter(field_name="email", lookup_expr="icontains")
-    email__istartswith = django_filters.CharFilter(field_name="email", lookup_expr="istartswith")
-    email__iendswith = django_filters.CharFilter(field_name="email", lookup_expr="iendswith")
+    email__icontains = django_filters.CharFilter(
+        field_name="email", lookup_expr="icontains"
+    )
+    email__istartswith = django_filters.CharFilter(
+        field_name="email", lookup_expr="istartswith"
+    )
+    email__iendswith = django_filters.CharFilter(
+        field_name="email", lookup_expr="iendswith"
+    )
     email = django_filters.CharFilter(field_name="email", lookup_expr="exact")
 
     # Text lookup filters for telephone
-    telephone__icontains = django_filters.CharFilter(field_name="telephone", lookup_expr="icontains")
-    telephone__istartswith = django_filters.CharFilter(field_name="telephone", lookup_expr="istartswith")
-    telephone__iendswith = django_filters.CharFilter(field_name="telephone", lookup_expr="iendswith")
+    telephone__icontains = django_filters.CharFilter(
+        field_name="telephone", lookup_expr="icontains"
+    )
+    telephone__istartswith = django_filters.CharFilter(
+        field_name="telephone", lookup_expr="istartswith"
+    )
+    telephone__iendswith = django_filters.CharFilter(
+        field_name="telephone", lookup_expr="iendswith"
+    )
     telephone = django_filters.CharFilter(field_name="telephone", lookup_expr="exact")
 
     # Dropdown filter for nbr_employe
-    nbr_employe = django_filters.CharFilter(field_name="nbr_employe", lookup_expr="exact")
+    nbr_employe = django_filters.CharFilter(
+        field_name="nbr_employe", lookup_expr="exact"
+    )
 
     class Meta:
         model = Company
         fields = [
-            "date_created_after", "date_created_before",
-            "raison_sociale", "raison_sociale__icontains", "raison_sociale__istartswith", "raison_sociale__iendswith",
-            "ICE", "ICE__icontains", "ICE__istartswith", "ICE__iendswith",
-            "nom_responsable", "nom_responsable__icontains", "nom_responsable__istartswith", "nom_responsable__iendswith",
-            "email", "email__icontains", "email__istartswith", "email__iendswith",
-            "telephone", "telephone__icontains", "telephone__istartswith", "telephone__iendswith",
+            "date_created_after",
+            "date_created_before",
+            "raison_sociale",
+            "raison_sociale__icontains",
+            "raison_sociale__istartswith",
+            "raison_sociale__iendswith",
+            "ICE",
+            "ICE__icontains",
+            "ICE__istartswith",
+            "ICE__iendswith",
+            "nom_responsable",
+            "nom_responsable__icontains",
+            "nom_responsable__istartswith",
+            "nom_responsable__iendswith",
+            "email",
+            "email__icontains",
+            "email__istartswith",
+            "email__iendswith",
+            "telephone",
+            "telephone__icontains",
+            "telephone__istartswith",
+            "telephone__iendswith",
             "nbr_employe",
         ]
 

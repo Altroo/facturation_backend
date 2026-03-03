@@ -17,8 +17,7 @@ class Ville(models.Model):
     )
 
     history = HistoricalRecords(
-        verbose_name="Historique Ville",
-        verbose_name_plural="Historiques Villes"
+        verbose_name="Historique Ville", verbose_name_plural="Historiques Villes"
     )
 
     class Meta:
@@ -51,7 +50,7 @@ class ModePaiement(models.Model):
 
     history = HistoricalRecords(
         verbose_name="Historique Mode de paiement",
-        verbose_name_plural="Historiques Modes de paiement"
+        verbose_name_plural="Historiques Modes de paiement",
     )
 
     class Meta:
@@ -83,8 +82,7 @@ class Marque(models.Model):
     )
 
     history = HistoricalRecords(
-        verbose_name="Historique Marque",
-        verbose_name_plural="Historiques Marques"
+        verbose_name="Historique Marque", verbose_name_plural="Historiques Marques"
     )
 
     class Meta:
@@ -117,7 +115,7 @@ class Categorie(models.Model):
 
     history = HistoricalRecords(
         verbose_name="Historique Catégorie",
-        verbose_name_plural="Historiques Catégories"
+        verbose_name_plural="Historiques Catégories",
     )
 
     class Meta:
@@ -149,8 +147,7 @@ class Unite(models.Model):
     )
 
     history = HistoricalRecords(
-        verbose_name="Historique Unité",
-        verbose_name_plural="Historiques Unités"
+        verbose_name="Historique Unité", verbose_name_plural="Historiques Unités"
     )
 
     class Meta:
@@ -183,7 +180,7 @@ class Emplacement(models.Model):
 
     history = HistoricalRecords(
         verbose_name="Historique Emplacement",
-        verbose_name_plural="Historiques Emplacements"
+        verbose_name_plural="Historiques Emplacements",
     )
 
     class Meta:
@@ -215,8 +212,7 @@ class LivrePar(models.Model):
     )
 
     history = HistoricalRecords(
-        verbose_name="Historique Livré par",
-        verbose_name_plural="Historiques Livré par"
+        verbose_name="Historique Livré par", verbose_name_plural="Historiques Livré par"
     )
 
     class Meta:

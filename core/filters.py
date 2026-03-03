@@ -43,9 +43,7 @@ def add_is_empty_filters(filterset):
         if isempty_name in filterset.filters:
             continue
         if isinstance(filt, django_filters.CharFilter):
-            filterset.filters[isempty_name] = IsEmptyFilter(
-                field_name=filt.field_name
-            )
+            filterset.filters[isempty_name] = IsEmptyFilter(field_name=filt.field_name)
         elif isinstance(filt, django_filters.NumberFilter):
             filterset.filters[isempty_name] = django_filters.BooleanFilter(
                 field_name=filt.field_name, lookup_expr="isnull"
@@ -87,26 +85,58 @@ class BaseDocumentFilter(django_filters.FilterSet):
     )
 
     # Numeric filters for common document fields
-    total_ttc_apres_remise = django_filters.NumberFilter(field_name="total_ttc_apres_remise", lookup_expr="exact")
-    total_ttc_apres_remise__gt = django_filters.NumberFilter(field_name="total_ttc_apres_remise", lookup_expr="gt")
-    total_ttc_apres_remise__gte = django_filters.NumberFilter(field_name="total_ttc_apres_remise", lookup_expr="gte")
-    total_ttc_apres_remise__lt = django_filters.NumberFilter(field_name="total_ttc_apres_remise", lookup_expr="lt")
-    total_ttc_apres_remise__lte = django_filters.NumberFilter(field_name="total_ttc_apres_remise", lookup_expr="lte")
-    total_ttc_apres_remise__ne = django_filters.NumberFilter(field_name="total_ttc_apres_remise", exclude=True)
+    total_ttc_apres_remise = django_filters.NumberFilter(
+        field_name="total_ttc_apres_remise", lookup_expr="exact"
+    )
+    total_ttc_apres_remise__gt = django_filters.NumberFilter(
+        field_name="total_ttc_apres_remise", lookup_expr="gt"
+    )
+    total_ttc_apres_remise__gte = django_filters.NumberFilter(
+        field_name="total_ttc_apres_remise", lookup_expr="gte"
+    )
+    total_ttc_apres_remise__lt = django_filters.NumberFilter(
+        field_name="total_ttc_apres_remise", lookup_expr="lt"
+    )
+    total_ttc_apres_remise__lte = django_filters.NumberFilter(
+        field_name="total_ttc_apres_remise", lookup_expr="lte"
+    )
+    total_ttc_apres_remise__ne = django_filters.NumberFilter(
+        field_name="total_ttc_apres_remise", exclude=True
+    )
 
     # Numeric filters for lignes_count (annotated Count of related lignes)
-    lignes_count = django_filters.NumberFilter(method="filter_lignes_count_exact", label="Lignes Count")
-    lignes_count__gt = django_filters.NumberFilter(method="filter_lignes_count_gt", label="Lignes Count (>)")
-    lignes_count__gte = django_filters.NumberFilter(method="filter_lignes_count_gte", label="Lignes Count (>=)")
-    lignes_count__lt = django_filters.NumberFilter(method="filter_lignes_count_lt", label="Lignes Count (<)")
-    lignes_count__lte = django_filters.NumberFilter(method="filter_lignes_count_lte", label="Lignes Count (<=)")
-    lignes_count__ne = django_filters.NumberFilter(method="filter_lignes_count_ne", label="Lignes Count (!=)")
+    lignes_count = django_filters.NumberFilter(
+        method="filter_lignes_count_exact", label="Lignes Count"
+    )
+    lignes_count__gt = django_filters.NumberFilter(
+        method="filter_lignes_count_gt", label="Lignes Count (>)"
+    )
+    lignes_count__gte = django_filters.NumberFilter(
+        method="filter_lignes_count_gte", label="Lignes Count (>=)"
+    )
+    lignes_count__lt = django_filters.NumberFilter(
+        method="filter_lignes_count_lt", label="Lignes Count (<)"
+    )
+    lignes_count__lte = django_filters.NumberFilter(
+        method="filter_lignes_count_lte", label="Lignes Count (<=)"
+    )
+    lignes_count__ne = django_filters.NumberFilter(
+        method="filter_lignes_count_ne", label="Lignes Count (!=)"
+    )
 
     # Text lookup filters for client_name (mapped to client__raison_sociale)
-    client_name__icontains = django_filters.CharFilter(field_name="client__raison_sociale", lookup_expr="icontains")
-    client_name__istartswith = django_filters.CharFilter(field_name="client__raison_sociale", lookup_expr="istartswith")
-    client_name__iendswith = django_filters.CharFilter(field_name="client__raison_sociale", lookup_expr="iendswith")
-    client_name = django_filters.CharFilter(field_name="client__raison_sociale", lookup_expr="exact")
+    client_name__icontains = django_filters.CharFilter(
+        field_name="client__raison_sociale", lookup_expr="icontains"
+    )
+    client_name__istartswith = django_filters.CharFilter(
+        field_name="client__raison_sociale", lookup_expr="istartswith"
+    )
+    client_name__iendswith = django_filters.CharFilter(
+        field_name="client__raison_sociale", lookup_expr="iendswith"
+    )
+    client_name = django_filters.CharFilter(
+        field_name="client__raison_sociale", lookup_expr="exact"
+    )
 
     # Subclasses should override these
     numero_field = (
@@ -120,8 +150,11 @@ class BaseDocumentFilter(django_filters.FilterSet):
         # Dynamically add text-lookup filters for numero_field and req_field
         if self.numero_field:
             nf = self.numero_field
-            for suffix, lookup in [("__icontains", "icontains"), ("__istartswith", "istartswith"),
-                                   ("__iendswith", "iendswith")]:
+            for suffix, lookup in [
+                ("__icontains", "icontains"),
+                ("__istartswith", "istartswith"),
+                ("__iendswith", "iendswith"),
+            ]:
                 name = nf + suffix
                 if name not in self.filters:
                     self.filters[name] = django_filters.CharFilter(
@@ -134,8 +167,11 @@ class BaseDocumentFilter(django_filters.FilterSet):
                 )
         if self.req_field:
             rf = self.req_field
-            for suffix, lookup in [("__icontains", "icontains"), ("__istartswith", "istartswith"),
-                                   ("__iendswith", "iendswith")]:
+            for suffix, lookup in [
+                ("__icontains", "icontains"),
+                ("__istartswith", "istartswith"),
+                ("__iendswith", "iendswith"),
+            ]:
                 name = rf + suffix
                 if name not in self.filters:
                     self.filters[name] = django_filters.CharFilter(

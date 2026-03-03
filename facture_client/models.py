@@ -52,7 +52,7 @@ class FactureClient(BaseDeviFactureDocument):
         verbose_name = "Facture Client"
         verbose_name_plural = "Factures Client"
         ordering = ("-date_created",)
-        unique_together = [('numero_facture', 'company')]
+        unique_together = [("numero_facture", "company")]
         indexes = [
             models.Index(fields=["company", "date_facture"]),
             models.Index(fields=["client", "company"]),

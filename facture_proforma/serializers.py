@@ -184,4 +184,10 @@ class FactureProformaDetailSerializer(BaseDetailUpdateSerializer):
         return FactureProFormaLineSerializer
 
     class Meta(FactureProformaSerializer.Meta):
-        read_only_fields = ["id", "company", "created_by_user", "date_created", "date_updated"]
+        read_only_fields = [
+            "id",
+            "company",
+            "created_by_user",
+            "date_created",
+            "date_updated",
+        ]

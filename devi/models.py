@@ -49,7 +49,7 @@ class Devi(BaseDeviFactureDocument):
         verbose_name = "Devis"
         verbose_name_plural = "Devis"
         ordering = ("-date_created",)
-        unique_together = [('numero_devis', 'company')]
+        unique_together = [("numero_devis", "company")]
         indexes = [
             models.Index(fields=["company", "date_devis"]),
             models.Index(fields=["client", "company"]),

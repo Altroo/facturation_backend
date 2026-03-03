@@ -231,8 +231,7 @@ class Company(models.Model):
     )
 
     history = HistoricalRecords(
-        verbose_name="Historique Société",
-        verbose_name_plural="Historiques Sociétés"
+        verbose_name="Historique Société", verbose_name_plural="Historiques Sociétés"
     )
 
     class Meta:

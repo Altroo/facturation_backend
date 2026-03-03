@@ -38,7 +38,7 @@ class CustomUserAdmin(UserAdmin):
                     "avatar",
                     "avatar_cropped",
                     "password_reset_code",
-                    "default_password_set"
+                    "default_password_set",
                 )
             },
         ),

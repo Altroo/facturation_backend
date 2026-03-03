@@ -236,14 +236,10 @@ class TestParameterModelsExtra:
 
     def test_emplacement_str(self):
         """Test Emplacement __str__."""
-        obj = Emplacement.objects.create(
-            nom="Warehouse A Extra", company=self.company
-        )
+        obj = Emplacement.objects.create(nom="Warehouse A Extra", company=self.company)
         assert str(obj) == "Warehouse A Extra"
 
     def test_livre_par_str(self):
         """Test LivrePar __str__."""
-        obj = LivrePar.objects.create(
-            nom="Delivery Person Extra", company=self.company
-        )
+        obj = LivrePar.objects.create(nom="Delivery Person Extra", company=self.company)
         assert str(obj) == "Delivery Person Extra"

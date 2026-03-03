@@ -43,14 +43,14 @@ class ArticleListCreateView(CompanyAccessMixin, APIView):
         try:
             company_id = int(company_id_str)
         except (ValueError, TypeError):
-            raise ValidationError({"company_id": _("company_id doit être un entier valide.")})
+            raise ValidationError(
+                {"company_id": _("company_id doit être un entier valide.")}
+            )
         self._check_company_access(request, company_id)
         qs_filter = {"company_id": company_id}
         if archived_param is not None:
             qs_filter["archived"] = archived_param.lower() == "true"
-        base_queryset = Article.objects.filter(
-            **qs_filter
-        ).select_related(
+        base_queryset = Article.objects.filter(**qs_filter).select_related(
             "company", "marque", "categorie", "emplacement", "unite"
         )
         filterset = ArticleFilter(request.GET, queryset=base_queryset)
@@ -343,37 +343,37 @@ class ImportArticlesView(CompanyAccessMixin, APIView):
     def _parse_file(file) -> list[dict]:
         """Parse CSV or Excel file and return list of row dictionaries."""
         filename = file.name.lower()
-        
-        if filename.endswith('.csv'):
+
+        if filename.endswith(".csv"):
             # Parse CSV file
             try:
                 content = file.read().decode("utf-8-sig")
             except UnicodeDecodeError:
                 raise ValueError(_("Le fichier CSV doit être encodé en UTF-8."))
-            
+
             # Detect delimiter
             try:
                 dialect = csv.Sniffer().sniff(content[:2048], delimiters=",;\t|")
                 delimiter = dialect.delimiter
             except csv.Error:
                 delimiter = ";"
-            
+
             reader = csv.DictReader(io.StringIO(content), delimiter=delimiter)
             return list(reader)
-        
-        elif filename.endswith(('.xls', '.xlsx')):
+
+        elif filename.endswith((".xls", ".xlsx")):
             # Parse Excel file
             try:
                 workbook = openpyxl.load_workbook(file, read_only=True, data_only=True)
                 sheet = workbook.active
-                
+
                 # Get headers from first row
                 rows_iter = sheet.iter_rows(values_only=True)
                 headers = next(rows_iter, None)
-                
+
                 if not headers:
                     raise ValueError(_("Le fichier Excel est vide."))
-                
+
                 # Convert to list of dicts
                 rows = []
                 for row_values in rows_iter:
@@ -389,15 +389,19 @@ class ImportArticlesView(CompanyAccessMixin, APIView):
                             else:
                                 row_dict[header] = str(value)
                     rows.append(row_dict)
-                
+
                 workbook.close()
                 return rows
-            
+
             except Exception as e:
-                raise ValueError(_(f"Erreur lors de la lecture du fichier Excel : {str(e)}"))
-        
+                raise ValueError(
+                    _(f"Erreur lors de la lecture du fichier Excel : {str(e)}")
+                )
+
         else:
-            raise ValueError(_("Format de fichier non supporté. Utilisez .csv, .xls ou .xlsx"))
+            raise ValueError(
+                _("Format de fichier non supporté. Utilisez .csv, .xls ou .xlsx")
+            )
 
     # --------------- POST ----------------------------------------------------
 
@@ -438,7 +442,7 @@ class ImportArticlesView(CompanyAccessMixin, APIView):
                 {"detail": str(e)},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        
+
         if not rows:
             return Response(
                 {"detail": _("Le fichier est vide ou ne contient pas de données.")},
@@ -506,7 +510,7 @@ class ImportArticlesView(CompanyAccessMixin, APIView):
                 try:
                     value = Decimal(self._normalize_decimal(raw))
                     # Round to 2 decimal places for prices and TVA
-                    decimal_values[field_name] = value.quantize(Decimal('0.01'))
+                    decimal_values[field_name] = value.quantize(Decimal("0.01"))
                 except InvalidOperation:
                     errors.append(
                         {
@@ -523,7 +527,9 @@ class ImportArticlesView(CompanyAccessMixin, APIView):
 
             # --- devise_prix_achat -------------------------------------------
             valid_currencies = {c[0] for c in CURRENCY_CHOICES}
-            devise_achat_raw = normalized_row.get("devise_prix_achat", "").strip().upper()
+            devise_achat_raw = (
+                normalized_row.get("devise_prix_achat", "").strip().upper()
+            )
             if devise_achat_raw and devise_achat_raw not in valid_currencies:
                 errors.append(
                     {
@@ -538,7 +544,9 @@ class ImportArticlesView(CompanyAccessMixin, APIView):
             devise_prix_achat = devise_achat_raw or "MAD"
 
             # --- devise_prix_vente -------------------------------------------
-            devise_vente_raw = normalized_row.get("devise_prix_vente", "").strip().upper()
+            devise_vente_raw = (
+                normalized_row.get("devise_prix_vente", "").strip().upper()
+            )
             if devise_vente_raw and devise_vente_raw not in valid_currencies:
                 errors.append(
                     {
@@ -554,7 +562,9 @@ class ImportArticlesView(CompanyAccessMixin, APIView):
 
             # --- foreign keys ------------------------------------------------
             marque = self._resolve_fk(Marque, normalized_row.get("marque"), company_id)
-            categorie = self._resolve_fk(Categorie, normalized_row.get("categorie"), company_id)
+            categorie = self._resolve_fk(
+                Categorie, normalized_row.get("categorie"), company_id
+            )
             emplacement = self._resolve_fk(
                 Emplacement, normalized_row.get("emplacement"), company_id
             )
@@ -602,29 +612,22 @@ class SendCSVExampleEmailView(APIView):
     def post(request, *args, **kwargs):
         """Send import guide via email with CSV and Excel templates attached."""
         from account.tasks import send_csv_example_email
-        
+
         company_id = request.data.get("company_id")
         if not company_id:
-            raise PermissionDenied(
-                _("L'ID de la société est requis.")
-            )
-        
+            raise PermissionDenied(_("L'ID de la société est requis."))
+
         # Check if user has access to this company
         if not Membership.objects.filter(
             user=request.user, company_id=company_id
         ).exists():
-            raise PermissionDenied(
-                _("Vous n'avez pas accès à cette société.")
-            )
-        
+            raise PermissionDenied(_("Vous n'avez pas accès à cette société."))
+
         # Send email via Celery
-        send_csv_example_email.apply_async(
-            (request.user.pk, request.user.email)
-        )
-        
+        send_csv_example_email.apply_async((request.user.pk, request.user.email))
+
         return Response(
-            {"message": "Email envoyé avec succès."},
-            status=status.HTTP_200_OK
+            {"message": "Email envoyé avec succès."}, status=status.HTTP_200_OK
         )
 
 

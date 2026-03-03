@@ -32,8 +32,7 @@ ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="127.0.0.1,localhost").split(","
 
 # CSRF trusted origins for production
 CSRF_TRUSTED_ORIGINS = config(
-    "CSRF_TRUSTED_ORIGINS",
-    default="http://127.0.0.1,http://localhost"
+    "CSRF_TRUSTED_ORIGINS", default="http://127.0.0.1,http://localhost"
 ).split(",")
 
 # Trust proxy headers for HTTPS detection (required for proper media URLs behind reverse proxy)
@@ -110,8 +109,7 @@ TEMPLATES = [
 ]
 
 CORS_ALLOWED_ORIGINS = config(
-    "CORS_ALLOWED_ORIGINS",
-    default="http://localhost:3000"
+    "CORS_ALLOWED_ORIGINS", default="http://localhost:3000"
 ).split(",")
 CORS_ALLOW_CREDENTIALS = True
 
@@ -205,9 +203,7 @@ SITE_ID = 1
 
 # Rest framework config
 REST_FRAMEWORK = dict(
-    DEFAULT_AUTHENTICATION_CLASSES=(
-        "dj_rest_auth.jwt_auth.JWTAuthentication",
-    ),
+    DEFAULT_AUTHENTICATION_CLASSES=("dj_rest_auth.jwt_auth.JWTAuthentication",),
     DEFAULT_FILTER_BACKENDS=["django_filters.rest_framework.DjangoFilterBackend"],
     DEFAULT_PERMISSION_CLASSES=("rest_framework.permissions.IsAuthenticated",),
     DEFAULT_PAGINATION_CLASS="rest_framework.pagination.PageNumberPagination",
@@ -273,7 +269,9 @@ ACCOUNT_MAX_EMAIL_ADDRESSES = 1
 ACCOUNT_DEFAULT_HTTP_PROTOCOL = config("ACCOUNT_DEFAULT_HTTP_PROTOCOL", default="https")
 
 # Email settings
-EMAIL_BACKEND = config("EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend")
+EMAIL_BACKEND = config(
+    "EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend"
+)
 EMAIL_HOST = config("EMAIL_HOST", default="smtp.gmail.com")
 EMAIL_USE_TLS = config("EMAIL_USE_TLS", default=True, cast=bool)
 EMAIL_PORT = config("EMAIL_PORT", default=587, cast=int)

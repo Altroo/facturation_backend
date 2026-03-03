@@ -195,7 +195,9 @@ class CreateAccountSerializer(serializers.ModelSerializer):
                     )
 
                 # Validate base64 size before decoding (15MB limit)
-                max_base64_length = getattr(settings, 'MAX_BASE64_IMAGE_SIZE', 15 * 1024 * 1024)
+                max_base64_length = getattr(
+                    settings, "MAX_BASE64_IMAGE_SIZE", 15 * 1024 * 1024
+                )
                 if len(imgstr) > max_base64_length:
                     raise serializers.ValidationError(
                         f"Image trop grande pour {field_name}: {len(imgstr)} octets (max {max_base64_length}). "
@@ -449,7 +451,9 @@ class ProfilePutSerializer(serializers.ModelSerializer):
                     )
 
                 # Validate base64 size before decoding (15MB limit)
-                max_base64_length = getattr(settings, 'MAX_BASE64_IMAGE_SIZE', 15 * 1024 * 1024)
+                max_base64_length = getattr(
+                    settings, "MAX_BASE64_IMAGE_SIZE", 15 * 1024 * 1024
+                )
                 if len(imgstr) > max_base64_length:
                     raise serializers.ValidationError(
                         f"Image trop grande pour {field_name}: {len(imgstr)} octets (max {max_base64_length}). "

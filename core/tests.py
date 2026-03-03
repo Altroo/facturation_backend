@@ -268,7 +268,9 @@ class SharedDocumentAPITestsMixin:
             ville=self.ville,
             company=self.company,
         )
-        self.mode_paiement = ModePaiement.objects.create(nom="Bank Transfer", company=self.company)
+        self.mode_paiement = ModePaiement.objects.create(
+            nom="Bank Transfer", company=self.company
+        )
 
         self.article = Article.objects.create(
             company=self.company,
@@ -2701,7 +2703,9 @@ class TestCoreFilterAdditional:
         # Should fall back to icontains search
         assert devi in filterset.qs
 
-    def test_client_name_icontains_filter(self, test_client_filter, extra_mode_paiement):
+    def test_client_name_icontains_filter(
+        self, test_client_filter, extra_mode_paiement
+    ):
         """Test client_name__icontains text lookup filter on BaseDocumentFilter."""
 
         devi = Devi.objects.create(
@@ -2715,7 +2719,9 @@ class TestCoreFilterAdditional:
         filt = DeviFilter({"client_name__icontains": "Filter Test"}, queryset=qs)
         assert devi in filt.qs
 
-    def test_client_name_istartswith_filter(self, test_client_filter, extra_mode_paiement):
+    def test_client_name_istartswith_filter(
+        self, test_client_filter, extra_mode_paiement
+    ):
         """Test client_name__istartswith filter."""
 
         devi = Devi.objects.create(
@@ -2729,7 +2735,9 @@ class TestCoreFilterAdditional:
         filt = DeviFilter({"client_name__istartswith": "Filter"}, queryset=qs)
         assert devi in filt.qs
 
-    def test_client_name_isempty_true(self, extra_ville, extra_company, extra_mode_paiement):
+    def test_client_name_isempty_true(
+        self, extra_ville, extra_company, extra_mode_paiement
+    ):
         """Test client_name__isempty=true on BaseDocumentFilter."""
 
         client_empty = Client.objects.create(
@@ -2764,7 +2772,9 @@ class TestCoreFilterAdditional:
         filt = DeviFilter({"client_name__isempty": "false"}, queryset=qs)
         assert devi in filt.qs
 
-    def test_dynamic_numero_icontains_filter(self, test_client_filter, extra_mode_paiement):
+    def test_dynamic_numero_icontains_filter(
+        self, test_client_filter, extra_mode_paiement
+    ):
         """Test dynamically generated numero_field__icontains filter."""
 
         devi = Devi.objects.create(
@@ -2837,12 +2847,18 @@ class TestCoreFilterAdditional:
             mode_paiement=extra_mode_paiement,
         )
         DeviLine.objects.create(
-            devis=devi_with_lines, article=article,
-            prix_achat=10, prix_vente=20, quantity=1,
+            devis=devi_with_lines,
+            article=article,
+            prix_achat=10,
+            prix_vente=20,
+            quantity=1,
         )
         DeviLine.objects.create(
-            devis=devi_with_lines, article=article,
-            prix_achat=10, prix_vente=20, quantity=2,
+            devis=devi_with_lines,
+            article=article,
+            prix_achat=10,
+            prix_vente=20,
+            quantity=2,
         )
 
         devi_no_lines = Devi.objects.create(
@@ -2874,7 +2890,9 @@ class TestCoreFilterAdditional:
         assert devi_no_lines in filt.qs
         assert devi_with_lines not in filt.qs
 
-    def test_lignes_count_filter_none_value(self, test_client_filter, extra_mode_paiement):
+    def test_lignes_count_filter_none_value(
+        self, test_client_filter, extra_mode_paiement
+    ):
         """Test lignes_count filter with None value returns all."""
 
         devi = Devi.objects.create(
@@ -3633,7 +3651,9 @@ class TestPDFGeneratorEdgeCases:
 
         company, client, mode, article, user, _ = setup_pdf
 
-        mode_reglement = ModePaiement.objects.create(nom="PDF Reglement Mode", company=company)
+        mode_reglement = ModePaiement.objects.create(
+            nom="PDF Reglement Mode", company=company
+        )
 
         facture = FactureClient.objects.create(
             client=client,

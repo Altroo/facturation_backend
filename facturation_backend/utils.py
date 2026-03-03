@@ -25,7 +25,6 @@ from rest_framework.response import Response
 from rest_framework.views import exception_handler
 
 
-
 class ImageProcessor:
     MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
 

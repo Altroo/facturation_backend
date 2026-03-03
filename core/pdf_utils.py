@@ -254,30 +254,30 @@ def number_to_english_words(number: Decimal, currency: str = "MAD") -> str:
 def format_number_for_pdf(value: Decimal, decimals: int = 2) -> str:
     """
     Format a number with spaces as thousands separator for better readability in PDFs.
-    
+
     Args:
         value: The number to format (Decimal or float)
         decimals: Number of decimal places (default: 2)
-    
+
     Returns:
         Formatted string with spaces as thousands separators
         Example: 1234567.89 -> "1 234 567,89"
     """
     if value is None:
         return "0,00" if decimals == 2 else "0"
-    
+
     # Convert to float for formatting
     num = float(value)
-    
+
     # Format with specified decimals
     formatted = f"{num:,.{decimals}f}"
-    
+
     # Replace comma with space for thousands and dot with comma for decimals
     # Python's format uses comma for thousands, we want space
     # Python's format uses dot for decimals, we want comma
     formatted = formatted.replace(",", " ")  # thousands separator
     formatted = formatted.replace(".", ",")  # decimal separator
-    
+
     return formatted
 
 
@@ -306,7 +306,6 @@ class BasePDFGenerator:
         self.language = language
         self.buffer = BytesIO()
         self.styles = getSampleStyleSheet()
-        self.total_pages = 1  # Initialize total_pages attribute
         self._setup_translations()
         self._setup_custom_styles()
 
@@ -744,7 +743,7 @@ class BasePDFGenerator:
         """
         if isinstance(elem, KeepTogether):
             # KeepTogether stores its sub-flowables in _content
-            children = getattr(elem, '_content', [])
+            children = getattr(elem, "_content", [])
             total = 0.0
             for child in children:
                 try:
@@ -812,14 +811,14 @@ class BasePDFGenerator:
             return elements
 
         pre_height = sum(heights[:art_idx])
-        post_height = sum(heights[art_idx + 1:])
+        post_height = sum(heights[art_idx + 1 :])
 
         if available_height - pre_height <= 0:
             return elements
 
         # ---- get row heights (exact or estimated) ----
         measure_table = measure_elements[art_idx]
-        num_total_rows = len(getattr(measure_table, '_cellvalues', []))
+        num_total_rows = len(getattr(measure_table, "_cellvalues", []))
 
         if num_total_rows < 3:
             return elements
@@ -828,7 +827,7 @@ class BasePDFGenerator:
 
         # After wrap(), ReportLab stores calculated row heights in _rowHeights.
         # _argH stores the user-specified heights (often None).
-        row_h = getattr(measure_table, '_rowHeights', None)
+        row_h = getattr(measure_table, "_rowHeights", None)
 
         if (
             row_h
@@ -867,7 +866,7 @@ class BasePDFGenerator:
         max_last = 0
         for k in range(num_data, -1, -1):
             # Height of the last k data rows
-            last_k_h = sum(data_rh[num_data - k:])
+            last_k_h = sum(data_rh[num_data - k :])
             if last_k_h <= last_budget:
                 max_last = k
                 break
@@ -876,7 +875,7 @@ class BasePDFGenerator:
             return elements  # tail alone fills a page
 
         # ---- decide the split ----
-        two_pages_possible = (max_p1 + max_last >= num_data)
+        two_pages_possible = max_p1 + max_last >= num_data
 
         if two_pages_possible:
             # Aim for even article count across 2 pages
@@ -897,8 +896,14 @@ class BasePDFGenerator:
         logger.debug(
             "PDF balance: data=%d p1=%d last=%d two_pages=%s "
             "pre=%.1f art=%.1f post=%.1f avail=%.1f",
-            num_data, p1_rows, last_rows, two_pages_possible,
-            pre_height, art_height, post_height, available_height,
+            num_data,
+            p1_rows,
+            last_rows,
+            two_pages_possible,
+            pre_height,
+            art_height,
+            post_height,
+            available_height,
         )
 
         # ---- split the real (un-wrapped) articles table ----
@@ -917,7 +922,7 @@ class BasePDFGenerator:
 
         # Bundle part2 + all post-article elements in KeepTogether
         # so they always land on the same page.
-        post_elements = list(elements[art_idx + 1:])
+        post_elements = list(elements[art_idx + 1 :])
         keep_content = [parts[1]] + post_elements
         keep_block = KeepTogether(keep_content)
 
@@ -925,6 +930,337 @@ class BasePDFGenerator:
         result.append(parts[0])
         result.append(keep_block)
         return result
+
+    # ------------------------------------------------------------------ #
+    #  Shared building-blocks (used by document-specific subclasses)      #
+    # ------------------------------------------------------------------ #
+
+    def _build_doc_header(self, number_text: str, date_text: str) -> Table:
+        """Build document header: logo left, doc number + date stacked right."""
+        doc_number = Paragraph(f"<b>{number_text}</b>", self.styles["DocTitle"])
+        doc_date_para = Paragraph(date_text, self.styles["DocDate"])
+        title_date_table = Table([[doc_number], [doc_date_para]], colWidths=[9 * cm])
+        title_date_table.setStyle(
+            TableStyle(
+                [
+                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                    ("ALIGN", (0, 0), (-1, -1), "RIGHT"),
+                    ("TOPPADDING", (0, 0), (-1, -1), 0),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+                ]
+            )
+        )
+        logo_img = self._get_logo_image()
+        if logo_img:
+            header_data = [[logo_img, title_date_table]]
+            style_cmds = [
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("ALIGN", (0, 0), (0, 0), "LEFT"),
+                ("ALIGN", (1, 0), (1, 0), "RIGHT"),
+            ]
+        else:
+            header_data = [["", title_date_table]]
+            style_cmds = [
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("ALIGN", (1, 0), (1, 0), "RIGHT"),
+            ]
+        header_table = Table(header_data, colWidths=[9 * cm, 9 * cm])
+        header_table.setStyle(TableStyle(style_cmds))
+        return header_table
+
+    def _build_company_lines(self, extra_lines: list = None) -> list:
+        """Build list of company info Paragraphs."""
+        lines = []
+        raison = self.company.raison_sociale if self.company.raison_sociale else "-"
+        lines.append(Paragraph(f"<b>{raison}</b>", self.styles["CustomNormal"]))
+        if self.company.ICE:
+            lines.append(
+                Paragraph(
+                    f"{self._('ICE')}: {self.company.ICE}",
+                    self.styles["CustomSmall"],
+                )
+            )
+        if self.company.adresse:
+            lines.append(
+                Paragraph(
+                    f"{self._('Address')}: {self.company.adresse}",
+                    self.styles["CustomSmall"],
+                )
+            )
+        rc_parts = []
+        if self.company.registre_de_commerce:
+            rc_parts.append(f"{self._('RC')}: {self.company.registre_de_commerce}")
+        if self.company.identifiant_fiscal:
+            rc_parts.append(f"{self._('IF')}: {self.company.identifiant_fiscal}")
+        if self.company.CNSS:
+            rc_parts.append(f"{self._('CNSS')}: {self.company.CNSS}")
+        if rc_parts:
+            lines.append(Paragraph(" - ".join(rc_parts), self.styles["CustomSmall"]))
+        if self.company.numero_du_compte:
+            lines.append(
+                Paragraph(
+                    f"{self._('RIB_Account')}: {self.company.numero_du_compte}",
+                    self.styles["CustomSmall"],
+                )
+            )
+        if extra_lines:
+            lines.extend(extra_lines)
+        return lines
+
+    def _build_client_lines(self) -> list:
+        """Build list of client info Paragraphs."""
+        client = self.document.client
+        lines = []
+        if client.client_type == "PM" and client.raison_sociale:
+            lines.append(
+                Paragraph(
+                    f"<b>{client.raison_sociale}</b>", self.styles["CustomNormal"]
+                )
+            )
+        else:
+            name = f"{client.prenom or ''} {client.nom or ''}".strip()
+            if name:
+                lines.append(Paragraph(f"<b>{name}</b>", self.styles["CustomNormal"]))
+        if client.ICE:
+            lines.append(
+                Paragraph(f"{self._('ICE')}: {client.ICE}", self.styles["CustomSmall"])
+            )
+        if client.adresse:
+            lines.append(
+                Paragraph(
+                    f"{self._('Address')}: {client.adresse}",
+                    self.styles["CustomSmall"],
+                )
+            )
+        if client.tel:
+            lines.append(
+                Paragraph(
+                    f"{self._('Phone')}: {client.tel}", self.styles["CustomSmall"]
+                )
+            )
+        return lines
+
+    def _build_parties_grid(
+        self, left_header: Paragraph, extra_company_lines: list = None
+    ) -> Table:
+        """Build the two-column company / client info grid."""
+        from reportlab.platypus.flowables import HRFlowable
+
+        col_style = TableStyle(
+            [
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+                ("TOPPADDING", (0, 0), (-1, -1), 2),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
+            ]
+        )
+        right_header = Paragraph(
+            f"<b>{self._('Recipient')}</b>", self.styles["SectionHeader"]
+        )
+        company_lines = self._build_company_lines(extra_lines=extra_company_lines)
+        client_lines = self._build_client_lines()
+        left_content = [
+            [left_header],
+            [HRFlowable(width="100%", thickness=1, color=self.primary_color)],
+        ] + [[line] for line in company_lines]
+        left_table = Table(left_content, colWidths=[8.5 * cm])
+        left_table.setStyle(col_style)
+        right_content = [
+            [right_header],
+            [HRFlowable(width="100%", thickness=1, color=self.primary_color)],
+        ] + [[line] for line in client_lines]
+        right_table = Table(right_content, colWidths=[8.5 * cm])
+        right_table.setStyle(col_style)
+        main_grid = Table([[left_table, right_table]], colWidths=[9 * cm, 9 * cm])
+        main_grid.setStyle(TableStyle([("VALIGN", (0, 0), (-1, -1), "TOP")]))
+        return main_grid
+
+    def _build_standard_articles_table(
+        self, show_remise: bool = True, show_unite: bool = False
+    ) -> Table:
+        """Build the light-styled articles table used by standard documents."""
+        from decimal import Decimal as _Decimal
+
+        if show_remise and show_unite:
+            headers = [
+                self._("Designation"),
+                self._("Quantity"),
+                self._("TVA"),
+                self._("Unit_Price_HT"),
+                self._("Unit"),
+                self._("Discount"),
+                self._("Total_HT"),
+            ]
+            col_widths = [
+                5.5 * cm,
+                1.5 * cm,
+                1.3 * cm,
+                2.5 * cm,
+                2 * cm,
+                2.2 * cm,
+                3 * cm,
+            ]
+        elif show_remise:
+            headers = [
+                self._("Designation"),
+                self._("Quantity"),
+                self._("TVA"),
+                self._("Unit_Price_HT"),
+                self._("Discount"),
+                self._("Total_HT"),
+            ]
+            col_widths = [6.5 * cm, 1.8 * cm, 1.5 * cm, 2.5 * cm, 2.5 * cm, 3.2 * cm]
+        elif show_unite:
+            headers = [
+                self._("Designation"),
+                self._("Quantity"),
+                self._("TVA"),
+                self._("Unit_Price_HT"),
+                self._("Unit"),
+                self._("Total_HT"),
+            ]
+            col_widths = [6.5 * cm, 1.8 * cm, 1.5 * cm, 2.7 * cm, 2 * cm, 3.5 * cm]
+        else:
+            headers = [
+                self._("Designation"),
+                self._("Quantity"),
+                self._("TVA"),
+                self._("Unit_Price_HT"),
+                self._("Total_HT"),
+            ]
+            col_widths = [7.5 * cm, 2 * cm, 1.8 * cm, 3 * cm, 3.7 * cm]
+
+        header_cells = [Paragraph(f"<b>{headers[0]}</b>", self.styles["CustomSmall"])]
+        for h in headers[1:]:
+            header_cells.append(
+                Paragraph(f"<b>{h}</b>", self.styles["CustomSmallCenter"])
+            )
+        table_data = [header_cells]
+
+        for line in (
+            self.document.lignes.select_related("article")
+            .order_by("article__reference")
+            .all()
+        ):
+            row = []
+            designation_text = (
+                line.article.designation if line.article.designation else "-"
+            )
+            if line.article.reference:
+                designation_text = (
+                    f"<b>{line.article.reference}</b><br/>{designation_text}"
+                )
+            row.append(Paragraph(designation_text, self.styles["CustomSmall"]))
+            row.append(
+                Paragraph(
+                    format_number_for_pdf(line.quantity),
+                    self.styles["CustomSmallCenter"],
+                )
+            )
+            tva_pct = line.article.tva if line.article.tva else _Decimal("0")
+            row.append(Paragraph(f"{tva_pct:.0f}%", self.styles["CustomSmallCenter"]))
+            devise = self.document.devise or "MAD"
+            row.append(
+                Paragraph(
+                    f"{format_number_for_pdf(line.prix_vente)} {devise}",
+                    self.styles["CustomSmallCenter"],
+                )
+            )
+            if show_unite:
+                unite_name = line.article.unite.nom if line.article.unite else "-"
+                row.append(Paragraph(unite_name, self.styles["CustomSmallCenter"]))
+            if show_remise:
+                if line.remise_type == "Pourcentage" and line.remise:
+                    remise_text = f"{format_number_for_pdf(line.remise)}%"
+                elif line.remise_type == "Fixe" and line.remise:
+                    remise_text = format_number_for_pdf(line.remise)
+                else:
+                    remise_text = "-"
+                row.append(Paragraph(remise_text, self.styles["CustomSmallCenter"]))
+            total_ht = line.prix_vente * line.quantity
+            if line.remise_type == "Pourcentage" and line.remise:
+                total_ht -= total_ht * line.remise / _Decimal("100")
+            elif line.remise_type == "Fixe" and line.remise:
+                total_ht -= line.remise
+            row.append(
+                Paragraph(
+                    f"{format_number_for_pdf(total_ht)} {devise}",
+                    self.styles["CustomSmallCenter"],
+                )
+            )
+            table_data.append(row)
+
+        table = Table(table_data, colWidths=col_widths, repeatRows=1)
+        num_articles = self.document.lignes.count()
+        last_article_row = num_articles
+        style_commands = [
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#f5f5f5")),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.HexColor("#333333")),
+            ("ALIGN", (1, 0), (-1, 0), "CENTER"),
+            ("ALIGN", (0, 0), (0, 0), "LEFT"),
+            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+            ("FONTSIZE", (0, 0), (-1, 0), 9),
+            ("BOTTOMPADDING", (0, 0), (-1, 0), 8),
+            ("TOPPADDING", (0, 0), (-1, 0), 8),
+            ("VALIGN", (0, 1), (-1, last_article_row), "TOP"),
+            ("ALIGN", (1, 1), (-1, last_article_row), "CENTER"),
+            ("ALIGN", (0, 1), (0, last_article_row), "LEFT"),
+            ("FONTSIZE", (0, 1), (-1, last_article_row), 8),
+            (
+                "ROWBACKGROUNDS",
+                (0, 1),
+                (-1, last_article_row),
+                [colors.white, colors.HexColor("#fafafa")],
+            ),
+            ("GRID", (0, 0), (-1, last_article_row), 0.5, colors.HexColor("#e0e0e0")),
+            ("LEFTPADDING", (0, 0), (-1, -1), 4),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+            ("TOPPADDING", (0, 1), (-1, -1), 4),
+            ("BOTTOMPADDING", (0, 1), (-1, -1), 4),
+        ]
+        table.setStyle(TableStyle(style_commands))
+        return table
+
+    def _build_tail(
+        self,
+        amount_words_label: str,
+        default_remarks_key: str = None,
+        show_remise: bool = True,
+    ) -> list:
+        """Build tail block: totals + price-in-words + optional remarks."""
+        from reportlab.platypus.flowables import HRFlowable
+
+        tail = [
+            self._create_totals_table(show_remise=show_remise),
+            Spacer(1, 0.3 * cm),
+            Paragraph(f"<b>{amount_words_label}</b>", self.styles["SectionHeader"]),
+            HRFlowable(width="100%", thickness=1, color=self.primary_color),
+            Spacer(1, 0.2 * cm),
+        ]
+        total_price = (
+            self.document.total_ttc_apres_remise
+            if self.document.remise_type
+            else self.document.total_ttc
+        )
+        currency = self.document.devise
+        if self.language == "en":
+            price_in_words = number_to_english_words(total_price, currency)
+        else:
+            price_in_words = number_to_french_words(total_price, currency)
+        tail.append(Paragraph(f"{price_in_words} TTC", self.styles["PriceWords"]))
+        tail.append(Spacer(1, 0.5 * cm))
+        if default_remarks_key is not None:
+            tail.append(
+                Paragraph(f"<b>{self._('Remarks')} :</b>", self.styles["SectionHeader"])
+            )
+            remarks_text = self._(default_remarks_key)
+            if self.document.remarque:
+                remarks_text = self.document.remarque + "\n\n" + remarks_text
+            tail.append(
+                Paragraph(remarks_text.replace("\n", "<br/>"), self.styles["Remarks"])
+            )
+        return tail
 
     def _build_content(self) -> list:
         """Build PDF content. Override in subclasses."""
@@ -1131,7 +1467,11 @@ class BasePDFGenerator:
             row.append(Paragraph(designation_text, self.styles["CustomSmall"]))
 
             # Quantity
-            row.append(Paragraph(format_number_for_pdf(line.quantity), self.styles["CustomSmall"]))
+            row.append(
+                Paragraph(
+                    format_number_for_pdf(line.quantity), self.styles["CustomSmall"]
+                )
+            )
 
             # TVA %
             tva_pct = line.article.tva if line.article.tva else Decimal("0")
@@ -1139,7 +1479,12 @@ class BasePDFGenerator:
 
             # Prix unitaire HT
             devise = self.document.devise or "MAD"
-            row.append(Paragraph(f"{format_number_for_pdf(line.prix_vente)} {devise}", self.styles["CustomSmall"]))
+            row.append(
+                Paragraph(
+                    f"{format_number_for_pdf(line.prix_vente)} {devise}",
+                    self.styles["CustomSmall"],
+                )
+            )
 
             # Unite (if showing)
             if show_unite:
@@ -1153,7 +1498,12 @@ class BasePDFGenerator:
                     total_ht -= total_ht * line.remise / Decimal("100")
                 elif line.remise_type == "Fixe":
                     total_ht -= line.remise
-            row.append(Paragraph(f"{format_number_for_pdf(total_ht)} {devise}", self.styles["CustomSmall"]))
+            row.append(
+                Paragraph(
+                    f"{format_number_for_pdf(total_ht)} {devise}",
+                    self.styles["CustomSmall"],
+                )
+            )
 
             table_data.append(row)
 
@@ -1199,21 +1549,27 @@ class BasePDFGenerator:
         devise = self.document.devise or "MAD"
         totals_data = [
             [
-                Paragraph(f"<b>{self._('Total_HT_Label')}</b>", self.styles["CustomSmall"]),
+                Paragraph(
+                    f"<b>{self._('Total_HT_Label')}</b>", self.styles["CustomSmall"]
+                ),
                 Paragraph(
                     f"{format_number_for_pdf(self.document.total_ht)} {devise}",
                     self.styles["CustomSmallCenter"],
                 ),
             ],
             [
-                Paragraph(f"<b>{self._('Total_TVA_Label')}</b>", self.styles["CustomSmall"]),
+                Paragraph(
+                    f"<b>{self._('Total_TVA_Label')}</b>", self.styles["CustomSmall"]
+                ),
                 Paragraph(
                     f"{format_number_for_pdf(self.document.total_tva)} {devise}",
                     self.styles["CustomSmallCenter"],
                 ),
             ],
             [
-                Paragraph(f"<b>{self._('Total_TTC_Label')}</b>", self.styles["CustomSmall"]),
+                Paragraph(
+                    f"<b>{self._('Total_TTC_Label')}</b>", self.styles["CustomSmall"]
+                ),
                 Paragraph(
                     f"{format_number_for_pdf(self.document.total_ttc)} {devise}",
                     self.styles["CustomSmallCenter"],

@@ -58,7 +58,9 @@ class ReglementListCreateView(CompanyAccessMixin, APIView):
         try:
             company_id = int(company_id_str)
         except (ValueError, TypeError):
-            raise ValidationError({"company_id": _("company_id doit être un entier valide.")})
+            raise ValidationError(
+                {"company_id": _("company_id doit être un entier valide.")}
+            )
         self._check_company_access(request, company_id)
 
         # Get règlements for factures belonging to this company
@@ -406,7 +408,10 @@ class ReglementPDFGenerator(BasePDFGenerator):
             ],
             [
                 Paragraph(f"<b>{self._('Amount')} :</b>", self.styles["CustomNormal"]),
-                Paragraph(f"{format_number_for_pdf(amount)} {devise}", self.styles["CustomNormal"]),
+                Paragraph(
+                    f"{format_number_for_pdf(amount)} {devise}",
+                    self.styles["CustomNormal"],
+                ),
             ],
         ]
 
@@ -562,7 +567,7 @@ class ReglementPDFGenerator(BasePDFGenerator):
 
     def _get_filename(self) -> str:
         """Get PDF filename for reglement receipt."""
-        return f"{self._('receipt')}_{self.document.id}.pdf"
+        return f"recu_{self.document.id}.pdf"
 
     def _get_pdf_title(self) -> str:
         """Get PDF document title for metadata."""

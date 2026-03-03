@@ -216,19 +216,19 @@ class BaseDeviFactureDocument(models.Model):
 
     def save(self, *args, **kwargs):
         """Save with automatic total recalculation.
-        
+
         Skips recalc if update_fields is provided and doesn't touch financial fields.
         """
         update_fields = kwargs.get("update_fields")
         # Fields that affect total calculations
         financial_fields = {"remise", "remise_type"}
-        
+
         # Determine if recalc is needed
         needs_recalc = True
         if update_fields is not None:
             # If update_fields is specified and doesn't include financial fields, skip recalc
             needs_recalc = bool(financial_fields & set(update_fields))
-        
+
         if self.pk is None:
             # First save to get PK (needed for lines relationship)
             super().save(*args, **kwargs)

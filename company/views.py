@@ -60,11 +60,13 @@ class CompanyListCreateView(APIView):
         # Check if user is trying to create a company with a non-Caissier role
         # We need to verify if they already have memberships and what role
         # Check if any membership is Commercial or other restricted role
-        for membership in Membership.objects.filter(user=request.user).select_related("role"):
+        for membership in Membership.objects.filter(user=request.user).select_related(
+            "role"
+        ):
             if membership.role.name in ROLES_RESTRICTED:
-                    raise PermissionDenied(
-                        detail="Vous n'avez pas les droits pour créer une société."
-                    )
+                raise PermissionDenied(
+                    detail="Vous n'avez pas les droits pour créer une société."
+                )
 
         serializer = CompanySerializer(data=request.data)
         serializer.is_valid(raise_exception=True)

@@ -20,7 +20,7 @@ def get_next_numero_devis(company_id: int) -> str:
             Devi.objects.filter(
                 company_id=company_id,
                 numero_devis__isnull=False,
-                numero_devis__endswith=f"/{year_suffix}"
+                numero_devis__endswith=f"/{year_suffix}",
             )
             .select_for_update()
             .values_list("numero_devis", flat=True)

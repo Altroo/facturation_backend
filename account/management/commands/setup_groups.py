@@ -28,9 +28,7 @@ class Command(BaseCommand):
                     self.style.SUCCESS("  ✓ Created Role: Caissier (full access)")
                 )
             else:
-                self.stdout.write(
-                    self.style.WARNING("  - Group Role exists: Caissier")
-                )
+                self.stdout.write(self.style.WARNING("  - Group Role exists: Caissier"))
 
             comptable, created = Role.objects.get_or_create(name="Comptable")
             if created:
@@ -67,9 +65,7 @@ class Command(BaseCommand):
                 )
 
         self.stdout.write(
-            self.style.MIGRATE_HEADING(
-                "\nDone! All permission Role have been set up."
-            )
+            self.style.MIGRATE_HEADING("\nDone! All permission Role have been set up.")
         )
         self.stdout.write(
             self.style.WARNING(

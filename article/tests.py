@@ -70,9 +70,13 @@ class TestArticleAPI:
 
         # Create parameter objects
         self.marque = Marque.objects.create(nom="TestMarque", company=self.company)
-        self.categorie = Categorie.objects.create(nom="TestCategorie", company=self.company)
+        self.categorie = Categorie.objects.create(
+            nom="TestCategorie", company=self.company
+        )
         self.unite = Unite.objects.create(nom="Pièce", company=self.company)
-        self.emplacement = Emplacement.objects.create(nom="Entrepôt A", company=self.company)
+        self.emplacement = Emplacement.objects.create(
+            nom="Entrepôt A", company=self.company
+        )
 
         # Create test articles
         self.article_produit = Article.objects.create(
@@ -725,7 +729,9 @@ class TestArticleFilters:
         self.marque = Marque.objects.create(nom="BrandX", company=self.company)
         self.categorie = Categorie.objects.create(nom="CatX", company=self.company)
         self.unite = Unite.objects.create(nom="UnitX", company=self.company)
-        self.emplacement = Emplacement.objects.create(nom="PlaceX", company=self.company)
+        self.emplacement = Emplacement.objects.create(
+            nom="PlaceX", company=self.company
+        )
 
         self.a1 = Article.objects.create(
             reference="REF1",
@@ -893,8 +899,12 @@ class TestArticleFilters:
     def test_reference_isempty_true(self):
         """Test reference__isempty=true matches articles with empty reference."""
         a_empty = Article.objects.create(
-            company=self.company, reference="", designation="Empty Ref",
-            prix_achat=10, prix_vente=20, tva=20,
+            company=self.company,
+            reference="",
+            designation="Empty Ref",
+            prix_achat=10,
+            prix_vente=20,
+            tva=20,
         )
         qs = Article.objects.all()
         filt = ArticleFilter({"reference__isempty": "true"}, queryset=qs)
@@ -1545,14 +1555,18 @@ class TestArticleViewsCoverage:
         with patch("article.utils.Article.objects.filter") as mock_filter:
             mock_queryset = MagicMock()
             mock_filter.return_value = mock_queryset
-            mock_queryset.values_list.return_value = ["ARTXYZ"]  # No valid number to extract
-            
+            mock_queryset.values_list.return_value = [
+                "ARTXYZ"
+            ]  # No valid number to extract
+
             # Create a regex match that will cause ValueError
             with patch("article.utils.search") as mock_search:
                 mock_match = MagicMock()
-                mock_match.group.return_value = "invalid_number"  # This will raise ValueError when int() is called
+                mock_match.group.return_value = (
+                    "invalid_number"  # This will raise ValueError when int() is called
+                )
                 mock_search.return_value = mock_match
-                
+
                 url = reverse("article:article-generate-reference")
                 response = self.client.get(url, {"company_id": self.company.id})
 
@@ -1935,7 +1949,9 @@ class TestSendCSVExampleEmailView:
         assert response.status_code == 403
         response_data = response.json()
         assert "details" in response_data or "detail" in response_data
-        detail_text = response_data.get("details", {}).get("detail", response_data.get("detail", ""))
+        detail_text = response_data.get("details", {}).get(
+            "detail", response_data.get("detail", "")
+        )
         assert "requis" in detail_text.lower()
 
     def test_send_csv_example_email_no_membership(self):
@@ -1956,7 +1972,9 @@ class TestSendCSVExampleEmailView:
         assert response.status_code == 403
         response_data = response.json()
         assert "details" in response_data or "detail" in response_data
-        detail_text = response_data.get("details", {}).get("detail", response_data.get("detail", ""))
+        detail_text = response_data.get("details", {}).get(
+            "detail", response_data.get("detail", "")
+        )
         assert "accès" in detail_text.lower()
 
     def test_send_csv_example_email_unauthenticated(self):
@@ -1987,7 +2005,9 @@ class TestBulkDeleteArticleAPI:
 
         self.company = Company.objects.create(raison_sociale="BulkArtCo", ICE="BDARTC1")
         caissier_role, _ = Role.objects.get_or_create(name="Caissier")
-        Membership.objects.create(user=self.user, company=self.company, role=caissier_role)
+        Membership.objects.create(
+            user=self.user, company=self.company, role=caissier_role
+        )
 
         self.art1 = Article.objects.create(
             company=self.company,
@@ -2038,7 +2058,9 @@ class TestBulkDeleteArticleAPI:
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_bulk_delete_wrong_company_returns_403(self):
-        other_company = Company.objects.create(raison_sociale="OtherArtCo", ICE="OTHART1")
+        other_company = Company.objects.create(
+            raison_sociale="OtherArtCo", ICE="OTHART1"
+        )
         other_art = Article.objects.create(
             company=other_company,
             reference="OTHART001",
@@ -2062,9 +2084,13 @@ class TestBulkArchiveArticleAPI:
         self.api_client = APIClient()
         self.api_client.force_authenticate(user=self.user)
 
-        self.company = Company.objects.create(raison_sociale="BulkArtArcCo", ICE="BAARTC1")
+        self.company = Company.objects.create(
+            raison_sociale="BulkArtArcCo", ICE="BAARTC1"
+        )
         caissier_role, _ = Role.objects.get_or_create(name="Caissier")
-        Membership.objects.create(user=self.user, company=self.company, role=caissier_role)
+        Membership.objects.create(
+            user=self.user, company=self.company, role=caissier_role
+        )
 
         self.art1 = Article.objects.create(
             company=self.company,
@@ -2114,7 +2140,9 @@ class TestBulkArchiveArticleAPI:
 
     def test_bulk_archive_empty_ids_returns_400(self):
         url = reverse("article:article-bulk-archive")
-        response = self.api_client.patch(url, {"ids": [], "archived": True}, format="json")
+        response = self.api_client.patch(
+            url, {"ids": [], "archived": True}, format="json"
+        )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     def test_bulk_archive_missing_archived_field_returns_400(self):
@@ -2125,11 +2153,15 @@ class TestBulkArchiveArticleAPI:
     def test_bulk_archive_unauthenticated_returns_401(self):
         url = reverse("article:article-bulk-archive")
         anon = APIClient()
-        response = anon.patch(url, {"ids": [self.art1.id], "archived": True}, format="json")
+        response = anon.patch(
+            url, {"ids": [self.art1.id], "archived": True}, format="json"
+        )
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_bulk_archive_wrong_company_returns_403(self):
-        other_company = Company.objects.create(raison_sociale="OtherArtArcCo", ICE="OTHBAA1")
+        other_company = Company.objects.create(
+            raison_sociale="OtherArtArcCo", ICE="OTHBAA1"
+        )
         other_art = Article.objects.create(
             company=other_company,
             reference="OTHBAART01",

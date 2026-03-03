@@ -178,4 +178,10 @@ class DeviDetailSerializer(BaseDetailUpdateSerializer):
         return DeviLineSerializer
 
     class Meta(DeviSerializer.Meta):
-        read_only_fields = ["id", "company", "created_by_user", "date_created", "date_updated"]
+        read_only_fields = [
+            "id",
+            "company",
+            "created_by_user",
+            "date_created",
+            "date_updated",
+        ]

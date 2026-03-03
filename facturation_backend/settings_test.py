@@ -16,7 +16,9 @@ INSTALLED_APPS = [
     app for app in INSTALLED_APPS if app != "simple_history"  # noqa: F405
 ]
 MIDDLEWARE = [
-    mw for mw in MIDDLEWARE if mw != "simple_history.middleware.HistoryRequestMiddleware"  # noqa: F405
+    mw
+    for mw in MIDDLEWARE
+    if mw != "simple_history.middleware.HistoryRequestMiddleware"  # noqa: F405
 ]
 
 # Use in-memory email backend
