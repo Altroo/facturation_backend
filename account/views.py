@@ -170,7 +170,14 @@ class PasswordResetView(APIView):
             raise ValidationError(self.errors)
 
     def put(self, request, *args, **kwargs):
-        email = str(request.data.get("email")).lower()
+        raw_email = request.data.get("email")
+        if not raw_email or not isinstance(raw_email, str) or not raw_email.strip():
+            raise ValidationError({"email": ["This field is required."]})
+        email = raw_email.strip().lower()
+        try:
+            validate_email(email)
+        except DjangoValidationError:
+            raise ValidationError({"email": ["Enter a valid email address."]})
         code = request.data.get("code")
         try:
             user = CustomUser.objects.get(email=email)
