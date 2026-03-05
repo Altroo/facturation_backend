@@ -44,6 +44,9 @@ services:
   db:
     image: postgres:18
     restart: always
+    # Raise the default 100 connection limit so Daphne threads +
+    # Celery workers + admin sessions don't exhaust the pool.
+    command: postgres -c max_connections=200 -c shared_buffers=256MB
     expose:
       - "5432"
     env_file:
@@ -62,7 +65,7 @@ services:
   celery:
     build: .
     restart: always
-    command: celery -A facturation_backend worker --loglevel=info --concurrency=32 -E -P gevent
+    command: celery -A facturation_backend worker --loglevel=info --concurrency=4 -E -P gevent
     depends_on:
       - db
       - redis

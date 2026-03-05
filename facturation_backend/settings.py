@@ -129,10 +129,11 @@ DATABASES = {
         "PASSWORD": config("POSTGRES_PASSWORD", ""),
         "HOST": config("POSTGRES_HOST", "db"),
         "PORT": config("POSTGRES_PORT", "5432"),
-        # Keep DB connections open for 10 minutes to avoid reconnection
-        # overhead on every request (especially impactful when the frontend
-        # fires multiple parallel API calls).
-        "CONN_MAX_AGE": 600,
+        # With ASGI (Daphne) each request runs in its own thread;
+        # persistent connections (CONN_MAX_AGE > 0) pile up and
+        # quickly exhaust PostgreSQL's max_connections limit.
+        # Use 0 so each request closes its connection when done.
+        "CONN_MAX_AGE": 0,
         "CONN_HEALTH_CHECKS": True,
     },
 }
