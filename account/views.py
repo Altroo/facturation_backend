@@ -310,7 +310,7 @@ class SendPasswordResetView(APIView):
                             user.task_id_password_reset = None
                             user.save(update_fields=["task_id_password_reset"])
 
-                        mail_subject = "Renouvellement du mot de passe"
+                        mail_subject = "Renouvellement du mot de passe - E.B.H Facturation"
                         mail_template = "password_reset.html"
                         code = self.generate_random_code()
                         message = render_to_string(
@@ -466,7 +466,7 @@ class UsersListCreateView(APIView):
                 generate_user_thumbnail.apply_async(
                     (user.pk,),
                 )
-            mail_subject = "Invitation - Application de Facturation"
+            mail_subject = "Invitation - Application de E.B.H Facturation"
             mail_template = "new_account.html"
             message = render_to_string(
                 mail_template, {"first_name": user.first_name, "password": password}

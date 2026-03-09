@@ -102,7 +102,7 @@ def send_csv_example_email(self, user_pk, email_):
         excel_buffer.close()
 
         # Render HTML template
-        mail_subject = "Guide d'importation des articles - Facturation"
+        mail_subject = "Guide d'importation des articles - E.B.H Facturation"
         mail_template = "import_email_guide.html"
         message = render_to_string(
             mail_template,
