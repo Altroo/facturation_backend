@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib import admin
 from django.contrib.admin import ModelAdmin
 from django.contrib.auth.admin import UserAdmin
@@ -83,6 +84,7 @@ class CustomUserAdmin(UserAdmin):
                     {
                         "first_name": user.first_name or user.email.split("@")[0],
                         "password": new_password,
+                        "frontend_url": settings.FRONTEND_URL,
                     },
                 )
                 send_email.delay(

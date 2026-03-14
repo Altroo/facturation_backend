@@ -9,6 +9,7 @@ from sys import platform
 from celery import current_app
 from dj_rest_auth.views import LoginView as Dj_rest_login
 from dj_rest_auth.views import LogoutView as Dj_rest_logout
+from django.conf import settings
 from django.core.exceptions import (
     SuspiciousFileOperation,
     ValidationError as DjangoValidationError,
@@ -318,6 +319,7 @@ class SendPasswordResetView(APIView):
                             {
                                 "first_name": user.first_name,
                                 "code": code,
+                                "frontend_url": settings.FRONTEND_URL,
                             },
                         )
                         send_email.apply_async(
@@ -469,7 +471,7 @@ class UsersListCreateView(APIView):
             mail_subject = "Invitation - Application de E.B.H Facturation"
             mail_template = "new_account.html"
             message = render_to_string(
-                mail_template, {"first_name": user.first_name, "password": password}
+                mail_template, {"first_name": user.first_name, "password": password, "frontend_url": settings.FRONTEND_URL}
             )
             send_email.apply_async(
                 (user.pk, user.email, mail_subject, message),

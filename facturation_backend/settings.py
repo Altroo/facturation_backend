@@ -283,6 +283,7 @@ DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="")
 SERVER_EMAIL = config("SERVER_EMAIL", default="")
 
 API_URL = config("API_URL")
+FRONTEND_URL = config("FRONTEND_URL", default="")
 
 # ──────────────────────────────────────────────
 # Security settings
