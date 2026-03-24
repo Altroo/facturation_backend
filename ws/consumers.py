@@ -2,6 +2,8 @@ from json import dumps, loads
 
 from channels.generic.websocket import AsyncWebsocketConsumer
 
+from ws.models import MAINTENANCE_GROUP
+
 
 class ChatConsumer(AsyncWebsocketConsumer):
     """
@@ -16,9 +18,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def connect(self):
         user = await self.scope["user"]
-        self.group_name = "%s" % user.id
-        # Join room group
+        self.group_name = f"{user.id}"
+        # Join personal group and maintenance broadcast group
         await self.channel_layer.group_add(self.group_name, self.channel_name)
+        await self.channel_layer.group_add(MAINTENANCE_GROUP, self.channel_name)
         await self.accept()
 
     async def disconnect(self, close_code):
@@ -27,6 +30,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         Is closed by the user or user is disconnected.
         """
         await self.channel_layer.group_discard(self.group_name, self.channel_name)
+        await self.channel_layer.group_discard(MAINTENANCE_GROUP, self.channel_name)
 
     async def receive(self, text_data=None, bytes_data=None):
         """
