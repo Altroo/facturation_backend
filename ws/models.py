@@ -12,8 +12,8 @@ class WsMaintenanceState(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        verbose_name = "WS Maintenance State"
-        verbose_name_plural = "WS Maintenance State"
+        verbose_name = "Maintenance"
+        verbose_name_plural = "Maintenance"
 
 
 @receiver(post_save, sender=WsMaintenanceState)
