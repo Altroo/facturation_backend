@@ -1,4 +1,3 @@
-from dj_rest_auth.jwt_auth import get_refresh_view
 from django.urls import path
 from rest_framework_simplejwt.views import TokenVerifyView
 
@@ -14,6 +13,7 @@ from .views import (
     UsersListCreateView,
     UserDetailEditDeleteView,
     BulkDeleteUsersView,
+    TokenRefreshView,
 )
 
 app_name = "account"
@@ -54,5 +54,5 @@ urlpatterns = [
     path("users/<int:pk>/", UserDetailEditDeleteView.as_view(), name="users_detail"),
     # POST : Tokens, Verify if token valid, Refresh access token
     path("token_verify/", TokenVerifyView.as_view(), name="token_verify"),
-    path("token_refresh/", get_refresh_view().as_view(), name="token_refresh"),
+    path("token_refresh/", TokenRefreshView.as_view(), name="token_refresh"),
 ]

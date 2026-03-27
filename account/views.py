@@ -1,4 +1,6 @@
-from datetime import timedelta, timezone, datetime
+from datetime import timedelta, datetime, timezone as dt_timezone
+
+from django.utils import timezone as dj_timezone
 import hmac
 import logging
 from os import remove
@@ -84,12 +86,67 @@ class LoginView(Dj_rest_login):
     def login(self):
         return super(LoginView, self).login()
 
+    def get_response(self):
+        response = super().get_response()
+        # dj-rest-auth strips the refresh token from the JSON body when
+        # JWT_AUTH_HTTPONLY is True.  The NextAuth frontend needs it in the
+        # body so it can send it back for token refresh, so re-inject it.
+        if (
+            response.status_code == status.HTTP_200_OK
+            and hasattr(self, "refresh_token")
+            and not response.data.get("refresh")
+        ):
+            response.data["refresh"] = str(self.refresh_token)
+        return response
+
 
 class LogoutView(Dj_rest_logout):
     permission_classes = (permissions.IsAuthenticated,)
 
     def logout(self, request):
         return super(LogoutView, self).logout(request)
+
+
+class TokenRefreshView(APIView):
+    """Custom token refresh that always returns the rotated refresh token
+    and its expiration in the JSON body, regardless of JWT_AUTH_HTTPONLY.
+
+    dj-rest-auth's default refresh view strips the refresh token from the
+    response when JWT_AUTH_HTTPONLY is True and never returns
+    refresh_expiration in that mode.  The NextAuth frontend needs both
+    values to keep the session alive across token rotations."""
+
+    permission_classes = (permissions.AllowAny,)
+
+    def post(self, request, *args, **kwargs):
+        from dj_rest_auth.jwt_auth import CookieTokenRefreshSerializer, set_jwt_cookies
+        from rest_framework_simplejwt.settings import (
+            api_settings as jwt_settings,
+        )
+
+        serializer = CookieTokenRefreshSerializer(
+            data=request.data, context={"request": request}
+        )
+        serializer.is_valid(raise_exception=True)
+
+        access = serializer.validated_data["access"]
+        refresh = serializer.validated_data.get("refresh", "")
+
+        data = {
+            "access": access,
+            "access_expiration": (
+                dj_timezone.now() + jwt_settings.ACCESS_TOKEN_LIFETIME
+            ).isoformat(),
+        }
+        if refresh:
+            data["refresh"] = refresh
+            data["refresh_expiration"] = (
+                dj_timezone.now() + jwt_settings.REFRESH_TOKEN_LIFETIME
+            ).isoformat()
+
+        response = Response(data, status=status.HTTP_200_OK)
+        set_jwt_cookies(response, access, refresh or "")
+        return response
 
 
 class PasswordChangeView(APIView):
@@ -155,7 +212,7 @@ class PasswordResetView(APIView):
                 # Check if code is still valid (5-minute window)
                 if user.password_reset_code_created_at:
                     time_elapsed = (
-                        datetime.now(timezone.utc) - user.password_reset_code_created_at
+                        datetime.now(dt_timezone.utc) - user.password_reset_code_created_at
                     )
                     if time_elapsed > timedelta(minutes=5):
                         raise ValidationError(
@@ -192,7 +249,7 @@ class PasswordResetView(APIView):
                 # Check if code is still valid (5-minute window)
                 if user.password_reset_code_created_at:
                     time_elapsed = (
-                        datetime.now(timezone.utc) - user.password_reset_code_created_at
+                        datetime.now(dt_timezone.utc) - user.password_reset_code_created_at
                     )
                     if time_elapsed > timedelta(minutes=5):
                         raise ValidationError(
@@ -332,7 +389,7 @@ class SendPasswordResetView(APIView):
                                 "password_reset_code",
                             ),
                         )
-                        date_now = datetime.now(timezone.utc)
+                        date_now = datetime.now(dt_timezone.utc)
                         # Set code creation timestamp for 5-minute expiration
                         user.password_reset_code_created_at = date_now
                         shift = date_now + timedelta(hours=24)
