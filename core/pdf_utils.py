@@ -678,19 +678,14 @@ class BasePDFGenerator:
             ),
         )
 
-        # Build content and count pages
+        # Build content and balance across pages if multi-page
         elements = self._build_content()
         self.total_pages = self._count_pages(elements)
 
-        # Balance content across pages if multi-page
         if self.total_pages > 1:
             elements = self._build_content()
             elements = self._balance_elements(elements)
             self.total_pages = self._count_pages(elements)
-            # Rebuild balanced for final output
-            elements = self._build_content()
-            if self.total_pages > 1:
-                elements = self._balance_elements(elements)
 
         doc.build(
             elements,
@@ -765,33 +760,28 @@ class BasePDFGenerator:
 
         Strategy
         --------
-        1.  Measure element heights on a disposable copy.
-        2.  Calculate how many of the *last* article rows can share the
-            final page with the tail (totals block).
-        3.  Split the articles table: the main part flows naturally across
-            pages via ReportLab's auto-split (repeatRows); a small
-            tail-table containing just the last few rows is wrapped in a
-            KeepTogether with the tail elements so they always land on the
-            same page.
+        We use `_count_pages` (a real ReportLab build) as the source of
+        truth — wrap()-based measurement is unreliable for tables with
+        variable row heights (multi-line article descriptions).
 
-        This avoids the old approach of wrapping a potentially huge
-        part2+tail in KeepTogether — that caused ReportLab to push the
-        whole block to a new page (wasting the previous page) whenever
-        the block exceeded a single page height.
+        1. Count pages of the unbalanced layout.
+        2. Estimate how many trailing article rows might fit on the last
+           page alongside the tail, using wrap()-heights as a rough guide.
+        3. Split the table, wrap only the small tail-table + tail in
+           KeepTogether, and **verify** with `_count_pages`.
+        4. If the result has MORE pages than the unbalanced layout (i.e.
+           the KeepTogether overflowed), reduce `last_rows` and retry.
+        5. Among all valid candidates, pick the one with the fewest total
+           pages (or the one with the most `last_rows` if tied).
         """
         available_width = self.PAGE_WIDTH - 2 * self.MARGIN
         available_height = self.PAGE_HEIGHT - self.MARGIN - 2 * cm
 
-        # ---- measure on a disposable copy (wrap mutates state) ----
-        measure_elements = self._build_content()
-        heights = []
-        for elem in measure_elements:
-            h = self._measure_element_height(elem, available_width, available_height)
-            heights.append(h)
+        # ---- baseline: how many pages without any balancing? ----
+        baseline_pages = self._count_pages([e for e in elements])
 
-        total_height = sum(heights)
-        if total_height <= available_height:
-            return elements  # single page — nothing to balance
+        if baseline_pages <= 1:
+            return elements
 
         # ---- locate key elements ----
         tail_idx = None
@@ -803,6 +793,14 @@ class BasePDFGenerator:
         art_idx = None
         art_height = 0
         search_limit = tail_idx if tail_idx is not None else len(elements)
+
+        # Measure on a disposable copy (wrap mutates state)
+        measure_elements = self._build_content()
+        heights = []
+        for elem in measure_elements:
+            h = self._measure_element_height(elem, available_width, available_height)
+            heights.append(h)
+
         for i in range(search_limit):
             if isinstance(elements[i], Table) and heights[i] > art_height:
                 art_idx = i
@@ -813,7 +811,7 @@ class BasePDFGenerator:
 
         post_height = sum(heights[art_idx + 1 :])
 
-        # ---- get per-row heights from the measured table ----
+        # ---- get per-row heights (rough guide only) ----
         measure_table = measure_elements[art_idx]
         num_total_rows = len(getattr(measure_table, "_cellvalues", []))
 
@@ -841,68 +839,79 @@ class BasePDFGenerator:
         for k in range(1, num_data + 1):
             cum[k] = cum[k - 1] + data_rh[k - 1]
 
-        # ---- how many last rows fit on the final page with the tail? ----
-        # Budget: full page minus repeated header minus tail/post elements
-        # Use a safety margin to cover measurement inaccuracies.
-        safety = 20  # ~7mm buffer for rounding / style differences
-        last_budget = available_height - header_h - post_height - safety
+        # ---- estimate max last_rows using measurements as a guide ----
+        last_budget = available_height - header_h - post_height
         if last_budget <= 0:
-            return elements  # tail alone fills a page
+            return elements
 
-        max_last = 0
+        max_last_estimate = 0
         for k in range(num_data, 0, -1):
             last_k_h = sum(data_rh[num_data - k :])
             if last_k_h <= last_budget:
-                max_last = k
+                max_last_estimate = k
                 break
 
-        if max_last <= 0:
+        max_last_estimate = min(max_last_estimate, num_data - 1)
+        if max_last_estimate <= 0:
             return elements
 
-        # Limit: we must leave at least 1 row in the main table.
-        max_last = min(max_last, num_data - 1)
+        # ---- try splitting and VERIFY with _count_pages ----
+        # Start from our estimate and work downward until we find a split
+        # that doesn't add pages.  We cache the result to avoid redundant
+        # builds.
+        best_result = None
+        best_last = 0
 
-        # ---- for 2-page documents, try to balance evenly ----
-        pre_height = sum(heights[:art_idx])
-        p1_budget = available_height - pre_height - header_h
-        max_p1 = 0
-        for k in range(num_data, -1, -1):
-            if cum[k] - header_h <= p1_budget:
-                max_p1 = k
-                break
+        for last_rows in range(max_last_estimate, 0, -1):
+            p1_rows = num_data - last_rows
 
-        two_pages_possible = max_p1 + max_last >= num_data
-        if two_pages_possible:
-            ideal = math.ceil(num_data / 2)
-            min_p1 = max(1, num_data - max_last)
-            p1_rows = max(min_p1, min(ideal, max_p1))
-            last_rows = num_data - p1_rows
-        else:
-            # 3+ pages: put as many rows as will fit alongside the tail
-            # on the last page; the main table auto-splits the rest.
-            last_rows = max_last
+            split_at = cum[p1_rows] + 2
+            # We need a fresh articles table for each attempt since
+            # split() may mutate the table.
+            fresh_elements = self._build_content()
+            art_table = fresh_elements[art_idx]
+            parts = art_table.split(available_width, split_at)
 
-        if last_rows <= 0 or last_rows >= num_data:
+            if len(parts) != 2:
+                # Retry with larger buffer
+                fresh_elements = self._build_content()
+                art_table = fresh_elements[art_idx]
+                split_at = cum[p1_rows] + max(header_h, 10)
+                parts = art_table.split(available_width, split_at)
+                if len(parts) != 2:
+                    continue
+
+            post_elements = list(fresh_elements[art_idx + 1 :])
+            keep_block = KeepTogether([parts[1]] + post_elements)
+
+            candidate = list(fresh_elements[:art_idx])
+            candidate.append(parts[0])
+            candidate.append(keep_block)
+
+            candidate_pages = self._count_pages(candidate)
+
+            logger.debug(
+                "PDF balance try: last_rows=%d p1_rows=%d candidate_pages=%d "
+                "baseline=%d",
+                last_rows, p1_rows, candidate_pages, baseline_pages,
+            )
+
+            if candidate_pages <= baseline_pages:
+                # This split works — it doesn't add extra pages.
+                best_result = candidate
+                best_last = last_rows
+                break  # largest valid last_rows found
+
+        if best_result is None:
             return elements
 
-        p1_rows = num_data - last_rows
-
-        logger.debug(
-            "PDF balance: data=%d main=%d last=%d two_pages=%s "
-            "pre=%.1f art=%.1f post=%.1f avail=%.1f",
-            num_data,
-            p1_rows,
-            last_rows,
-            two_pages_possible,
-            pre_height,
-            art_height,
-            post_height,
-            available_height,
-        )
-
-        # ---- split the real articles table ----
+        # We found a working split but the candidate elements were built
+        # from _build_content() and may have been mutated by split/count.
+        # Rebuild one final time for the actual PDF render.
+        final_elements = self._build_content()
+        art_table = final_elements[art_idx]
+        p1_rows = num_data - best_last
         split_at = cum[p1_rows] + 2
-        art_table = elements[art_idx]
         parts = art_table.split(available_width, split_at)
         if len(parts) != 2:
             split_at = cum[p1_rows] + max(header_h, 10)
@@ -910,18 +919,18 @@ class BasePDFGenerator:
             if len(parts) != 2:
                 return elements
 
-        # parts[0] = main table (rows 1..p1_rows) — flows freely
-        # parts[1] = tail table (last_rows rows) — kept with tail
-
-        # Bundle ONLY the small tail-table + post-article elements
-        # in KeepTogether.  Because we sized last_rows to fit within
-        # last_budget, this block is guaranteed to fit on one page.
-        post_elements = list(elements[art_idx + 1 :])
+        post_elements = list(final_elements[art_idx + 1 :])
         keep_block = KeepTogether([parts[1]] + post_elements)
 
-        result = list(elements[:art_idx])
-        result.append(parts[0])   # flows & auto-splits naturally
-        result.append(keep_block) # last page: tail-rows + totals
+        result = list(final_elements[:art_idx])
+        result.append(parts[0])
+        result.append(keep_block)
+
+        logger.debug(
+            "PDF balance final: data=%d main=%d last=%d baseline_pages=%d",
+            num_data, p1_rows, best_last, baseline_pages,
+        )
+
         return result
 
     # ------------------------------------------------------------------ #
