@@ -883,10 +883,54 @@ class BasePDFGenerator:
             min_p1 = max(1, num_data - max_last)
             p1_rows = max(min_p1, min(ideal, max_p1))
         else:
-            # 3+ pages: fill the last page alongside the tail.
-            # part1 auto-splits across pages 1.N-1 via repeatRows.
-            last_rows = max_last
-            p1_rows = max(1, num_data - last_rows)
+            # 3+ pages: align the split with natural page boundaries so
+            # part1 fills its pages completely (no wasted partial pages).
+            # Simulate how the table auto-splits across pages.
+            mid_budget = available_height - header_h
+            page_ends = []  # cumulative row indices at the end of each page
+            cur = 0
+
+            # Page 1: limited by pre-content
+            used = 0.0
+            while cur < num_data and used + data_rh[cur] <= p1_budget:
+                used += data_rh[cur]
+                cur += 1
+            if cur > 0:
+                page_ends.append(cur)
+
+            # Middle pages
+            while cur < num_data:
+                used = 0.0
+                page_start = cur
+                while cur < num_data and used + data_rh[cur] <= mid_budget:
+                    used += data_rh[cur]
+                    cur += 1
+                if cur == page_start:
+                    cur += 1  # safety: at least one row per page
+                page_ends.append(cur)
+
+            # Find the latest page boundary where the remaining rows
+            # plus the tail fit on the final page.  Use a safety margin
+            # to account for measurement inaccuracies between the
+            # disposable measurement copy and the real table.
+            safety_margin = 15  # points (~5mm buffer)
+            safe_last_budget = last_budget - safety_margin
+
+            best_split = None
+            for boundary in reversed(page_ends):
+                remaining = num_data - boundary
+                if remaining <= 0:
+                    continue
+                remaining_h = sum(data_rh[boundary:])
+                if remaining_h <= safe_last_budget:
+                    best_split = boundary
+                    break
+
+            if best_split is None or best_split <= 0:
+                # Fallback: original approach (split at num_data - max_last)
+                p1_rows = max(1, num_data - max_last)
+            else:
+                p1_rows = best_split
 
         if p1_rows <= 0 or p1_rows >= num_data:
             return elements
