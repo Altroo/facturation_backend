@@ -285,7 +285,11 @@ class BasePDFGenerator:
     """Base class for generating PDF documents."""
 
     PAGE_WIDTH, PAGE_HEIGHT = A4
-    MARGIN = 1.5 * cm
+    MARGIN = 0.7 * cm
+    BOTTOM_MARGIN = 1.3 * cm
+    CONTENT_WIDTH = PAGE_WIDTH - 2 * MARGIN
+    HALF_WIDTH = CONTENT_WIDTH / 2
+    INNER_COL_WIDTH = HALF_WIDTH - 0.5 * cm  # inner column with gap
 
     def __init__(
         self, document, company, pdf_type: str = "normal", language: str = "fr"
@@ -647,7 +651,7 @@ class BasePDFGenerator:
             rightMargin=self.MARGIN,
             leftMargin=self.MARGIN,
             topMargin=self.MARGIN,
-            bottomMargin=2 * cm,
+            bottomMargin=self.BOTTOM_MARGIN,
         )
         page_counter = [0]
 
@@ -669,7 +673,7 @@ class BasePDFGenerator:
             rightMargin=self.MARGIN,
             leftMargin=self.MARGIN,
             topMargin=self.MARGIN,
-            bottomMargin=2 * cm,
+            bottomMargin=self.BOTTOM_MARGIN,
             title=pdf_title,
             author=(
                 self.company.raison_sociale
@@ -722,10 +726,10 @@ class BasePDFGenerator:
         canvas.setFillColor(colors.HexColor("#666666"))
 
         # Draw footer text on the left side
-        canvas.drawString(self.MARGIN, 1 * cm, footer_text)
+        canvas.drawString(self.MARGIN, 0.4 * cm, footer_text)
 
         # Draw page number on the right side
-        canvas.drawRightString(self.PAGE_WIDTH - self.MARGIN, 1 * cm, page_text)
+        canvas.drawRightString(self.PAGE_WIDTH - self.MARGIN, 0.4 * cm, page_text)
 
         canvas.restoreState()
 
@@ -775,7 +779,7 @@ class BasePDFGenerator:
            pages (or the one with the most `last_rows` if tied).
         """
         available_width = self.PAGE_WIDTH - 2 * self.MARGIN
-        available_height = self.PAGE_HEIGHT - self.MARGIN - 2 * cm
+        available_height = self.PAGE_HEIGHT - self.MARGIN - self.BOTTOM_MARGIN
 
         # ---- baseline: how many pages without any balancing? ----
         baseline_pages = self._count_pages([e for e in elements])
@@ -941,7 +945,8 @@ class BasePDFGenerator:
         """Build document header: logo left, doc number + date stacked right."""
         doc_number = Paragraph(f"<b>{number_text}</b>", self.styles["DocTitle"])
         doc_date_para = Paragraph(date_text, self.styles["DocDate"])
-        title_date_table = Table([[doc_number], [doc_date_para]], colWidths=[9 * cm])
+        hw = self.HALF_WIDTH
+        title_date_table = Table([[doc_number], [doc_date_para]], colWidths=[hw])
         title_date_table.setStyle(
             TableStyle(
                 [
@@ -966,7 +971,7 @@ class BasePDFGenerator:
                 ("VALIGN", (0, 0), (-1, -1), "TOP"),
                 ("ALIGN", (1, 0), (1, 0), "RIGHT"),
             ]
-        header_table = Table(header_data, colWidths=[9 * cm, 9 * cm])
+        header_table = Table(header_data, colWidths=[hw, hw])
         header_table.setStyle(TableStyle(style_cmds))
         return header_table
 
@@ -1066,15 +1071,17 @@ class BasePDFGenerator:
             [left_header],
             [HRFlowable(width="100%", thickness=1, color=self.primary_color)],
         ] + [[line] for line in company_lines]
-        left_table = Table(left_content, colWidths=[8.5 * cm])
+        icw = self.INNER_COL_WIDTH
+        hw = self.HALF_WIDTH
+        left_table = Table(left_content, colWidths=[icw])
         left_table.setStyle(col_style)
         right_content = [
             [right_header],
             [HRFlowable(width="100%", thickness=1, color=self.primary_color)],
         ] + [[line] for line in client_lines]
-        right_table = Table(right_content, colWidths=[8.5 * cm])
+        right_table = Table(right_content, colWidths=[icw])
         right_table.setStyle(col_style)
-        main_grid = Table([[left_table, right_table]], colWidths=[9 * cm, 9 * cm])
+        main_grid = Table([[left_table, right_table]], colWidths=[hw, hw])
         main_grid.setStyle(TableStyle([("VALIGN", (0, 0), (-1, -1), "TOP")]))
         return main_grid
 
@@ -1084,6 +1091,7 @@ class BasePDFGenerator:
         """Build the light-styled articles table used by standard documents."""
         from decimal import Decimal as _Decimal
 
+        cw = self.CONTENT_WIDTH
         if show_remise and show_unite:
             headers = [
                 self._("Designation"),
@@ -1094,8 +1102,9 @@ class BasePDFGenerator:
                 self._("Discount"),
                 self._("Total_HT"),
             ]
+            fixed = 1.5 * cm + 1.3 * cm + 2.5 * cm + 2 * cm + 2.2 * cm + 3 * cm
             col_widths = [
-                5.5 * cm,
+                cw - fixed,
                 1.5 * cm,
                 1.3 * cm,
                 2.5 * cm,
@@ -1112,7 +1121,8 @@ class BasePDFGenerator:
                 self._("Discount"),
                 self._("Total_HT"),
             ]
-            col_widths = [6.5 * cm, 1.8 * cm, 1.5 * cm, 2.5 * cm, 2.5 * cm, 3.2 * cm]
+            fixed = 1.8 * cm + 1.5 * cm + 2.5 * cm + 2.5 * cm + 3.2 * cm
+            col_widths = [cw - fixed, 1.8 * cm, 1.5 * cm, 2.5 * cm, 2.5 * cm, 3.2 * cm]
         elif show_unite:
             headers = [
                 self._("Designation"),
@@ -1122,7 +1132,8 @@ class BasePDFGenerator:
                 self._("Unit"),
                 self._("Total_HT"),
             ]
-            col_widths = [6.5 * cm, 1.8 * cm, 1.5 * cm, 2.7 * cm, 2 * cm, 3.5 * cm]
+            fixed = 1.8 * cm + 1.5 * cm + 2.7 * cm + 2 * cm + 3.5 * cm
+            col_widths = [cw - fixed, 1.8 * cm, 1.5 * cm, 2.7 * cm, 2 * cm, 3.5 * cm]
         else:
             headers = [
                 self._("Designation"),
@@ -1131,7 +1142,8 @@ class BasePDFGenerator:
                 self._("Unit_Price_HT"),
                 self._("Total_HT"),
             ]
-            col_widths = [7.5 * cm, 2 * cm, 1.8 * cm, 3 * cm, 3.7 * cm]
+            fixed = 2 * cm + 1.8 * cm + 3 * cm + 3.7 * cm
+            col_widths = [cw - fixed, 2 * cm, 1.8 * cm, 3 * cm, 3.7 * cm]
 
         header_cells = [Paragraph(f"<b>{headers[0]}</b>", self.styles["CustomSmall"])]
         for h in headers[1:]:
@@ -1284,9 +1296,11 @@ class BasePDFGenerator:
 
         doc_title = Paragraph(f"<b>{title}</b>", self.styles["DocTitle"])
 
+        hw = self.HALF_WIDTH
+
         if logo_img:
             header_data = [[logo_img, doc_title]]
-            header_table = Table(header_data, colWidths=[9 * cm, 9 * cm])
+            header_table = Table(header_data, colWidths=[hw, hw])
             header_table.setStyle(
                 TableStyle(
                     [
@@ -1298,7 +1312,7 @@ class BasePDFGenerator:
             )
         else:
             header_data = [["", doc_title]]
-            header_table = Table(header_data, colWidths=[9 * cm, 9 * cm])
+            header_table = Table(header_data, colWidths=[hw, hw])
             header_table.setStyle(
                 TableStyle(
                     [
@@ -1374,7 +1388,7 @@ class BasePDFGenerator:
                 [Paragraph(f"<b>{label}:</b> {value}", self.styles["CustomSmall"])]
             )
 
-        left_table = Table(left_content, colWidths=[8.5 * cm])
+        left_table = Table(left_content, colWidths=[self.INNER_COL_WIDTH])
         left_table.setStyle(
             TableStyle(
                 [
@@ -1404,7 +1418,7 @@ class BasePDFGenerator:
                     [Paragraph(f"<b>{label}:</b> {value}", self.styles["CustomSmall"])]
                 )
 
-        right_table = Table(right_content, colWidths=[8.5 * cm])
+        right_table = Table(right_content, colWidths=[self.INNER_COL_WIDTH])
         right_table.setStyle(
             TableStyle(
                 [
@@ -1418,7 +1432,7 @@ class BasePDFGenerator:
         )
 
         # Main grid
-        main_grid = Table([[left_table, right_table]], colWidths=[9 * cm, 9 * cm])
+        main_grid = Table([[left_table, right_table]], colWidths=[self.HALF_WIDTH, self.HALF_WIDTH])
         main_grid.setStyle(TableStyle([("VALIGN", (0, 0), (-1, -1), "TOP")]))
 
         return main_grid
@@ -1430,6 +1444,7 @@ class BasePDFGenerator:
         from decimal import Decimal
 
         # Define columns
+        cw = self.CONTENT_WIDTH
         if show_unite:
             headers = [
                 self._("Designation"),
@@ -1439,7 +1454,8 @@ class BasePDFGenerator:
                 self._("Unit"),
                 self._("Total_HT"),
             ]
-            col_widths = [5.5 * cm, 1.8 * cm, 1.5 * cm, 2.5 * cm, 2 * cm, 2.7 * cm]
+            fixed = 1.8 * cm + 1.5 * cm + 2.5 * cm + 2 * cm + 2.7 * cm
+            col_widths = [cw - fixed, 1.8 * cm, 1.5 * cm, 2.5 * cm, 2 * cm, 2.7 * cm]
         else:
             headers = [
                 self._("Designation"),
@@ -1448,7 +1464,8 @@ class BasePDFGenerator:
                 self._("Unit_Price_HT"),
                 self._("Total_HT"),
             ]
-            col_widths = [7 * cm, 2 * cm, 1.8 * cm, 2.7 * cm, 2.5 * cm]
+            fixed = 2 * cm + 1.8 * cm + 2.7 * cm + 2.5 * cm
+            col_widths = [cw - fixed, 2 * cm, 1.8 * cm, 2.7 * cm, 2.5 * cm]
 
         # Header row
         header_cells = [
