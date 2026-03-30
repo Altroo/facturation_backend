@@ -759,24 +759,25 @@ class BasePDFGenerator:
             return 0.0
 
     def _balance_elements(self, elements):
-        """Balance content across pages by splitting the articles table
-        so the last page carries articles alongside the tail (totals,
-        price-in-words, remarks) instead of having the tail orphaned.
+        """Balance content across pages so the tail (totals, price-in-words,
+        remarks) shares the last page with some article rows instead of
+        being orphaned on its own page.
 
-        Strategy:
-        - Measure all element heights on a disposable copy.
-        - Locate the articles table (tallest Table before the tail) and
-          the tail (last KeepTogether).
-        - Calculate how many article rows fit on page 1 and how many
-          can share the last page with the tail.
-        - Split the articles table at the optimal row boundary.
-        - Wrap part2 + all post-article elements inside a KeepTogether
-          so they always land on the same page.
-        - part1 flows naturally across however many pages it needs;
-          ReportLab auto-splits it with repeatRows.
-        - For 2-page docs: aim for ~50/50 article split.
-        - For 3+-page docs: fill the last page with as many articles
-          as possible alongside the tail; part1 auto-splits the rest.
+        Strategy
+        --------
+        1.  Measure element heights on a disposable copy.
+        2.  Calculate how many of the *last* article rows can share the
+            final page with the tail (totals block).
+        3.  Split the articles table: the main part flows naturally across
+            pages via ReportLab's auto-split (repeatRows); a small
+            tail-table containing just the last few rows is wrapped in a
+            KeepTogether with the tail elements so they always land on the
+            same page.
+
+        This avoids the old approach of wrapping a potentially huge
+        part2+tail in KeepTogether — that caused ReportLab to push the
+        whole block to a new page (wasting the previous page) whenever
+        the block exceeded a single page height.
         """
         available_width = self.PAGE_WIDTH - 2 * self.MARGIN
         available_height = self.PAGE_HEIGHT - self.MARGIN - 2 * cm
@@ -790,7 +791,7 @@ class BasePDFGenerator:
 
         total_height = sum(heights)
         if total_height <= available_height:
-            return elements
+            return elements  # single page — nothing to balance
 
         # ---- locate key elements ----
         tail_idx = None
@@ -810,25 +811,18 @@ class BasePDFGenerator:
         if art_idx is None:
             return elements
 
-        pre_height = sum(heights[:art_idx])
         post_height = sum(heights[art_idx + 1 :])
 
-        if available_height - pre_height <= 0:
-            return elements
-
-        # ---- get row heights (exact or estimated) ----
+        # ---- get per-row heights from the measured table ----
         measure_table = measure_elements[art_idx]
         num_total_rows = len(getattr(measure_table, "_cellvalues", []))
 
         if num_total_rows < 3:
             return elements
 
-        num_data = num_total_rows - 1  # exclude header
+        num_data = num_total_rows - 1  # exclude header row
 
-        # After wrap(), ReportLab stores calculated row heights in _rowHeights.
-        # _argH stores the user-specified heights (often None).
         row_h = getattr(measure_table, "_rowHeights", None)
-
         if (
             row_h
             and len(row_h) == num_total_rows
@@ -837,108 +831,64 @@ class BasePDFGenerator:
             header_h = float(row_h[0])
             data_rh = [float(h) for h in row_h[1:]]
         else:
-            # Fallback: estimate uniform row heights from total art_height
             header_h = max(art_height / num_total_rows, 15.0)
             avg_data = (art_height - header_h) / num_data if num_data > 0 else 20.0
             data_rh = [avg_data] * num_data
 
-        # Cumulative data height: cum[k] = header + first k data rows
+        # Cumulative height: cum[k] = header + first k data rows
         cum = [0.0] * (num_data + 1)
         cum[0] = header_h
         for k in range(1, num_data + 1):
             cum[k] = cum[k - 1] + data_rh[k - 1]
 
-        # ---- max rows that fit on page 1 ----
-        p1_budget = available_height - pre_height - header_h
-        max_p1 = 0
-        for k in range(num_data, -1, -1):
-            data_h = cum[k] - header_h  # height of first k data rows
-            if data_h <= p1_budget:
-                max_p1 = k
-                break
+        # ---- how many last rows fit on the final page with the tail? ----
+        # Budget: full page minus repeated header minus tail/post elements
+        # Use a safety margin to cover measurement inaccuracies.
+        safety = 20  # ~7mm buffer for rounding / style differences
+        last_budget = available_height - header_h - post_height - safety
+        if last_budget <= 0:
+            return elements  # tail alone fills a page
 
-        if max_p1 <= 0:
-            return elements
-
-        # ---- max rows on the LAST page alongside the tail ----
-        # Last page: repeated header + last_rows data + post_elements
-        last_budget = available_height - header_h - post_height
         max_last = 0
-        for k in range(num_data, -1, -1):
-            # Height of the last k data rows
+        for k in range(num_data, 0, -1):
             last_k_h = sum(data_rh[num_data - k :])
             if last_k_h <= last_budget:
                 max_last = k
                 break
 
         if max_last <= 0:
-            return elements  # tail alone fills a page
+            return elements
 
-        # ---- decide the split ----
+        # Limit: we must leave at least 1 row in the main table.
+        max_last = min(max_last, num_data - 1)
+
+        # ---- for 2-page documents, try to balance evenly ----
+        pre_height = sum(heights[:art_idx])
+        p1_budget = available_height - pre_height - header_h
+        max_p1 = 0
+        for k in range(num_data, -1, -1):
+            if cum[k] - header_h <= p1_budget:
+                max_p1 = k
+                break
+
         two_pages_possible = max_p1 + max_last >= num_data
-
         if two_pages_possible:
-            # Aim for even article count across 2 pages
             ideal = math.ceil(num_data / 2)
             min_p1 = max(1, num_data - max_last)
             p1_rows = max(min_p1, min(ideal, max_p1))
+            last_rows = num_data - p1_rows
         else:
-            # 3+ pages: align the split with natural page boundaries so
-            # part1 fills its pages completely (no wasted partial pages).
-            # Simulate how the table auto-splits across pages.
-            mid_budget = available_height - header_h
-            page_ends = []  # cumulative row indices at the end of each page
-            cur = 0
+            # 3+ pages: put as many rows as will fit alongside the tail
+            # on the last page; the main table auto-splits the rest.
+            last_rows = max_last
 
-            # Page 1: limited by pre-content
-            used = 0.0
-            while cur < num_data and used + data_rh[cur] <= p1_budget:
-                used += data_rh[cur]
-                cur += 1
-            if cur > 0:
-                page_ends.append(cur)
-
-            # Middle pages
-            while cur < num_data:
-                used = 0.0
-                page_start = cur
-                while cur < num_data and used + data_rh[cur] <= mid_budget:
-                    used += data_rh[cur]
-                    cur += 1
-                if cur == page_start:
-                    cur += 1  # safety: at least one row per page
-                page_ends.append(cur)
-
-            # Find the latest page boundary where the remaining rows
-            # plus the tail fit on the final page.  Use a safety margin
-            # to account for measurement inaccuracies between the
-            # disposable measurement copy and the real table.
-            safety_margin = 15  # points (~5mm buffer)
-            safe_last_budget = last_budget - safety_margin
-
-            best_split = None
-            for boundary in reversed(page_ends):
-                remaining = num_data - boundary
-                if remaining <= 0:
-                    continue
-                remaining_h = sum(data_rh[boundary:])
-                if remaining_h <= safe_last_budget:
-                    best_split = boundary
-                    break
-
-            if best_split is None or best_split <= 0:
-                # Fallback: original approach (split at num_data - max_last)
-                p1_rows = max(1, num_data - max_last)
-            else:
-                p1_rows = best_split
-
-        if p1_rows <= 0 or p1_rows >= num_data:
+        if last_rows <= 0 or last_rows >= num_data:
             return elements
 
-        last_rows = num_data - p1_rows
+        p1_rows = num_data - last_rows
 
         logger.debug(
-            "PDF balance: data=%d p1=%d last=%d two_pages=%s "
+            "PDF balance: data=%d main=%d last=%d two_pages=%s "
             "pre=%.1f art=%.1f post=%.1f avail=%.1f",
             num_data,
             p1_rows,
@@ -950,29 +900,28 @@ class BasePDFGenerator:
             available_height,
         )
 
-        # ---- split the real (un-wrapped) articles table ----
-        # Add a small buffer (+2pt) to avoid rounding at row boundaries.
+        # ---- split the real articles table ----
         split_at = cum[p1_rows] + 2
         art_table = elements[art_idx]
         parts = art_table.split(available_width, split_at)
-
         if len(parts) != 2:
-            # Retry with a larger buffer in case row heights differ
-            # slightly between the measurement copy and the fresh table.
             split_at = cum[p1_rows] + max(header_h, 10)
             parts = art_table.split(available_width, split_at)
             if len(parts) != 2:
                 return elements
 
-        # Bundle part2 + all post-article elements in KeepTogether
-        # so they always land on the same page.
+        # parts[0] = main table (rows 1..p1_rows) — flows freely
+        # parts[1] = tail table (last_rows rows) — kept with tail
+
+        # Bundle ONLY the small tail-table + post-article elements
+        # in KeepTogether.  Because we sized last_rows to fit within
+        # last_budget, this block is guaranteed to fit on one page.
         post_elements = list(elements[art_idx + 1 :])
-        keep_content = [parts[1]] + post_elements
-        keep_block = KeepTogether(keep_content)
+        keep_block = KeepTogether([parts[1]] + post_elements)
 
         result = list(elements[:art_idx])
-        result.append(parts[0])
-        result.append(keep_block)
+        result.append(parts[0])   # flows & auto-splits naturally
+        result.append(keep_block) # last page: tail-rows + totals
         return result
 
     # ------------------------------------------------------------------ #
