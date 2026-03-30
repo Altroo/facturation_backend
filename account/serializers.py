@@ -364,6 +364,7 @@ class ProfileGETSerializer(serializers.ModelSerializer):
             "id",
             "first_name",
             "last_name",
+            "email",
             "gender",
             "avatar",
             "avatar_cropped",
