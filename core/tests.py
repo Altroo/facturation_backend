@@ -1316,14 +1316,20 @@ class TestCoreModelRecalcTotals:
         extra_devi.remise = 100
         extra_devi.remise_type = "Fixe"
         extra_devi.recalc_totals()
-        assert extra_devi.total_ttc_apres_remise < extra_devi.total_ttc
+        # total_ht is raw (before remise), total_ttc includes remise effect
+        assert extra_devi.total_ttc < extra_devi.total_ht + (
+            extra_devi.total_ht * Decimal("0.20")
+        )
+        assert extra_devi.total_ttc == extra_devi.total_ttc_apres_remise
 
     def test_recalc_totals_percentage_remise(self, extra_devi, extra_devi_line):
         """Test recalc_totals with Pourcentage document-level remise."""
         extra_devi.remise = 10
         extra_devi.remise_type = "Pourcentage"
         extra_devi.recalc_totals()
-        assert extra_devi.total_ttc_apres_remise < extra_devi.total_ttc
+        # TVA is computed on HT après remise, so total_ttc reflects the discount
+        assert extra_devi.total_ttc == extra_devi.total_ttc_apres_remise
+        assert extra_devi.total_ttc < extra_devi.total_ht * Decimal("1.20")
 
     def test_recalc_totals_no_lines(self, extra_client, extra_mode_paiement):
         """Test recalc_totals when document has no lines."""
@@ -1367,6 +1373,106 @@ class TestCoreModelRecalcTotals:
         )
         lines = devi.get_lines()
         assert lines.count() == 0
+
+    def test_recalc_totals_exact_values(
+        self, extra_client, extra_mode_paiement, extra_company
+    ):
+        """Test recalc_totals with exact expected values (user example)."""
+        article = Article.objects.create(
+            company=extra_company,
+            reference="ART_EXACT",
+            designation="Article Exact",
+            prix_achat=Decimal("100.00"),
+            prix_vente=Decimal("21880.20"),
+            tva=20,
+        )
+        devi = Devi.objects.create(
+            numero_devis="0005/25",
+            client=extra_client,
+            date_devis="2025-01-01",
+            mode_paiement=extra_mode_paiement,
+            remise=Decimal("505.20"),
+            remise_type="Fixe",
+        )
+        DeviLine.objects.create(
+            devis=devi,
+            article=article,
+            prix_achat=Decimal("100.00"),
+            prix_vente=Decimal("21880.20"),
+            quantity=1,
+        )
+        devi.refresh_from_db()
+        assert devi.total_ht == Decimal("21880.20")
+        assert devi.total_tva == Decimal("4275.00")
+        assert devi.total_ttc == Decimal("25650.00")
+        assert devi.total_ttc_apres_remise == Decimal("25650.00")
+
+    def test_recalc_totals_no_remise(
+        self, extra_client, extra_mode_paiement, extra_company
+    ):
+        """Test recalc_totals without remise gives standard HT + TVA."""
+        article = Article.objects.create(
+            company=extra_company,
+            reference="ART_NR",
+            designation="Article No Remise",
+            prix_achat=Decimal("50.00"),
+            prix_vente=Decimal("1000.00"),
+            tva=20,
+        )
+        devi = Devi.objects.create(
+            numero_devis="0006/25",
+            client=extra_client,
+            date_devis="2025-01-01",
+            mode_paiement=extra_mode_paiement,
+        )
+        DeviLine.objects.create(
+            devis=devi,
+            article=article,
+            prix_achat=Decimal("50.00"),
+            prix_vente=Decimal("1000.00"),
+            quantity=1,
+        )
+        devi.refresh_from_db()
+        assert devi.total_ht == Decimal("1000.00")
+        assert devi.total_tva == Decimal("200.00")
+        assert devi.total_ttc == Decimal("1200.00")
+        assert devi.total_ttc_apres_remise == Decimal("1200.00")
+
+    def test_recalc_totals_percentage_exact(
+        self, extra_client, extra_mode_paiement, extra_company
+    ):
+        """Test recalc_totals with percentage remise produces exact TVA."""
+        article = Article.objects.create(
+            company=extra_company,
+            reference="ART_PCT",
+            designation="Article PCT",
+            prix_achat=Decimal("50.00"),
+            prix_vente=Decimal("1000.00"),
+            tva=20,
+        )
+        devi = Devi.objects.create(
+            numero_devis="0007/25",
+            client=extra_client,
+            date_devis="2025-01-01",
+            mode_paiement=extra_mode_paiement,
+            remise=Decimal("10.00"),
+            remise_type="Pourcentage",
+        )
+        DeviLine.objects.create(
+            devis=devi,
+            article=article,
+            prix_achat=Decimal("50.00"),
+            prix_vente=Decimal("1000.00"),
+            quantity=1,
+        )
+        devi.refresh_from_db()
+        # HT=1000, remise 10% → HT après remise = 900
+        # TVA = 900 * 20% = 180
+        # TTC = 900 + 180 = 1080
+        assert devi.total_ht == Decimal("1000.00")
+        assert devi.total_tva == Decimal("180.00")
+        assert devi.total_ttc == Decimal("1080.00")
+        assert devi.total_ttc_apres_remise == Decimal("1080.00")
 
 
 @pytest.mark.django_db

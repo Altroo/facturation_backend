@@ -67,7 +67,7 @@ class BaseDeviFactureDocument(models.Model):
         decimal_places=2,
         default=0,
         verbose_name="Total TVA",
-        help_text="Montant total de la TVA",
+        help_text="Montant total de la TVA (calculé sur le HT après remise globale)",
         editable=False,
     )
 
@@ -76,7 +76,7 @@ class BaseDeviFactureDocument(models.Model):
         decimal_places=2,
         default=0,
         verbose_name="Total TTC",
-        help_text="Total toutes taxes comprises (TTC)",
+        help_text="Total TTC final (HT après remise + TVA sur HT après remise)",
         editable=False,
     )
 
@@ -103,7 +103,7 @@ class BaseDeviFactureDocument(models.Model):
         decimal_places=2,
         default=0,
         verbose_name="Total TTC après remise",
-        help_text="Total TTC après application de la remise",
+        help_text="Total TTC après application de la remise (identique à total_ttc)",
         editable=False,
     )
 
@@ -153,10 +153,11 @@ class BaseDeviFactureDocument(models.Model):
         """
         Compute totals based on related lines and remise.
         - Line remise applies on HT before TVA.
-        - Document remise applies on aggregated HT, then TVA is scaled proportionally.
+        - Document remise applies on aggregated HT.
+        - TVA is recalculated on the HT après remise.
         """
+        lines_data = []
         raw_total_ht = Decimal("0")
-        raw_total_tva = Decimal("0")
 
         for line in self.get_lines():
             prix_vente = Decimal(str(getattr(line, "prix_vente", 0) or 0))
@@ -179,10 +180,7 @@ class BaseDeviFactureDocument(models.Model):
             tva_pct = Decimal(
                 str(getattr(getattr(line, "article", None), "tva", 0) or 0)
             )
-            raw_total_tva += (line_net_ht * tva_pct) / Decimal("100")
-
-        # raw totals (before document-level remise)
-        raw_total_ttc = raw_total_ht + raw_total_tva
+            lines_data.append((line_net_ht, tva_pct))
 
         # Document-level remise (applied on HT)
         doc_remise = Decimal(str(getattr(self, "remise", 0) or 0))
@@ -195,21 +193,23 @@ class BaseDeviFactureDocument(models.Model):
         else:
             final_total_ht = raw_total_ht
 
-        # Scale TVA proportionally to the HT change
-        # Handle zero division safely
-        if raw_total_ht > 0:
-            ratio = final_total_ht / raw_total_ht
-            final_total_tva = raw_total_tva * ratio
-        else:
-            # If raw_total_ht is 0, TVA should also be 0
-            final_total_tva = Decimal("0")
+        # Recalculate TVA on HT après remise (per-line for mixed TVA rates)
+        ratio = final_total_ht / raw_total_ht if raw_total_ht > 0 else Decimal("0")
+        final_total_tva = Decimal("0")
+        for line_net_ht, tva_pct in lines_data:
+            adjusted_line_ht = line_net_ht * ratio
+            final_total_tva += (adjusted_line_ht * tva_pct) / Decimal("100")
 
         final_total_ttc = final_total_ht + final_total_tva
 
-        # Quantize to 2 decimal places and store directly
+        # Quantize to 2 decimal places and store
         self.total_ht = raw_total_ht.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-        self.total_tva = raw_total_tva.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-        self.total_ttc = raw_total_ttc.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        self.total_tva = final_total_tva.quantize(
+            Decimal("0.01"), rounding=ROUND_HALF_UP
+        )
+        self.total_ttc = final_total_ttc.quantize(
+            Decimal("0.01"), rounding=ROUND_HALF_UP
+        )
         self.total_ttc_apres_remise = final_total_ttc.quantize(
             Decimal("0.01"), rounding=ROUND_HALF_UP
         )
