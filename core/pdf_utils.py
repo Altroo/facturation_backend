@@ -345,6 +345,7 @@ class BasePDFGenerator:
                 "Total_TVA_Label": "TVA",
                 "Total_TTC_Label": "Total TTC",
                 "Discount_Label": "Remise",
+                "Total_HT_After_Discount": "Total HT après remise",
                 "Total_TTC_After_Discount": "Total TTC après remise",
                 "Percentage": "Pourcentage",
                 "Fixed": "Fixe",
@@ -429,6 +430,7 @@ class BasePDFGenerator:
                 "Total_TVA_Label": "VAT",
                 "Total_TTC_Label": "Total (IT)",
                 "Discount_Label": "Discount",
+                "Total_HT_After_Discount": "Total (ET) After Discount",
                 "Total_TTC_After_Discount": "Total (IT) After Discount",
                 "Percentage": "Percentage",
                 "Fixed": "Fixed",
@@ -897,7 +899,10 @@ class BasePDFGenerator:
             logger.debug(
                 "PDF balance try: last_rows=%d p1_rows=%d candidate_pages=%d "
                 "baseline=%d",
-                last_rows, p1_rows, candidate_pages, baseline_pages,
+                last_rows,
+                p1_rows,
+                candidate_pages,
+                baseline_pages,
             )
 
             if candidate_pages <= baseline_pages:
@@ -932,7 +937,10 @@ class BasePDFGenerator:
 
         logger.debug(
             "PDF balance final: data=%d main=%d last=%d baseline_pages=%d",
-            num_data, p1_rows, best_last, baseline_pages,
+            num_data,
+            p1_rows,
+            best_last,
+            baseline_pages,
         )
 
         return result
@@ -1432,7 +1440,9 @@ class BasePDFGenerator:
         )
 
         # Main grid
-        main_grid = Table([[left_table, right_table]], colWidths=[self.HALF_WIDTH, self.HALF_WIDTH])
+        main_grid = Table(
+            [[left_table, right_table]], colWidths=[self.HALF_WIDTH, self.HALF_WIDTH]
+        )
         main_grid.setStyle(TableStyle([("VALIGN", (0, 0), (-1, -1), "TOP")]))
 
         return main_grid
@@ -1566,6 +1576,10 @@ class BasePDFGenerator:
     def _create_totals_table(self, show_remise: bool = True) -> Table:
         """Create a standalone right-aligned totals table (separate from articles)."""
         devise = self.document.devise or "MAD"
+        has_remise = (
+            show_remise and self.document.remise_type and self.document.remise > 0
+        )
+
         totals_data = [
             [
                 Paragraph(
@@ -1576,27 +1590,9 @@ class BasePDFGenerator:
                     self.styles["CustomSmallCenter"],
                 ),
             ],
-            [
-                Paragraph(
-                    f"<b>{self._('Total_TVA_Label')}</b>", self.styles["CustomSmall"]
-                ),
-                Paragraph(
-                    f"{format_number_for_pdf(self.document.total_tva)} {devise}",
-                    self.styles["CustomSmallCenter"],
-                ),
-            ],
-            [
-                Paragraph(
-                    f"<b>{self._('Total_TTC_Label')}</b>", self.styles["CustomSmall"]
-                ),
-                Paragraph(
-                    f"{format_number_for_pdf(self.document.total_ttc)} {devise}",
-                    self.styles["CustomSmallCenter"],
-                ),
-            ],
         ]
 
-        if show_remise and self.document.remise_type and self.document.remise > 0:
+        if has_remise:
             if self.document.remise_type == "Pourcentage":
                 remise_text = f"{format_number_for_pdf(self.document.remise)}%"
             else:
@@ -1615,18 +1611,43 @@ class BasePDFGenerator:
                     Paragraph(remise_text, self.styles["CustomSmallCenter"]),
                 ]
             )
+            # HT après remise = TTC - TVA (derived from stored values)
+            total_ht_after_discount = self.document.total_ttc - self.document.total_tva
             totals_data.append(
                 [
                     Paragraph(
-                        f"<b>{self._('Total_TTC_After_Discount')}</b>",
+                        f"<b>{self._('Total_HT_After_Discount')}</b>",
                         self.styles["CustomSmall"],
                     ),
                     Paragraph(
-                        f"{format_number_for_pdf(self.document.total_ttc_apres_remise)} {devise}",
+                        f"{format_number_for_pdf(total_ht_after_discount)} {devise}",
                         self.styles["CustomSmallCenter"],
                     ),
                 ]
             )
+
+        totals_data.append(
+            [
+                Paragraph(
+                    f"<b>{self._('Total_TVA_Label')}</b>", self.styles["CustomSmall"]
+                ),
+                Paragraph(
+                    f"{format_number_for_pdf(self.document.total_tva)} {devise}",
+                    self.styles["CustomSmallCenter"],
+                ),
+            ]
+        )
+        totals_data.append(
+            [
+                Paragraph(
+                    f"<b>{self._('Total_TTC_Label')}</b>", self.styles["CustomSmall"]
+                ),
+                Paragraph(
+                    f"{format_number_for_pdf(self.document.total_ttc)} {devise}",
+                    self.styles["CustomSmallCenter"],
+                ),
+            ]
+        )
 
         totals_table = Table(totals_data, colWidths=[5 * cm, 4 * cm])
         totals_table.hAlign = "RIGHT"
