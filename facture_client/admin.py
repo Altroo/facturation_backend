@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.utils.translation import gettext_lazy as _
 from simple_history.admin import SimpleHistoryAdmin
 
 from core.admin import BaseDocumentAdmin, BaseDocumentLineInline
@@ -47,7 +48,7 @@ class FactureClientAdmin(BaseDocumentAdmin):
     )
     fieldsets = (
         (
-            "Informations principales",
+            _("Informations principales"),
             {
                 "fields": (
                     "numero_facture",
@@ -59,7 +60,7 @@ class FactureClientAdmin(BaseDocumentAdmin):
             },
         ),
         (
-            "Détails",
+            _("Détails"),
             {
                 "fields": (
                     "numero_bon_commande_client",
@@ -71,7 +72,7 @@ class FactureClientAdmin(BaseDocumentAdmin):
             },
         ),
         (
-            "Totaux (calculés)",
+            _("Totaux (calculés)"),
             {
                 "fields": (
                     "display_total_ht",  # type: ignore[attr-defined]
@@ -83,7 +84,7 @@ class FactureClientAdmin(BaseDocumentAdmin):
             },
         ),
         (
-            "Métadonnées",
+            _("Métadonnées"),
             {
                 "fields": (
                     "created_by_user",
@@ -120,15 +121,15 @@ class FactureClientLineAdmin(SimpleHistoryAdmin):
 
     fieldsets = (
         (
-            "FactureClient",
+            _("FactureClient"),
             {"fields": ("facture_client",)},
         ),
         (
-            "Article",
+            _("Article"),
             {"fields": ("article", "quantity")},
         ),
         (
-            "Prix & Remise",
+            _("Prix & Remise"),
             {
                 "fields": (
                     "prix_achat",
@@ -141,16 +142,16 @@ class FactureClientLineAdmin(SimpleHistoryAdmin):
     )
 
     @admin.display(
-        description="Numéro facture", ordering="facture_client__numero_facture"
+        description=_("Numéro facture"), ordering="facture_client__numero_facture"
     )
     def numero_facture(self, obj):
         return obj.facture_client.numero_facture
 
-    @admin.display(description="Référence", ordering="article__reference")
+    @admin.display(description=_("Référence"), ordering="article__reference")
     def article_reference(self, obj):
         return obj.article.reference
 
-    @admin.display(description="Désignation", ordering="article__designation")
+    @admin.display(description=_("Désignation"), ordering="article__designation")
     def article_designation(self, obj):
         return obj.article.designation
 

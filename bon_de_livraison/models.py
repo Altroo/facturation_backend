@@ -1,6 +1,7 @@
 from django.db import models
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
+from django.utils.translation import gettext_lazy as _
 from simple_history.models import HistoricalRecords
 
 from article.models import Article
@@ -17,45 +18,45 @@ class BonDeLivraison(BaseDeviFactureDocument):
         "company.Company",
         on_delete=models.PROTECT,
         related_name="bons_de_livraison",
-        verbose_name="Société",
-        help_text="Société propriétaire du bon de livraison",
+        verbose_name=_("Société"),
+        help_text=_("Société propriétaire du bon de livraison"),
     )
 
     STATUT_CHOICES = [
-        ("Brouillon", "Brouillon"),
-        ("Envoyé", "Envoyé"),
-        ("Accepté", "Accepté"),
-        ("Refusé", "Refusé"),
-        ("Annulé", "Annulé"),
-        ("Expiré", "Expiré"),
-        ("Facturé", "Facturé"),
+        ("Brouillon", _("Brouillon")),
+        ("Envoyé", _("Envoyé")),
+        ("Accepté", _("Accepté")),
+        ("Refusé", _("Refusé")),
+        ("Annulé", _("Annulé")),
+        ("Expiré", _("Expiré")),
+        ("Facturé", _("Facturé")),
     ]
     statut = models.CharField(
         max_length=10,
         choices=STATUT_CHOICES,
         default="Brouillon",
-        verbose_name="Statut",
-        help_text="Statut du bon de livraison",
+        verbose_name=_("Statut"),
+        help_text=_("Statut du bon de livraison"),
     )
 
     numero_bon_livraison = models.CharField(
         max_length=20,
-        verbose_name="Numéro du bon de livraison",
-        help_text="Format ex: 0001/25",
+        verbose_name=_("Numéro du bon de livraison"),
+        help_text=_("Format ex: 0001/25"),
     )
 
     date_bon_livraison = models.DateField(
-        verbose_name="Date du bon de livraison",
-        help_text="Date d'émission du bon de livraison",
+        verbose_name=_("Date du bon de livraison"),
+        help_text=_("Date d'émission du bon de livraison"),
         db_index=True,
     )
 
     numero_bon_commande_client = models.CharField(
         max_length=50,
-        verbose_name="Numéro de bon de commande client",
+        verbose_name=_("Numéro de bon de commande client"),
         blank=True,
         null=True,
-        help_text="Numéro du bon de commande client (optionnel)",
+        help_text=_("Numéro du bon de commande client (optionnel)"),
     )
 
     livre_par = models.ForeignKey(
@@ -63,18 +64,18 @@ class BonDeLivraison(BaseDeviFactureDocument):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        verbose_name="Livré par",
-        help_text="Livreur ayant effectué la livraison",
+        verbose_name=_("Livré par"),
+        help_text=_("Livreur ayant effectué la livraison"),
     )
 
     history = HistoricalRecords(
-        verbose_name="Historique Bon de Livraison",
-        verbose_name_plural="Historiques Bons de Livraison",
+        verbose_name=_("Historique Bon de Livraison"),
+        verbose_name_plural=_("Historiques Bons de Livraison"),
     )
 
     class Meta:
-        verbose_name = "Bon de Livraison"
-        verbose_name_plural = "Bons de Livraison"
+        verbose_name = _("Bon de Livraison")
+        verbose_name_plural = _("Bons de Livraison")
         ordering = ("-date_created",)
         unique_together = [("numero_bon_livraison", "company")]
         indexes = [
@@ -97,25 +98,25 @@ class BonDeLivraisonLine(BaseDeviFactureLine):
         BonDeLivraison,
         on_delete=models.CASCADE,
         related_name="lignes",
-        verbose_name="Bon de Livraison",
-        help_text="Bon de livraison parent associé à cette ligne",
+        verbose_name=_("Bon de Livraison"),
+        help_text=_("Bon de livraison parent associé à cette ligne"),
     )
 
     article = models.ForeignKey(
         Article,
         on_delete=models.PROTECT,
-        verbose_name="Article",
-        help_text="Article livré",
+        verbose_name=_("Article"),
+        help_text=_("Article livré"),
     )
 
     history = HistoricalRecords(
-        verbose_name="Historique Ligne de bon de livraison",
-        verbose_name_plural="Historiques Lignes de bons de livraison",
+        verbose_name=_("Historique Ligne de bon de livraison"),
+        verbose_name_plural=_("Historiques Lignes de bons de livraison"),
     )
 
     class Meta:
-        verbose_name = "Ligne de bon de livraison"
-        verbose_name_plural = "Lignes de bons de livraison"
+        verbose_name = _("Ligne de bon de livraison")
+        verbose_name_plural = _("Lignes de bons de livraison")
 
     def __str__(self):
         return f"{self.bon_de_livraison} - {self.article}"

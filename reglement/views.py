@@ -273,9 +273,12 @@ class ReglementStatusUpdateView(APIView):
             if reglement.facture_client.statut not in allowed_statuses:
                 raise ValidationError(
                     {
-                        "statut": f"Impossible de valider un règlement pour une facture "
-                        f"avec le statut '{reglement.facture_client.statut}'. "
-                        f"Statuts autorisés: {', '.join(allowed_statuses)}."
+                        "statut": _("Impossible de valider un règlement pour une facture "
+                        "avec le statut '%(statut)s'. "
+                        "Statuts autorisés: %(statuts_autorises)s.") % {
+                            "statut": reglement.facture_client.statut,
+                            "statuts_autorises": ", ".join(allowed_statuses),
+                        }
                     }
                 )
 
@@ -286,11 +289,15 @@ class ReglementStatusUpdateView(APIView):
                 devise = reglement.facture_client.devise
                 raise ValidationError(
                     {
-                        "statut": (
-                            f"Impossible de valider ce règlement. "
-                            f"Le montant ({reglement.montant} {devise}) dépasse "
-                            f"le reste à payer ({reste_a_payer} {devise})."
-                        )
+                        "statut": _(
+                            "Impossible de valider ce règlement. "
+                            "Le montant (%(montant)s %(devise)s) dépasse "
+                            "le reste à payer (%(reste_a_payer)s %(devise)s)."
+                        ) % {
+                            "montant": reglement.montant,
+                            "devise": devise,
+                            "reste_a_payer": reste_a_payer,
+                        }
                     }
                 )
 
@@ -595,7 +602,7 @@ class ReglementPDFView(APIView):
 
         if not company_id:
             return Response(
-                {"error": "company_id query parameter is required"},
+                {"error": _("company_id query parameter is required")},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 

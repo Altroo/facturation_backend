@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.utils.translation import gettext_lazy as _
 from simple_history.admin import SimpleHistoryAdmin
 
 from core.admin import BaseDocumentAdmin, BaseDocumentLineInline
@@ -48,7 +49,7 @@ class BonDeLivraisonAdmin(BaseDocumentAdmin):
     )
     fieldsets = (
         (
-            "Informations principales",
+            _("Informations principales"),
             {
                 "fields": (
                     "numero_bon_livraison",
@@ -60,7 +61,7 @@ class BonDeLivraisonAdmin(BaseDocumentAdmin):
             },
         ),
         (
-            "Détails",
+            _("Détails"),
             {
                 "fields": (
                     "numero_bon_commande_client",
@@ -73,7 +74,7 @@ class BonDeLivraisonAdmin(BaseDocumentAdmin):
             },
         ),
         (
-            "Totaux (calculés)",
+            _("Totaux (calculés)"),
             {
                 "fields": (
                     "display_total_ht",  # type: ignore[attr-defined]
@@ -85,7 +86,7 @@ class BonDeLivraisonAdmin(BaseDocumentAdmin):
             },
         ),
         (
-            "Métadonnées",
+            _("Métadonnées"),
             {
                 "fields": (
                     "created_by_user",
@@ -122,15 +123,15 @@ class BonDeLivraisonLineAdmin(SimpleHistoryAdmin):
 
     fieldsets = (
         (
-            "Bon de Livraison",
+            _("Bon de Livraison"),
             {"fields": ("bon_de_livraison",)},
         ),
         (
-            "Article",
+            _("Article"),
             {"fields": ("article", "quantity")},
         ),
         (
-            "Prix & Remise",
+            _("Prix & Remise"),
             {
                 "fields": (
                     "prix_achat",
@@ -143,17 +144,17 @@ class BonDeLivraisonLineAdmin(SimpleHistoryAdmin):
     )
 
     @admin.display(
-        description="Numéro bon de livraison",
+        description=_("Numéro bon de livraison"),
         ordering="bon_de_livraison__numero_bon_livraison",
     )
     def bon_de_livraison_numero(self, obj):
         return obj.bon_de_livraison.numero_bon_livraison
 
-    @admin.display(description="Référence", ordering="article__reference")
+    @admin.display(description=_("Référence"), ordering="article__reference")
     def article_reference(self, obj):
         return obj.article.reference
 
-    @admin.display(description="Désignation", ordering="article__designation")
+    @admin.display(description=_("Désignation"), ordering="article__designation")
     def article_designation(self, obj):
         return obj.article.designation
 

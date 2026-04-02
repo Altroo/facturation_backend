@@ -627,7 +627,7 @@ class SendCSVExampleEmailView(APIView):
         send_csv_example_email.apply_async((request.user.pk, request.user.email))
 
         return Response(
-            {"message": "Email envoyé avec succès."}, status=status.HTTP_200_OK
+            {"message": _("Email envoyé avec succès.")}, status=status.HTTP_200_OK
         )
 
 

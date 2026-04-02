@@ -1,0 +1,2598 @@
+# French translations for facturation_backend.
+# Copyright (C) 2026
+# This file is distributed under the same license as the facturation_backend project.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: facturation_backend 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-04-02 10:21+0100\n"
+"PO-Revision-Date: 2026-04-01 00:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: French\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: .\account\admin.py:32 .\account\admin.py:53
+msgid "Profile"
+msgstr ""
+
+#: .\account\admin.py:47 .\account\admin.py:65
+msgid "Permissions"
+msgstr ""
+
+#: .\account\admin.py:48
+msgid "Date d'activité"
+msgstr ""
+
+#: .\account\admin.py:94
+msgid "Changement de mot de passe - E.B.H Facturation"
+msgstr ""
+
+#: .\account\filters.py:12 .\article\filters.py:14 .\client\filters.py:12
+#: .\company\filters.py:12 .\core\filters.py:74 .\reglement\filters.py:21
+msgid "Search"
+msgstr ""
+
+#: .\account\filters.py:14
+msgid "Date Joined After"
+msgstr ""
+
+#: .\account\filters.py:17
+msgid "Date Joined Before"
+msgstr ""
+
+#: .\account\filters.py:20
+msgid "Last Login After"
+msgstr ""
+
+#: .\account\filters.py:23
+msgid "Last Login Before"
+msgstr ""
+
+#: .\account\filters.py:63
+msgid "Gender"
+msgstr ""
+
+#: .\account\filters.py:66
+msgid "Is Staff"
+msgstr ""
+
+#: .\account\filters.py:67
+msgid "Is Active"
+msgstr ""
+
+#: .\account\managers.py:11
+msgid "The Email must be set"
+msgstr ""
+
+#: .\account\managers.py:27
+msgid "Superuser must have is_staff=True."
+msgstr ""
+
+#: .\account\managers.py:29
+msgid "Superuser must have is_superuser=True."
+msgstr ""
+
+#: .\account\models.py:20
+msgid "Nom rôle"
+msgstr ""
+
+#: .\account\models.py:21
+msgid "Nom unique du rôle"
+msgstr ""
+
+#: .\account\models.py:24
+msgid "Rôle"
+msgstr ""
+
+#: .\account\models.py:25
+msgid "Rôles"
+msgstr ""
+
+#: .\account\models.py:40
+msgid "Adresse e‑mail"
+msgstr ""
+
+#: .\account\models.py:40
+msgid "Adresse e‑mail de l'utilisateur"
+msgstr ""
+
+#: .\account\models.py:43 .\client\models.py:153
+msgid "Prénom"
+msgstr ""
+
+#: .\account\models.py:43
+msgid "Prénom de l'utilisateur"
+msgstr ""
+
+#: .\account\models.py:46 .\client\models.py:146
+msgid "Nom"
+msgstr ""
+
+#: .\account\models.py:46
+msgid "Nom de famille de l'utilisateur"
+msgstr ""
+
+#: .\account\models.py:48
+msgid "Unset"
+msgstr ""
+
+#: .\account\models.py:48
+msgid "Homme"
+msgstr ""
+
+#: .\account\models.py:48
+msgid "Femme"
+msgstr ""
+
+#: .\account\models.py:50
+msgid "Sexe"
+msgstr ""
+
+#: .\account\models.py:54
+msgid "Sexe de l'utilisateur"
+msgstr ""
+
+#: .\account\models.py:57
+msgid "Photo de profil"
+msgstr ""
+
+#: .\account\models.py:62
+msgid "Image de profil de l'utilisateur (format recommandé: WebP)"
+msgstr ""
+
+#: .\account\models.py:69
+msgid "Photo de profil recadrée"
+msgstr ""
+
+#: .\account\models.py:71
+msgid "Version recadrée de la photo de profil"
+msgstr ""
+
+#: .\account\models.py:75
+msgid "Statut personnel"
+msgstr ""
+
+#: .\account\models.py:77
+msgid "Indique si l'utilisateur peut se connecter au panneau d'administration."
+msgstr ""
+
+#: .\account\models.py:81
+msgid "Actif"
+msgstr ""
+
+#: .\account\models.py:83
+msgid "Indique si ce compte doit être considéré comme actif."
+msgstr ""
+
+#: .\account\models.py:88
+msgid "Date d'inscription"
+msgstr ""
+
+#: .\account\models.py:90
+msgid "Horodatage de l'inscription de l'utilisateur"
+msgstr ""
+
+#: .\account\models.py:95 .\article\models.py:149 .\client\models.py:167
+#: .\company\models.py:214 .\dashboard\models.py:76
+msgid "Date de modification"
+msgstr ""
+
+#: .\account\models.py:96
+msgid "Horodatage de la dernière modification du compte"
+msgstr ""
+
+#: .\account\models.py:101
+msgid "Mot de passe - Code de réinitialisation"
+msgstr ""
+
+#: .\account\models.py:102
+msgid "Code envoyé pour la réinitialisation du mot de passe"
+msgstr ""
+
+#: .\account\models.py:108
+msgid "Mot de passe - Date de création du code"
+msgstr ""
+
+#: .\account\models.py:109
+msgid ""
+"Date et heure de création du code de réinitialisation (expire après 5 "
+"minutes)"
+msgstr ""
+
+#: .\account\models.py:116
+msgid "Mot de passe - Task ID de réinitialisation"
+msgstr ""
+
+#: .\account\models.py:121
+msgid "Identifiant de la tâche de réinitialisation du mot de passe"
+msgstr ""
+
+#: .\account\models.py:126
+msgid "Mot de passe par défaut défini"
+msgstr ""
+
+#: .\account\models.py:128
+msgid ""
+"Indique si l'utilisateur utilise encore le mot de passe par défaut envoyé "
+"par e-mail"
+msgstr ""
+
+#: .\account\models.py:136
+msgid "Historique Utilisateur"
+msgstr ""
+
+#: .\account\models.py:137
+msgid "Historiques Utilisateurs"
+msgstr ""
+
+#: .\account\models.py:157 .\account\models.py:183
+msgid "Utilisateur"
+msgstr ""
+
+#: .\account\models.py:158
+msgid "Utilisateurs"
+msgstr ""
+
+#: .\account\models.py:176 .\article\models.py:24
+#: .\bon_de_livraison\models.py:21 .\client\models.py:33
+#: .\company\models.py:239 .\dashboard\models.py:19 .\devi\models.py:21
+#: .\facture_client\models.py:23 .\facture_proforma\models.py:21
+#: .\parameter\models.py:11 .\parameter\models.py:43 .\parameter\models.py:76
+#: .\parameter\models.py:108 .\parameter\models.py:141
+#: .\parameter\models.py:173 .\parameter\models.py:206
+msgid "Société"
+msgstr ""
+
+#: .\account\models.py:177
+msgid "Société à laquelle l'utilisateur est rattaché"
+msgstr ""
+
+#: .\account\models.py:184
+msgid "Utilisateur membre"
+msgstr ""
+
+#: .\account\models.py:191
+msgid "Rôle assigné à l'utilisateur dans l'entreprise"
+msgstr ""
+
+#: .\account\models.py:195
+msgid "Historique Membre"
+msgstr ""
+
+#: .\account\models.py:195
+msgid "Historiques Membres"
+msgstr ""
+
+#: .\account\models.py:199
+msgid "Membre"
+msgstr ""
+
+#: .\account\models.py:200
+msgid "Membres"
+msgstr ""
+
+#: .\account\serializers.py:52
+#, fuzzy, python-format
+#| msgid "Rôle '%(role_name)s' n'existe pas."
+msgid "The role '%(role_name)s' does not exist."
+msgstr "Rôle '%(role_name)s' n'existe pas."
+
+#: .\account\serializers.py:64 .\account\serializers.py:96
+#, python-format
+msgid "L'utilisateur a déjà une adhésion pour la société %(company_id)s"
+msgstr ""
+
+#: .\account\serializers.py:75
+#, python-format
+msgid "The company %(company_id)s does not exist."
+msgstr ""
+
+#: .\account\serializers.py:134 .\account\serializers.py:402
+#, python-format
+msgid "Valeur du sexe invalide : %(value)s. Doit être 'Homme' ou 'Femme'."
+msgstr ""
+
+# Company - serializers.py
+#: .\account\serializers.py:172 .\account\serializers.py:427
+#: .\article\serializers.py:84 .\company\serializers.py:139
+#, fuzzy, python-format
+#| msgid "Invalid image format for %(field_name)s"
+msgid "Invalid file upload for %(field_name)s: %(error)s"
+msgstr "Format d'image invalide pour %(field_name)s"
+
+# Company - serializers.py
+#: .\account\serializers.py:180 .\account\serializers.py:436
+#, fuzzy, python-format
+#| msgid "Invalid image format for %(field_name)s"
+msgid "Format d'image base64 invalide pour %(field_name)s"
+msgstr "Format d'image invalide pour %(field_name)s"
+
+# Company - serializers.py
+#: .\account\serializers.py:187 .\account\serializers.py:443
+#, fuzzy, python-format
+#| msgid "Invalid image format for %(field_name)s"
+msgid "Données base64 mal formées pour %(field_name)s"
+msgstr "Format d'image invalide pour %(field_name)s"
+
+# Company - serializers.py
+#: .\account\serializers.py:195 .\account\serializers.py:451
+#, fuzzy, python-format
+#| msgid "Invalid image format for %(field_name)s"
+msgid "Type MIME d'image invalide pour %(field_name)s"
+msgstr "Format d'image invalide pour %(field_name)s"
+
+#: .\account\serializers.py:204 .\account\serializers.py:460
+#, python-format
+msgid ""
+"Image trop grande pour %(field_name)s: %(size)s octets (max %(max_size)s). "
+"Veuillez télécharger une image plus petite."
+msgstr ""
+
+#: .\account\serializers.py:212 .\account\serializers.py:468
+#, python-format
+msgid "Encodage base64 invalide pour %(field_name)s: %(error)s"
+msgstr ""
+
+#: .\account\serializers.py:222 .\account\serializers.py:480
+#, python-format
+msgid "Données d'image base64 invalides pour %(field_name)s: %(error)s"
+msgstr ""
+
+# Company - serializers.py
+#: .\account\serializers.py:225 .\account\serializers.py:483
+#, fuzzy, python-format
+#| msgid "Invalid image format for %(field_name)s"
+msgid "Format d'image invalide pour %(field_name)s"
+msgstr "Format d'image invalide pour %(field_name)s"
+
+#: .\account\serializers.py:335 .\account\views.py:168
+msgid "Les mots de passe ne correspondent pas."
+msgstr ""
+
+#: .\account\serializers.py:686
+msgid "company_id est requis pour chaque adhésion"
+msgstr ""
+
+#: .\account\serializers.py:690
+msgid "role est requis pour chaque adhésion"
+msgstr ""
+
+#: .\account\views.py:58
+msgid "Un utilisateur avec ce champ adresse électronique existe déjà."
+msgstr ""
+
+#: .\account\views.py:64 .\account\views.py:191 .\account\views.py:233
+#: .\account\views.py:330
+msgid "L'adresse électronique est requise."
+msgstr ""
+
+#: .\account\views.py:72 .\account\views.py:199 .\account\views.py:238
+#: .\account\views.py:338
+msgid "Entrez une adresse électronique valide."
+msgstr ""
+
+#: .\account\views.py:165
+msgid "Votre mot de passe est invalide."
+msgstr ""
+
+#: .\account\views.py:173
+msgid "Le mot de passe doit contenir au moins 8 caractères."
+msgstr ""
+
+#: .\account\views.py:186
+msgid "Utilisateur ou code verification invalide."
+msgstr ""
+
+#: .\account\views.py:221 .\account\views.py:258
+msgid ""
+"Le code de réinitialisation a expiré. Veuillez demander un nouveau code."
+msgstr ""
+
+#: .\account\views.py:318
+msgid ""
+"Si un compte existe avec cet email, un code de vérification vous sera envoyé."
+msgstr ""
+
+#: .\account\views.py:320
+msgid "Aucun compte existant utilisant cette adresse électronique."
+msgstr ""
+
+#: .\account\views.py:371
+msgid "Renouvellement du mot de passe - E.B.H Facturation"
+msgstr ""
+
+#: .\account\views.py:420
+msgid "Utilisateur n'éxiste pas!"
+msgstr ""
+
+#: .\account\views.py:505
+msgid "Vous n'avez pas les droits pour créer des utilisateurs."
+msgstr ""
+
+#: .\account\views.py:528
+msgid "Invitation - Application de E.B.H Facturation"
+msgstr ""
+
+#: .\account\views.py:551 .\account\views.py:557
+msgid "Aucune utilisateur ne correspond à la requête."
+msgstr ""
+
+#: .\account\views.py:569
+msgid "Vous n'avez pas les droits pour modifier des utilisateurs."
+msgstr ""
+
+#: .\account\views.py:575
+msgid "Vous ne pouvez pas modifier votre utilisateur dans cette page."
+msgstr ""
+
+#: .\account\views.py:593
+msgid "Vous n'avez pas les droits pour supprimer des utilisateurs."
+msgstr ""
+
+#: .\account\views.py:598
+msgid "Vous ne pouvez pas supprimer votre utilisateur."
+msgstr ""
+
+#: .\account\views.py:623 .\core\views.py:383 .\core\views.py:439
+msgid "Une liste d'identifiants est requise."
+msgstr ""
+
+#: .\account\views.py:630
+msgid "Vous ne pouvez pas supprimer votre propre utilisateur."
+msgstr ""
+
+#: .\account\views.py:635
+msgid "Certains utilisateurs sont introuvables."
+msgstr ""
+
+#: .\article\filters.py:15 .\client\filters.py:13
+msgid "Archived"
+msgstr ""
+
+#: .\article\filters.py:16 .\client\filters.py:14
+msgid "Company"
+msgstr ""
+
+#: .\article\filters.py:18 .\client\filters.py:16 .\company\filters.py:14
+msgid "Date Created After"
+msgstr ""
+
+#: .\article\filters.py:21 .\client\filters.py:19 .\company\filters.py:17
+msgid "Date Created Before"
+msgstr ""
+
+#: .\article\filters.py:26
+msgid "Categorie IDs"
+msgstr ""
+
+#: .\article\filters.py:29
+msgid "Emplacement IDs"
+msgstr ""
+
+#: .\article\filters.py:31
+msgid "Unite IDs"
+msgstr ""
+
+#: .\article\filters.py:32
+msgid "Marque IDs"
+msgstr ""
+
+#: .\article\models.py:25
+msgid "Société propriétaire de l'article"
+msgstr ""
+
+#: .\article\models.py:33 .\parameter\models.py:90
+msgid "Marque"
+msgstr ""
+
+#: .\article\models.py:34
+msgid "Marque de l'article"
+msgstr ""
+
+#: .\article\models.py:42 .\parameter\models.py:123
+msgid "Catégorie"
+msgstr ""
+
+#: .\article\models.py:43
+msgid "Catégorie de l'article"
+msgstr ""
+
+#: .\article\models.py:51 .\parameter\models.py:188
+msgid "Emplacement"
+msgstr ""
+
+#: .\article\models.py:52
+msgid "Emplacement de stockage"
+msgstr ""
+
+#: .\article\models.py:60 .\parameter\models.py:155
+msgid "Unité"
+msgstr ""
+
+#: .\article\models.py:61
+msgid "Unité de mesure (ex: pièce, kg)"
+msgstr ""
+
+#: .\article\models.py:66 .\bon_de_livraison\admin.py:153 .\devi\admin.py:148
+#: .\facture_client\admin.py:150 .\facture_proforma\admin.py:150
+msgid "Référence"
+msgstr ""
+
+#: .\article\models.py:67
+msgid "Référence unique de l'article par société"
+msgstr ""
+
+#: .\article\models.py:70 .\bon_de_livraison\admin.py:157 .\devi\admin.py:152
+#: .\facture_client\admin.py:154 .\facture_proforma\admin.py:154
+msgid "Désignation"
+msgstr ""
+
+#: .\article\models.py:71
+msgid "Désignation ou description courte de l'article"
+msgstr ""
+
+#: .\article\models.py:78
+msgid "Photo"
+msgstr ""
+
+#: .\article\models.py:79
+msgid "Photo de l'article"
+msgstr ""
+
+#: .\article\models.py:88 .\core\models.py:266
+msgid "Prix d'achat"
+msgstr ""
+
+#: .\article\models.py:89
+msgid "Prix d'achat unitaire"
+msgstr ""
+
+#: .\article\models.py:95 .\core\models.py:274
+msgid "Devise prix d'achat"
+msgstr ""
+
+#: .\article\models.py:96 .\core\models.py:275
+msgid "Devise utilisée pour le prix d'achat"
+msgstr ""
+
+#: .\article\models.py:102 .\core\models.py:281
+msgid "Prix de vente"
+msgstr ""
+
+#: .\article\models.py:103
+msgid "Prix de vente unitaire"
+msgstr ""
+
+#: .\article\models.py:109 .\core\models.py:289
+msgid "Devise prix de vente"
+msgstr ""
+
+#: .\article\models.py:110 .\core\models.py:290
+msgid "Devise utilisée pour le prix de vente"
+msgstr ""
+
+#: .\article\models.py:116
+msgid "TVA (%)"
+msgstr ""
+
+#: .\article\models.py:117
+msgid "Taux de TVA appliqué (en pourcentage)"
+msgstr ""
+
+#: .\article\models.py:122
+msgid "Produit"
+msgstr ""
+
+#: .\article\models.py:123
+msgid "Service"
+msgstr ""
+
+#: .\article\models.py:129
+msgid "Type d'article"
+msgstr ""
+
+#: .\article\models.py:130
+msgid "Type : Produit ou Service"
+msgstr ""
+
+#: .\article\models.py:136 .\client\models.py:79 .\core\models.py:42
+msgid "Remarque"
+msgstr ""
+
+#: .\article\models.py:137
+msgid "Remarques internes concernant l'article"
+msgstr ""
+
+#: .\article\models.py:143 .\client\models.py:160 .\company\models.py:207
+#: .\core\models.py:122 .\dashboard\models.py:68 .\reglement\models.py:78
+msgid "Date de création"
+msgstr ""
+
+#: .\article\models.py:144
+msgid "Horodatage de la création de l'article"
+msgstr ""
+
+#: .\article\models.py:150 .\client\models.py:168 .\company\models.py:215
+#: .\dashboard\models.py:77
+msgid "Horodatage de la dernière modification"
+msgstr ""
+
+#: .\article\models.py:155 .\client\models.py:174
+msgid "Archivé"
+msgstr ""
+
+#: .\article\models.py:156
+msgid "Indique si l'article est archivé"
+msgstr ""
+
+#: .\article\models.py:161
+msgid "Historique Article"
+msgstr ""
+
+#: .\article\models.py:161
+msgid "Historiques Articles"
+msgstr ""
+
+#: .\article\models.py:165 .\bon_de_livraison\admin.py:130
+#: .\bon_de_livraison\models.py:108 .\devi\admin.py:128 .\devi\models.py:187
+#: .\facture_client\admin.py:128 .\facture_client\models.py:140
+#: .\facture_proforma\admin.py:128 .\facture_proforma\models.py:135
+msgid "Article"
+msgstr ""
+
+#: .\article\models.py:166
+msgid "Articles"
+msgstr ""
+
+#: .\article\serializers.py:56
+#, python-format
+msgid "%(label)s est obligatoire."
+msgstr ""
+
+# Company - serializers.py
+#: .\article\serializers.py:97 .\company\serializers.py:152
+#, fuzzy, python-format
+#| msgid "Invalid image format for %(field_name)s"
+msgid "Invalid base64 image data for %(field_name)s: %(error)s"
+msgstr "Format d'image invalide pour %(field_name)s"
+
+# Company - serializers.py
+#: .\article\serializers.py:100 .\company\serializers.py:156
+#, python-format
+msgid "Invalid image format for %(field_name)s"
+msgstr "Format d'image invalide pour %(field_name)s"
+
+#: .\article\views.py:42 .\article\views.py:104 .\article\views.py:232
+msgid "Aucun article ne correspond à la requête."
+msgstr ""
+
+#: .\article\views.py:47 .\article\views.py:202 .\article\views.py:419
+#: .\bon_de_livraison\views.py:82 .\client\views.py:35 .\client\views.py:158
+#: .\core\views.py:46 .\core\views.py:74 .\core\views.py:228
+#: .\dashboard\views.py:105 .\facture_client\views.py:63
+#: .\facture_client\views.py:146 .\facture_client\views.py:231
+#: .\reglement\views.py:62
+msgid "company_id doit être un entier valide."
+msgstr ""
+
+#: .\article\views.py:81
+msgid "Vous n'êtes pas autorisé à créer un article pour cette société."
+msgstr ""
+
+#: .\article\views.py:87
+msgid "Vous n'avez pas les droits pour créer un article."
+msgstr ""
+
+#: .\article\views.py:110
+msgid "Vous n'êtes pas autorisé à consulter cet article."
+msgstr ""
+
+#: .\article\views.py:119 .\article\views.py:163
+msgid "Vous n'êtes pas autorisé à modifier cet article."
+msgstr ""
+
+#: .\article\views.py:125 .\article\views.py:169
+msgid "Vous n'avez pas les droits pour modifier cet article."
+msgstr ""
+
+#: .\article\views.py:133 .\article\views.py:177
+msgid "Vous n'avez pas les droits pour modifier le prix de vente."
+msgstr ""
+
+#: .\article\views.py:147
+msgid "Vous n'êtes pas autorisé à supprimer cet article."
+msgstr ""
+
+#: .\article\views.py:153
+msgid "Vous n'avez pas les droits pour supprimer cet article."
+msgstr ""
+
+#: .\article\views.py:197 .\client\views.py:153 .\core\views.py:223
+msgid "company_id manquant dans les paramètres."
+msgstr ""
+
+#: .\article\views.py:205 .\article\views.py:624 .\client\views.py:161
+#: .\core\views.py:26 .\core\views.py:233
+msgid "Vous n'avez pas accès à cette société."
+msgstr ""
+
+#: .\article\views.py:238
+msgid "Vous n'êtes pas autorisé à modifier l'état de cet article."
+msgstr ""
+
+#: .\article\views.py:352
+msgid "Le fichier CSV doit être encodé en UTF-8."
+msgstr ""
+
+#: .\article\views.py:375
+msgid "Le fichier Excel est vide."
+msgstr ""
+
+#: .\article\views.py:403
+msgid "Format de fichier non supporté. Utilisez .csv, .xls ou .xlsx"
+msgstr ""
+
+#: .\article\views.py:412
+msgid "Le paramètre company_id est requis."
+msgstr ""
+
+#: .\article\views.py:427
+msgid "Vous n'avez pas les droits pour créer des articles."
+msgstr ""
+
+#: .\article\views.py:433
+msgid "Un fichier est requis (CSV ou Excel)."
+msgstr ""
+
+#: .\article\views.py:448
+msgid "Le fichier est vide ou ne contient pas de données."
+msgstr ""
+
+#: .\article\views.py:618
+msgid "L'ID de la société est requis."
+msgstr ""
+
+#: .\article\views.py:630
+msgid "Email envoyé avec succès."
+msgstr ""
+
+#: .\bon_de_livraison\admin.py:52 .\devi\admin.py:51
+#: .\facture_client\admin.py:51 .\facture_proforma\admin.py:51
+#: .\reglement\admin.py:109
+msgid "Informations principales"
+msgstr ""
+
+#: .\bon_de_livraison\admin.py:64 .\devi\admin.py:63
+#: .\facture_client\admin.py:63 .\facture_proforma\admin.py:63
+msgid "Détails"
+msgstr ""
+
+#: .\bon_de_livraison\admin.py:77 .\devi\admin.py:75
+#: .\facture_client\admin.py:75 .\facture_proforma\admin.py:75
+msgid "Totaux (calculés)"
+msgstr ""
+
+#: .\bon_de_livraison\admin.py:89 .\devi\admin.py:87
+#: .\facture_client\admin.py:87 .\facture_proforma\admin.py:87
+#: .\reglement\admin.py:133
+msgid "Métadonnées"
+msgstr ""
+
+#: .\bon_de_livraison\admin.py:126 .\bon_de_livraison\models.py:77
+#: .\bon_de_livraison\models.py:101
+msgid "Bon de Livraison"
+msgstr ""
+
+#: .\bon_de_livraison\admin.py:134 .\devi\admin.py:132
+#: .\facture_client\admin.py:132 .\facture_proforma\admin.py:132
+msgid "Prix & Remise"
+msgstr ""
+
+#: .\bon_de_livraison\admin.py:147
+msgid "Numéro bon de livraison"
+msgstr ""
+
+#: .\bon_de_livraison\filters.py:17
+msgid "Livré par IDs"
+msgstr ""
+
+#: .\bon_de_livraison\models.py:22
+msgid "Société propriétaire du bon de livraison"
+msgstr ""
+
+#: .\bon_de_livraison\models.py:26 .\core\models.py:17
+msgid "Brouillon"
+msgstr ""
+
+#: .\bon_de_livraison\models.py:27 .\core\models.py:18
+msgid "Envoyé"
+msgstr ""
+
+#: .\bon_de_livraison\models.py:28 .\core\models.py:19
+msgid "Accepté"
+msgstr ""
+
+#: .\bon_de_livraison\models.py:29 .\core\models.py:20
+msgid "Refusé"
+msgstr ""
+
+#: .\bon_de_livraison\models.py:30 .\core\models.py:21 .\reglement\models.py:18
+msgid "Annulé"
+msgstr ""
+
+#: .\bon_de_livraison\models.py:31 .\core\models.py:22
+msgid "Expiré"
+msgstr ""
+
+#: .\bon_de_livraison\models.py:32
+msgid "Facturé"
+msgstr ""
+
+#: .\bon_de_livraison\models.py:38 .\core\admin.py:95 .\core\models.py:52
+#: .\reglement\admin.py:129 .\reglement\admin.py:165 .\reglement\models.py:71
+msgid "Statut"
+msgstr ""
+
+#: .\bon_de_livraison\models.py:39
+msgid "Statut du bon de livraison"
+msgstr ""
+
+#: .\bon_de_livraison\models.py:44
+msgid "Numéro du bon de livraison"
+msgstr ""
+
+#: .\bon_de_livraison\models.py:45 .\devi\models.py:28
+#: .\facture_client\models.py:30 .\facture_proforma\models.py:28
+msgid "Format ex: 0001/25"
+msgstr ""
+
+#: .\bon_de_livraison\models.py:49
+msgid "Date du bon de livraison"
+msgstr ""
+
+#: .\bon_de_livraison\models.py:50
+msgid "Date d'émission du bon de livraison"
+msgstr ""
+
+#: .\bon_de_livraison\models.py:56 .\facture_client\models.py:41
+#: .\facture_proforma\models.py:39
+msgid "Numéro de bon de commande client"
+msgstr ""
+
+#: .\bon_de_livraison\models.py:59 .\facture_client\models.py:44
+#: .\facture_proforma\models.py:42
+msgid "Numéro du bon de commande client (optionnel)"
+msgstr ""
+
+#: .\bon_de_livraison\models.py:67 .\parameter\models.py:220
+#: .\parameter\models.py:221
+msgid "Livré par"
+msgstr ""
+
+#: .\bon_de_livraison\models.py:68
+msgid "Livreur ayant effectué la livraison"
+msgstr ""
+
+#: .\bon_de_livraison\models.py:72
+msgid "Historique Bon de Livraison"
+msgstr ""
+
+#: .\bon_de_livraison\models.py:73
+msgid "Historiques Bons de Livraison"
+msgstr ""
+
+#: .\bon_de_livraison\models.py:78
+msgid "Bons de Livraison"
+msgstr ""
+
+#: .\bon_de_livraison\models.py:102
+msgid "Bon de livraison parent associé à cette ligne"
+msgstr ""
+
+#: .\bon_de_livraison\models.py:109
+msgid "Article livré"
+msgstr ""
+
+#: .\bon_de_livraison\models.py:113
+msgid "Historique Ligne de bon de livraison"
+msgstr ""
+
+#: .\bon_de_livraison\models.py:114
+msgid "Historiques Lignes de bons de livraison"
+msgstr ""
+
+#: .\bon_de_livraison\models.py:118
+msgid "Ligne de bon de livraison"
+msgstr ""
+
+#: .\bon_de_livraison\models.py:119
+msgid "Lignes de bons de livraison"
+msgstr ""
+
+#: .\bon_de_livraison\views.py:77 .\client\views.py:30 .\core\views.py:69
+#: .\facture_client\views.py:58 .\facture_client\views.py:141
+msgid "Aucune clients ne correspond à la requête."
+msgstr ""
+
+#: .\bon_de_livraison\views.py:114 .\facture_client\views.py:202
+msgid "Création non autorisée depuis cette vue."
+msgstr ""
+
+#: .\bon_de_livraison\views.py:124 .\core\pdf_utils.py:1105
+#: .\core\pdf_utils.py:1125 .\core\pdf_utils.py:1136 .\core\pdf_utils.py:1147
+#: .\core\pdf_utils.py:1460 .\core\pdf_utils.py:1471
+msgid "Designation"
+msgstr ""
+
+#: .\bon_de_livraison\views.py:124 .\core\pdf_utils.py:1106
+#: .\core\pdf_utils.py:1126 .\core\pdf_utils.py:1137 .\core\pdf_utils.py:1148
+#: .\core\pdf_utils.py:1461 .\core\pdf_utils.py:1472
+msgid "Quantity"
+msgstr ""
+
+#: .\bon_de_livraison\views.py:204
+msgid "Delivery_Number"
+msgstr ""
+
+#: .\bon_de_livraison\views.py:205
+msgid "Delivery_Date"
+msgstr ""
+
+#: .\bon_de_livraison\views.py:213
+msgid "Delivered_By"
+msgstr ""
+
+#: .\bon_de_livraison\views.py:220
+msgid "Delivery_Issued_By"
+msgstr ""
+
+#: .\bon_de_livraison\views.py:242
+msgid "Delivery_Amount_Words"
+msgstr ""
+
+#: .\bon_de_livraison\views.py:259 .\client\models.py:184 .\core\models.py:28
+#: .\devi\views.py:122 .\facture_client\views.py:337
+#: .\facture_proforma\views.py:114 .\reglement\admin.py:148
+#: .\reglement\views.py:584
+msgid "Client"
+msgstr ""
+
+#: .\bon_de_livraison\views.py:262
+msgid "Delivery"
+msgstr ""
+
+#: .\bon_de_livraison\views.py:284 .\devi\views.py:146
+#: .\facture_client\views.py:359 .\facture_proforma\views.py:137
+#: .\reglement\views.py:605
+msgid "company_id query parameter is required"
+msgstr ""
+
+#: .\bon_de_livraison\views.py:296 .\devi\views.py:156
+#: .\facture_client\views.py:369 .\facture_proforma\views.py:149
+#: .\reglement\views.py:617
+msgid "Vous n'avez pas les droits pour imprimer ce document."
+msgstr ""
+
+#: .\client\filters.py:23
+msgid "Ville IDs"
+msgstr ""
+
+#: .\client\models.py:15
+msgid "Personne morale"
+msgstr ""
+
+#: .\client\models.py:16
+msgid "Personne physique"
+msgstr ""
+
+#: .\client\models.py:21
+msgid "Code client"
+msgstr ""
+
+#: .\client\models.py:22
+msgid "Code unique identifiant le client par société"
+msgstr ""
+
+#: .\client\models.py:27
+msgid "Type de client"
+msgstr ""
+
+#: .\client\models.py:28
+msgid "Type : Personne morale (PM) ou physique (PP)"
+msgstr ""
+
+#: .\client\models.py:34
+msgid "Société propriétaire du client"
+msgstr ""
+
+#: .\client\models.py:40 .\company\models.py:128
+msgid "Adresse"
+msgstr ""
+
+#: .\client\models.py:41
+msgid "Adresse postale du client"
+msgstr ""
+
+#: .\client\models.py:48 .\parameter\models.py:25
+msgid "Ville"
+msgstr ""
+
+#: .\client\models.py:49
+msgid "Ville du client"
+msgstr ""
+
+#: .\client\models.py:55 .\company\models.py:113
+msgid "Tapez un numéro de téléphone valide"
+msgstr ""
+
+#: .\client\models.py:60 .\company\models.py:137
+msgid "Téléphone"
+msgstr ""
+
+#: .\client\models.py:61 .\company\models.py:138
+msgid "Numéro de téléphone principal"
+msgstr ""
+
+#: .\client\models.py:68 .\company\models.py:30
+msgid "E‑mail"
+msgstr ""
+
+#: .\client\models.py:69
+msgid "Adresse e‑mail du client"
+msgstr ""
+
+#: .\client\models.py:72
+msgid "Délai de paiement"
+msgstr ""
+
+#: .\client\models.py:73
+msgid "Délai de paiement en jours"
+msgstr ""
+
+#: .\client\models.py:80
+msgid "Remarque ou note concernant le client"
+msgstr ""
+
+#: .\client\models.py:88 .\company\models.py:22
+msgid "Raison sociale"
+msgstr ""
+
+#: .\client\models.py:89
+msgid "Raison sociale pour les personnes morales"
+msgstr ""
+
+#: .\client\models.py:95 .\company\models.py:163
+msgid "Numéro du compte"
+msgstr ""
+
+#: .\client\models.py:96
+msgid "Numéro de compte bancaire du client"
+msgstr ""
+
+#: .\client\models.py:102 .\company\models.py:169 .\core\pdf_utils.py:994
+#: .\core\pdf_utils.py:1041
+msgid "ICE"
+msgstr ""
+
+#: .\client\models.py:103 .\company\models.py:170
+msgid "Identifiant Commun de l'Entreprise (ICE)"
+msgstr ""
+
+#: .\client\models.py:109 .\company\models.py:177
+msgid "Registre de commerce"
+msgstr ""
+
+#: .\client\models.py:110 .\company\models.py:178
+msgid "Numéro du registre de commerce"
+msgstr ""
+
+#: .\client\models.py:116 .\company\models.py:185
+msgid "Identifiant fiscal"
+msgstr ""
+
+#: .\client\models.py:117
+msgid "Identifiant fiscal (IF)"
+msgstr ""
+
+#: .\client\models.py:123 .\company\models.py:193
+msgid "Taxe professionnelle"
+msgstr ""
+
+#: .\client\models.py:124
+msgid "Référence de la taxe professionnelle"
+msgstr ""
+
+#: .\client\models.py:130 .\company\models.py:201 .\core\pdf_utils.py:1011
+msgid "CNSS"
+msgstr ""
+
+#: .\client\models.py:131
+msgid "Numéro CNSS"
+msgstr ""
+
+#: .\client\models.py:138 .\company\models.py:146
+msgid "Fax"
+msgstr ""
+
+#: .\client\models.py:139 .\company\models.py:147
+msgid "Numéro de fax (optionnel)"
+msgstr ""
+
+#: .\client\models.py:147
+msgid "Nom (pour personne physique)"
+msgstr ""
+
+#: .\client\models.py:154
+msgid "Prénom (pour personne physique)"
+msgstr ""
+
+#: .\client\models.py:161
+msgid "Horodatage de la création du client"
+msgstr ""
+
+#: .\client\models.py:175
+msgid "Indique si le client est archivé"
+msgstr ""
+
+#: .\client\models.py:180
+msgid "Historique Client"
+msgstr ""
+
+#: .\client\models.py:180
+msgid "Historiques Clients"
+msgstr ""
+
+#: .\client\models.py:185
+msgid "Clients"
+msgstr ""
+
+#: .\client\serializers.py:70
+#, python-format
+msgid "%(label)s est obligatoire pour ce type de client."
+msgstr ""
+
+#: .\client\views.py:65
+msgid "Vous n'êtes pas autorisé à créer un client pour cette société."
+msgstr ""
+
+#: .\client\views.py:71
+msgid "Vous n'avez pas les droits pour créer un client."
+msgstr ""
+
+#: .\client\views.py:88 .\client\views.py:192
+msgid "Aucun client ne correspond à la requête."
+msgstr ""
+
+#: .\client\views.py:93
+msgid "Vous n'êtes pas autorisé à consulter ce client."
+msgstr ""
+
+#: .\client\views.py:100 .\client\views.py:130
+msgid "Vous n'êtes pas autorisé à modifier ce client."
+msgstr ""
+
+#: .\client\views.py:105 .\client\views.py:135
+msgid "Vous n'avez pas les droits pour modifier ce client."
+msgstr ""
+
+#: .\client\views.py:116
+msgid "Vous n'êtes pas autorisé à supprimer ce client."
+msgstr ""
+
+#: .\client\views.py:121
+msgid "Vous n'avez pas les droits pour supprimer ce client."
+msgstr ""
+
+#: .\client\views.py:198
+msgid "Vous n'êtes pas autorisé à modifier l'état de ce client."
+msgstr ""
+
+#: .\client\views.py:204
+msgid "Vous n'avez pas les droits pour modifier l'état de ce client."
+msgstr ""
+
+#: .\company\admin.py:14
+msgid "Role"
+msgstr ""
+
+#: .\company\models.py:23
+msgid "Raison sociale de l'entreprise"
+msgstr ""
+
+#: .\company\models.py:31
+msgid "Adresse e‑mail de contact de l'entreprise"
+msgstr ""
+
+#: .\company\models.py:38
+msgid "Logo"
+msgstr ""
+
+#: .\company\models.py:39
+msgid "Logo de l'entreprise (image)"
+msgstr ""
+
+#: .\company\models.py:47
+msgid "Logo recadré"
+msgstr ""
+
+#: .\company\models.py:48
+msgid "Version recadrée du logo"
+msgstr ""
+
+#: .\company\models.py:57
+msgid "Cachet"
+msgstr ""
+
+#: .\company\models.py:58
+msgid "Image du cachet de l'entreprise"
+msgstr ""
+
+#: .\company\models.py:67
+msgid "Cachet recadré"
+msgstr ""
+
+#: .\company\models.py:68
+msgid "Version recadrée du cachet"
+msgstr ""
+
+#: .\company\models.py:74
+msgid "1 à 5"
+msgstr ""
+
+#: .\company\models.py:75
+msgid "5 à 10"
+msgstr ""
+
+#: .\company\models.py:76
+msgid "10 à 50"
+msgstr ""
+
+#: .\company\models.py:77
+msgid "50 à 100"
+msgstr ""
+
+#: .\company\models.py:78
+msgid "plus que 100"
+msgstr ""
+
+#: .\company\models.py:84
+msgid "Nombre d'employés"
+msgstr ""
+
+#: .\company\models.py:85
+msgid "Tranche du nombre d'employés"
+msgstr ""
+
+#: .\company\models.py:91
+msgid "Mme"
+msgstr ""
+
+#: .\company\models.py:92
+msgid "Mlle"
+msgstr ""
+
+#: .\company\models.py:93
+msgid "M."
+msgstr ""
+
+#: .\company\models.py:99
+msgid "Civilité du responsable"
+msgstr ""
+
+#: .\company\models.py:100
+msgid "Civilité du responsable (Mme, M., ...)"
+msgstr ""
+
+#: .\company\models.py:107
+msgid "Nom du responsable"
+msgstr ""
+
+#: .\company\models.py:108
+msgid "Nom complet du responsable"
+msgstr ""
+
+#: .\company\models.py:121
+msgid "GSM du responsable"
+msgstr ""
+
+#: .\company\models.py:122
+msgid "Numéro mobile du responsable (format international recommandé)"
+msgstr ""
+
+#: .\company\models.py:129
+msgid "Adresse postale complète de l'entreprise"
+msgstr ""
+
+#: .\company\models.py:153
+msgid "Site web"
+msgstr ""
+
+#: .\company\models.py:154
+msgid "URL du site web de l'entreprise"
+msgstr ""
+
+#: .\company\models.py:164
+msgid "Numéro de compte bancaire ou interne"
+msgstr ""
+
+#: .\company\models.py:186
+msgid "Identifiant fiscal de l'entreprise"
+msgstr ""
+
+#: .\company\models.py:194
+msgid "Numéro / référence de la taxe professionnelle"
+msgstr ""
+
+#: .\company\models.py:202
+msgid "Numéro CNSS de l'entreprise"
+msgstr ""
+
+#: .\company\models.py:208 .\dashboard\models.py:69
+msgid "Horodatage de la création de l'enregistrement"
+msgstr ""
+
+#: .\company\models.py:222
+msgid "Suspendu"
+msgstr ""
+
+#: .\company\models.py:223
+msgid "Indique si l'entreprise est suspendue"
+msgstr ""
+
+#: .\company\models.py:230
+msgid "Utilise une devise étrangère"
+msgstr ""
+
+#: .\company\models.py:231
+msgid ""
+"Si activé, les sélecteurs de devise sont affichés dans les articles et les "
+"documents"
+msgstr ""
+
+#: .\company\models.py:235
+msgid "Historique Société"
+msgstr ""
+
+#: .\company\models.py:235
+msgid "Historiques Sociétés"
+msgstr ""
+
+#: .\company\models.py:240
+msgid "Sociétés"
+msgstr ""
+
+#: .\company\serializers.py:312
+#, python-format
+msgid "Rôle '%(role_name)s' n'existe pas."
+msgstr "Rôle '%(role_name)s' n'existe pas."
+
+#: .\company\views.py:68
+msgid "Vous n'avez pas les droits pour créer une société."
+msgstr ""
+
+#: .\company\views.py:78
+msgid ""
+"Le groupe 'Caissier' n'existe pas. Un super‑utilisateur doit le créer et "
+"assigner les rôles."
+msgstr ""
+
+#: .\company\views.py:106
+msgid "Aucune entreprise ne correspond à la requête."
+msgstr ""
+
+#: .\company\views.py:111
+msgid "Seuls les administrateurs peuvent accéder à cette société."
+msgstr ""
+
+#: .\company\views.py:129
+msgid "Vous n'avez pas les droits pour modifier cette société."
+msgstr ""
+
+#: .\company\views.py:147
+msgid "Vous n'avez pas les droits pour supprimer cette société."
+msgstr ""
+
+#: .\company\views.py:166
+msgid "Aucun identifiant fourni."
+msgstr ""
+
+#: .\core\admin.py:114
+msgid "Remise"
+msgstr ""
+
+#: .\core\admin.py:127
+msgid "Nombre de lignes"
+msgstr ""
+
+#: .\core\admin.py:134 .\core\models.py:61
+msgid "Total HT"
+msgstr ""
+
+#: .\core\admin.py:140 .\core\models.py:70
+msgid "Total TVA"
+msgstr ""
+
+#: .\core\admin.py:146 .\core\models.py:79
+msgid "Total TTC"
+msgstr ""
+
+#: .\core\admin.py:153 .\core\models.py:106
+msgid "Total TTC après remise"
+msgstr ""
+
+#: .\core\constants.py:8
+msgid "Caissier"
+msgstr ""
+
+#: .\core\constants.py:9
+msgid "Commercial"
+msgstr ""
+
+#: .\core\constants.py:10
+msgid "Comptable"
+msgstr ""
+
+#: .\core\constants.py:11
+msgid "Lecture"
+msgstr ""
+
+#: .\core\constants.py:19
+msgid "MAD – Dirham Marocain"
+msgstr ""
+
+#: .\core\constants.py:20
+msgid "EUR – Euro"
+msgstr ""
+
+#: .\core\constants.py:21
+msgid "USD – Dollar Américain"
+msgstr ""
+
+#: .\core\constants.py:26
+msgid "Pourcentage"
+msgstr ""
+
+#: .\core\constants.py:27
+msgid "Fixe"
+msgstr ""
+
+#: .\core\filters.py:75 .\reglement\filters.py:22
+msgid "Status"
+msgstr ""
+
+#: .\core\filters.py:76
+msgid "Client ID"
+msgstr ""
+
+#: .\core\filters.py:78
+msgid "Mode de paiement IDs"
+msgstr ""
+
+#: .\core\filters.py:82
+msgid "Date After"
+msgstr ""
+
+#: .\core\filters.py:85
+msgid "Date Before"
+msgstr ""
+
+#: .\core\filters.py:110
+msgid "Lignes Count"
+msgstr ""
+
+#: .\core\filters.py:113
+msgid "Lignes Count (>)"
+msgstr ""
+
+#: .\core\filters.py:116
+msgid "Lignes Count (>=)"
+msgstr ""
+
+#: .\core\filters.py:119
+msgid "Lignes Count (<)"
+msgstr ""
+
+#: .\core\filters.py:122
+msgid "Lignes Count (<=)"
+msgstr ""
+
+#: .\core\filters.py:125
+msgid "Lignes Count (!=)"
+msgstr ""
+
+#: .\core\models.py:29
+msgid "Client associé au document"
+msgstr ""
+
+#: .\core\models.py:37 .\parameter\models.py:58
+msgid "Mode de paiement"
+msgstr ""
+
+#: .\core\models.py:38
+msgid "Mode de paiement préféré pour le document"
+msgstr ""
+
+#: .\core\models.py:43
+msgid "Remarque ou note supplémentaire pour le document"
+msgstr ""
+
+#: .\core\models.py:53
+msgid "Statut du document (ex: Brouillon, Envoyé)"
+msgstr ""
+
+#: .\core\models.py:62
+msgid "Somme des totaux des lignes avant TVA"
+msgstr ""
+
+#: .\core\models.py:71
+msgid "Montant total de la TVA (calculé sur le HT après remise globale)"
+msgstr ""
+
+#: .\core\models.py:80
+msgid "Total TTC final (HT après remise + TVA sur HT après remise)"
+msgstr ""
+
+#: .\core\models.py:90 .\core\models.py:307
+msgid "Type de remise"
+msgstr ""
+
+#: .\core\models.py:91 .\core\models.py:308
+msgid "Type de remise appliquée : 'Pourcentage' ou 'Fixe'"
+msgstr ""
+
+#: .\core\models.py:98 .\core\models.py:315
+msgid "Valeur remise"
+msgstr ""
+
+#: .\core\models.py:99 .\core\models.py:316
+msgid "Valeur de la remise appliquée"
+msgstr ""
+
+#: .\core\models.py:107
+msgid "Total TTC après application de la remise (identique à total_ttc)"
+msgstr ""
+
+#: .\core\models.py:115
+msgid "Devise"
+msgstr ""
+
+#: .\core\models.py:116
+msgid "Devise utilisée pour ce document (héritée du premier article ajouté)"
+msgstr ""
+
+#: .\core\models.py:123
+msgid "Horodatage de la création du document"
+msgstr ""
+
+#: .\core\models.py:128 .\reglement\models.py:84
+msgid "Date de mise à jour"
+msgstr ""
+
+#: .\core\models.py:129
+msgid "Horodatage de la dernière modification du document"
+msgstr ""
+
+#: .\core\models.py:137
+msgid "Créé par l'utilisateur"
+msgstr ""
+
+#: .\core\models.py:138
+msgid "Utilisateur ayant créé le document"
+msgstr ""
+
+#: .\core\models.py:267
+msgid "Prix d'achat unitaire (ex: en MAD)"
+msgstr ""
+
+#: .\core\models.py:282
+msgid "Prix de vente unitaire (ex: en MAD)"
+msgstr ""
+
+#: .\core\models.py:297
+msgid "Quantité"
+msgstr ""
+
+#: .\core\models.py:298
+msgid "Quantité (ex: 15,35)"
+msgstr ""
+
+#: .\core\pdf_utils.py:720 .\core\pdf_utils.py:1053
+msgid "Phone"
+msgstr ""
+
+#: .\core\pdf_utils.py:720
+msgid "Website"
+msgstr ""
+
+#: .\core\pdf_utils.py:725
+msgid "Page"
+msgstr ""
+
+#: .\core\pdf_utils.py:725
+msgid "On"
+msgstr ""
+
+#: .\core\pdf_utils.py:1001 .\core\pdf_utils.py:1046
+msgid "Address"
+msgstr ""
+
+#: .\core\pdf_utils.py:1007
+msgid "RC"
+msgstr ""
+
+#: .\core\pdf_utils.py:1009
+msgid "IF"
+msgstr ""
+
+#: .\core\pdf_utils.py:1017
+msgid "RIB_Account"
+msgstr ""
+
+#: .\core\pdf_utils.py:1074
+msgid "Recipient"
+msgstr ""
+
+#: .\core\pdf_utils.py:1107 .\core\pdf_utils.py:1127 .\core\pdf_utils.py:1138
+#: .\core\pdf_utils.py:1149 .\core\pdf_utils.py:1462 .\core\pdf_utils.py:1473
+msgid "TVA"
+msgstr ""
+
+#: .\core\pdf_utils.py:1108 .\core\pdf_utils.py:1128 .\core\pdf_utils.py:1139
+#: .\core\pdf_utils.py:1150 .\core\pdf_utils.py:1463 .\core\pdf_utils.py:1474
+msgid "Unit_Price_HT"
+msgstr ""
+
+#: .\core\pdf_utils.py:1109 .\core\pdf_utils.py:1140 .\core\pdf_utils.py:1464
+msgid "Unit"
+msgstr ""
+
+#: .\core\pdf_utils.py:1110 .\core\pdf_utils.py:1129
+msgid "Discount"
+msgstr ""
+
+#: .\core\pdf_utils.py:1111 .\core\pdf_utils.py:1130 .\core\pdf_utils.py:1141
+#: .\core\pdf_utils.py:1151 .\core\pdf_utils.py:1465 .\core\pdf_utils.py:1475
+msgid "Total_HT"
+msgstr ""
+
+#: .\core\pdf_utils.py:1277
+msgid "Remarks"
+msgstr ""
+
+#: .\core\pdf_utils.py:1586
+msgid "Total_HT_Label"
+msgstr ""
+
+#: .\core\pdf_utils.py:1601
+msgid "Percentage"
+msgstr ""
+
+#: .\core\pdf_utils.py:1603
+msgid "Fixed"
+msgstr ""
+
+#: .\core\pdf_utils.py:1608
+msgid "Discount_Label"
+msgstr ""
+
+#: .\core\pdf_utils.py:1619
+msgid "Total_HT_After_Discount"
+msgstr ""
+
+#: .\core\pdf_utils.py:1632
+msgid "Total_TVA_Label"
+msgstr ""
+
+#: .\core\pdf_utils.py:1643
+msgid "Total_TTC_Label"
+msgstr ""
+
+#: .\core\serializers.py:35
+#, python-format
+msgid ""
+"La devise doit correspondre à celle du document (%(devise)s). Impossible de "
+"mélanger les devises."
+msgstr ""
+
+#: .\core\serializers.py:177
+msgid "Valeur de remise invalide."
+msgstr ""
+
+#: .\core\serializers.py:181 .\core\serializers.py:289
+msgid "La remise doit être positive ou nulle."
+msgstr ""
+
+#: .\core\serializers.py:190 .\core\serializers.py:294
+msgid "La remise en pourcentage doit être entre 0 et 100."
+msgstr ""
+
+#: .\core\serializers.py:196 .\core\serializers.py:302
+msgid "Type de remise invalide."
+msgstr ""
+
+#: .\core\serializers.py:210
+#, python-format
+msgid "Format de %(field_name)s invalide. Format attendu: 0001/25"
+msgstr ""
+
+#: .\core\serializers.py:237
+msgid "Les utilisateurs Commercial ne peuvent pas modifier le prix de vente."
+msgstr ""
+
+#: .\core\serializers.py:245
+msgid ""
+"Les utilisateurs Commercial ne peuvent pas définir un prix de vente "
+"personnalisé."
+msgstr ""
+
+#: .\core\serializers.py:269
+#, python-brace-format
+msgid ""
+"La devise doit correspondre à celle du document ({devise}). Impossible de "
+"mélanger les devises."
+msgstr ""
+
+#: .\core\serializers.py:276
+msgid "Le prix de vente doit être supérieur ou égal au prix d'achat."
+msgstr ""
+
+#: .\core\serializers.py:284
+msgid "La quantité doit être supérieure à 0."
+msgstr ""
+
+#: .\core\serializers.py:299
+msgid "La remise fixe ne peut pas dépasser le total de la ligne."
+msgstr ""
+
+#: .\core\views.py:41 .\dashboard\views.py:108 .\reglement\views.py:56
+msgid "company_id est requis."
+msgstr ""
+
+#: .\core\views.py:100
+#, python-format
+msgid "Un client doit être spécifié pour %(name)s."
+msgstr ""
+
+#: .\core\views.py:106
+msgid "Client introuvable."
+msgstr ""
+
+#: .\core\views.py:111
+#, python-format
+msgid "Vous n'êtes pas autorisé à créer %(name)s pour cette société."
+msgstr ""
+
+#: .\core\views.py:118
+#, python-format
+msgid "Vous n'avez pas les droits pour créer ce %(name)s."
+msgstr ""
+
+#: .\core\views.py:158 .\core\views.py:252 .\core\views.py:296
+#, python-format
+msgid "Aucun %(name)s ne correspond à la requête."
+msgstr ""
+
+#: .\core\views.py:166
+#, python-format
+msgid "Vous n'êtes pas autorisé à consulter ce %(name)s."
+msgstr ""
+
+#: .\core\views.py:176 .\core\views.py:260 .\core\views.py:459
+#, python-format
+msgid "Vous n'êtes pas autorisé à modifier ce %(name)s."
+msgstr ""
+
+#: .\core\views.py:183 .\core\views.py:267 .\core\views.py:464
+#, python-format
+msgid "Vous n'avez pas les droits pour modifier ce %(name)s."
+msgstr ""
+
+#: .\core\views.py:198 .\core\views.py:399
+#, python-format
+msgid "Vous n'êtes pas autorisé à supprimer ce %(name)s."
+msgstr ""
+
+#: .\core\views.py:205 .\core\views.py:404
+#, python-format
+msgid "Vous n'avez pas les droits pour supprimer ce %(name)s."
+msgstr ""
+
+#: .\core\views.py:274 .\reglement\views.py:266
+msgid "Statut invalide."
+msgstr ""
+
+#: .\core\views.py:305
+#, python-format
+msgid "Vous n'êtes pas autorisé à convertir ce %(name)s."
+msgstr ""
+
+#: .\core\views.py:312
+#, python-format
+msgid "Vous n'avez pas les droits pour convertir ce %(name)s."
+msgstr ""
+
+#: .\core\views.py:319
+#, python-format
+msgid "La méthode de conversion %(method)s n'existe pas."
+msgstr ""
+
+# Facture Client - models.py
+#: .\core\views.py:326
+#, fuzzy, python-format
+#| msgid "Impossible de convertir un document sans lignes"
+msgid "Impossible de convertir un %(name)s sans lignes."
+msgstr "Impossible de convertir un document sans lignes"
+
+#: .\core\views.py:333
+#, fuzzy, python-format
+#| msgid "Impossible de convertir un document avec le statut '%(statut)s'"
+msgid "Impossible de convertir un %(name)s avec le statut '%(statut)s'."
+msgstr "Impossible de convertir un document avec le statut '%(statut)s'"
+
+#: .\core\views.py:353
+#, python-format
+msgid "Échec de la conversion: %(error)s"
+msgstr ""
+
+#: .\core\views.py:389 .\core\views.py:449
+#, python-format
+msgid "Certains %(name)s sont introuvables."
+msgstr ""
+
+#: .\core\views.py:442
+msgid "Le champ 'archived' (booléen) est requis."
+msgstr ""
+
+#: .\dashboard\models.py:20
+msgid "Société concernée par ces objectifs"
+msgstr ""
+
+#: .\dashboard\models.py:28
+msgid "Objectif CA (MAD)"
+msgstr ""
+
+#: .\dashboard\models.py:29
+msgid "Objectif de chiffre d'affaires mensuel (MAD)"
+msgstr ""
+
+#: .\dashboard\models.py:36
+msgid "Objectif CA (EUR)"
+msgstr ""
+
+#: .\dashboard\models.py:37
+msgid "Objectif de chiffre d'affaires mensuel (EUR)"
+msgstr ""
+
+#: .\dashboard\models.py:46
+msgid "Objectif CA (USD)"
+msgstr ""
+
+#: .\dashboard\models.py:47
+msgid "Objectif de chiffre d'affaires mensuel (USD)"
+msgstr ""
+
+#: .\dashboard\models.py:54
+msgid "Objectif Factures"
+msgstr ""
+
+#: .\dashboard\models.py:55
+msgid "Objectif de nombre de factures mensuelles"
+msgstr ""
+
+#: .\dashboard\models.py:62
+msgid "Objectif Conversion"
+msgstr ""
+
+#: .\dashboard\models.py:63
+msgid "Objectif de taux de conversion des devis (%)"
+msgstr ""
+
+#: .\dashboard\models.py:82
+msgid "Historique Objectifs Mensuels"
+msgstr ""
+
+#: .\dashboard\models.py:83
+msgid "Historiques Objectifs Mensuels"
+msgstr ""
+
+#: .\dashboard\models.py:87 .\dashboard\models.py:88
+msgid "Objectifs Mensuels"
+msgstr ""
+
+#: .\dashboard\views.py:112
+msgid "Vous n'avez pas accès aux données de cette société."
+msgstr ""
+
+#: .\dashboard\views.py:1630 .\dashboard\views.py:1640
+#: .\dashboard\views.py:1652 .\dashboard\views.py:1666
+msgid "Objectifs non trouvés"
+msgstr ""
+
+#: .\dashboard\views.py:1686
+msgid "Objectifs non trouvés pour cette société"
+msgstr ""
+
+#: .\devi\admin.py:124 .\devi\models.py:50 .\devi\models.py:51
+#: .\devi\models.py:180
+msgid "Devis"
+msgstr ""
+
+#: .\devi\admin.py:144
+msgid "Numéro devis"
+msgstr ""
+
+#: .\devi\models.py:22
+msgid "Société propriétaire du devis"
+msgstr ""
+
+#: .\devi\models.py:27
+msgid "Numéro du devis"
+msgstr ""
+
+#: .\devi\models.py:32
+msgid "Date du devis"
+msgstr ""
+
+#: .\devi\models.py:34
+msgid "Date d'émission du devis"
+msgstr ""
+
+#: .\devi\models.py:39
+msgid "Numéro de la demande de prix du client"
+msgstr ""
+
+#: .\devi\models.py:42
+msgid "Numéro de la demande de prix du client (optionnel)"
+msgstr ""
+
+#: .\devi\models.py:46
+msgid "Historique Devis"
+msgstr ""
+
+#: .\devi\models.py:46
+msgid "Historiques Devis"
+msgstr ""
+
+# Facture Client - models.py
+#: .\devi\models.py:79 .\devi\models.py:132 .\facture_client\models.py:84
+#: .\facture_proforma\models.py:80
+msgid "Impossible de convertir un document sans lignes"
+msgstr "Impossible de convertir un document sans lignes"
+
+#: .\devi\models.py:84 .\devi\models.py:137 .\facture_proforma\models.py:85
+#, fuzzy, python-brace-format
+#| msgid "Impossible de convertir un document avec le statut '%(statut)s'"
+msgid "Impossible de convertir un document avec le statut '{statut}'"
+msgstr "Impossible de convertir un document avec le statut '%(statut)s'"
+
+#: .\devi\models.py:181
+msgid "Document Devis parent associé à cette ligne"
+msgstr ""
+
+#: .\devi\models.py:188
+msgid "Article associé à cette ligne de devis"
+msgstr ""
+
+#: .\devi\models.py:192
+msgid "Historique Ligne de devis"
+msgstr ""
+
+#: .\devi\models.py:193
+msgid "Historiques Lignes de devis"
+msgstr ""
+
+#: .\devi\models.py:197
+msgid "Ligne de devis"
+msgstr ""
+
+#: .\devi\models.py:198
+msgid "Lignes de devis"
+msgstr ""
+
+#: .\devi\views.py:80
+msgid "Quote_Number"
+msgstr ""
+
+#: .\devi\views.py:81
+msgid "Quote_Date"
+msgstr ""
+
+#: .\devi\views.py:88
+msgid "Quote_Issued_By"
+msgstr ""
+
+#: .\devi\views.py:105
+msgid "Quote_Amount_Words"
+msgstr ""
+
+#: .\devi\views.py:124
+msgid "Quote"
+msgstr ""
+
+#: .\facture_client\admin.py:124
+msgid "FactureClient"
+msgstr ""
+
+#: .\facture_client\admin.py:145 .\facture_proforma\admin.py:145
+msgid "Numéro facture"
+msgstr ""
+
+#: .\facture_client\models.py:24
+msgid "Société propriétaire de la facture"
+msgstr ""
+
+#: .\facture_client\models.py:29
+msgid "Numéro de la facture client"
+msgstr ""
+
+#: .\facture_client\models.py:34 .\facture_proforma\models.py:32
+msgid "Date de facture"
+msgstr ""
+
+#: .\facture_client\models.py:35
+msgid "Date d'émission de la facture"
+msgstr ""
+
+#: .\facture_client\models.py:48 .\facture_client\models.py:145
+msgid "Historique Facture Client"
+msgstr ""
+
+#: .\facture_client\models.py:49 .\facture_client\models.py:146
+msgid "Historiques Factures Client"
+msgstr ""
+
+#: .\facture_client\models.py:53 .\facture_client\models.py:133
+#: .\reglement\models.py:25
+msgid "Facture Client"
+msgstr ""
+
+#: .\facture_client\models.py:54
+msgid "Factures Client"
+msgstr ""
+
+#: .\facture_client\models.py:89
+#, python-format
+msgid "Impossible de convertir un document avec le statut '%(statut)s'"
+msgstr "Impossible de convertir un document avec le statut '%(statut)s'"
+
+#: .\facture_client\models.py:134
+msgid "Facture client associée à cette ligne"
+msgstr ""
+
+#: .\facture_client\models.py:141
+msgid "Article associé à cette ligne de facture"
+msgstr ""
+
+#: .\facture_client\models.py:150
+msgid "Ligne de facture Client"
+msgstr ""
+
+#: .\facture_client\models.py:151
+msgid "Lignes de factures Client"
+msgstr ""
+
+#: .\facture_client\views.py:225
+msgid "company_id is required"
+msgstr ""
+
+#: .\facture_client\views.py:238
+msgid "Vous n'êtes pas autorisé à accéder à cette société."
+msgstr ""
+
+#: .\facture_client\views.py:295
+msgid "Invoice_Number"
+msgstr ""
+
+#: .\facture_client\views.py:296
+msgid "Invoice_Date"
+msgstr ""
+
+#: .\facture_client\views.py:303
+msgid "Invoice_Issued_By"
+msgstr ""
+
+#: .\facture_client\views.py:320
+msgid "Invoice_Amount_Words"
+msgstr ""
+
+#: .\facture_client\views.py:339 .\reglement\views.py:587
+msgid "Invoice"
+msgstr ""
+
+#: .\facture_proforma\admin.py:124
+msgid "FactureProForma"
+msgstr ""
+
+#: .\facture_proforma\models.py:22
+msgid "Société propriétaire de la facture pro forma"
+msgstr ""
+
+#: .\facture_proforma\models.py:27
+msgid "Numéro de la facture pro forma"
+msgstr ""
+
+#: .\facture_proforma\models.py:33
+msgid "Date d'émission de la facture pro forma"
+msgstr ""
+
+#: .\facture_proforma\models.py:46 .\facture_proforma\models.py:140
+msgid "Historique Facture Pro-Forma"
+msgstr ""
+
+#: .\facture_proforma\models.py:47 .\facture_proforma\models.py:141
+msgid "Historiques Factures Pro-Forma"
+msgstr ""
+
+#: .\facture_proforma\models.py:51
+msgid "Facture Pro-Forma"
+msgstr ""
+
+#: .\facture_proforma\models.py:52
+msgid "Factures Pro-Forma"
+msgstr ""
+
+#: .\facture_proforma\models.py:128
+msgid "Facture Pro Forma"
+msgstr ""
+
+#: .\facture_proforma\models.py:129
+msgid "Facture pro forma associée à cette ligne"
+msgstr ""
+
+#: .\facture_proforma\models.py:136
+msgid "Article associé à cette ligne de facture pro forma"
+msgstr ""
+
+#: .\facture_proforma\models.py:145
+msgid "Ligne de facture Pro-forma"
+msgstr ""
+
+#: .\facture_proforma\models.py:146
+msgid "Lignes de factures Pro-forma"
+msgstr ""
+
+#: .\facture_proforma\views.py:72
+msgid "Proforma_Number"
+msgstr ""
+
+#: .\facture_proforma\views.py:73
+msgid "Proforma_Date"
+msgstr ""
+
+#: .\facture_proforma\views.py:80
+msgid "Proforma_Issued_By"
+msgstr ""
+
+#: .\facture_proforma\views.py:97
+msgid "Proforma_Amount_Words"
+msgstr ""
+
+#: .\facture_proforma\views.py:116
+msgid "Proforma"
+msgstr ""
+
+#: .\parameter\models.py:12
+msgid "Société propriétaire de cette ville"
+msgstr ""
+
+#: .\parameter\models.py:16 .\parameter\models.py:17
+msgid "Nom de la ville"
+msgstr ""
+
+#: .\parameter\models.py:21
+msgid "Historique Ville"
+msgstr ""
+
+#: .\parameter\models.py:21
+msgid "Historiques Villes"
+msgstr ""
+
+#: .\parameter\models.py:26
+msgid "Villes"
+msgstr ""
+
+#: .\parameter\models.py:44
+msgid "Société propriétaire de ce mode de paiement"
+msgstr ""
+
+#: .\parameter\models.py:48
+msgid "Nom du mode de paiement"
+msgstr ""
+
+#: .\parameter\models.py:49
+msgid "Nom du mode de paiement (ex: Espèces, Virement)"
+msgstr ""
+
+#: .\parameter\models.py:53
+msgid "Historique Mode de paiement"
+msgstr ""
+
+#: .\parameter\models.py:54
+msgid "Historiques Modes de paiement"
+msgstr ""
+
+#: .\parameter\models.py:59
+msgid "Modes de paiement"
+msgstr ""
+
+#: .\parameter\models.py:77
+msgid "Société propriétaire de cette marque"
+msgstr ""
+
+#: .\parameter\models.py:81 .\parameter\models.py:82
+msgid "Nom de la marque"
+msgstr ""
+
+#: .\parameter\models.py:86
+msgid "Historique Marque"
+msgstr ""
+
+#: .\parameter\models.py:86
+msgid "Historiques Marques"
+msgstr ""
+
+#: .\parameter\models.py:91
+msgid "Marques"
+msgstr ""
+
+#: .\parameter\models.py:109
+msgid "Société propriétaire de cette catégorie"
+msgstr ""
+
+#: .\parameter\models.py:113 .\parameter\models.py:114
+msgid "Nom de la catégorie"
+msgstr ""
+
+#: .\parameter\models.py:118
+msgid "Historique Catégorie"
+msgstr ""
+
+#: .\parameter\models.py:119
+msgid "Historiques Catégories"
+msgstr ""
+
+#: .\parameter\models.py:124
+msgid "Catégories"
+msgstr ""
+
+#: .\parameter\models.py:142
+msgid "Société propriétaire de cette unité"
+msgstr ""
+
+#: .\parameter\models.py:146
+msgid "Nom de l'unité"
+msgstr ""
+
+#: .\parameter\models.py:147
+msgid "Nom de l'unité (ex: pièce, kg)"
+msgstr ""
+
+#: .\parameter\models.py:151
+msgid "Historique Unité"
+msgstr ""
+
+#: .\parameter\models.py:151
+msgid "Historiques Unités"
+msgstr ""
+
+#: .\parameter\models.py:156
+msgid "Unités"
+msgstr ""
+
+#: .\parameter\models.py:174
+msgid "Société propriétaire de cet emplacement"
+msgstr ""
+
+#: .\parameter\models.py:178
+msgid "Nom de l'emplacement"
+msgstr ""
+
+#: .\parameter\models.py:179
+msgid "Nom de l'emplacement (ex: Entrepôt A)"
+msgstr ""
+
+#: .\parameter\models.py:183
+msgid "Historique Emplacement"
+msgstr ""
+
+#: .\parameter\models.py:184
+msgid "Historiques Emplacements"
+msgstr ""
+
+#: .\parameter\models.py:189
+msgid "Emplacements"
+msgstr ""
+
+#: .\parameter\models.py:207
+msgid "Société propriétaire de ce livreur"
+msgstr ""
+
+#: .\parameter\models.py:211 .\parameter\models.py:212
+msgid "Nom du livreur"
+msgstr ""
+
+#: .\parameter\models.py:216
+msgid "Historique Livré par"
+msgstr ""
+
+#: .\parameter\models.py:216
+msgid "Historiques Livré par"
+msgstr ""
+
+#: .\parameter\views.py:69
+#, python-format
+msgid ""
+"Vous devez appartenir à une société pour %(action_name)s des paramètres."
+msgstr ""
+
+#: .\parameter\views.py:75
+#, python-format
+msgid "Seuls les Caissiers peuvent %(action_name)s des paramètres."
+msgstr ""
+
+#: .\reglement\admin.py:31
+#, python-format
+msgid ""
+"Impossible d'ajouter un règlement pour une facture avec le statut "
+"'%(statut)s'. Statuts autorisés: %(statuts_autorises)s."
+msgstr ""
+
+#: .\reglement\admin.py:55
+#, python-format
+msgid ""
+"Le montant (%(montant)s MAD) dépasse le reste à payer (%(reste_a_payer)s "
+"MAD) pour cette facture."
+msgstr ""
+
+#: .\reglement\admin.py:65 .\reglement\serializers.py:175
+#: .\reglement\serializers.py:282
+msgid "Le montant doit être supérieur à 0."
+msgstr ""
+
+#: .\reglement\admin.py:120
+msgid "Dates"
+msgstr ""
+
+#: .\reglement\filters.py:24
+msgid "Facture Client ID"
+msgstr ""
+
+#: .\reglement\filters.py:27
+msgid "Mode Règlement ID"
+msgstr ""
+
+#: .\reglement\filters.py:32
+msgid "Mode Règlement IDs"
+msgstr ""
+
+#: .\reglement\filters.py:35 .\reglement\models.py:54
+msgid "Date de règlement"
+msgstr ""
+
+#: .\reglement\filters.py:38 .\reglement\filters.py:44
+msgid "Date de règlement (>=)"
+msgstr ""
+
+#: .\reglement\filters.py:41 .\reglement\filters.py:47
+msgid "Date de règlement (<=)"
+msgstr ""
+
+#: .\reglement\filters.py:50 .\reglement\models.py:61
+msgid "Date d'échéance"
+msgstr ""
+
+#: .\reglement\filters.py:53 .\reglement\filters.py:59
+msgid "Date d'échéance (>=)"
+msgstr ""
+
+#: .\reglement\filters.py:56 .\reglement\filters.py:62
+msgid "Date d'échéance (<=)"
+msgstr ""
+
+#: .\reglement\models.py:17
+msgid "Valide"
+msgstr ""
+
+#: .\reglement\models.py:26
+msgid "Facture client associée au règlement"
+msgstr ""
+
+#: .\reglement\models.py:34
+msgid "Mode de règlement"
+msgstr ""
+
+#: .\reglement\models.py:35
+msgid "Mode de paiement utilisé pour ce règlement"
+msgstr ""
+
+#: .\reglement\models.py:40
+msgid "Libellé"
+msgstr ""
+
+#: .\reglement\models.py:41
+msgid "Libellé ou description du règlement"
+msgstr ""
+
+#: .\reglement\models.py:49
+msgid "Montant"
+msgstr ""
+
+#: .\reglement\models.py:50
+msgid "Montant du règlement (devise héritée de la facture client)"
+msgstr ""
+
+#: .\reglement\models.py:55
+msgid "Date à laquelle le règlement a été effectué"
+msgstr ""
+
+#: .\reglement\models.py:62
+msgid "Date d'échéance du paiement"
+msgstr ""
+
+#: .\reglement\models.py:72
+msgid "Statut du règlement (ex: Valide, Annulé)"
+msgstr ""
+
+#: .\reglement\models.py:79
+msgid "Horodatage de la création du règlement"
+msgstr ""
+
+#: .\reglement\models.py:85
+msgid "Horodatage de la dernière modification du règlement"
+msgstr ""
+
+#: .\reglement\models.py:89
+msgid "Historique Règlement"
+msgstr ""
+
+#: .\reglement\models.py:90
+msgid "Historiques Règlements"
+msgstr ""
+
+#: .\reglement\models.py:94
+msgid "Règlement"
+msgstr ""
+
+#: .\reglement\models.py:95
+msgid "Règlements"
+msgstr ""
+
+#: .\reglement\serializers.py:191
+#, python-format
+msgid ""
+"Impossible d'ajouter un règlement pour une facture avec le statut "
+"'%(status)s'. Statuts autorisés: %(allowed)s."
+msgstr ""
+
+#: .\reglement\serializers.py:203 .\reglement\serializers.py:316
+#, python-format
+msgid ""
+"Le montant (%(montant)s %(devise)s) dépasse le reste à payer (%(reste)s "
+"%(devise)s) pour cette facture."
+msgstr ""
+
+#: .\reglement\serializers.py:302
+#, python-format
+msgid ""
+"Impossible de modifier un règlement pour une facture avec le statut "
+"'%(status)s'. Statuts autorisés: %(allowed)s."
+msgstr ""
+
+#: .\reglement\views.py:109
+msgid "Une facture client doit être spécifiée pour le règlement."
+msgstr ""
+
+#: .\reglement\views.py:115
+msgid "Facture client introuvable."
+msgstr ""
+
+#: .\reglement\views.py:121
+msgid "Vous n'êtes pas autorisé à créer un règlement pour cette société."
+msgstr ""
+
+#: .\reglement\views.py:127
+msgid "Vous n'avez pas les droits pour créer un règlement."
+msgstr ""
+
+#: .\reglement\views.py:166 .\reglement\views.py:244
+msgid "Aucun règlement ne correspond à la requête."
+msgstr ""
+
+#: .\reglement\views.py:175
+msgid "Vous n'êtes pas autorisé à consulter ce règlement."
+msgstr ""
+
+#: .\reglement\views.py:188 .\reglement\views.py:253
+msgid "Vous n'êtes pas autorisé à modifier ce règlement."
+msgstr ""
+
+#: .\reglement\views.py:194 .\reglement\views.py:259
+msgid "Vous n'avez pas les droits pour modifier ce règlement."
+msgstr ""
+
+#: .\reglement\views.py:212
+msgid "Vous n'êtes pas autorisé à supprimer ce règlement."
+msgstr ""
+
+#: .\reglement\views.py:218
+msgid "Vous n'avez pas les droits pour supprimer ce règlement."
+msgstr ""
+
+#: .\reglement\views.py:276
+#, python-format
+msgid ""
+"Impossible de valider un règlement pour une facture avec le statut "
+"'%(statut)s'. Statuts autorisés: %(statuts_autorises)s."
+msgstr ""
+
+#: .\reglement\views.py:293
+#, python-format
+msgid ""
+"Impossible de valider ce règlement. Le montant (%(montant)s %(devise)s) "
+"dépasse le reste à payer (%(reste_a_payer)s %(devise)s)."
+msgstr ""
+
+#: .\reglement\views.py:330
+msgid "PAYMENT RECEIPT"
+msgstr ""
+
+#: .\reglement\views.py:400
+msgid "Date"
+msgstr ""
+
+#: .\reglement\views.py:405
+msgid "Received from"
+msgstr ""
+
+#: .\reglement\views.py:410
+msgid "For"
+msgstr ""
+
+#: .\reglement\views.py:412
+msgid "Payment of invoice"
+msgstr ""
+
+#: .\reglement\views.py:417
+msgid "Amount"
+msgstr ""
+
+#: .\reglement\views.py:430
+msgid "Payment method"
+msgstr ""
+
+#: .\reglement\views.py:461
+msgid "Being"
+msgstr ""
+
+#: .\reglement\views.py:488
+msgid "Description"
+msgstr ""
+
+#: .\reglement\views.py:505 .\reglement\views.py:529
+msgid "Signature and stamp"
+msgstr ""
+
+#: .\reglement\views.py:587
+msgid "Payment Receipt"
+msgstr ""
+
+#: .\templates\admin\base_site.html:5
+msgid "View site"
+msgstr ""
+
+#: .\templates\admin\base_site.html:9
+msgid "Documentation"
+msgstr ""
+
+#: .\templates\admin\base_site.html:13
+msgid "Change password"
+msgstr ""
+
+#: .\templates\admin\base_site.html:17
+msgid "Log out"
+msgstr ""

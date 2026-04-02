@@ -2,6 +2,7 @@ from base64 import b64decode
 from os import remove
 from pathlib import Path
 
+from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 from account.models import Membership, Role
@@ -135,7 +136,7 @@ class CompanySerializer(serializers.ModelSerializer):
                 return ImageProcessor.convert_to_webp(data)
             except Exception as e:
                 raise serializers.ValidationError(
-                    f"Invalid file upload for {field_name}: {str(e)}"
+                    _("Invalid file upload for %(field_name)s: %(error)s") % {"field_name": field_name, "error": str(e)}
                 )
         # If it's base64 data, process it
         if isinstance(field_value, str) and field_value.startswith("data:image"):
@@ -148,10 +149,12 @@ class CompanySerializer(serializers.ModelSerializer):
                 return ImageProcessor.convert_to_webp(data)
             except Exception as e:
                 raise serializers.ValidationError(
-                    f"Invalid base64 image data for {field_name}: {str(e)}"
+                    _("Invalid base64 image data for %(field_name)s: %(error)s") % {"field_name": field_name, "error": str(e)}
                 )
         # If we get here, it's an unexpected format
-        raise serializers.ValidationError(f"Invalid image format for {field_name}")
+        raise serializers.ValidationError(
+            _("Invalid image format for %(field_name)s") % {"field_name": field_name}
+        )
 
     def create(self, validated_data):
         # Process image fields
@@ -305,7 +308,9 @@ class CompanyDetailSerializer(CompanySerializer):
             try:
                 role_group = Role.objects.get(name=role_name)
             except Role.DoesNotExist:
-                raise serializers.ValidationError(f"Rôle '{role_name}' n'existe pas.")
+                raise serializers.ValidationError(
+                    _("Rôle '%(role_name)s' n'existe pas.") % {"role_name": role_name}
+                )
             Membership.objects.create(
                 company=company,
                 user_id=user_id,

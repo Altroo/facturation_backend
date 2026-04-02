@@ -1,5 +1,6 @@
 from decimal import Decimal
 
+from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 from .models import Reglement
@@ -171,7 +172,7 @@ class ReglementCreateSerializer(serializers.ModelSerializer):
     def validate_montant(value):
         """Validate that montant is positive."""
         if value <= 0:
-            raise serializers.ValidationError("Le montant doit être supérieur à 0.")
+            raise serializers.ValidationError(_("Le montant doit être supérieur à 0."))
         return value
 
     def validate(self, data):
@@ -187,9 +188,7 @@ class ReglementCreateSerializer(serializers.ModelSerializer):
             if facture_client.statut not in ALLOWED_FACTURE_STATUSES:
                 raise serializers.ValidationError(
                     {
-                        "facture_client": f"Impossible d'ajouter un règlement pour une facture "
-                        f"avec le statut '{facture_client.statut}'. "
-                        f"Statuts autorisés: {', '.join(ALLOWED_FACTURE_STATUSES)}."
+                        "facture_client": _("Impossible d'ajouter un règlement pour une facture avec le statut '%(status)s'. Statuts autorisés: %(allowed)s.") % {"status": facture_client.statut, "allowed": ", ".join(ALLOWED_FACTURE_STATUSES)}
                     }
                 )
 
@@ -200,10 +199,9 @@ class ReglementCreateSerializer(serializers.ModelSerializer):
                     devise = facture_client.devise
                     raise serializers.ValidationError(
                         {
-                            "montant": (
-                                f"Le montant ({montant} {devise}) dépasse le reste à payer "
-                                f"({reste_a_payer} {devise}) pour cette facture."
-                            )
+                            "montant": _(
+                                "Le montant (%(montant)s %(devise)s) dépasse le reste à payer (%(reste)s %(devise)s) pour cette facture."
+                            ) % {"montant": montant, "devise": devise, "reste": reste_a_payer}
                         }
                     )
 
@@ -281,7 +279,7 @@ class ReglementUpdateSerializer(serializers.ModelSerializer):
     def validate_montant(value):
         """Validate that montant is positive."""
         if value <= 0:
-            raise serializers.ValidationError("Le montant doit être supérieur à 0.")
+            raise serializers.ValidationError(_("Le montant doit être supérieur à 0."))
         return value
 
     def validate(self, data):
@@ -301,9 +299,7 @@ class ReglementUpdateSerializer(serializers.ModelSerializer):
             if facture_client.statut not in ALLOWED_FACTURE_STATUSES:
                 raise serializers.ValidationError(
                     {
-                        "facture_client": f"Impossible de modifier un règlement pour une facture "
-                        f"avec le statut '{facture_client.statut}'. "
-                        f"Statuts autorisés: {', '.join(ALLOWED_FACTURE_STATUSES)}."
+                        "facture_client": _("Impossible de modifier un règlement pour une facture avec le statut '%(status)s'. Statuts autorisés: %(allowed)s.") % {"status": facture_client.statut, "allowed": ", ".join(ALLOWED_FACTURE_STATUSES)}
                     }
                 )
 
@@ -316,10 +312,9 @@ class ReglementUpdateSerializer(serializers.ModelSerializer):
                     devise = facture_client.devise
                     raise serializers.ValidationError(
                         {
-                            "montant": (
-                                f"Le montant ({montant} {devise}) dépasse le reste à payer "
-                                f"({reste_a_payer} {devise}) pour cette facture."
-                            )
+                            "montant": _(
+                                "Le montant (%(montant)s %(devise)s) dépasse le reste à payer (%(reste)s %(devise)s) pour cette facture."
+                            ) % {"montant": montant, "devise": devise, "reste": reste_a_payer}
                         }
                     )
 

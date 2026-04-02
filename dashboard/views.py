@@ -19,6 +19,7 @@ from django.db.models import (
 )
 from django.db.models.functions import TruncMonth, TruncDate, Coalesce, Greatest
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.permissions import IsAuthenticated
@@ -101,14 +102,14 @@ def parse_date_filters(request):
             company_id = int(company_id_str)
         except (ValueError, TypeError):
             raise ValidationError(
-                {"company_id": "company_id doit être un entier valide."}
+                {"company_id": _("company_id doit être un entier valide.")}
             )
     else:
-        raise ValidationError({"company_id": "company_id est requis."})
+        raise ValidationError({"company_id": _("company_id est requis.")})
 
     # Verify user has membership in this company
     if not Membership.objects.filter(user=request.user, company_id=company_id).exists():
-        raise PermissionDenied("Vous n'avez pas accès aux données de cette société.")
+        raise PermissionDenied(_("Vous n'avez pas accès aux données de cette société."))
 
     # Validate devise if provided
     if devise and devise not in ["MAD", "EUR", "USD"]:
@@ -1626,7 +1627,7 @@ class MonthlyObjectivesDetailView(APIView):
         objectives = self.get_object(pk)
         if not objectives:
             return Response(
-                {"detail": "Objectifs non trouvés"},
+                {"detail": _("Objectifs non trouvés")},
                 status=status.HTTP_404_NOT_FOUND,
             )
         serializer = MonthlyObjectivesSerializer(objectives)
@@ -1636,7 +1637,7 @@ class MonthlyObjectivesDetailView(APIView):
         objectives = self.get_object(pk)
         if not objectives:
             return Response(
-                {"detail": "Objectifs non trouvés"},
+                {"detail": _("Objectifs non trouvés")},
                 status=status.HTTP_404_NOT_FOUND,
             )
         serializer = MonthlyObjectivesSerializer(objectives, data=request.data)
@@ -1648,7 +1649,7 @@ class MonthlyObjectivesDetailView(APIView):
         objectives = self.get_object(pk)
         if not objectives:
             return Response(
-                {"detail": "Objectifs non trouvés"},
+                {"detail": _("Objectifs non trouvés")},
                 status=status.HTTP_404_NOT_FOUND,
             )
         serializer = MonthlyObjectivesSerializer(
@@ -1662,7 +1663,7 @@ class MonthlyObjectivesDetailView(APIView):
         objectives = self.get_object(pk)
         if not objectives:
             return Response(
-                {"detail": "Objectifs non trouvés"},
+                {"detail": _("Objectifs non trouvés")},
                 status=status.HTTP_404_NOT_FOUND,
             )
         objectives.delete()
@@ -1682,6 +1683,6 @@ class MonthlyObjectivesByCompanyView(APIView):
             return Response(serializer.data)
         except MonthlyObjectives.DoesNotExist:
             return Response(
-                {"detail": "Objectifs non trouvés pour cette société"},
+                {"detail": _("Objectifs non trouvés pour cette société")},
                 status=status.HTTP_404_NOT_FOUND,
             )

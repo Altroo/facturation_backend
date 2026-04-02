@@ -55,13 +55,13 @@ logger = logging.getLogger(__name__)
 class CheckEmailView(APIView):
     permission_classes = (permissions.IsAdminUser,)
     errors = {
-        "email": ["Un utilisateur avec ce champ adresse électronique existe déjà."]
+        "email": [_("Un utilisateur avec ce champ adresse électronique existe déjà.")]
     }
 
     def post(self, request, *args, **kwargs):
         email = request.data.get("email")
         if not email:
-            raise ValidationError({"email": ["L'adresse électronique est requise."]})
+            raise ValidationError({"email": [_("L'adresse électronique est requise.")]})
 
         email = str(email).strip().lower()
 
@@ -69,7 +69,7 @@ class CheckEmailView(APIView):
             validate_email(email)
         except DjangoValidationError:
             raise ValidationError(
-                {"email": ["Entrez une adresse électronique valide."]}
+                {"email": [_("Entrez une adresse électronique valide.")]}
             )
 
         try:
@@ -162,15 +162,15 @@ class PasswordChangeView(APIView):
             new_password2 = serializer.data.get("new_password2")
             user = request.user
             if not user.check_password(old_password):
-                errors = {"old_password": ["Votre mot de passe est invalide."]}
+                errors = {"old_password": [_("Votre mot de passe est invalide.")]}
                 raise ValidationError(errors)
             if new_password != new_password2:
-                errors = {"new_password2": ["Les mots de passe ne correspondent pas."]}
+                errors = {"new_password2": [_("Les mots de passe ne correspondent pas.")]}
                 raise ValidationError(errors)
             if len(new_password) < 8:
                 errors = {
                     "new_password": [
-                        "Le mot de passe doit contenir au moins 8 caractères."
+                        _("Le mot de passe doit contenir au moins 8 caractères.")
                     ]
                 }
                 raise ValidationError(errors)
@@ -183,12 +183,12 @@ class PasswordChangeView(APIView):
 
 class PasswordResetView(APIView):
     permission_classes = (permissions.AllowAny,)
-    errors = {"error": ["Utilisateur ou code verification invalide."]}
+    errors = {"error": [_("Utilisateur ou code verification invalide.")]}
 
     def get(self, request, *args, **kwargs):
         email = kwargs.get("email")
         if not email:
-            raise ValidationError({"email": ["L'adresse électronique est requise."]})
+            raise ValidationError({"email": [_("L'adresse électronique est requise.")]})
 
         email = str(email).strip().lower()
 
@@ -196,7 +196,7 @@ class PasswordResetView(APIView):
             validate_email(email)
         except DjangoValidationError:
             raise ValidationError(
-                {"email": ["Entrez une adresse électronique valide."]}
+                {"email": [_("Entrez une adresse électronique valide.")]}
             )
 
         code = kwargs.get("code")
@@ -218,7 +218,7 @@ class PasswordResetView(APIView):
                         raise ValidationError(
                             {
                                 "code": [
-                                    "Le code de réinitialisation a expiré. Veuillez demander un nouveau code."
+                                    _("Le code de réinitialisation a expiré. Veuillez demander un nouveau code.")
                                 ]
                             }
                         )
@@ -230,12 +230,12 @@ class PasswordResetView(APIView):
     def put(self, request, *args, **kwargs):
         raw_email = request.data.get("email")
         if not raw_email or not isinstance(raw_email, str) or not raw_email.strip():
-            raise ValidationError({"email": ["This field is required."]})
+            raise ValidationError({"email": [_("L'adresse électronique est requise.")]})
         email = raw_email.strip().lower()
         try:
             validate_email(email)
         except DjangoValidationError:
-            raise ValidationError({"email": ["Enter a valid email address."]})
+            raise ValidationError({"email": [_("Entrez une adresse électronique valide.")]})
         code = request.data.get("code")
         try:
             user = CustomUser.objects.get(email=email)
@@ -255,7 +255,7 @@ class PasswordResetView(APIView):
                         raise ValidationError(
                             {
                                 "code": [
-                                    "Le code de réinitialisation a expiré. Veuillez demander un nouveau code."
+                                    _("Le code de réinitialisation a expiré. Veuillez demander un nouveau code.")
                                 ]
                             }
                         )
@@ -314,10 +314,10 @@ class SendPasswordResetView(APIView):
     throttle_classes = [ScopedRateThrottle]
     throttle_scope = "password_reset"
     # Generic message to prevent account enumeration
-    success_message = (
+    success_message = _(
         "Si un compte existe avec cet email, un code de vérification vous sera envoyé."
     )
-    errors = {"email": ["Aucun compte existant utilisant cette adresse électronique."]}
+    errors = {"email": [_("Aucun compte existant utilisant cette adresse électronique.")]}
 
     @staticmethod
     def generate_random_code(length=6):
@@ -327,7 +327,7 @@ class SendPasswordResetView(APIView):
     def post(self, request, *args, **kwargs):
         email = request.data.get("email")
         if not email:
-            raise ValidationError({"email": ["L'adresse électronique est requise."]})
+            raise ValidationError({"email": [_("L'adresse électronique est requise.")]})
 
         email = str(email).strip().lower()
 
@@ -335,7 +335,7 @@ class SendPasswordResetView(APIView):
             validate_email(email)
         except DjangoValidationError:
             raise ValidationError(
-                {"email": ["Entrez une adresse électronique valide."]}
+                {"email": [_("Entrez une adresse électronique valide.")]}
             )
 
         try:
@@ -368,7 +368,7 @@ class SendPasswordResetView(APIView):
                             user.task_id_password_reset = None
                             user.save(update_fields=["task_id_password_reset"])
 
-                        mail_subject = "Renouvellement du mot de passe - E.B.H Facturation"
+                        mail_subject = _("Renouvellement du mot de passe - E.B.H Facturation")
                         mail_template = "password_reset.html"
                         code = self.generate_random_code()
                         message = render_to_string(
@@ -417,7 +417,7 @@ class SendPasswordResetView(APIView):
 
 class ProfileView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
-    errors = {"error": ["Utilisateur n'éxiste pas!"]}
+    errors = {"error": [_("Utilisateur n'éxiste pas!")]}
 
     def get(self, request, *args, **kwargs):
         try:
@@ -525,7 +525,7 @@ class UsersListCreateView(APIView):
                 generate_user_thumbnail.apply_async(
                     (user.pk,),
                 )
-            mail_subject = "Invitation - Application de E.B.H Facturation"
+            mail_subject = _("Invitation - Application de E.B.H Facturation")
             mail_template = "new_account.html"
             message = render_to_string(
                 mail_template, {"first_name": user.first_name, "password": password, "frontend_url": settings.FRONTEND_URL}

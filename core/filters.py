@@ -2,6 +2,7 @@ import django_filters
 from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
 from django.db.models import Q, Value, F, FloatField, Count
 from django.db.utils import DatabaseError
+from django.utils.translation import gettext_lazy as _
 
 
 class CommaSeparatedIDsFilter(django_filters.CharFilter):
@@ -70,18 +71,18 @@ class BaseDocumentFilter(django_filters.FilterSet):
     - date_field: the name of the date field (e.g., 'date_devis', 'date_facture', 'date_bon_livraison')
     """
 
-    search = django_filters.CharFilter(method="global_search", label="Search")
-    statut = django_filters.CharFilter(method="filter_statut", label="Status")
-    client_id = django_filters.NumberFilter(field_name="client__id", label="Client ID")
+    search = django_filters.CharFilter(method="global_search", label=_("Search"))
+    statut = django_filters.CharFilter(method="filter_statut", label=_("Status"))
+    client_id = django_filters.NumberFilter(field_name="client__id", label=_("Client ID"))
     mode_paiement_ids = CommaSeparatedIDsFilter(
-        field_name="mode_paiement_id", label="Mode de paiement IDs"
+        field_name="mode_paiement_id", label=_("Mode de paiement IDs")
     )
     # Generic date filters that will be mapped to specific date fields by subclasses
     date_after = django_filters.DateFilter(
-        method="filter_date_after", label="Date After"
+        method="filter_date_after", label=_("Date After")
     )
     date_before = django_filters.DateFilter(
-        method="filter_date_before", label="Date Before"
+        method="filter_date_before", label=_("Date Before")
     )
 
     # Numeric filters for common document fields
@@ -106,22 +107,22 @@ class BaseDocumentFilter(django_filters.FilterSet):
 
     # Numeric filters for lignes_count (annotated Count of related lignes)
     lignes_count = django_filters.NumberFilter(
-        method="filter_lignes_count_exact", label="Lignes Count"
+        method="filter_lignes_count_exact", label=_("Lignes Count")
     )
     lignes_count__gt = django_filters.NumberFilter(
-        method="filter_lignes_count_gt", label="Lignes Count (>)"
+        method="filter_lignes_count_gt", label=_("Lignes Count (>)")
     )
     lignes_count__gte = django_filters.NumberFilter(
-        method="filter_lignes_count_gte", label="Lignes Count (>=)"
+        method="filter_lignes_count_gte", label=_("Lignes Count (>=)")
     )
     lignes_count__lt = django_filters.NumberFilter(
-        method="filter_lignes_count_lt", label="Lignes Count (<)"
+        method="filter_lignes_count_lt", label=_("Lignes Count (<)")
     )
     lignes_count__lte = django_filters.NumberFilter(
-        method="filter_lignes_count_lte", label="Lignes Count (<=)"
+        method="filter_lignes_count_lte", label=_("Lignes Count (<=)")
     )
     lignes_count__ne = django_filters.NumberFilter(
-        method="filter_lignes_count_ne", label="Lignes Count (!=)"
+        method="filter_lignes_count_ne", label=_("Lignes Count (!=)")
     )
 
     # Text lookup filters for client_name (mapped to client__raison_sociale)

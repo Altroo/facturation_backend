@@ -3,6 +3,7 @@ from decimal import Decimal
 from django.db import models
 from django.db.models import Sum
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 from simple_history.models import HistoricalRecords
 
 from facture_client.models import FactureClient
@@ -13,16 +14,16 @@ class Reglement(models.Model):
     """Model for tracking payments (règlements) on client invoices."""
 
     STATUT_CHOICES = [
-        ("Valide", "Valide"),
-        ("Annulé", "Annulé"),
+        ("Valide", _("Valide")),
+        ("Annulé", _("Annulé")),
     ]
 
     facture_client = models.ForeignKey(
         FactureClient,
         on_delete=models.PROTECT,
         related_name="reglements",
-        verbose_name="Facture Client",
-        help_text="Facture client associée au règlement",
+        verbose_name=_("Facture Client"),
+        help_text=_("Facture client associée au règlement"),
         db_index=True,
     )
 
@@ -30,14 +31,14 @@ class Reglement(models.Model):
         ModePaiement,
         on_delete=models.SET_NULL,
         null=True,
-        verbose_name="Mode de règlement",
-        help_text="Mode de paiement utilisé pour ce règlement",
+        verbose_name=_("Mode de règlement"),
+        help_text=_("Mode de paiement utilisé pour ce règlement"),
     )
 
     libelle = models.CharField(
         max_length=255,
-        verbose_name="Libellé",
-        help_text="Libellé ou description du règlement",
+        verbose_name=_("Libellé"),
+        help_text=_("Libellé ou description du règlement"),
         blank=True,
         default="",
     )
@@ -45,20 +46,20 @@ class Reglement(models.Model):
     montant = models.DecimalField(
         max_digits=10,
         decimal_places=2,
-        verbose_name="Montant",
-        help_text="Montant du règlement (devise héritée de la facture client)",
+        verbose_name=_("Montant"),
+        help_text=_("Montant du règlement (devise héritée de la facture client)"),
     )
 
     date_reglement = models.DateField(
-        verbose_name="Date de règlement",
-        help_text="Date à laquelle le règlement a été effectué",
+        verbose_name=_("Date de règlement"),
+        help_text=_("Date à laquelle le règlement a été effectué"),
         default=timezone.now,
         db_index=True,
     )
 
     date_echeance = models.DateField(
-        verbose_name="Date d'échéance",
-        help_text="Date d'échéance du paiement",
+        verbose_name=_("Date d'échéance"),
+        help_text=_("Date d'échéance du paiement"),
         default=timezone.now,
         db_index=True,
     )
@@ -67,31 +68,31 @@ class Reglement(models.Model):
         max_length=10,
         choices=STATUT_CHOICES,
         default="Valide",
-        verbose_name="Statut",
-        help_text="Statut du règlement (ex: Valide, Annulé)",
+        verbose_name=_("Statut"),
+        help_text=_("Statut du règlement (ex: Valide, Annulé)"),
         db_index=True,
     )
 
     date_created = models.DateTimeField(
         auto_now_add=True,
-        verbose_name="Date de création",
-        help_text="Horodatage de la création du règlement",
+        verbose_name=_("Date de création"),
+        help_text=_("Horodatage de la création du règlement"),
     )
 
     date_updated = models.DateTimeField(
         auto_now=True,
-        verbose_name="Date de mise à jour",
-        help_text="Horodatage de la dernière modification du règlement",
+        verbose_name=_("Date de mise à jour"),
+        help_text=_("Horodatage de la dernière modification du règlement"),
     )
 
     history = HistoricalRecords(
-        verbose_name="Historique Règlement",
-        verbose_name_plural="Historiques Règlements",
+        verbose_name=_("Historique Règlement"),
+        verbose_name_plural=_("Historiques Règlements"),
     )
 
     class Meta:
-        verbose_name = "Règlement"
-        verbose_name_plural = "Règlements"
+        verbose_name = _("Règlement")
+        verbose_name_plural = _("Règlements")
         ordering = ("-date_created",)
         indexes = [
             models.Index(fields=["facture_client", "statut"]),

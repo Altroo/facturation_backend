@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib import admin
 from django.utils.html import format_html
+from django.utils.translation import gettext_lazy as _
 from simple_history.admin import SimpleHistoryAdmin
 
 from .models import Reglement
@@ -27,9 +28,12 @@ class ReglementAdminForm(forms.ModelForm):
             if facture_client.statut not in ALLOWED_FACTURE_STATUSES:
                 raise forms.ValidationError(
                     {
-                        "facture_client": f"Impossible d'ajouter un règlement pour une facture "
-                        f"avec le statut '{facture_client.statut}'. "
-                        f"Statuts autorisés: {', '.join(ALLOWED_FACTURE_STATUSES)}."
+                        "facture_client": _("Impossible d'ajouter un règlement pour une facture "
+                        "avec le statut '%(statut)s'. "
+                        "Statuts autorisés: %(statuts_autorises)s.") % {
+                            "statut": facture_client.statut,
+                            "statuts_autorises": ", ".join(ALLOWED_FACTURE_STATUSES),
+                        }
                     }
                 )
 
@@ -48,14 +52,17 @@ class ReglementAdminForm(forms.ModelForm):
                     if montant > reste_a_payer:
                         raise forms.ValidationError(
                             {
-                                "montant": f"Le montant ({montant} MAD) dépasse le reste à payer "
-                                f"({reste_a_payer} MAD) pour cette facture."
+                                "montant": _("Le montant (%(montant)s MAD) dépasse le reste à payer "
+                                "(%(reste_a_payer)s MAD) pour cette facture.") % {
+                                    "montant": montant,
+                                    "reste_a_payer": reste_a_payer,
+                                }
                             }
                         )
 
         if montant is not None and montant <= 0:
             raise forms.ValidationError(
-                {"montant": "Le montant doit être supérieur à 0."}
+                {"montant": _("Le montant doit être supérieur à 0.")}
             )
 
         return cleaned_data
@@ -99,7 +106,7 @@ class ReglementAdmin(SimpleHistoryAdmin):
 
     fieldsets = (
         (
-            "Informations principales",
+            _("Informations principales"),
             {
                 "fields": (
                     "facture_client",
@@ -110,7 +117,7 @@ class ReglementAdmin(SimpleHistoryAdmin):
             },
         ),
         (
-            "Dates",
+            _("Dates"),
             {
                 "fields": (
                     "date_reglement",
@@ -119,11 +126,11 @@ class ReglementAdmin(SimpleHistoryAdmin):
             },
         ),
         (
-            "Statut",
+            _("Statut"),
             {"fields": ("statut",)},
         ),
         (
-            "Métadonnées",
+            _("Métadonnées"),
             {
                 "fields": (
                     "date_created",
@@ -138,7 +145,7 @@ class ReglementAdmin(SimpleHistoryAdmin):
         """Display client name from facture."""
         return obj.facture_client.client.raison_sociale
 
-    client_name.short_description = "Client"
+    client_name.short_description = _("Client")
     client_name.admin_order_field = "facture_client__client__raison_sociale"
 
     def statut_badge(self, obj):
@@ -155,7 +162,7 @@ class ReglementAdmin(SimpleHistoryAdmin):
             obj.statut,
         )
 
-    statut_badge.short_description = "Statut"
+    statut_badge.short_description = _("Statut")
     statut_badge.admin_order_field = "statut"
 
 

@@ -1,3 +1,5 @@
+from django.utils.translation import gettext_lazy as _
+
 from core.filters import BaseDocumentFilter, CommaSeparatedIDsFilter
 
 from .models import BonDeLivraison
@@ -12,7 +14,7 @@ class BonDeLivraisonFilter(BaseDocumentFilter):
 
     # Chip select multi-ID filter
     livre_par_ids = CommaSeparatedIDsFilter(
-        field_name="livre_par_id", label="Livré par IDs"
+        field_name="livre_par_id", label=_("Livré par IDs")
     )
 
     class Meta:

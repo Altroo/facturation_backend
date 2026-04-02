@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.utils.translation import gettext_lazy as _
 from simple_history.admin import SimpleHistoryAdmin
 
 from core.admin import BaseDocumentAdmin, BaseDocumentLineInline
@@ -47,7 +48,7 @@ class DeviAdmin(BaseDocumentAdmin):
     )
     fieldsets = (
         (
-            "Informations principales",
+            _("Informations principales"),
             {
                 "fields": (
                     "numero_devis",
@@ -59,7 +60,7 @@ class DeviAdmin(BaseDocumentAdmin):
             },
         ),
         (
-            "Détails",
+            _("Détails"),
             {
                 "fields": (
                     "numero_demande_prix_client",
@@ -71,7 +72,7 @@ class DeviAdmin(BaseDocumentAdmin):
             },
         ),
         (
-            "Totaux (calculés)",
+            _("Totaux (calculés)"),
             {
                 "fields": (
                     "display_total_ht",  # type: ignore[attr-defined]
@@ -83,7 +84,7 @@ class DeviAdmin(BaseDocumentAdmin):
             },
         ),
         (
-            "Métadonnées",
+            _("Métadonnées"),
             {
                 "fields": (
                     "created_by_user",
@@ -120,15 +121,15 @@ class DeviLineAdmin(SimpleHistoryAdmin):
 
     fieldsets = (
         (
-            "Devis",
+            _("Devis"),
             {"fields": ("devis",)},
         ),
         (
-            "Article",
+            _("Article"),
             {"fields": ("article", "quantity")},
         ),
         (
-            "Prix & Remise",
+            _("Prix & Remise"),
             {
                 "fields": (
                     "prix_achat",
@@ -140,15 +141,15 @@ class DeviLineAdmin(SimpleHistoryAdmin):
         ),
     )
 
-    @admin.display(description="Numéro devis", ordering="devis__numero_devis")
+    @admin.display(description=_("Numéro devis"), ordering="devis__numero_devis")
     def devis_numero(self, obj):
         return obj.devis.numero_devis
 
-    @admin.display(description="Référence", ordering="article__reference")
+    @admin.display(description=_("Référence"), ordering="article__reference")
     def article_reference(self, obj):
         return obj.article.reference
 
-    @admin.display(description="Désignation", ordering="article__designation")
+    @admin.display(description=_("Désignation"), ordering="article__designation")
     def article_designation(self, obj):
         return obj.article.designation
 

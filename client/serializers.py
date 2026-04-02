@@ -1,3 +1,4 @@
+from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 from .models import Client, Ville
@@ -66,7 +67,7 @@ class ClientBaseSerializer(serializers.ModelSerializer):
             if not attrs.get(field) and not (
                 self.instance and getattr(self.instance, field)
             ):
-                errors[field] = f"{label} est obligatoire pour ce type de client."
+                errors[field] = _("%(label)s est obligatoire pour ce type de client.") % {"label": label}
 
         if errors:
             raise serializers.ValidationError(errors)

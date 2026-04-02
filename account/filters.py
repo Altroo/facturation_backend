@@ -2,24 +2,25 @@ import django_filters
 from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
 from django.db.models import Case, When, Value, CharField, Q, F, FloatField
 from django.db.utils import DatabaseError
+from django.utils.translation import gettext_lazy as _
 
 from .models import CustomUser
 from core.filters import IsEmptyAutoMixin
 
 
 class UsersFilter(IsEmptyAutoMixin, django_filters.FilterSet):
-    search = django_filters.CharFilter(method="global_search", label="Search")
+    search = django_filters.CharFilter(method="global_search", label=_("Search"))
     date_joined_after = django_filters.DateTimeFilter(
-        field_name="date_joined", lookup_expr="gte", label="Date Joined After"
+        field_name="date_joined", lookup_expr="gte", label=_("Date Joined After")
     )
     date_joined_before = django_filters.DateTimeFilter(
-        field_name="date_joined", lookup_expr="lte", label="Date Joined Before"
+        field_name="date_joined", lookup_expr="lte", label=_("Date Joined Before")
     )
     last_login_after = django_filters.DateTimeFilter(
-        field_name="last_login", lookup_expr="gte", label="Last Login After"
+        field_name="last_login", lookup_expr="gte", label=_("Last Login After")
     )
     last_login_before = django_filters.DateTimeFilter(
-        field_name="last_login", lookup_expr="lte", label="Last Login Before"
+        field_name="last_login", lookup_expr="lte", label=_("Last Login Before")
     )
 
     # Text lookup filters for first_name
@@ -59,11 +60,11 @@ class UsersFilter(IsEmptyAutoMixin, django_filters.FilterSet):
     email = django_filters.CharFilter(field_name="email", lookup_expr="exact")
 
     # Gender filter (maps display label to stored value)
-    gender = django_filters.CharFilter(method="filter_gender", label="Gender")
+    gender = django_filters.CharFilter(method="filter_gender", label=_("Gender"))
 
     # Boolean filters
-    is_staff = django_filters.BooleanFilter(field_name="is_staff", label="Is Staff")
-    is_active = django_filters.BooleanFilter(field_name="is_active", label="Is Active")
+    is_staff = django_filters.BooleanFilter(field_name="is_staff", label=_("Is Staff"))
+    is_active = django_filters.BooleanFilter(field_name="is_active", label=_("Is Active"))
 
     class Meta:
         model = CustomUser

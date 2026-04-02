@@ -1,6 +1,7 @@
 from django.db import models, transaction
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
+from django.utils.translation import gettext_lazy as _
 from simple_history.models import HistoricalRecords
 
 from account.models import CustomUser
@@ -19,38 +20,38 @@ class FactureClient(BaseDeviFactureDocument):
         "company.Company",
         on_delete=models.PROTECT,
         related_name="factures_client",
-        verbose_name="Société",
-        help_text="Société propriétaire de la facture",
+        verbose_name=_("Société"),
+        help_text=_("Société propriétaire de la facture"),
     )
 
     numero_facture = models.CharField(
         max_length=20,
-        verbose_name="Numéro de la facture client",
-        help_text="Format ex: 0001/25",
+        verbose_name=_("Numéro de la facture client"),
+        help_text=_("Format ex: 0001/25"),
     )
 
     date_facture = models.DateField(
-        verbose_name="Date de facture",
-        help_text="Date d'émission de la facture",
+        verbose_name=_("Date de facture"),
+        help_text=_("Date d'émission de la facture"),
         db_index=True,
     )
 
     numero_bon_commande_client = models.CharField(
         max_length=50,
-        verbose_name="Numéro de bon de commande client",
+        verbose_name=_("Numéro de bon de commande client"),
         blank=True,
         null=True,
-        help_text="Numéro du bon de commande client (optionnel)",
+        help_text=_("Numéro du bon de commande client (optionnel)"),
     )
 
     history = HistoricalRecords(
-        verbose_name="Historique Facture Client",
-        verbose_name_plural="Historiques Factures Client",
+        verbose_name=_("Historique Facture Client"),
+        verbose_name_plural=_("Historiques Factures Client"),
     )
 
     class Meta:
-        verbose_name = "Facture Client"
-        verbose_name_plural = "Factures Client"
+        verbose_name = _("Facture Client")
+        verbose_name_plural = _("Factures Client")
         ordering = ("-date_created",)
         unique_together = [("numero_facture", "company")]
         indexes = [
@@ -80,12 +81,13 @@ class FactureClient(BaseDeviFactureDocument):
 
         # Validate document has lines
         if not self.get_lines().exists():
-            raise ValueError("Impossible de convertir un document sans lignes")
+            raise ValueError(_("Impossible de convertir un document sans lignes"))
 
         # Validate document is in convertible state
         if self.statut not in ["Envoyé", "Accepté"]:
             raise ValueError(
-                f"Impossible de convertir un document avec le statut '{self.statut}'"
+                _("Impossible de convertir un document avec le statut '%(statut)s'")
+                % {"statut": self.statut}
             )
 
         bon_de_livraison = BonDeLivraison.objects.create(
@@ -128,25 +130,25 @@ class FactureClientLine(BaseDeviFactureLine):
         FactureClient,
         on_delete=models.CASCADE,
         related_name="lignes",
-        verbose_name="Facture Client",
-        help_text="Facture client associée à cette ligne",
+        verbose_name=_("Facture Client"),
+        help_text=_("Facture client associée à cette ligne"),
     )
 
     article = models.ForeignKey(
         Article,
         on_delete=models.PROTECT,
-        verbose_name="Article",
-        help_text="Article associé à cette ligne de facture",
+        verbose_name=_("Article"),
+        help_text=_("Article associé à cette ligne de facture"),
     )
 
     history = HistoricalRecords(
-        verbose_name="Historique Facture Client",
-        verbose_name_plural="Historiques Factures Client",
+        verbose_name=_("Historique Facture Client"),
+        verbose_name_plural=_("Historiques Factures Client"),
     )
 
     class Meta:
-        verbose_name = "Ligne de facture Client"
-        verbose_name_plural = "Lignes de factures Client"
+        verbose_name = _("Ligne de facture Client")
+        verbose_name_plural = _("Lignes de factures Client")
 
     def __str__(self):
         return f"{self.facture_client} - {self.article}"

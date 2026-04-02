@@ -2,24 +2,25 @@ import django_filters
 from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
 from django.db.models import Case, When, Value, CharField, Q, F, FloatField
 from django.db.utils import DatabaseError
+from django.utils.translation import gettext_lazy as _
 
 from .models import Client
 from core.filters import IsEmptyAutoMixin, CommaSeparatedIDsFilter
 
 
 class ClientFilter(IsEmptyAutoMixin, django_filters.FilterSet):
-    search = django_filters.CharFilter(method="global_search", label="Search")
-    archived = django_filters.BooleanFilter(field_name="archived", label="Archived")
-    company_id = django_filters.NumberFilter(field_name="company_id", label="Company")
+    search = django_filters.CharFilter(method="global_search", label=_("Search"))
+    archived = django_filters.BooleanFilter(field_name="archived", label=_("Archived"))
+    company_id = django_filters.NumberFilter(field_name="company_id", label=_("Company"))
     date_created_after = django_filters.DateFilter(
-        field_name="date_created", lookup_expr="gte", label="Date Created After"
+        field_name="date_created", lookup_expr="gte", label=_("Date Created After")
     )
     date_created_before = django_filters.DateFilter(
-        field_name="date_created", lookup_expr="lte", label="Date Created Before"
+        field_name="date_created", lookup_expr="lte", label=_("Date Created Before")
     )
 
     # Chip select multi-ID filter
-    ville_ids = CommaSeparatedIDsFilter(field_name="ville_id", label="Ville IDs")
+    ville_ids = CommaSeparatedIDsFilter(field_name="ville_id", label=_("Ville IDs"))
 
     # Text field filters
     code_client__icontains = django_filters.CharFilter(

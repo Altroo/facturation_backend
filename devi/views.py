@@ -1,4 +1,5 @@
 from django.shortcuts import get_object_or_404
+from django.utils.translation import gettext as _
 from reportlab.lib.units import cm
 from reportlab.platypus import Spacer, Paragraph, KeepTogether
 from rest_framework import permissions
@@ -142,7 +143,7 @@ class DeviPDFView(APIView):
 
         if not company_id:
             return Response(
-                {"error": "company_id query parameter is required"},
+                {"error": _("company_id query parameter is required")},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 

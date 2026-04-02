@@ -4,6 +4,7 @@ from uuid import uuid4
 from django.core.validators import RegexValidator
 from django.db import models
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 from simple_history.models import HistoricalRecords
 
 
@@ -18,24 +19,24 @@ class Company(models.Model):
     raison_sociale = models.CharField(
         max_length=255,
         blank=True,
-        verbose_name="Raison sociale",
-        help_text="Raison sociale de l'entreprise",
+        verbose_name=_("Raison sociale"),
+        help_text=_("Raison sociale de l'entreprise"),
         db_index=True,
     )
     email = models.EmailField(
         blank=True,
         null=True,
         default=None,
-        verbose_name="E‑mail",
-        help_text="Adresse e‑mail de contact de l'entreprise",
+        verbose_name=_("E‑mail"),
+        help_text=_("Adresse e‑mail de contact de l'entreprise"),
     )
     logo = models.ImageField(
         upload_to=get_company_image_path,
         blank=True,
         null=True,
         default=None,
-        verbose_name="Logo",
-        help_text="Logo de l'entreprise (image)",
+        verbose_name=_("Logo"),
+        help_text=_("Logo de l'entreprise (image)"),
         max_length=1000,
     )
     logo_cropped = models.ImageField(
@@ -43,8 +44,8 @@ class Company(models.Model):
         blank=True,
         null=True,
         default=None,
-        verbose_name="Logo recadré",
-        help_text="Version recadrée du logo",
+        verbose_name=_("Logo recadré"),
+        help_text=_("Version recadrée du logo"),
         max_length=1000,
     )
 
@@ -53,8 +54,8 @@ class Company(models.Model):
         blank=True,
         null=True,
         default=None,
-        verbose_name="Cachet",
-        help_text="Image du cachet de l'entreprise",
+        verbose_name=_("Cachet"),
+        help_text=_("Image du cachet de l'entreprise"),
         max_length=1000,
     )
 
@@ -63,53 +64,53 @@ class Company(models.Model):
         blank=True,
         null=True,
         default=None,
-        verbose_name="Cachet recadré",
-        help_text="Version recadrée du cachet",
+        verbose_name=_("Cachet recadré"),
+        help_text=_("Version recadrée du cachet"),
         max_length=1000,
     )
 
     # Number of employees (choice)
     NBR_EMPLOYE_CHOICES = [
-        ("1 à 5", "1 à 5"),
-        ("5 à 10", "5 à 10"),
-        ("10 à 50", "10 à 50"),
-        ("50 à 100", "50 à 100"),
-        ("plus que 100", "plus que 100"),
+        ("1 à 5", _("1 à 5")),
+        ("5 à 10", _("5 à 10")),
+        ("10 à 50", _("10 à 50")),
+        ("50 à 100", _("50 à 100")),
+        ("plus que 100", _("plus que 100")),
     ]
     nbr_employe = models.CharField(
         max_length=12,
         choices=NBR_EMPLOYE_CHOICES,
         default=1,
-        verbose_name="Nombre d'employés",
-        help_text="Tranche du nombre d'employés",
+        verbose_name=_("Nombre d'employés"),
+        help_text=_("Tranche du nombre d'employés"),
     )
 
     # Responsable details
     CIVILITE_CHOICES = [
         ("", ""),
-        ("Mme", "Mme"),
-        ("Mlle", "Mlle"),
-        ("M.", "M."),
+        ("Mme", _("Mme")),
+        ("Mlle", _("Mlle")),
+        ("M.", _("M.")),
     ]
     civilite_responsable = models.CharField(
         max_length=4,
         choices=CIVILITE_CHOICES,
         default="",
-        verbose_name="Civilité du responsable",
-        help_text="Civilité du responsable (Mme, M., ...)",
+        verbose_name=_("Civilité du responsable"),
+        help_text=_("Civilité du responsable (Mme, M., ...)"),
     )
     nom_responsable = models.CharField(
         max_length=255,
         default=None,
         blank=True,
         null=True,
-        verbose_name="Nom du responsable",
-        help_text="Nom complet du responsable",
+        verbose_name=_("Nom du responsable"),
+        help_text=_("Nom complet du responsable"),
     )
 
     phone_validator = RegexValidator(
         regex=r"^\+?\d{7,15}$",
-        message="Tapez un numéro de téléphone valide",
+        message=_("Tapez un numéro de téléphone valide"),
     )
     gsm_responsable = models.CharField(
         max_length=20,
@@ -117,15 +118,15 @@ class Company(models.Model):
         default=None,
         blank=True,
         null=True,
-        verbose_name="GSM du responsable",
-        help_text="Numéro mobile du responsable (format international recommandé)",
+        verbose_name=_("GSM du responsable"),
+        help_text=_("Numéro mobile du responsable (format international recommandé)"),
     )
     adresse = models.TextField(
         default=None,
         blank=True,
         null=True,
-        verbose_name="Adresse",
-        help_text="Adresse postale complète de l'entreprise",
+        verbose_name=_("Adresse"),
+        help_text=_("Adresse postale complète de l'entreprise"),
     )
     telephone = models.CharField(
         max_length=20,
@@ -133,8 +134,8 @@ class Company(models.Model):
         default=None,
         blank=True,
         null=True,
-        verbose_name="Téléphone",
-        help_text="Numéro de téléphone principal",
+        verbose_name=_("Téléphone"),
+        help_text=_("Numéro de téléphone principal"),
     )
     fax = models.CharField(
         max_length=20,
@@ -142,15 +143,15 @@ class Company(models.Model):
         default=None,
         blank=True,
         null=True,
-        verbose_name="Fax",
-        help_text="Numéro de fax (optionnel)",
+        verbose_name=_("Fax"),
+        help_text=_("Numéro de fax (optionnel)"),
     )
     site_web = models.URLField(
         default="",
         blank=True,
         null=True,
-        verbose_name="Site web",
-        help_text="URL du site web de l'entreprise",
+        verbose_name=_("Site web"),
+        help_text=_("URL du site web de l'entreprise"),
     )
 
     # Administrative identifiers
@@ -159,84 +160,84 @@ class Company(models.Model):
         default=None,
         blank=True,
         null=True,
-        verbose_name="Numéro du compte",
-        help_text="Numéro de compte bancaire ou interne",
+        verbose_name=_("Numéro du compte"),
+        help_text=_("Numéro de compte bancaire ou interne"),
     )
     ICE = models.CharField(
         max_length=100,
         unique=True,
-        verbose_name="ICE",
-        help_text="Identifiant Commun de l'Entreprise (ICE)",
+        verbose_name=_("ICE"),
+        help_text=_("Identifiant Commun de l'Entreprise (ICE)"),
     )
     registre_de_commerce = models.CharField(
         max_length=100,
         default=None,
         blank=True,
         null=True,
-        verbose_name="Registre de commerce",
-        help_text="Numéro du registre de commerce",
+        verbose_name=_("Registre de commerce"),
+        help_text=_("Numéro du registre de commerce"),
     )
     identifiant_fiscal = models.CharField(
         max_length=100,
         default=None,
         blank=True,
         null=True,
-        verbose_name="Identifiant fiscal",
-        help_text="Identifiant fiscal de l'entreprise",
+        verbose_name=_("Identifiant fiscal"),
+        help_text=_("Identifiant fiscal de l'entreprise"),
     )
     tax_professionnelle = models.CharField(
         max_length=100,
         default=None,
         blank=True,
         null=True,
-        verbose_name="Taxe professionnelle",
-        help_text="Numéro / référence de la taxe professionnelle",
+        verbose_name=_("Taxe professionnelle"),
+        help_text=_("Numéro / référence de la taxe professionnelle"),
     )
     CNSS = models.CharField(
         max_length=100,
         default=None,
         blank=True,
         null=True,
-        verbose_name="CNSS",
-        help_text="Numéro CNSS de l'entreprise",
+        verbose_name=_("CNSS"),
+        help_text=_("Numéro CNSS de l'entreprise"),
     )
 
     # DATES
     date_created = models.DateTimeField(
-        verbose_name="Date de création",
-        help_text="Horodatage de la création de l'enregistrement",
+        verbose_name=_("Date de création"),
+        help_text=_("Horodatage de la création de l'enregistrement"),
         default=timezone.now,
         db_index=True,
     )
     date_updated = models.DateTimeField(
         auto_now=True,
-        verbose_name="Date de modification",
-        help_text="Horodatage de la dernière modification",
+        verbose_name=_("Date de modification"),
+        help_text=_("Horodatage de la dernière modification"),
         db_index=True,
     )
 
     # Suspension status
     suspended = models.BooleanField(
         default=False,
-        verbose_name="Suspendu",
-        help_text="Indique si l'entreprise est suspendue",
+        verbose_name=_("Suspendu"),
+        help_text=_("Indique si l'entreprise est suspendue"),
         db_index=True,
     )
 
     # Foreign currency
     uses_foreign_currency = models.BooleanField(
         default=False,
-        verbose_name="Utilise une devise étrangère",
-        help_text="Si activé, les sélecteurs de devise sont affichés dans les articles et les documents",
+        verbose_name=_("Utilise une devise étrangère"),
+        help_text=_("Si activé, les sélecteurs de devise sont affichés dans les articles et les documents"),
     )
 
     history = HistoricalRecords(
-        verbose_name="Historique Société", verbose_name_plural="Historiques Sociétés"
+        verbose_name=_("Historique Société"), verbose_name_plural=_("Historiques Sociétés")
     )
 
     class Meta:
-        verbose_name = "Société"
-        verbose_name_plural = "Sociétés"
+        verbose_name = _("Société")
+        verbose_name_plural = _("Sociétés")
         ordering = ("-date_created",)
 
     def __str__(self):

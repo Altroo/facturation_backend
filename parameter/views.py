@@ -66,15 +66,13 @@ class BaseModelViewSet(viewsets.ModelViewSet):
             membership = Membership.objects.filter(user=user).first()
         if not membership:
             raise PermissionDenied(
-                _(
-                    f"Vous devez appartenir à une société pour {action_name} des paramètres."
-                )
+                _("Vous devez appartenir à une société pour %(action_name)s des paramètres.") % {"action_name": action_name}
             )
 
         role = get_user_role(user, membership.company_id)
         if role != ROLE_CAISSIER:
             raise PermissionDenied(
-                _(f"Seuls les Caissiers peuvent {action_name} des paramètres.")
+                _("Seuls les Caissiers peuvent %(action_name)s des paramètres.") % {"action_name": action_name}
             )
 
     def create(self, request, *args, **kwargs):

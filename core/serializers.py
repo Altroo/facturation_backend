@@ -1,6 +1,7 @@
 from re import match
 
 from django.db import transaction
+from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 from core.constants import ROLE_COMMERCIAL
@@ -31,8 +32,7 @@ def validate_line_currency(data, instance, parent_field_name):
             if devise_prix_vente != parent.devise:
                 raise serializers.ValidationError(
                     {
-                        "devise_prix_vente": f"La devise doit correspondre à celle du document ({parent.devise}). "
-                        f"Impossible de mélanger les devises."
+                        "devise_prix_vente": _("La devise doit correspondre à celle du document (%(devise)s). Impossible de mélanger les devises.") % {"devise": parent.devise}
                     }
                 )
 
@@ -174,11 +174,11 @@ class BaseDetailSerializer(serializers.ModelSerializer):
         try:
             remise_val = float(remise)
         except (TypeError, ValueError):
-            raise serializers.ValidationError({"remise": "Valeur de remise invalide."})
+            raise serializers.ValidationError({"remise": _("Valeur de remise invalide.")})
 
         if remise_val < 0:
             raise serializers.ValidationError(
-                {"remise": "La remise doit être positive ou nulle."}
+                {"remise": _("La remise doit être positive ou nulle.")}
             )
 
         if remise_type == "":
@@ -187,13 +187,13 @@ class BaseDetailSerializer(serializers.ModelSerializer):
         if remise_type == "Pourcentage":
             if not 0 <= remise_val <= 100:
                 raise serializers.ValidationError(
-                    {"remise": "La remise en pourcentage doit être entre 0 et 100."}
+                    {"remise": _("La remise en pourcentage doit être entre 0 et 100.")}
                 )
         elif remise_type == "Fixe":
             pass
         else:
             raise serializers.ValidationError(
-                {"remise_type": "Type de remise invalide."}
+                {"remise_type": _("Type de remise invalide.")}
             )
 
         return data
@@ -207,7 +207,7 @@ class BaseDetailSerializer(serializers.ModelSerializer):
         if not match(r"^\d{4}/\d{2}$", value):
             field_name = self.get_numero_field_name()
             raise serializers.ValidationError(
-                f"Format de {field_name.replace('_', ' ')} invalide. Format attendu: 0001/25"
+                _("Format de %(field_name)s invalide. Format attendu: 0001/25") % {"field_name": field_name.replace('_', ' ')}
             )
         return value
 
@@ -234,7 +234,7 @@ class BaseLineWriteSerializer(serializers.ModelSerializer):
                     if self.instance:
                         if data.get("prix_vente") != self.instance.prix_vente:
                             raise serializers.ValidationError(
-                                "Les utilisateurs Commercial ne peuvent pas modifier le prix de vente."
+                                _("Les utilisateurs Commercial ne peuvent pas modifier le prix de vente.")
                             )
                     # For creates, Commercial cannot set custom prix_vente
                     # They must use the article's default prix_vente
@@ -242,7 +242,7 @@ class BaseLineWriteSerializer(serializers.ModelSerializer):
                         article = data["article"]
                         if data.get("prix_vente") != article.prix_vente:
                             raise serializers.ValidationError(
-                                "Les utilisateurs Commercial ne peuvent pas définir un prix de vente personnalisé."
+                                _("Les utilisateurs Commercial ne peuvent pas définir un prix de vente personnalisé.")
                             )
 
         # Validate currency consistency with document
@@ -266,14 +266,14 @@ class BaseLineWriteSerializer(serializers.ModelSerializer):
             if devise_prix_vente != document_devise:
                 raise serializers.ValidationError(
                     {
-                        "devise_prix_vente": f"La devise doit correspondre à celle du document ({document_devise}). "
-                        f"Impossible de mélanger les devises."
+                        "devise_prix_vente": _("La devise doit correspondre à celle du document ({devise}). "
+                        "Impossible de mélanger les devises.").format(devise=document_devise)
                     }
                 )
 
         if data["prix_vente"] < data["prix_achat"]:
             raise serializers.ValidationError(
-                "Le prix de vente doit être supérieur ou égal au prix d'achat."
+                _("Le prix de vente doit être supérieur ou égal au prix d'achat.")
             )
 
         remise = data.get("remise", 0)
@@ -281,25 +281,25 @@ class BaseLineWriteSerializer(serializers.ModelSerializer):
         quantity = data.get("quantity", 1)
 
         if quantity <= 0:
-            raise serializers.ValidationError("La quantité doit être supérieure à 0.")
+            raise serializers.ValidationError(_("La quantité doit être supérieure à 0."))
 
         line_total = data["prix_vente"] * quantity
 
         if remise < 0:
-            raise serializers.ValidationError("La remise doit être positive ou nulle.")
+            raise serializers.ValidationError(_("La remise doit être positive ou nulle."))
 
         if remise_type == "Pourcentage":
             if not 0 <= remise <= 100:
                 raise serializers.ValidationError(
-                    "La remise en pourcentage doit être entre 0 et 100."
+                    _("La remise en pourcentage doit être entre 0 et 100.")
                 )
         elif remise_type == "Fixe":
             if remise > line_total:
                 raise serializers.ValidationError(
-                    "La remise fixe ne peut pas dépasser le total de la ligne."
+                    _("La remise fixe ne peut pas dépasser le total de la ligne.")
                 )
         else:
-            raise serializers.ValidationError("Type de remise invalide.")
+            raise serializers.ValidationError(_("Type de remise invalide."))
 
         return data
 

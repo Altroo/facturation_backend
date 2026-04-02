@@ -65,7 +65,7 @@ class CompanyListCreateView(APIView):
         ):
             if membership.role.name in ROLES_RESTRICTED:
                 raise PermissionDenied(
-                    detail="Vous n'avez pas les droits pour créer une société."
+                    detail=_("Vous n'avez pas les droits pour créer une société.")
                 )
 
         serializer = CompanySerializer(data=request.data)
@@ -75,7 +75,7 @@ class CompanyListCreateView(APIView):
             admin_group = Role.objects.get(name=ROLE_CAISSIER)
         except Role.DoesNotExist:
             raise PermissionDenied(
-                detail="Le groupe 'Caissier' n'existe pas. Un super‑utilisateur doit le créer et assigner les rôles."
+                detail=_("Le groupe 'Caissier' n'existe pas. Un super‑utilisateur doit le créer et assigner les rôles.")
             )
 
         company = serializer.save()

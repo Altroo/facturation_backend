@@ -1,6 +1,7 @@
 from django.db import models, transaction
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
+from django.utils.translation import gettext_lazy as _
 from simple_history.models import HistoricalRecords
 
 from account.models import CustomUser
@@ -17,37 +18,37 @@ class Devi(BaseDeviFactureDocument):
         "company.Company",
         on_delete=models.PROTECT,
         related_name="devis",
-        verbose_name="Société",
-        help_text="Société propriétaire du devis",
+        verbose_name=_("Société"),
+        help_text=_("Société propriétaire du devis"),
     )
 
     numero_devis = models.CharField(
         max_length=20,
-        verbose_name="Numéro du devis",
-        help_text="Format ex: 0001/25",
+        verbose_name=_("Numéro du devis"),
+        help_text=_("Format ex: 0001/25"),
     )
 
     date_devis = models.DateField(
-        verbose_name="Date du devis",
+        verbose_name=_("Date du devis"),
         db_index=True,
-        help_text="Date d'émission du devis",
+        help_text=_("Date d'émission du devis"),
     )
 
     numero_demande_prix_client = models.CharField(
         max_length=50,
-        verbose_name="Numéro de la demande de prix du client",
+        verbose_name=_("Numéro de la demande de prix du client"),
         blank=True,
         null=True,
-        help_text="Numéro de la demande de prix du client (optionnel)",
+        help_text=_("Numéro de la demande de prix du client (optionnel)"),
     )
 
     history = HistoricalRecords(
-        verbose_name="Historique Devis", verbose_name_plural="Historiques Devis"
+        verbose_name=_("Historique Devis"), verbose_name_plural=_("Historiques Devis")
     )
 
     class Meta:
-        verbose_name = "Devis"
-        verbose_name_plural = "Devis"
+        verbose_name = _("Devis")
+        verbose_name_plural = _("Devis")
         ordering = ("-date_created",)
         unique_together = [("numero_devis", "company")]
         indexes = [
@@ -75,12 +76,12 @@ class Devi(BaseDeviFactureDocument):
 
         # Validate document has lines
         if not self.get_lines().exists():
-            raise ValueError("Impossible de convertir un document sans lignes")
+            raise ValueError(_("Impossible de convertir un document sans lignes"))
 
         # Validate document is in convertible state
         if self.statut not in ["Envoyé", "Accepté"]:
             raise ValueError(
-                f"Impossible de convertir un document avec le statut '{self.statut}'"
+                _("Impossible de convertir un document avec le statut '{statut}'").format(statut=self.statut)
             )
 
         facture_pro_forma = FactureProForma.objects.create(
@@ -128,12 +129,12 @@ class Devi(BaseDeviFactureDocument):
 
         # Validate document has lines
         if not self.get_lines().exists():
-            raise ValueError("Impossible de convertir un document sans lignes")
+            raise ValueError(_("Impossible de convertir un document sans lignes"))
 
         # Validate document is in convertible state
         if self.statut not in ["Envoyé", "Accepté"]:
             raise ValueError(
-                f"Impossible de convertir un document avec le statut '{self.statut}'"
+                _("Impossible de convertir un document avec le statut '{statut}'").format(statut=self.statut)
             )
 
         facture_client = FactureClient.objects.create(
@@ -176,25 +177,25 @@ class DeviLine(BaseDeviFactureLine):
         Devi,
         on_delete=models.CASCADE,
         related_name="lignes",
-        verbose_name="Devis",
-        help_text="Document Devis parent associé à cette ligne",
+        verbose_name=_("Devis"),
+        help_text=_("Document Devis parent associé à cette ligne"),
     )
 
     article = models.ForeignKey(
         Article,
         on_delete=models.PROTECT,
-        verbose_name="Article",
-        help_text="Article associé à cette ligne de devis",
+        verbose_name=_("Article"),
+        help_text=_("Article associé à cette ligne de devis"),
     )
 
     history = HistoricalRecords(
-        verbose_name="Historique Ligne de devis",
-        verbose_name_plural="Historiques Lignes de devis",
+        verbose_name=_("Historique Ligne de devis"),
+        verbose_name_plural=_("Historiques Lignes de devis"),
     )
 
     class Meta:
-        verbose_name = "Ligne de devis"
-        verbose_name_plural = "Lignes de devis"
+        verbose_name = _("Ligne de devis")
+        verbose_name_plural = _("Lignes de devis")
 
     def __str__(self):
         return f"{self.devis} - {self.article}"

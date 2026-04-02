@@ -3,6 +3,7 @@ from django.contrib import admin
 from django.contrib.admin import ModelAdmin
 from django.contrib.auth.admin import UserAdmin
 from django.template.loader import render_to_string
+from django.utils.translation import gettext_lazy as _
 
 from account.models import CustomUser, Membership
 from .forms import CustomAuthShopChangeForm, CustomAuthShopCreationForm
@@ -28,7 +29,7 @@ class CustomUserAdmin(UserAdmin):
     date_hierarchy = "date_joined"
     fieldsets = (
         (
-            "Profile",
+            _("Profile"),
             {
                 "fields": (
                     "email",
@@ -43,13 +44,13 @@ class CustomUserAdmin(UserAdmin):
                 )
             },
         ),
-        ("Permissions", {"fields": ("is_active", "is_staff", "is_superuser")}),
-        ("Date d'activité", {"fields": ("date_joined", "date_updated", "last_login")}),
+        (_("Permissions"), {"fields": ("is_active", "is_staff", "is_superuser")}),
+        (_("Date d'activité"), {"fields": ("date_joined", "date_updated", "last_login")}),
     )
     # add fields to the admin panel creation model
     add_fieldsets = (
         (
-            "Profile",
+            _("Profile"),
             {
                 "fields": (
                     "email",
@@ -61,7 +62,7 @@ class CustomUserAdmin(UserAdmin):
                 )
             },
         ),
-        ("Permissions", {"fields": ("is_active", "is_staff", "is_superuser")}),
+        (_("Permissions"), {"fields": ("is_active", "is_staff", "is_superuser")}),
     )
     search_fields = ("email",)
     ordering = ("-id",)
@@ -90,7 +91,7 @@ class CustomUserAdmin(UserAdmin):
                 send_email.delay(
                     user_pk=user.pk,
                     email_=user.email,
-                    mail_subject="Changement de mot de passe - E.B.H Facturation",
+                    mail_subject=_("Changement de mot de passe - E.B.H Facturation"),
                     message=message,
                 )
 

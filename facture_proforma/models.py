@@ -1,6 +1,7 @@
 from django.db import models, transaction
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
+from django.utils.translation import gettext_lazy as _
 from simple_history.models import HistoricalRecords
 
 from account.models import CustomUser
@@ -17,38 +18,38 @@ class FactureProForma(BaseDeviFactureDocument):
         "company.Company",
         on_delete=models.PROTECT,
         related_name="factures_proforma",
-        verbose_name="Société",
-        help_text="Société propriétaire de la facture pro forma",
+        verbose_name=_("Société"),
+        help_text=_("Société propriétaire de la facture pro forma"),
     )
 
     numero_facture = models.CharField(
         max_length=20,
-        verbose_name="Numéro de la facture pro forma",
-        help_text="Format ex: 0001/25",
+        verbose_name=_("Numéro de la facture pro forma"),
+        help_text=_("Format ex: 0001/25"),
     )
 
     date_facture = models.DateField(
-        verbose_name="Date de facture",
-        help_text="Date d'émission de la facture pro forma",
+        verbose_name=_("Date de facture"),
+        help_text=_("Date d'émission de la facture pro forma"),
         db_index=True,
     )
 
     numero_bon_commande_client = models.CharField(
         max_length=50,
-        verbose_name="Numéro de bon de commande client",
+        verbose_name=_("Numéro de bon de commande client"),
         blank=True,
         null=True,
-        help_text="Numéro du bon de commande client (optionnel)",
+        help_text=_("Numéro du bon de commande client (optionnel)"),
     )
 
     history = HistoricalRecords(
-        verbose_name="Historique Facture Pro-Forma",
-        verbose_name_plural="Historiques Factures Pro-Forma",
+        verbose_name=_("Historique Facture Pro-Forma"),
+        verbose_name_plural=_("Historiques Factures Pro-Forma"),
     )
 
     class Meta:
-        verbose_name = "Facture Pro-Forma"
-        verbose_name_plural = "Factures Pro-Forma"
+        verbose_name = _("Facture Pro-Forma")
+        verbose_name_plural = _("Factures Pro-Forma")
         ordering = ("-date_created",)
         unique_together = [("numero_facture", "company")]
         indexes = [
@@ -76,12 +77,12 @@ class FactureProForma(BaseDeviFactureDocument):
 
         # Validate document has lines
         if not self.get_lines().exists():
-            raise ValueError("Impossible de convertir un document sans lignes")
+            raise ValueError(_("Impossible de convertir un document sans lignes"))
 
         # Validate document is in convertible state
         if self.statut not in ["Envoyé", "Accepté"]:
             raise ValueError(
-                f"Impossible de convertir un document avec le statut '{self.statut}'"
+                _("Impossible de convertir un document avec le statut '{statut}'").format(statut=self.statut)
             )
 
         facture_client = FactureClient.objects.create(
@@ -124,25 +125,25 @@ class FactureProFormaLine(BaseDeviFactureLine):
         FactureProForma,
         on_delete=models.CASCADE,
         related_name="lignes",
-        verbose_name="Facture Pro Forma",
-        help_text="Facture pro forma associée à cette ligne",
+        verbose_name=_("Facture Pro Forma"),
+        help_text=_("Facture pro forma associée à cette ligne"),
     )
 
     article = models.ForeignKey(
         Article,
         on_delete=models.PROTECT,
-        verbose_name="Article",
-        help_text="Article associé à cette ligne de facture pro forma",
+        verbose_name=_("Article"),
+        help_text=_("Article associé à cette ligne de facture pro forma"),
     )
 
     history = HistoricalRecords(
-        verbose_name="Historique Facture Pro-Forma",
-        verbose_name_plural="Historiques Factures Pro-Forma",
+        verbose_name=_("Historique Facture Pro-Forma"),
+        verbose_name_plural=_("Historiques Factures Pro-Forma"),
     )
 
     class Meta:
-        verbose_name = "Ligne de facture Pro-forma"
-        verbose_name_plural = "Lignes de factures Pro-forma"
+        verbose_name = _("Ligne de facture Pro-forma")
+        verbose_name_plural = _("Lignes de factures Pro-forma")
 
     def __str__(self):
         return f"{self.facture_pro_forma} - {self.article}"

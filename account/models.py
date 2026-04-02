@@ -3,6 +3,7 @@ from os import path
 from uuid import uuid4
 
 from django.contrib.auth.models import AbstractBaseUser
+from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.models import PermissionsMixin
 from django.core.files.base import ContentFile
 from django.db import models
@@ -16,12 +17,12 @@ from .managers import CustomUserManager
 class Role(models.Model):
     """Custom role model to extend Django's Group with additional fields."""
 
-    name = models.CharField(max_length=150, unique=True, verbose_name="Nom rôle")
-    name.help_text = "Nom unique du rôle"
+    name = models.CharField(max_length=150, unique=True, verbose_name=_("Nom rôle"))
+    name.help_text = _("Nom unique du rôle")
 
     class Meta:
-        verbose_name = "Rôle"
-        verbose_name_plural = "Rôles"
+        verbose_name = _("Rôle")
+        verbose_name_plural = _("Rôles")
         ordering = ("name",)
 
     def __str__(self):
@@ -36,95 +37,95 @@ def get_avatar_path(_, filename):
 class CustomUser(AbstractBaseUser, PermissionsMixin):
     # Password (hidden)
     email = models.EmailField(
-        "Adresse e‑mail", unique=True, help_text="Adresse e‑mail de l'utilisateur"
+        _("Adresse e‑mail"), unique=True, help_text=_("Adresse e‑mail de l'utilisateur")
     )
     first_name = models.CharField(
-        "Prénom", max_length=30, blank=True, help_text="Prénom de l'utilisateur"
+        _("Prénom"), max_length=30, blank=True, help_text=_("Prénom de l'utilisateur")
     )
     last_name = models.CharField(
-        "Nom", max_length=30, blank=True, help_text="Nom de famille de l'utilisateur"
+        _("Nom"), max_length=30, blank=True, help_text=_("Nom de famille de l'utilisateur")
     )
-    GENDER_CHOICES = (("", "Unset"), ("H", "Homme"), ("F", "Femme"))
+    GENDER_CHOICES = (("", _("Unset")), ("H", _("Homme")), ("F", _("Femme")))
     gender = models.CharField(
-        verbose_name="Sexe",
+        verbose_name=_("Sexe"),
         max_length=1,
         choices=GENDER_CHOICES,
         default="",
-        help_text="Sexe de l'utilisateur",
+        help_text=_("Sexe de l'utilisateur"),
     )
     avatar = models.ImageField(
-        verbose_name="Photo de profil",
+        verbose_name=_("Photo de profil"),
         upload_to=get_avatar_path,
         blank=True,
         null=True,
         default=None,
-        help_text="Image de profil de l'utilisateur (format recommandé: WebP)",
+        help_text=_("Image de profil de l'utilisateur (format recommandé: WebP)"),
     )
     avatar_cropped = models.ImageField(
         upload_to=get_avatar_path,
         blank=True,
         null=True,
         default=None,
-        verbose_name="Photo de profil recadrée",
+        verbose_name=_("Photo de profil recadrée"),
         max_length=1000,
-        help_text="Version recadrée de la photo de profil",
+        help_text=_("Version recadrée de la photo de profil"),
     )
     # permissions
     is_staff = models.BooleanField(
-        "Statut personnel",
+        _("Statut personnel"),
         default=False,
-        help_text="Indique si l'utilisateur peut se connecter au panneau d'administration.",
+        help_text=_("Indique si l'utilisateur peut se connecter au panneau d'administration."),
         db_index=True,
     )
     is_active = models.BooleanField(
-        "Actif",
+        _("Actif"),
         default=True,
-        help_text="Indique si ce compte doit être considéré comme actif.",
+        help_text=_("Indique si ce compte doit être considéré comme actif."),
         db_index=True,
     )
     # DATES
     date_joined = models.DateTimeField(
-        "Date d'inscription",
+        _("Date d'inscription"),
         default=timezone.now,
-        help_text="Horodatage de l'inscription de l'utilisateur",
+        help_text=_("Horodatage de l'inscription de l'utilisateur"),
         db_index=True,
     )
     date_updated = models.DateTimeField(
         auto_now=True,
-        verbose_name="Date de modification",
-        help_text="Horodatage de la dernière modification du compte",
+        verbose_name=_("Date de modification"),
+        help_text=_("Horodatage de la dernière modification du compte"),
         db_index=True,
     )
     # Codes
     password_reset_code = models.CharField(
-        verbose_name="Mot de passe - Code de réinitialisation",
-        help_text="Code envoyé pour la réinitialisation du mot de passe",
+        verbose_name=_("Mot de passe - Code de réinitialisation"),
+        help_text=_("Code envoyé pour la réinitialisation du mot de passe"),
         blank=True,
         null=True,
         db_index=True,
     )
     password_reset_code_created_at = models.DateTimeField(
-        verbose_name="Mot de passe - Date de création du code",
-        help_text="Date et heure de création du code de réinitialisation (expire après 5 minutes)",
+        verbose_name=_("Mot de passe - Date de création du code"),
+        help_text=_("Date et heure de création du code de réinitialisation (expire après 5 minutes)"),
         blank=True,
         null=True,
         db_index=True,
     )
     # Task ids for Codes
     task_id_password_reset = models.CharField(
-        verbose_name="Mot de passe - Task ID de réinitialisation",
+        verbose_name=_("Mot de passe - Task ID de réinitialisation"),
         max_length=40,
         default=None,
         null=True,
         blank=True,
-        help_text="Identifiant de la tâche de réinitialisation du mot de passe",
+        help_text=_("Identifiant de la tâche de réinitialisation du mot de passe"),
         db_index=True,
     )
     # Password tracking
     default_password_set = models.BooleanField(
-        verbose_name="Mot de passe par défaut défini",
+        verbose_name=_("Mot de passe par défaut défini"),
         default=False,
-        help_text="Indique si l'utilisateur utilise encore le mot de passe par défaut envoyé par e-mail",
+        help_text=_("Indique si l'utilisateur utilise encore le mot de passe par défaut envoyé par e-mail"),
         db_index=True,
     )
     USERNAME_FIELD = "email"
@@ -132,8 +133,8 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     objects = CustomUserManager()
     history = HistoricalRecords(
-        verbose_name="Historique Utilisateur",
-        verbose_name_plural="Historiques Utilisateurs",
+        verbose_name=_("Historique Utilisateur"),
+        verbose_name_plural=_("Historiques Utilisateurs"),
     )
 
     def __str__(self):
@@ -153,8 +154,8 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         return None
 
     class Meta:
-        verbose_name = "Utilisateur"
-        verbose_name_plural = "Utilisateurs"
+        verbose_name = _("Utilisateur")
+        verbose_name_plural = _("Utilisateurs")
         ordering = ("-date_joined",)
 
     def save_image(self, file_name, image):
@@ -172,31 +173,31 @@ class Membership(models.Model):
         null=True,
         blank=True,
         related_name="memberships",
-        verbose_name="Société",
-        help_text="Société à laquelle l'utilisateur est rattaché",
+        verbose_name=_("Société"),
+        help_text=_("Société à laquelle l'utilisateur est rattaché"),
     )
     user = models.ForeignKey(
         CustomUser,
         on_delete=models.CASCADE,
         related_name="memberships",
-        verbose_name="Utilisateur",
-        help_text="Utilisateur membre",
+        verbose_name=_("Utilisateur"),
+        help_text=_("Utilisateur membre"),
     )
     role = models.ForeignKey(
         Role,
         on_delete=models.PROTECT,
         null=True,
         blank=True,
-        help_text="Rôle assigné à l'utilisateur dans l'entreprise",
+        help_text=_("Rôle assigné à l'utilisateur dans l'entreprise"),
     )
 
     history = HistoricalRecords(
-        verbose_name="Historique Membre", verbose_name_plural="Historiques Membres"
+        verbose_name=_("Historique Membre"), verbose_name_plural=_("Historiques Membres")
     )
 
     class Meta:
-        verbose_name = "Membre"
-        verbose_name_plural = "Membres"
+        verbose_name = _("Membre")
+        verbose_name_plural = _("Membres")
         ordering = ("role",)
         constraints = [
             models.UniqueConstraint(

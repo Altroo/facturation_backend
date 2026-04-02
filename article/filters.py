@@ -2,6 +2,7 @@ import django_filters
 from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
 from django.db.models import Q, Value, F, FloatField
 from django.db.utils import DatabaseError
+from django.utils.translation import gettext_lazy as _
 
 from .models import Article
 from core.filters import IsEmptyAutoMixin, CommaSeparatedIDsFilter
@@ -10,25 +11,25 @@ from core.filters import IsEmptyAutoMixin, CommaSeparatedIDsFilter
 class ArticleFilter(IsEmptyAutoMixin, django_filters.FilterSet):
     """FilterSet for the ``Article`` model with full‑text search support."""
 
-    search = django_filters.CharFilter(method="global_search", label="Search")
-    archived = django_filters.BooleanFilter(field_name="archived", label="Archived")
-    company_id = django_filters.NumberFilter(field_name="company_id", label="Company")
+    search = django_filters.CharFilter(method="global_search", label=_("Search"))
+    archived = django_filters.BooleanFilter(field_name="archived", label=_("Archived"))
+    company_id = django_filters.NumberFilter(field_name="company_id", label=_("Company"))
     date_created_after = django_filters.DateFilter(
-        field_name="date_created", lookup_expr="gte", label="Date Created After"
+        field_name="date_created", lookup_expr="gte", label=_("Date Created After")
     )
     date_created_before = django_filters.DateFilter(
-        field_name="date_created", lookup_expr="lte", label="Date Created Before"
+        field_name="date_created", lookup_expr="lte", label=_("Date Created Before")
     )
 
     # Chip select multi-ID filters
     categorie_ids = CommaSeparatedIDsFilter(
-        field_name="categorie_id", label="Categorie IDs"
+        field_name="categorie_id", label=_("Categorie IDs")
     )
     emplacement_ids = CommaSeparatedIDsFilter(
-        field_name="emplacement_id", label="Emplacement IDs"
+        field_name="emplacement_id", label=_("Emplacement IDs")
     )
-    unite_ids = CommaSeparatedIDsFilter(field_name="unite_id", label="Unite IDs")
-    marque_ids = CommaSeparatedIDsFilter(field_name="marque_id", label="Marque IDs")
+    unite_ids = CommaSeparatedIDsFilter(field_name="unite_id", label=_("Unite IDs"))
+    marque_ids = CommaSeparatedIDsFilter(field_name="marque_id", label=_("Marque IDs"))
 
     # Text field filters
     reference__icontains = django_filters.CharFilter(

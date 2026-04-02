@@ -2,6 +2,7 @@ from decimal import Decimal, ROUND_HALF_UP
 
 from django.db import models, transaction
 from django.db.models.query import QuerySet
+from django.utils.translation import gettext_lazy as _
 
 from account.models import CustomUser
 from client.models import Client
@@ -13,19 +14,19 @@ class BaseDeviFactureDocument(models.Model):
     """Abstract base for Devis, FactureProForma, and FactureClient."""
 
     STATUT_CHOICES = [
-        ("Brouillon", "Brouillon"),
-        ("Envoyé", "Envoyé"),
-        ("Accepté", "Accepté"),
-        ("Refusé", "Refusé"),
-        ("Annulé", "Annulé"),
-        ("Expiré", "Expiré"),
+        ("Brouillon", _("Brouillon")),
+        ("Envoyé", _("Envoyé")),
+        ("Accepté", _("Accepté")),
+        ("Refusé", _("Refusé")),
+        ("Annulé", _("Annulé")),
+        ("Expiré", _("Expiré")),
     ]
 
     client = models.ForeignKey(
         Client,
         on_delete=models.PROTECT,
-        verbose_name="Client",
-        help_text="Client associé au document",
+        verbose_name=_("Client"),
+        help_text=_("Client associé au document"),
     )
 
     mode_paiement = models.ForeignKey(
@@ -33,13 +34,13 @@ class BaseDeviFactureDocument(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        verbose_name="Mode de paiement",
-        help_text="Mode de paiement préféré pour le document",
+        verbose_name=_("Mode de paiement"),
+        help_text=_("Mode de paiement préféré pour le document"),
     )
 
     remarque = models.TextField(
-        verbose_name="Remarque",
-        help_text="Remarque ou note supplémentaire pour le document",
+        verbose_name=_("Remarque"),
+        help_text=_("Remarque ou note supplémentaire pour le document"),
         blank=True,
         null=True,
     )
@@ -48,8 +49,8 @@ class BaseDeviFactureDocument(models.Model):
         max_length=10,
         choices=STATUT_CHOICES,
         default="Brouillon",
-        verbose_name="Statut",
-        help_text="Statut du document (ex: Brouillon, Envoyé)",
+        verbose_name=_("Statut"),
+        help_text=_("Statut du document (ex: Brouillon, Envoyé)"),
         db_index=True,
     )
 
@@ -57,8 +58,8 @@ class BaseDeviFactureDocument(models.Model):
         max_digits=10,
         decimal_places=2,
         default=0,
-        verbose_name="Total HT",
-        help_text="Somme des totaux des lignes avant TVA",
+        verbose_name=_("Total HT"),
+        help_text=_("Somme des totaux des lignes avant TVA"),
         editable=False,
     )
 
@@ -66,8 +67,8 @@ class BaseDeviFactureDocument(models.Model):
         max_digits=10,
         decimal_places=2,
         default=0,
-        verbose_name="Total TVA",
-        help_text="Montant total de la TVA (calculé sur le HT après remise globale)",
+        verbose_name=_("Total TVA"),
+        help_text=_("Montant total de la TVA (calculé sur le HT après remise globale)"),
         editable=False,
     )
 
@@ -75,8 +76,8 @@ class BaseDeviFactureDocument(models.Model):
         max_digits=10,
         decimal_places=2,
         default=0,
-        verbose_name="Total TTC",
-        help_text="Total TTC final (HT après remise + TVA sur HT après remise)",
+        verbose_name=_("Total TTC"),
+        help_text=_("Total TTC final (HT après remise + TVA sur HT après remise)"),
         editable=False,
     )
 
@@ -86,24 +87,24 @@ class BaseDeviFactureDocument(models.Model):
         max_length=12,
         choices=REMISE_TYPE_CHOICES,
         default="",
-        verbose_name="Type de remise",
-        help_text="Type de remise appliquée : 'Pourcentage' ou 'Fixe'",
+        verbose_name=_("Type de remise"),
+        help_text=_("Type de remise appliquée : 'Pourcentage' ou 'Fixe'"),
     )
 
     remise = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         default=0,
-        verbose_name="Valeur remise",
-        help_text="Valeur de la remise appliquée",
+        verbose_name=_("Valeur remise"),
+        help_text=_("Valeur de la remise appliquée"),
     )
 
     total_ttc_apres_remise = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         default=0,
-        verbose_name="Total TTC après remise",
-        help_text="Total TTC après application de la remise (identique à total_ttc)",
+        verbose_name=_("Total TTC après remise"),
+        help_text=_("Total TTC après application de la remise (identique à total_ttc)"),
         editable=False,
     )
 
@@ -111,21 +112,21 @@ class BaseDeviFactureDocument(models.Model):
         max_length=3,
         choices=CURRENCY_CHOICES,
         default="MAD",
-        verbose_name="Devise",
-        help_text="Devise utilisée pour ce document (héritée du premier article ajouté)",
+        verbose_name=_("Devise"),
+        help_text=_("Devise utilisée pour ce document (héritée du premier article ajouté)"),
         db_index=True,
     )
 
     date_created = models.DateTimeField(
         auto_now_add=True,
-        verbose_name="Date de création",
-        help_text="Horodatage de la création du document",
+        verbose_name=_("Date de création"),
+        help_text=_("Horodatage de la création du document"),
     )
 
     date_updated = models.DateTimeField(
         auto_now=True,
-        verbose_name="Date de mise à jour",
-        help_text="Horodatage de la dernière modification du document",
+        verbose_name=_("Date de mise à jour"),
+        help_text=_("Horodatage de la dernière modification du document"),
     )
 
     created_by_user = models.ForeignKey(
@@ -133,8 +134,8 @@ class BaseDeviFactureDocument(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        verbose_name="Créé par l'utilisateur",
-        help_text="Utilisateur ayant créé le document",
+        verbose_name=_("Créé par l'utilisateur"),
+        help_text=_("Utilisateur ayant créé le document"),
     )
 
     def get_lines(self) -> QuerySet:
@@ -262,39 +263,39 @@ class BaseDeviFactureLine(models.Model):
     prix_achat = models.DecimalField(
         max_digits=10,
         decimal_places=2,
-        verbose_name="Prix d'achat",
-        help_text="Prix d'achat unitaire (ex: en MAD)",
+        verbose_name=_("Prix d'achat"),
+        help_text=_("Prix d'achat unitaire (ex: en MAD)"),
     )
 
     devise_prix_achat = models.CharField(
         max_length=3,
         choices=CURRENCY_CHOICES,
         default="MAD",
-        verbose_name="Devise prix d'achat",
-        help_text="Devise utilisée pour le prix d'achat",
+        verbose_name=_("Devise prix d'achat"),
+        help_text=_("Devise utilisée pour le prix d'achat"),
     )
 
     prix_vente = models.DecimalField(
         max_digits=10,
         decimal_places=2,
-        verbose_name="Prix de vente",
-        help_text="Prix de vente unitaire (ex: en MAD)",
+        verbose_name=_("Prix de vente"),
+        help_text=_("Prix de vente unitaire (ex: en MAD)"),
     )
 
     devise_prix_vente = models.CharField(
         max_length=3,
         choices=CURRENCY_CHOICES,
         default="MAD",
-        verbose_name="Devise prix de vente",
-        help_text="Devise utilisée pour le prix de vente",
+        verbose_name=_("Devise prix de vente"),
+        help_text=_("Devise utilisée pour le prix de vente"),
     )
 
     quantity = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         default=1,
-        verbose_name="Quantité",
-        help_text="Quantité (ex: 15,35)",
+        verbose_name=_("Quantité"),
+        help_text=_("Quantité (ex: 15,35)"),
     )
 
     remise_type = models.CharField(
@@ -303,16 +304,16 @@ class BaseDeviFactureLine(models.Model):
         max_length=12,
         choices=REMISE_TYPE_CHOICES,
         default="",
-        verbose_name="Type de remise",
-        help_text="Type de remise appliquée : 'Pourcentage' ou 'Fixe'",
+        verbose_name=_("Type de remise"),
+        help_text=_("Type de remise appliquée : 'Pourcentage' ou 'Fixe'"),
     )
 
     remise = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         default=0,
-        verbose_name="Valeur remise",
-        help_text="Valeur de la remise appliquée",
+        verbose_name=_("Valeur remise"),
+        help_text=_("Valeur de la remise appliquée"),
     )
 
     class Meta:

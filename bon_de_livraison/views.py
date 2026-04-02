@@ -281,7 +281,7 @@ class BonDeLivraisonPDFView(APIView):
 
         if not company_id:
             return Response(
-                {"error": "company_id query parameter is required"},
+                {"error": _("company_id query parameter is required")},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 

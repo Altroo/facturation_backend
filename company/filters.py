@@ -2,18 +2,19 @@ import django_filters
 from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
 from django.db.models import Q, Value, FloatField, F
 from django.db.utils import DatabaseError
+from django.utils.translation import gettext_lazy as _
 
 from .models import Company
 from core.filters import IsEmptyAutoMixin
 
 
 class CompanyFilter(IsEmptyAutoMixin, django_filters.FilterSet):
-    search = django_filters.CharFilter(method="global_search", label="Search")
+    search = django_filters.CharFilter(method="global_search", label=_("Search"))
     date_created_after = django_filters.DateFilter(
-        field_name="date_created", lookup_expr="gte", label="Date Created After"
+        field_name="date_created", lookup_expr="gte", label=_("Date Created After")
     )
     date_created_before = django_filters.DateFilter(
-        field_name="date_created", lookup_expr="lte", label="Date Created Before"
+        field_name="date_created", lookup_expr="lte", label=_("Date Created Before")
     )
 
     # Text lookup filters for raison_sociale

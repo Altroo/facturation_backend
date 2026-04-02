@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.db import transaction
 from django.utils.html import format_html
+from django.utils.translation import gettext_lazy as _
 from simple_history.admin import SimpleHistoryAdmin
 from django.contrib.auth.models import Group
 from django.contrib.sites.models import Site
@@ -91,7 +92,7 @@ class BaseDocumentAdmin(SimpleHistoryAdmin):
         """Return the date field name. Override in subclasses."""
         raise NotImplementedError("Subclasses must define get_date_field_name()")
 
-    @admin.display(description="Statut", ordering="statut")
+    @admin.display(description=_("Statut"), ordering="statut")
     def statut_badge(self, obj):
         """Display status as colored badge."""
         colors = {
@@ -110,7 +111,7 @@ class BaseDocumentAdmin(SimpleHistoryAdmin):
             status=obj.statut,
         )
 
-    @admin.display(description="Remise", ordering="remise")
+    @admin.display(description=_("Remise"), ordering="remise")
     def display_remise(self, obj):
         """Show remise as percent or formatted amount."""
         if not obj:
@@ -123,33 +124,33 @@ class BaseDocumentAdmin(SimpleHistoryAdmin):
         # remise is already a Decimal with 2 decimals, don't divide by 100
         return f"{obj.remise:.2f} MAD"
 
-    @admin.display(description="Nombre de lignes")
+    @admin.display(description=_("Nombre de lignes"))
     def display_lignes_count(self, obj):
         """Display the number of lines."""
         if obj and obj.pk:
             return obj.lignes.count()
         return 0
 
-    @admin.display(description="Total HT", ordering="total_ht")
+    @admin.display(description=_("Total HT"), ordering="total_ht")
     def display_total_ht(self, obj):
         if obj is None:
             return "-"
         return f"{obj.total_ht:.2f} MAD"
 
-    @admin.display(description="Total TVA", ordering="total_tva")
+    @admin.display(description=_("Total TVA"), ordering="total_tva")
     def display_total_tva(self, obj):
         if obj is None:
             return "-"
         return f"{obj.total_tva:.2f} MAD"
 
-    @admin.display(description="Total TTC", ordering="total_ttc")
+    @admin.display(description=_("Total TTC"), ordering="total_ttc")
     def display_total_ttc(self, obj):
         if obj is None:
             return "-"
         return f"{obj.total_ttc:.2f} MAD"
 
     @admin.display(
-        description="Total TTC après remise", ordering="total_ttc_apres_remise"
+        description=_("Total TTC après remise"), ordering="total_ttc_apres_remise"
     )
     def display_total_ttc_apres_remise(self, obj):
         if obj is None:

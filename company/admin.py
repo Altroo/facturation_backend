@@ -1,5 +1,6 @@
 from django import forms
 from django.contrib import admin
+from django.utils.translation import gettext_lazy as _
 from simple_history.admin import SimpleHistoryAdmin
 
 from account.models import Membership, Role
@@ -10,7 +11,7 @@ class MembershipInlineForm(forms.ModelForm):
     role = forms.ModelChoiceField(
         queryset=Role.objects.all(),
         required=False,
-        label="Role",
+        label=_("Role"),
     )
 
     class Meta:

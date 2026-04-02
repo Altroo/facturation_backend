@@ -2,6 +2,7 @@ import django_filters
 from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
 from django.db.models import Q, Value, FloatField, F
 from django.db.utils import DatabaseError
+from django.utils.translation import gettext_lazy as _
 
 from .models import Reglement
 from core.filters import IsEmptyAutoMixin, CommaSeparatedIDsFilter
@@ -17,48 +18,48 @@ class ReglementFilter(IsEmptyAutoMixin, django_filters.FilterSet):
     - Filter by date_reglement and date_echeance (exact, gte, lte)
     """
 
-    search = django_filters.CharFilter(method="global_search", label="Search")
-    statut = django_filters.CharFilter(method="filter_statut", label="Status")
+    search = django_filters.CharFilter(method="global_search", label=_("Search"))
+    statut = django_filters.CharFilter(method="filter_statut", label=_("Status"))
     facture_client_id = django_filters.NumberFilter(
-        field_name="facture_client__id", label="Facture Client ID"
+        field_name="facture_client__id", label=_("Facture Client ID")
     )
     mode_reglement_id = django_filters.NumberFilter(
-        field_name="mode_reglement__id", label="Mode Règlement ID"
+        field_name="mode_reglement__id", label=_("Mode Règlement ID")
     )
 
     # Chip select multi-ID filter
     mode_reglement_ids = CommaSeparatedIDsFilter(
-        field_name="mode_reglement_id", label="Mode Règlement IDs"
+        field_name="mode_reglement_id", label=_("Mode Règlement IDs")
     )
     date_reglement = django_filters.DateFilter(
-        field_name="date_reglement", label="Date de règlement"
+        field_name="date_reglement", label=_("Date de règlement")
     )
     date_reglement_gte = django_filters.DateFilter(
-        field_name="date_reglement", lookup_expr="gte", label="Date de règlement (>=)"
+        field_name="date_reglement", lookup_expr="gte", label=_("Date de règlement (>=)")
     )
     date_reglement_lte = django_filters.DateFilter(
-        field_name="date_reglement", lookup_expr="lte", label="Date de règlement (<=)"
+        field_name="date_reglement", lookup_expr="lte", label=_("Date de règlement (<=)")
     )
     date_reglement_after = django_filters.DateFilter(
-        field_name="date_reglement", lookup_expr="gte", label="Date de règlement (>=)"
+        field_name="date_reglement", lookup_expr="gte", label=_("Date de règlement (>=)")
     )
     date_reglement_before = django_filters.DateFilter(
-        field_name="date_reglement", lookup_expr="lte", label="Date de règlement (<=)"
+        field_name="date_reglement", lookup_expr="lte", label=_("Date de règlement (<=)")
     )
     date_echeance = django_filters.DateFilter(
-        field_name="date_echeance", label="Date d'échéance"
+        field_name="date_echeance", label=_("Date d'échéance")
     )
     date_echeance_gte = django_filters.DateFilter(
-        field_name="date_echeance", lookup_expr="gte", label="Date d'échéance (>=)"
+        field_name="date_echeance", lookup_expr="gte", label=_("Date d'échéance (>=)")
     )
     date_echeance_lte = django_filters.DateFilter(
-        field_name="date_echeance", lookup_expr="lte", label="Date d'échéance (<=)"
+        field_name="date_echeance", lookup_expr="lte", label=_("Date d'échéance (<=)")
     )
     date_echeance_after = django_filters.DateFilter(
-        field_name="date_echeance", lookup_expr="gte", label="Date d'échéance (>=)"
+        field_name="date_echeance", lookup_expr="gte", label=_("Date d'échéance (>=)")
     )
     date_echeance_before = django_filters.DateFilter(
-        field_name="date_echeance", lookup_expr="lte", label="Date d'échéance (<=)"
+        field_name="date_echeance", lookup_expr="lte", label=_("Date d'échéance (<=)")
     )
 
     # Numeric field filters for montant
