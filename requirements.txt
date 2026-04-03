@@ -15,7 +15,7 @@ channels-redis==4.3.0
 daphne==4.2.1
 gevent==25.9.1
 asgiref==3.11.1
-Pillow==12.1.1
+Pillow==12.2.0
 six==1.17.0
 standard-imghdr==3.13.0
 opencv-python==4.13.0.92
