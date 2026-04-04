@@ -402,7 +402,7 @@ class TestClientAPI:
         }
         response = self.client.post(url, payload)
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        for field in ["nom", "prenom", "adresse", "ville", "tel", "delai_de_paiement"]:
+        for field in ["nom", "prenom", "adresse", "ville", "delai_de_paiement"]:
             assert field in response.data["details"]
 
     def test_phone_validation_bad_format(self):

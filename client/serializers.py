@@ -59,7 +59,6 @@ class ClientBaseSerializer(serializers.ModelSerializer):
                 "prenom": "Prénom",
                 "adresse": "Adresse",
                 "ville": "Ville",
-                "tel": "Téléphone",
                 "delai_de_paiement": "Délai de paiement",
             }
 
