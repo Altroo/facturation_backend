@@ -176,6 +176,7 @@ cython_debug/
 # Claude
 .claude/
 .claude/*
+/.claude/
 # GitHub Copilot
 .docs/
 .docs/*
