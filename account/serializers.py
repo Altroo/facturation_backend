@@ -49,7 +49,9 @@ class MembershipSerializer(serializers.ModelSerializer):
         try:
             return Role.objects.get(name=role_name)
         except Role.DoesNotExist:
-            raise serializers.ValidationError(_("The role '%(role_name)s' does not exist.") % {"role_name": role_name})
+            raise serializers.ValidationError(
+                _("The role '%(role_name)s' does not exist.") % {"role_name": role_name}
+            )
 
     def create(self, validated_data):
         user = self.context["user"]
@@ -61,7 +63,8 @@ class MembershipSerializer(serializers.ModelSerializer):
 
         if existing:
             raise serializers.ValidationError(
-                _("L'utilisateur a déjà une adhésion pour la société %(company_id)s") % {"company_id": company_id}
+                _("L'utilisateur a déjà une adhésion pour la société %(company_id)s")
+                % {"company_id": company_id}
             )
 
         # Validate role exists
@@ -72,7 +75,8 @@ class MembershipSerializer(serializers.ModelSerializer):
             company = Company.objects.get(pk=company_id)
         except Company.DoesNotExist:
             raise serializers.ValidationError(
-                _("The company %(company_id)s does not exist.") % {"company_id": company_id}
+                _("The company %(company_id)s does not exist.")
+                % {"company_id": company_id}
             )
 
         return Membership.objects.create(
@@ -93,7 +97,10 @@ class MembershipSerializer(serializers.ModelSerializer):
 
             if existing:
                 raise serializers.ValidationError(
-                    _("L'utilisateur a déjà une adhésion pour la société %(company_id)s") % {"company_id": new_company_id}
+                    _(
+                        "L'utilisateur a déjà une adhésion pour la société %(company_id)s"
+                    )
+                    % {"company_id": new_company_id}
                 )
 
             instance.company = Company.objects.get(pk=new_company_id)
@@ -131,7 +138,8 @@ class CreateAccountSerializer(serializers.ModelSerializer):
             return "F"
         else:
             raise serializers.ValidationError(
-                _("Valeur du sexe invalide : %(value)s. Doit être 'Homme' ou 'Femme'.") % {"value": value}
+                _("Valeur du sexe invalide : %(value)s. Doit être 'Homme' ou 'Femme'.")
+                % {"value": value}
             )
 
     @staticmethod
@@ -169,7 +177,8 @@ class CreateAccountSerializer(serializers.ModelSerializer):
                 return ImageProcessor.convert_to_webp(data)
             except Exception as e:
                 raise serializers.ValidationError(
-                    _("Invalid file upload for %(field_name)s: %(error)s") % {"field_name": field_name, "error": str(e)}
+                    _("Invalid file upload for %(field_name)s: %(error)s")
+                    % {"field_name": field_name, "error": str(e)}
                 )
         # If it's base64 data, process it
         if isinstance(field_value, str) and field_value.startswith("data:image"):
@@ -177,14 +186,16 @@ class CreateAccountSerializer(serializers.ModelSerializer):
                 # Validate format before splitting
                 if ";base64," not in field_value:
                     raise serializers.ValidationError(
-                        _("Format d'image base64 invalide pour %(field_name)s") % {"field_name": field_name}
+                        _("Format d'image base64 invalide pour %(field_name)s")
+                        % {"field_name": field_name}
                     )
 
                 # Use maxsplit=1 to handle edge cases
                 parts = field_value.split(";base64,", 1)
                 if len(parts) != 2:
                     raise serializers.ValidationError(
-                        _("Données base64 mal formées pour %(field_name)s") % {"field_name": field_name}
+                        _("Données base64 mal formées pour %(field_name)s")
+                        % {"field_name": field_name}
                     )
 
                 format_, imgstr = parts
@@ -192,7 +203,8 @@ class CreateAccountSerializer(serializers.ModelSerializer):
                 # Validate MIME type
                 if not format_.startswith("data:image/"):
                     raise serializers.ValidationError(
-                        _("Type MIME d'image invalide pour %(field_name)s") % {"field_name": field_name}
+                        _("Type MIME d'image invalide pour %(field_name)s")
+                        % {"field_name": field_name}
                     )
 
                 # Validate base64 size before decoding (15MB limit)
@@ -201,7 +213,14 @@ class CreateAccountSerializer(serializers.ModelSerializer):
                 )
                 if len(imgstr) > max_base64_length:
                     raise serializers.ValidationError(
-                        _("Image trop grande pour %(field_name)s: %(size)s octets (max %(max_size)s). Veuillez télécharger une image plus petite.") % {"field_name": field_name, "size": len(imgstr), "max_size": max_base64_length}
+                        _(
+                            "Image trop grande pour %(field_name)s: %(size)s octets (max %(max_size)s). Veuillez télécharger une image plus petite."
+                        )
+                        % {
+                            "field_name": field_name,
+                            "size": len(imgstr),
+                            "max_size": max_base64_length,
+                        }
                     )
 
                 # Decode base64
@@ -209,7 +228,8 @@ class CreateAccountSerializer(serializers.ModelSerializer):
                     data = b64decode(imgstr)
                 except Exception as decode_error:
                     raise serializers.ValidationError(
-                        _("Encodage base64 invalide pour %(field_name)s: %(error)s") % {"field_name": field_name, "error": str(decode_error)}
+                        _("Encodage base64 invalide pour %(field_name)s: %(error)s")
+                        % {"field_name": field_name, "error": str(decode_error)}
                     )
 
                 # Convert to WebP (pass as bytes)
@@ -219,10 +239,14 @@ class CreateAccountSerializer(serializers.ModelSerializer):
                 raise  # Re-raise validation errors
             except Exception as e:
                 raise serializers.ValidationError(
-                    _("Données d'image base64 invalides pour %(field_name)s: %(error)s") % {"field_name": field_name, "error": str(e)}
+                    _("Données d'image base64 invalides pour %(field_name)s: %(error)s")
+                    % {"field_name": field_name, "error": str(e)}
                 )
         # If we get here, it's an unexpected format
-        raise serializers.ValidationError(_("Format d'image invalide pour %(field_name)s") % {"field_name": field_name})
+        raise serializers.ValidationError(
+            _("Format d'image invalide pour %(field_name)s")
+            % {"field_name": field_name}
+        )
 
     def create(self, validated_data):
         # Extract the companies/memberships payload
@@ -399,7 +423,8 @@ class ProfilePutSerializer(serializers.ModelSerializer):
             return "F"
         else:
             raise serializers.ValidationError(
-                _("Valeur du sexe invalide : %(value)s. Doit être 'Homme' ou 'Femme'.") % {"value": value}
+                _("Valeur du sexe invalide : %(value)s. Doit être 'Homme' ou 'Femme'.")
+                % {"value": value}
             )
 
     @staticmethod
@@ -424,7 +449,8 @@ class ProfilePutSerializer(serializers.ModelSerializer):
                 return webp_file, BytesIO(data), False
             except Exception as e:
                 raise serializers.ValidationError(
-                    _("Invalid file upload for %(field_name)s: %(error)s") % {"field_name": field_name, "error": str(e)}
+                    _("Invalid file upload for %(field_name)s: %(error)s")
+                    % {"field_name": field_name, "error": str(e)}
                 )
 
         # Base64 data
@@ -433,14 +459,16 @@ class ProfilePutSerializer(serializers.ModelSerializer):
                 # Validate format before splitting
                 if ";base64," not in field_value:
                     raise serializers.ValidationError(
-                        _("Format d'image base64 invalide pour %(field_name)s") % {"field_name": field_name}
+                        _("Format d'image base64 invalide pour %(field_name)s")
+                        % {"field_name": field_name}
                     )
 
                 # Use maxsplit=1 to handle edge cases
                 parts = field_value.split(";base64,", 1)
                 if len(parts) != 2:
                     raise serializers.ValidationError(
-                        _("Données base64 mal formées pour %(field_name)s") % {"field_name": field_name}
+                        _("Données base64 mal formées pour %(field_name)s")
+                        % {"field_name": field_name}
                     )
 
                 format_, imgstr = parts
@@ -448,7 +476,8 @@ class ProfilePutSerializer(serializers.ModelSerializer):
                 # Validate MIME type
                 if not format_.startswith("data:image/"):
                     raise serializers.ValidationError(
-                        _("Type MIME d'image invalide pour %(field_name)s") % {"field_name": field_name}
+                        _("Type MIME d'image invalide pour %(field_name)s")
+                        % {"field_name": field_name}
                     )
 
                 # Validate base64 size before decoding (15MB limit)
@@ -457,7 +486,14 @@ class ProfilePutSerializer(serializers.ModelSerializer):
                 )
                 if len(imgstr) > max_base64_length:
                     raise serializers.ValidationError(
-                        _("Image trop grande pour %(field_name)s: %(size)s octets (max %(max_size)s). Veuillez télécharger une image plus petite.") % {"field_name": field_name, "size": len(imgstr), "max_size": max_base64_length}
+                        _(
+                            "Image trop grande pour %(field_name)s: %(size)s octets (max %(max_size)s). Veuillez télécharger une image plus petite."
+                        )
+                        % {
+                            "field_name": field_name,
+                            "size": len(imgstr),
+                            "max_size": max_base64_length,
+                        }
                     )
 
                 # Decode base64
@@ -465,7 +501,8 @@ class ProfilePutSerializer(serializers.ModelSerializer):
                     data = b64decode(imgstr)
                 except Exception as decode_error:
                     raise serializers.ValidationError(
-                        _("Encodage base64 invalide pour %(field_name)s: %(error)s") % {"field_name": field_name, "error": str(decode_error)}
+                        _("Encodage base64 invalide pour %(field_name)s: %(error)s")
+                        % {"field_name": field_name, "error": str(decode_error)}
                     )
 
                 # Convert to WebP
@@ -477,10 +514,14 @@ class ProfilePutSerializer(serializers.ModelSerializer):
                 raise  # Re-raise validation errors
             except Exception as e:
                 raise serializers.ValidationError(
-                    _("Données d'image base64 invalides pour %(field_name)s: %(error)s") % {"field_name": field_name, "error": str(e)}
+                    _("Données d'image base64 invalides pour %(field_name)s: %(error)s")
+                    % {"field_name": field_name, "error": str(e)}
                 )
 
-        raise serializers.ValidationError(_("Format d'image invalide pour %(field_name)s") % {"field_name": field_name})
+        raise serializers.ValidationError(
+            _("Format d'image invalide pour %(field_name)s")
+            % {"field_name": field_name}
+        )
 
     def update(self, instance, validated_data):
         """Handle avatar/avatar_cropped upload and removal."""

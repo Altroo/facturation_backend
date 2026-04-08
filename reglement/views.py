@@ -273,9 +273,12 @@ class ReglementStatusUpdateView(APIView):
             if reglement.facture_client.statut not in allowed_statuses:
                 raise ValidationError(
                     {
-                        "statut": _("Impossible de valider un règlement pour une facture "
-                        "avec le statut '%(statut)s'. "
-                        "Statuts autorisés: %(statuts_autorises)s.") % {
+                        "statut": _(
+                            "Impossible de valider un règlement pour une facture "
+                            "avec le statut '%(statut)s'. "
+                            "Statuts autorisés: %(statuts_autorises)s."
+                        )
+                        % {
                             "statut": reglement.facture_client.statut,
                             "statuts_autorises": ", ".join(allowed_statuses),
                         }
@@ -293,7 +296,8 @@ class ReglementStatusUpdateView(APIView):
                             "Impossible de valider ce règlement. "
                             "Le montant (%(montant)s %(devise)s) dépasse "
                             "le reste à payer (%(reste_a_payer)s %(devise)s)."
-                        ) % {
+                        )
+                        % {
                             "montant": reglement.montant,
                             "devise": devise,
                             "reste_a_payer": reste_a_payer,

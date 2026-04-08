@@ -74,6 +74,8 @@ urlpatterns = [
     path("api/parameter/", include("parameter.urls")),
     # Dashboard
     path("api/dashboard/", include("dashboard.urls")),
+    # Notifications
+    path("api/notifications/", include("notification.urls")),
     # WS maintenance bootstrap
     path("api/ws/maintenance/", GetMaintenanceView.as_view()),
     # Admin panel (obscured path for security)
@@ -85,4 +87,3 @@ urlpatterns += [
     re_path(r"^media/(?P<path>.*)$", serve, {"document_root": settings.MEDIA_ROOT}),
     re_path(r"^static/(?P<path>.*)$", serve, {"document_root": settings.STATIC_ROOT}),
 ]
-

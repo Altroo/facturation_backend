@@ -136,7 +136,8 @@ class CompanySerializer(serializers.ModelSerializer):
                 return ImageProcessor.convert_to_webp(data)
             except Exception as e:
                 raise serializers.ValidationError(
-                    _("Invalid file upload for %(field_name)s: %(error)s") % {"field_name": field_name, "error": str(e)}
+                    _("Invalid file upload for %(field_name)s: %(error)s")
+                    % {"field_name": field_name, "error": str(e)}
                 )
         # If it's base64 data, process it
         if isinstance(field_value, str) and field_value.startswith("data:image"):
@@ -149,7 +150,8 @@ class CompanySerializer(serializers.ModelSerializer):
                 return ImageProcessor.convert_to_webp(data)
             except Exception as e:
                 raise serializers.ValidationError(
-                    _("Invalid base64 image data for %(field_name)s: %(error)s") % {"field_name": field_name, "error": str(e)}
+                    _("Invalid base64 image data for %(field_name)s: %(error)s")
+                    % {"field_name": field_name, "error": str(e)}
                 )
         # If we get here, it's an unexpected format
         raise serializers.ValidationError(

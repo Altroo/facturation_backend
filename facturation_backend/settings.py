@@ -69,6 +69,7 @@ INSTALLED_APPS = [
     "bon_de_livraison.apps.BonDeLivraisonConfig",
     "reglement.apps.ReglementConfig",
     "dashboard.apps.DashboardConfig",
+    "notification.apps.NotificationConfig",
     "axes",
 ]
 

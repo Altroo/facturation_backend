@@ -45,7 +45,10 @@ class CustomUserAdmin(UserAdmin):
             },
         ),
         (_("Permissions"), {"fields": ("is_active", "is_staff", "is_superuser")}),
-        (_("Date d'activité"), {"fields": ("date_joined", "date_updated", "last_login")}),
+        (
+            _("Date d'activité"),
+            {"fields": ("date_joined", "date_updated", "last_login")},
+        ),
     )
     # add fields to the admin panel creation model
     add_fieldsets = (
@@ -140,7 +143,9 @@ class HistoricalCustomUserAdmin(admin.ModelAdmin):
     readonly_fields = [
         field.name
         for field in CustomUser._meta.get_fields()
-        if hasattr(field, "name") and not field.many_to_many and not field.one_to_many
+        if hasattr(field, "name")
+        and getattr(field, "concrete", False)
+        and not field.many_to_many
     ] + [
         "history_id",
         "history_date",

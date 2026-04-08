@@ -113,7 +113,9 @@ class BaseDeviFactureDocument(models.Model):
         choices=CURRENCY_CHOICES,
         default="MAD",
         verbose_name=_("Devise"),
-        help_text=_("Devise utilisée pour ce document (héritée du premier article ajouté)"),
+        help_text=_(
+            "Devise utilisée pour ce document (héritée du premier article ajouté)"
+        ),
         db_index=True,
     )
 

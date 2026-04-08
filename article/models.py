@@ -158,7 +158,8 @@ class Article(models.Model):
     )
 
     history = HistoricalRecords(
-        verbose_name=_("Historique Article"), verbose_name_plural=_("Historiques Articles")
+        verbose_name=_("Historique Article"),
+        verbose_name_plural=_("Historiques Articles"),
     )
 
     class Meta:

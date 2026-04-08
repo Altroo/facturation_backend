@@ -32,7 +32,10 @@ def validate_line_currency(data, instance, parent_field_name):
             if devise_prix_vente != parent.devise:
                 raise serializers.ValidationError(
                     {
-                        "devise_prix_vente": _("La devise doit correspondre à celle du document (%(devise)s). Impossible de mélanger les devises.") % {"devise": parent.devise}
+                        "devise_prix_vente": _(
+                            "La devise doit correspondre à celle du document (%(devise)s). Impossible de mélanger les devises."
+                        )
+                        % {"devise": parent.devise}
                     }
                 )
 
@@ -174,7 +177,9 @@ class BaseDetailSerializer(serializers.ModelSerializer):
         try:
             remise_val = float(remise)
         except (TypeError, ValueError):
-            raise serializers.ValidationError({"remise": _("Valeur de remise invalide.")})
+            raise serializers.ValidationError(
+                {"remise": _("Valeur de remise invalide.")}
+            )
 
         if remise_val < 0:
             raise serializers.ValidationError(
@@ -207,7 +212,8 @@ class BaseDetailSerializer(serializers.ModelSerializer):
         if not match(r"^\d{4}/\d{2}$", value):
             field_name = self.get_numero_field_name()
             raise serializers.ValidationError(
-                _("Format de %(field_name)s invalide. Format attendu: 0001/25") % {"field_name": field_name.replace('_', ' ')}
+                _("Format de %(field_name)s invalide. Format attendu: 0001/25")
+                % {"field_name": field_name.replace("_", " ")}
             )
         return value
 
@@ -234,7 +240,9 @@ class BaseLineWriteSerializer(serializers.ModelSerializer):
                     if self.instance:
                         if data.get("prix_vente") != self.instance.prix_vente:
                             raise serializers.ValidationError(
-                                _("Les utilisateurs Commercial ne peuvent pas modifier le prix de vente.")
+                                _(
+                                    "Les utilisateurs Commercial ne peuvent pas modifier le prix de vente."
+                                )
                             )
                     # For creates, Commercial cannot set custom prix_vente
                     # They must use the article's default prix_vente
@@ -242,7 +250,9 @@ class BaseLineWriteSerializer(serializers.ModelSerializer):
                         article = data["article"]
                         if data.get("prix_vente") != article.prix_vente:
                             raise serializers.ValidationError(
-                                _("Les utilisateurs Commercial ne peuvent pas définir un prix de vente personnalisé.")
+                                _(
+                                    "Les utilisateurs Commercial ne peuvent pas définir un prix de vente personnalisé."
+                                )
                             )
 
         # Validate currency consistency with document
@@ -266,8 +276,10 @@ class BaseLineWriteSerializer(serializers.ModelSerializer):
             if devise_prix_vente != document_devise:
                 raise serializers.ValidationError(
                     {
-                        "devise_prix_vente": _("La devise doit correspondre à celle du document ({devise}). "
-                        "Impossible de mélanger les devises.").format(devise=document_devise)
+                        "devise_prix_vente": _(
+                            "La devise doit correspondre à celle du document ({devise}). "
+                            "Impossible de mélanger les devises."
+                        ).format(devise=document_devise)
                     }
                 )
 
@@ -281,12 +293,16 @@ class BaseLineWriteSerializer(serializers.ModelSerializer):
         quantity = data.get("quantity", 1)
 
         if quantity <= 0:
-            raise serializers.ValidationError(_("La quantité doit être supérieure à 0."))
+            raise serializers.ValidationError(
+                _("La quantité doit être supérieure à 0.")
+            )
 
         line_total = data["prix_vente"] * quantity
 
         if remise < 0:
-            raise serializers.ValidationError(_("La remise doit être positive ou nulle."))
+            raise serializers.ValidationError(
+                _("La remise doit être positive ou nulle.")
+            )
 
         if remise_type == "Pourcentage":
             if not 0 <= remise <= 100:

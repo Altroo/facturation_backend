@@ -43,7 +43,10 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         _("Prénom"), max_length=30, blank=True, help_text=_("Prénom de l'utilisateur")
     )
     last_name = models.CharField(
-        _("Nom"), max_length=30, blank=True, help_text=_("Nom de famille de l'utilisateur")
+        _("Nom"),
+        max_length=30,
+        blank=True,
+        help_text=_("Nom de famille de l'utilisateur"),
     )
     GENDER_CHOICES = (("", _("Unset")), ("H", _("Homme")), ("F", _("Femme")))
     gender = models.CharField(
@@ -74,7 +77,9 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(
         _("Statut personnel"),
         default=False,
-        help_text=_("Indique si l'utilisateur peut se connecter au panneau d'administration."),
+        help_text=_(
+            "Indique si l'utilisateur peut se connecter au panneau d'administration."
+        ),
         db_index=True,
     )
     is_active = models.BooleanField(
@@ -106,7 +111,9 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     )
     password_reset_code_created_at = models.DateTimeField(
         verbose_name=_("Mot de passe - Date de création du code"),
-        help_text=_("Date et heure de création du code de réinitialisation (expire après 5 minutes)"),
+        help_text=_(
+            "Date et heure de création du code de réinitialisation (expire après 5 minutes)"
+        ),
         blank=True,
         null=True,
         db_index=True,
@@ -125,7 +132,9 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     default_password_set = models.BooleanField(
         verbose_name=_("Mot de passe par défaut défini"),
         default=False,
-        help_text=_("Indique si l'utilisateur utilise encore le mot de passe par défaut envoyé par e-mail"),
+        help_text=_(
+            "Indique si l'utilisateur utilise encore le mot de passe par défaut envoyé par e-mail"
+        ),
         db_index=True,
     )
     USERNAME_FIELD = "email"
@@ -192,7 +201,8 @@ class Membership(models.Model):
     )
 
     history = HistoricalRecords(
-        verbose_name=_("Historique Membre"), verbose_name_plural=_("Historiques Membres")
+        verbose_name=_("Historique Membre"),
+        verbose_name_plural=_("Historiques Membres"),
     )
 
     class Meta:

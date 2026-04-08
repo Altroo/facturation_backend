@@ -83,7 +83,8 @@ class Marque(models.Model):
     )
 
     history = HistoricalRecords(
-        verbose_name=_("Historique Marque"), verbose_name_plural=_("Historiques Marques")
+        verbose_name=_("Historique Marque"),
+        verbose_name_plural=_("Historiques Marques"),
     )
 
     class Meta:
@@ -213,7 +214,8 @@ class LivrePar(models.Model):
     )
 
     history = HistoricalRecords(
-        verbose_name=_("Historique Livré par"), verbose_name_plural=_("Historiques Livré par")
+        verbose_name=_("Historique Livré par"),
+        verbose_name_plural=_("Historiques Livré par"),
     )
 
     class Meta:

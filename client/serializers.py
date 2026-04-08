@@ -66,7 +66,9 @@ class ClientBaseSerializer(serializers.ModelSerializer):
             if not attrs.get(field) and not (
                 self.instance and getattr(self.instance, field)
             ):
-                errors[field] = _("%(label)s est obligatoire pour ce type de client.") % {"label": label}
+                errors[field] = _(
+                    "%(label)s est obligatoire pour ce type de client."
+                ) % {"label": label}
 
         if errors:
             raise serializers.ValidationError(errors)

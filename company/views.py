@@ -75,7 +75,9 @@ class CompanyListCreateView(APIView):
             admin_group = Role.objects.get(name=ROLE_CAISSIER)
         except Role.DoesNotExist:
             raise PermissionDenied(
-                detail=_("Le groupe 'Caissier' n'existe pas. Un super‑utilisateur doit le créer et assigner les rôles.")
+                detail=_(
+                    "Le groupe 'Caissier' n'existe pas. Un super‑utilisateur doit le créer et assigner les rôles."
+                )
             )
 
         company = serializer.save()

@@ -73,7 +73,9 @@ class BaseDocumentFilter(django_filters.FilterSet):
 
     search = django_filters.CharFilter(method="global_search", label=_("Search"))
     statut = django_filters.CharFilter(method="filter_statut", label=_("Status"))
-    client_id = django_filters.NumberFilter(field_name="client__id", label=_("Client ID"))
+    client_id = django_filters.NumberFilter(
+        field_name="client__id", label=_("Client ID")
+    )
     mode_paiement_ids = CommaSeparatedIDsFilter(
         field_name="mode_paiement_id", label=_("Mode de paiement IDs")
     )

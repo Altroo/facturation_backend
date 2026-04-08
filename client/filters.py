@@ -11,7 +11,9 @@ from core.filters import IsEmptyAutoMixin, CommaSeparatedIDsFilter
 class ClientFilter(IsEmptyAutoMixin, django_filters.FilterSet):
     search = django_filters.CharFilter(method="global_search", label=_("Search"))
     archived = django_filters.BooleanFilter(field_name="archived", label=_("Archived"))
-    company_id = django_filters.NumberFilter(field_name="company_id", label=_("Company"))
+    company_id = django_filters.NumberFilter(
+        field_name="company_id", label=_("Company")
+    )
     date_created_after = django_filters.DateFilter(
         field_name="date_created", lookup_expr="gte", label=_("Date Created After")
     )

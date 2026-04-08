@@ -12,6 +12,8 @@ class GetMaintenanceView(APIView):
     def get(request, *args, **kwargs):
         maintenance_state = WsMaintenanceState.objects.order_by("-updated_at").first()
         data = {
-            "maintenance": bool(maintenance_state.maintenance) if maintenance_state else False,
+            "maintenance": (
+                bool(maintenance_state.maintenance) if maintenance_state else False
+            ),
         }
         return Response(data=data, status=status.HTTP_200_OK)

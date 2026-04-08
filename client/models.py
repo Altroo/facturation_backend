@@ -177,7 +177,8 @@ class Client(models.Model):
     )
 
     history = HistoricalRecords(
-        verbose_name=_("Historique Client"), verbose_name_plural=_("Historiques Clients")
+        verbose_name=_("Historique Client"),
+        verbose_name_plural=_("Historiques Clients"),
     )
 
     class Meta:

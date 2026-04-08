@@ -28,9 +28,12 @@ class ReglementAdminForm(forms.ModelForm):
             if facture_client.statut not in ALLOWED_FACTURE_STATUSES:
                 raise forms.ValidationError(
                     {
-                        "facture_client": _("Impossible d'ajouter un règlement pour une facture "
-                        "avec le statut '%(statut)s'. "
-                        "Statuts autorisés: %(statuts_autorises)s.") % {
+                        "facture_client": _(
+                            "Impossible d'ajouter un règlement pour une facture "
+                            "avec le statut '%(statut)s'. "
+                            "Statuts autorisés: %(statuts_autorises)s."
+                        )
+                        % {
                             "statut": facture_client.statut,
                             "statuts_autorises": ", ".join(ALLOWED_FACTURE_STATUSES),
                         }
@@ -52,8 +55,11 @@ class ReglementAdminForm(forms.ModelForm):
                     if montant > reste_a_payer:
                         raise forms.ValidationError(
                             {
-                                "montant": _("Le montant (%(montant)s MAD) dépasse le reste à payer "
-                                "(%(reste_a_payer)s MAD) pour cette facture.") % {
+                                "montant": _(
+                                    "Le montant (%(montant)s MAD) dépasse le reste à payer "
+                                    "(%(reste_a_payer)s MAD) pour cette facture."
+                                )
+                                % {
                                     "montant": montant,
                                     "reste_a_payer": reste_a_payer,
                                 }

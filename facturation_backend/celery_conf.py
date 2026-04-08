@@ -3,6 +3,7 @@ from __future__ import absolute_import, unicode_literals
 from os import environ
 
 from celery import Celery
+from celery.schedules import crontab
 from django.conf import settings
 
 # cmd line to run in terminal
@@ -19,5 +20,13 @@ app.conf.accept_content = ["json"]
 app.autodiscover_tasks(
     packages=[
         "account.tasks",
+        "notification.tasks",
     ]
 )
+
+app.conf.beat_schedule = {
+    "check-facturation-notifications-every-hour": {
+        "task": "notification.check_facturation_notifications",
+        "schedule": crontab(minute=0),  # every hour
+    },
+}

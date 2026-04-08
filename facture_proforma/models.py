@@ -82,7 +82,9 @@ class FactureProForma(BaseDeviFactureDocument):
         # Validate document is in convertible state
         if self.statut not in ["Envoyé", "Accepté"]:
             raise ValueError(
-                _("Impossible de convertir un document avec le statut '{statut}'").format(statut=self.statut)
+                _(
+                    "Impossible de convertir un document avec le statut '{statut}'"
+                ).format(statut=self.statut)
             )
 
         facture_client = FactureClient.objects.create(

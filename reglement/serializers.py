@@ -188,7 +188,13 @@ class ReglementCreateSerializer(serializers.ModelSerializer):
             if facture_client.statut not in ALLOWED_FACTURE_STATUSES:
                 raise serializers.ValidationError(
                     {
-                        "facture_client": _("Impossible d'ajouter un règlement pour une facture avec le statut '%(status)s'. Statuts autorisés: %(allowed)s.") % {"status": facture_client.statut, "allowed": ", ".join(ALLOWED_FACTURE_STATUSES)}
+                        "facture_client": _(
+                            "Impossible d'ajouter un règlement pour une facture avec le statut '%(status)s'. Statuts autorisés: %(allowed)s."
+                        )
+                        % {
+                            "status": facture_client.statut,
+                            "allowed": ", ".join(ALLOWED_FACTURE_STATUSES),
+                        }
                     }
                 )
 
@@ -201,7 +207,12 @@ class ReglementCreateSerializer(serializers.ModelSerializer):
                         {
                             "montant": _(
                                 "Le montant (%(montant)s %(devise)s) dépasse le reste à payer (%(reste)s %(devise)s) pour cette facture."
-                            ) % {"montant": montant, "devise": devise, "reste": reste_a_payer}
+                            )
+                            % {
+                                "montant": montant,
+                                "devise": devise,
+                                "reste": reste_a_payer,
+                            }
                         }
                     )
 
@@ -299,7 +310,13 @@ class ReglementUpdateSerializer(serializers.ModelSerializer):
             if facture_client.statut not in ALLOWED_FACTURE_STATUSES:
                 raise serializers.ValidationError(
                     {
-                        "facture_client": _("Impossible de modifier un règlement pour une facture avec le statut '%(status)s'. Statuts autorisés: %(allowed)s.") % {"status": facture_client.statut, "allowed": ", ".join(ALLOWED_FACTURE_STATUSES)}
+                        "facture_client": _(
+                            "Impossible de modifier un règlement pour une facture avec le statut '%(status)s'. Statuts autorisés: %(allowed)s."
+                        )
+                        % {
+                            "status": facture_client.statut,
+                            "allowed": ", ".join(ALLOWED_FACTURE_STATUSES),
+                        }
                     }
                 )
 
@@ -314,7 +331,12 @@ class ReglementUpdateSerializer(serializers.ModelSerializer):
                         {
                             "montant": _(
                                 "Le montant (%(montant)s %(devise)s) dépasse le reste à payer (%(reste)s %(devise)s) pour cette facture."
-                            ) % {"montant": montant, "devise": devise, "reste": reste_a_payer}
+                            )
+                            % {
+                                "montant": montant,
+                                "devise": devise,
+                                "reste": reste_a_payer,
+                            }
                         }
                     )
 

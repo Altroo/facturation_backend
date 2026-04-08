@@ -35,16 +35,24 @@ class ReglementFilter(IsEmptyAutoMixin, django_filters.FilterSet):
         field_name="date_reglement", label=_("Date de règlement")
     )
     date_reglement_gte = django_filters.DateFilter(
-        field_name="date_reglement", lookup_expr="gte", label=_("Date de règlement (>=)")
+        field_name="date_reglement",
+        lookup_expr="gte",
+        label=_("Date de règlement (>=)"),
     )
     date_reglement_lte = django_filters.DateFilter(
-        field_name="date_reglement", lookup_expr="lte", label=_("Date de règlement (<=)")
+        field_name="date_reglement",
+        lookup_expr="lte",
+        label=_("Date de règlement (<=)"),
     )
     date_reglement_after = django_filters.DateFilter(
-        field_name="date_reglement", lookup_expr="gte", label=_("Date de règlement (>=)")
+        field_name="date_reglement",
+        lookup_expr="gte",
+        label=_("Date de règlement (>=)"),
     )
     date_reglement_before = django_filters.DateFilter(
-        field_name="date_reglement", lookup_expr="lte", label=_("Date de règlement (<=)")
+        field_name="date_reglement",
+        lookup_expr="lte",
+        label=_("Date de règlement (<=)"),
     )
     date_echeance = django_filters.DateFilter(
         field_name="date_echeance", label=_("Date d'échéance")

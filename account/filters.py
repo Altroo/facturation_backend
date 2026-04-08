@@ -64,7 +64,9 @@ class UsersFilter(IsEmptyAutoMixin, django_filters.FilterSet):
 
     # Boolean filters
     is_staff = django_filters.BooleanFilter(field_name="is_staff", label=_("Is Staff"))
-    is_active = django_filters.BooleanFilter(field_name="is_active", label=_("Is Active"))
+    is_active = django_filters.BooleanFilter(
+        field_name="is_active", label=_("Is Active")
+    )
 
     class Meta:
         model = CustomUser
