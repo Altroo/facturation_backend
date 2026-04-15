@@ -12,6 +12,7 @@ class ArticleFilter(IsEmptyAutoMixin, django_filters.FilterSet):
     """FilterSet for the ``Article`` model with full‑text search support."""
 
     search = django_filters.CharFilter(method="global_search", label=_("Search"))
+    ids = CommaSeparatedIDsFilter(field_name="id", label=_("IDs"))
     archived = django_filters.BooleanFilter(field_name="archived", label=_("Archived"))
     company_id = django_filters.NumberFilter(
         field_name="company_id", label=_("Company")
@@ -62,6 +63,9 @@ class ArticleFilter(IsEmptyAutoMixin, django_filters.FilterSet):
     type_article = django_filters.CharFilter(
         field_name="type_article", lookup_expr="exact"
     )
+    devise_prix_vente = django_filters.CharFilter(
+        field_name="devise_prix_vente", lookup_expr="exact"
+    )
 
     # Numeric field filters for prix_achat
     prix_achat = django_filters.NumberFilter(
@@ -102,6 +106,7 @@ class ArticleFilter(IsEmptyAutoMixin, django_filters.FilterSet):
     class Meta:
         model = Article
         fields = [
+            "ids",
             "archived",
             "company_id",
             "date_created_after",
@@ -115,6 +120,7 @@ class ArticleFilter(IsEmptyAutoMixin, django_filters.FilterSet):
             "designation__istartswith",
             "designation__iendswith",
             "type_article",
+            "devise_prix_vente",
             "prix_achat",
             "prix_achat__gt",
             "prix_achat__gte",
