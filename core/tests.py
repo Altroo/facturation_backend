@@ -18,7 +18,7 @@ from django.db import DatabaseError
 from django.db.models import QuerySet
 from django.urls import reverse
 from reportlab.pdfgen import canvas
-from reportlab.platypus import Table
+from reportlab.platypus import KeepTogether, Table
 from rest_framework import serializers as drf_serializers, status
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.request import Request
@@ -3610,6 +3610,52 @@ class TestPDFGeneratorEdgeCases:
             password="test123",
         )
         return company, client, mode, article, user, unite
+
+    def test_devi_pdf_balance_limits_tail_companion_rows(self, setup_pdf, monkeypatch):
+        """Keep totals with only a small trailing product group."""
+
+        company, client, mode, _article, _user, unite = setup_pdf
+
+        devi = Devi.objects.create(
+            client=client,
+            numero_devis="PDFD99/26",
+            date_devis=date(2026, 1, 1),
+            mode_paiement=mode,
+        )
+
+        line_count = 24
+        for index in range(line_count):
+            article = Article.objects.create(
+                company=company,
+                reference=f"PDFCAP{index:02d}",
+                designation=f"PDF pagination balance product {index:02d}",
+                prix_vente=Decimal("100.00"),
+                prix_achat=Decimal("80.00"),
+                tva=Decimal("20"),
+                unite=unite,
+            )
+            DeviLine.objects.create(
+                devis=devi,
+                article=article,
+                prix_vente=Decimal("100.00"),
+                prix_achat=Decimal("80.00"),
+                quantity=1,
+            )
+
+        devi.recalc_totals()
+        devi.save()
+
+        generator = DeviPDFGenerator(devi, company, pdf_type="avec_remise")
+        monkeypatch.setattr(generator, "_count_pages", lambda _elements: 2)
+
+        balanced = generator._balance_elements(generator._build_content())
+
+        assert isinstance(balanced[-1], KeepTogether)
+        tail_content = getattr(balanced[-1], "_content", [])
+        assert isinstance(tail_content[0], Table)
+
+        tail_rows = len(getattr(tail_content[0], "_cellvalues", [])) - 1
+        assert tail_rows <= generator.MAX_TAIL_COMPANION_ROWS
 
     def test_devi_pdf_sans_remise(self, setup_pdf):
         """Test Devi PDF without remise."""

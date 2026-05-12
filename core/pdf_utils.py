@@ -290,6 +290,7 @@ class BasePDFGenerator:
     CONTENT_WIDTH = PAGE_WIDTH - 2 * MARGIN
     HALF_WIDTH = CONTENT_WIDTH / 2
     INNER_COL_WIDTH = HALF_WIDTH - 0.5 * cm  # inner column with gap
+    MAX_TAIL_COMPANION_ROWS = 4
 
     def __init__(
         self, document, company, pdf_type: str = "normal", language: str = "fr"
@@ -761,24 +762,26 @@ class BasePDFGenerator:
 
     def _balance_elements(self, elements):
         """Balance content across pages so the tail (totals, price-in-words,
-        remarks) shares the last page with some article rows instead of
+        remarks) shares the last page with a few article rows instead of
         being orphaned on its own page.
 
         Strategy
         --------
         We use `_count_pages` (a real ReportLab build) as the source of
-        truth — wrap()-based measurement is unreliable for tables with
+        truth: wrap()-based measurement is unreliable for tables with
         variable row heights (multi-line article descriptions).
 
         1. Count pages of the unbalanced layout.
         2. Estimate how many trailing article rows might fit on the last
            page alongside the tail, using wrap()-heights as a rough guide.
+           Cap this to a small companion group so the first pages keep the
+           natural flow of the article table.
         3. Split the table, wrap only the small tail-table + tail in
-           KeepTogether, and **verify** with `_count_pages`.
+           KeepTogether, and verify with `_count_pages`.
         4. If the result has MORE pages than the unbalanced layout (i.e.
            the KeepTogether overflowed), reduce `last_rows` and retry.
-        5. Among all valid candidates, pick the one with the fewest total
-           pages (or the one with the most `last_rows` if tied).
+        5. Among valid candidates, pick the largest companion group within
+           that cap.
         """
         available_width = self.PAGE_WIDTH - 2 * self.MARGIN
         available_height = self.PAGE_HEIGHT - self.MARGIN - self.BOTTOM_MARGIN
@@ -857,7 +860,11 @@ class BasePDFGenerator:
                 max_last_estimate = k
                 break
 
-        max_last_estimate = min(max_last_estimate, num_data - 1)
+        max_last_estimate = min(
+            max_last_estimate,
+            self.MAX_TAIL_COMPANION_ROWS,
+            num_data - 1,
+        )
         if max_last_estimate <= 0:
             return elements
 
@@ -906,7 +913,7 @@ class BasePDFGenerator:
             )
 
             if candidate_pages <= baseline_pages:
-                # This split works — it doesn't add extra pages.
+                # This split works because it does not add extra pages.
                 best_result = candidate
                 best_last = last_rows
                 break  # largest valid last_rows found
