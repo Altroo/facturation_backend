@@ -30,6 +30,7 @@ from account.models import Membership
 from bon_de_livraison.models import BonDeLivraison, BonDeLivraisonLine
 from client.models import Client
 from devi.models import Devi, DeviLine
+from facture_avoir.models import AVOIR_ACTIVE_STATUSES, FactureAvoir
 from facture_client.models import FactureClient, FactureClientLine
 from facture_proforma.models import FactureProForma, FactureProFormaLine
 from reglement.models import Reglement
@@ -44,17 +45,66 @@ def make_aware_datetime_start(d):
     return timezone.make_aware(datetime.combine(d, time.min))
 
 
+def _money_field():
+    return DecimalField(max_digits=10, decimal_places=2)
+
+
+def _sum_decimal(queryset, field_name):
+    return queryset.aggregate(
+        total=Coalesce(Sum(field_name), Decimal("0"), output_field=_money_field())
+    )["total"]
+
+
+def _avoir_queryset(date_from=None, date_to=None, company_id=None, devise=None):
+    queryset = FactureAvoir.objects.filter(statut__in=AVOIR_ACTIVE_STATUSES)
+    if date_from:
+        queryset = queryset.filter(date_avoir__gte=date_from)
+    if date_to:
+        queryset = queryset.filter(date_avoir__lte=date_to)
+    if company_id:
+        queryset = queryset.filter(company_id=company_id)
+    if devise:
+        queryset = queryset.filter(devise=devise)
+    return queryset
+
+
+def _total_avoirs(date_from=None, date_to=None, company_id=None, devise=None):
+    return _sum_decimal(
+        _avoir_queryset(date_from, date_to, company_id, devise),
+        "total_ttc_apres_remise",
+    )
+
+
 def _annotate_total_reglements(queryset):
-    """Annotate a FactureClient queryset with total valid reglements (avoids N+1)."""
+    """Annotate a FactureClient queryset with payments, credits, and net total."""
     total_reglements_subquery = Subquery(
         Reglement.objects.filter(facture_client_id=OuterRef("id"), statut="Valide")
         .values("facture_client_id")
         .annotate(total=Sum("montant"))
         .values("total")[:1],
-        output_field=DecimalField(),
+        output_field=_money_field(),
+    )
+    total_avoirs_subquery = Subquery(
+        FactureAvoir.objects.filter(
+            facture_origine_id=OuterRef("id"),
+            statut__in=AVOIR_ACTIVE_STATUSES,
+        )
+        .values("facture_origine_id")
+        .annotate(total=Sum("total_ttc_apres_remise"))
+        .values("total")[:1],
+        output_field=_money_field(),
     )
     return queryset.annotate(
-        total_reglements=Coalesce(total_reglements_subquery, Decimal("0"))
+        total_reglements=Coalesce(
+            total_reglements_subquery, Decimal("0"), output_field=_money_field()
+        ),
+        total_avoirs=Coalesce(
+            total_avoirs_subquery, Decimal("0"), output_field=_money_field()
+        ),
+        net_total=ExpressionWrapper(
+            F("total_ttc_apres_remise") - F("total_avoirs"),
+            output_field=_money_field(),
+        ),
     )
 
 
@@ -141,19 +191,31 @@ class MonthlyRevenueEvolutionView(APIView):
         if devise:
             queryset = queryset.filter(devise=devise)
 
-        data = (
+        invoice_data = (
             queryset.annotate(month=TruncMonth("date_facture"))
             .values("month")
             .annotate(revenue=Sum("total_ttc_apres_remise"))
             .order_by("month")
         )
+        avoir_data = (
+            _avoir_queryset(date_from, date_to, company_id, devise)
+            .annotate(month=TruncMonth("date_avoir"))
+            .values("month")
+            .annotate(amount=Sum("total_ttc_apres_remise"))
+            .order_by("month")
+        )
+
+        months = {}
+        for item in invoice_data:
+            months[item["month"]] = item["revenue"] or Decimal("0")
+        for item in avoir_data:
+            months[item["month"]] = months.get(item["month"], Decimal("0")) - (
+                item["amount"] or Decimal("0")
+            )
 
         result = [
-            {
-                "month": item["month"].strftime("%Y-%m"),
-                "revenue": float(item["revenue"] or 0),
-            }
-            for item in data
+            {"month": month.strftime("%Y-%m"), "revenue": float(revenue)}
+            for month, revenue in sorted(months.items())
         ]
 
         return Response(result)
@@ -210,6 +272,7 @@ class RevenueByDocumentTypeView(APIView):
             )["total"]
             or 0
         )
+        facture_total -= _total_avoirs(date_from, date_to, company_id, devise)
         bdl_total = (
             BonDeLivraison.objects.filter(**bdl_filter).aggregate(
                 total=Sum("total_ttc_apres_remise")
@@ -250,7 +313,7 @@ class PaymentStatusOverviewView(APIView):
             fully_paid=Count(
                 Case(
                     When(
-                        total_reglements__gte=F("total_ttc_apres_remise"), then=Value(1)
+                        total_reglements__gte=F("net_total"), then=Value(1)
                     ),
                     output_field=IntegerField(),
                 )
@@ -259,7 +322,7 @@ class PaymentStatusOverviewView(APIView):
                 Case(
                     When(
                         total_reglements__gt=Decimal("0"),
-                        total_reglements__lt=F("total_ttc_apres_remise"),
+                        total_reglements__lt=F("net_total"),
                         then=Value(1),
                     ),
                     output_field=IntegerField(),
@@ -267,7 +330,11 @@ class PaymentStatusOverviewView(APIView):
             ),
             unpaid=Count(
                 Case(
-                    When(total_reglements__lte=Decimal("0"), then=Value(1)),
+                    When(
+                        total_reglements__lte=Decimal("0"),
+                        net_total__gt=Decimal("0"),
+                        then=Value(1),
+                    ),
                     output_field=IntegerField(),
                 )
             ),
@@ -309,6 +376,7 @@ class CollectionRateView(APIView):
         total_invoiced = FactureClient.objects.filter(**facture_filter).aggregate(
             total=Sum("total_ttc_apres_remise")
         )["total"] or Decimal("0")
+        total_invoiced -= _total_avoirs(date_from, date_to, company_id, devise)
 
         total_collected = Reglement.objects.filter(**reglement_filter).aggregate(
             total=Sum("montant")
@@ -345,24 +413,53 @@ class TopClientsByRevenueView(APIView):
         if devise:
             facture_filter["devise"] = devise
 
-        data = (
+        invoice_data = (
             FactureClient.objects.filter(**facture_filter)
             .values("client__id", "client__code_client")
             .annotate(
                 revenue=Sum("total_ttc_apres_remise"),
                 client_name=F("client__raison_sociale"),
             )
-            .order_by("-revenue")[:10]
         )
+        credit_data = (
+            _avoir_queryset(date_from, date_to, company_id, devise)
+            .values("client__id", "client__code_client", "client__raison_sociale")
+            .annotate(amount=Sum("total_ttc_apres_remise"))
+        )
+
+        clients = {}
+        for item in invoice_data:
+            client_id = item["client__id"]
+            clients[client_id] = {
+                "client_id": client_id,
+                "client_code": item["client__code_client"],
+                "client_name": item["client_name"] or item["client__code_client"],
+                "revenue": item["revenue"] or Decimal("0"),
+            }
+        for item in credit_data:
+            client_id = item["client__id"]
+            if client_id not in clients:
+                clients[client_id] = {
+                    "client_id": client_id,
+                    "client_code": item["client__code_client"],
+                    "client_name": item["client__raison_sociale"]
+                    or item["client__code_client"],
+                    "revenue": Decimal("0"),
+                }
+            clients[client_id]["revenue"] -= item["amount"] or Decimal("0")
+
+        top_clients = sorted(
+            clients.values(), key=lambda item: item["revenue"], reverse=True
+        )[:10]
 
         result = [
             {
-                "client_id": item["client__id"],
-                "client_code": item["client__code_client"],
-                "client_name": item["client_name"] or item["client__code_client"],
-                "revenue": float(item["revenue"] or 0),
+                "client_id": item["client_id"],
+                "client_code": item["client_code"],
+                "client_name": item["client_name"],
+                "revenue": float(item["revenue"]),
             }
-            for item in data
+            for item in top_clients
         ]
 
         return Response(result)
@@ -679,6 +776,7 @@ class PaymentTimelineView(APIView):
         invoice_query = FactureClient.objects.filter(
             date_facture__gte=date_from, date_facture__lte=date_to
         )
+        credit_query = _avoir_queryset(date_from, date_to, company_id, devise)
         payment_query = Reglement.objects.filter(
             date_reglement__gte=date_from,
             date_reglement__lte=date_to,
@@ -702,6 +800,12 @@ class PaymentTimelineView(APIView):
             .annotate(amount=Sum("total_ttc_apres_remise"))
             .order_by("date")
         )
+        credit_data = (
+            credit_query.annotate(date=TruncDate("date_avoir"))
+            .values("date")
+            .annotate(amount=Sum("total_ttc_apres_remise"))
+            .order_by("date")
+        )
 
         # Payments by date
         payment_data = (
@@ -720,6 +824,11 @@ class PaymentTimelineView(APIView):
                 dates[date_key] = {"date": date_key, "invoiced": 0, "collected": 0}
             dates[date_key]["invoiced"] = float(item["amount"] or 0)
 
+        for item in credit_data:
+            date_key = item["date"].strftime("%Y-%m-%d")
+            if date_key not in dates:
+                dates[date_key] = {"date": date_key, "invoiced": 0, "collected": 0}
+            dates[date_key]["invoiced"] -= float(item["amount"] or 0)
         for item in payment_data:
             date_key = item["date"].strftime("%Y-%m-%d")
             if date_key not in dates:
@@ -754,7 +863,7 @@ class OverdueReceivablesView(APIView):
             .annotate(
                 outstanding=Greatest(
                     ExpressionWrapper(
-                        F("total_ttc_apres_remise") - F("total_reglements"),
+                        F("net_total") - F("total_reglements"),
                         output_field=DecimalField(),
                     ),
                     Value(Decimal("0"), output_field=DecimalField()),
@@ -869,7 +978,7 @@ class ClientMultidimensionalProfileView(APIView):
         if company_id:
             facture_filter["client__company_id"] = company_id
 
-        # Get top 5 clients by revenue, annotating invoice count at the same time
+        # Get clients by net revenue, annotating invoice count at the same time
         # to avoid a separate per-client frequency query.
         top_clients = list(
             FactureClient.objects.filter(**facture_filter)
@@ -878,11 +987,27 @@ class ClientMultidimensionalProfileView(APIView):
                 revenue=Sum("total_ttc_apres_remise"),
                 frequency=Count("id"),
             )
-            .order_by("-revenue")[:5]
         )
 
         if not top_clients:
             return Response([])
+
+        credit_data = (
+            _avoir_queryset(date_from, date_to, company_id, devise)
+            .values("client__id")
+            .annotate(amount=Sum("total_ttc_apres_remise"))
+        )
+        credit_by_client = {
+            item["client__id"]: item["amount"] or Decimal("0")
+            for item in credit_data
+        }
+        for client_data in top_clients:
+            client_data["revenue"] = (client_data["revenue"] or Decimal("0")) - (
+                credit_by_client.get(client_data["client__id"], Decimal("0"))
+            )
+        top_clients = sorted(
+            top_clients, key=lambda item: item["revenue"], reverse=True
+        )[:5]
 
         client_ids = [c["client__id"] for c in top_clients]
 
@@ -1024,6 +1149,9 @@ class KPICardsWithTrendsView(APIView):
             current_month_query.aggregate(total=Sum("total_ttc_apres_remise"))["total"]
             or 0
         )
+        current_month_revenue -= _total_avoirs(
+            current_period_start, date_to, company_id, devise
+        )
 
         daily_revenue = (
             daily_revenue_query.annotate(date=TruncDate("date_facture"))
@@ -1031,8 +1159,29 @@ class KPICardsWithTrendsView(APIView):
             .annotate(amount=Sum("total_ttc_apres_remise"))
             .order_by("date")
         )
+        daily_credits = (
+            _avoir_queryset(
+                seven_days_before_date_to,
+                date_to,
+                company_id,
+                devise,
+            )
+            .annotate(date=TruncDate("date_avoir"))
+            .values("date")
+            .annotate(amount=Sum("total_ttc_apres_remise"))
+            .order_by("date")
+        )
 
-        revenue_trend = [float(item["amount"] or 0) for item in daily_revenue]
+        daily_amounts = {}
+        for item in daily_revenue:
+            daily_amounts[item["date"]] = item["amount"] or Decimal("0")
+        for item in daily_credits:
+            daily_amounts[item["date"]] = daily_amounts.get(
+                item["date"], Decimal("0")
+            ) - (item["amount"] or Decimal("0"))
+        revenue_trend = [
+            float(amount) for _, amount in sorted(daily_amounts.items())
+        ]
 
         # Créances en cours
         facture_filter = {"date_facture__lte": date_to, "devise": devise}
@@ -1046,7 +1195,7 @@ class KPICardsWithTrendsView(APIView):
         )
         outstanding_current = (
             factures.annotate(
-                outstanding=F("total_ttc_apres_remise") - F("total_reglements")
+                outstanding=F("net_total") - F("total_reglements")
             )
             .filter(outstanding__gt=0)
             .aggregate(total=Coalesce(Sum("outstanding"), Decimal("0")))["total"]
@@ -1059,9 +1208,8 @@ class KPICardsWithTrendsView(APIView):
 
         # Montant moyen des factures
         avg_amount_current = (
-            FactureClient.objects.filter(**facture_filter).aggregate(
-                avg=Avg("total_ttc_apres_remise")
-            )["avg"]
+            _annotate_total_reglements(FactureClient.objects.filter(**facture_filter))
+            .aggregate(avg=Avg("net_total"))["avg"]
             or 0
         )
 
@@ -1173,17 +1321,26 @@ class MonthlyObjectivesView(APIView):
             )["total"]
             or 0
         )
+        current_revenue_mad -= _total_avoirs(
+            current_period_start, date_to, company_id, "MAD"
+        )
         current_revenue_eur = (
             FactureClient.objects.filter(**facture_filter, devise="EUR").aggregate(
                 total=Sum("total_ttc_apres_remise")
             )["total"]
             or 0
         )
+        current_revenue_eur -= _total_avoirs(
+            current_period_start, date_to, company_id, "EUR"
+        )
         current_revenue_usd = (
             FactureClient.objects.filter(**facture_filter, devise="USD").aggregate(
                 total=Sum("total_ttc_apres_remise")
             )["total"]
             or 0
+        )
+        current_revenue_usd -= _total_avoirs(
+            current_period_start, date_to, company_id, "USD"
         )
 
         invoice_count = FactureClient.objects.filter(**facture_filter).count()
@@ -1458,6 +1615,7 @@ class MonthlyGlobalPerformanceView(APIView):
             ]
             or 0
         )
+        current_revenue -= _total_avoirs(current_start, current_end, company_id)
 
         current_quotes = current_devi_query.count()
 
@@ -1479,6 +1637,7 @@ class MonthlyGlobalPerformanceView(APIView):
             ]
             or 0
         )
+        previous_revenue -= _total_avoirs(previous_start, previous_end, company_id)
 
         previous_quotes = previous_devi_query.count()
 
@@ -1530,6 +1689,7 @@ class SectionMicroTrendsView(APIView):
         financial_query = FactureClient.objects.filter(
             date_facture__gte=date_from, date_facture__lte=date_to
         )
+        financial_credit_query = _avoir_queryset(date_from, date_to, company_id, devise)
         commercial_query = Devi.objects.filter(
             date_devis__gte=date_from, date_devis__lte=date_to
         )
@@ -1553,6 +1713,12 @@ class SectionMicroTrendsView(APIView):
         # Financial section trend
         financial_trend = (
             financial_query.annotate(date=TruncDate("date_facture"))
+            .values("date")
+            .annotate(amount=Sum("total_ttc_apres_remise"))
+            .order_by("date")
+        )
+        financial_credit_trend = (
+            financial_credit_query.annotate(date=TruncDate("date_avoir"))
             .values("date")
             .annotate(amount=Sum("total_ttc_apres_remise"))
             .order_by("date")
@@ -1582,8 +1748,18 @@ class SectionMicroTrendsView(APIView):
             .order_by("date")
         )
 
+        financial_amounts = {}
+        for item in financial_trend:
+            financial_amounts[item["date"]] = item["amount"] or Decimal("0")
+        for item in financial_credit_trend:
+            financial_amounts[item["date"]] = financial_amounts.get(
+                item["date"], Decimal("0")
+            ) - (item["amount"] or Decimal("0"))
+
         result = {
-            "financial": [float(item["amount"] or 0) for item in financial_trend],
+            "financial": [
+                float(amount) for _, amount in sorted(financial_amounts.items())
+            ],
             "commercial": [item["count"] for item in commercial_trend],
             "operational": [item["count"] for item in operational_trend],
             "cashflow": [float(item["amount"] or 0) for item in cashflow_trend],

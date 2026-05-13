@@ -66,6 +66,8 @@ urlpatterns = [
     path("api/facture_proforma/", include("facture_proforma.urls")),
     # Facture Client
     path("api/facture_client/", include("facture_client.urls")),
+    # Facture Avoir
+    path("api/facture_avoir/", include("facture_avoir.urls")),
     # Bon de Livraison
     path("api/bon_de_livraison/", include("bon_de_livraison.urls")),
     # Reglement

@@ -1,6 +1,14 @@
 from decimal import Decimal
 
-from django.db.models import Q, F, Sum as DjangoSum, Value
+from django.db.models import (
+    F,
+    Sum as DjangoSum,
+    Value,
+    Subquery,
+    OuterRef,
+    DecimalField,
+    ExpressionWrapper,
+)
 from django.db.models.functions import Coalesce
 from django.http import Http404
 from django.shortcuts import get_object_or_404
@@ -26,6 +34,8 @@ from core.views import (
     BaseBulkDeleteView,
 )
 from facturation_backend.utils import CustomPagination
+from facture_avoir.models import AVOIR_ACTIVE_STATUSES, FactureAvoir
+from reglement.models import Reglement
 from .filters import FactureClientFilter
 from .models import FactureClient
 from .serializers import (
@@ -35,6 +45,44 @@ from .serializers import (
 )
 from .stats import get_stats_by_currency
 from .utils import get_next_numero_facture_client
+
+
+def _annotate_payment_and_avoir_totals(queryset):
+    """Annotate invoice balances without multiplying reglement/avoir joins."""
+    total_paid_subquery = Subquery(
+        Reglement.objects.filter(facture_client_id=OuterRef("pk"), statut="Valide")
+        .values("facture_client_id")
+        .annotate(total=DjangoSum("montant"))
+        .values("total")[:1],
+        output_field=DecimalField(max_digits=10, decimal_places=2),
+    )
+    total_avoirs_subquery = Subquery(
+        FactureAvoir.objects.filter(
+            facture_origine_id=OuterRef("pk"),
+            statut__in=AVOIR_ACTIVE_STATUSES,
+        )
+        .values("facture_origine_id")
+        .annotate(total=DjangoSum("total_ttc_apres_remise"))
+        .values("total")[:1],
+        output_field=DecimalField(max_digits=10, decimal_places=2),
+    )
+    money_field = DecimalField(max_digits=10, decimal_places=2)
+    return queryset.annotate(
+        total_paid=Coalesce(
+            total_paid_subquery,
+            Value(Decimal("0.00")),
+            output_field=money_field,
+        ),
+        total_avoirs=Coalesce(
+            total_avoirs_subquery,
+            Value(Decimal("0.00")),
+            output_field=money_field,
+        ),
+        net_total=ExpressionWrapper(
+            F("total_ttc_apres_remise") - F("total_avoirs"),
+            output_field=money_field,
+        ),
+    )
 
 
 class FactureClientListCreateView(BaseDocumentListCreateView):
@@ -154,18 +202,10 @@ class FactureClientUnpaidListView(BaseDocumentListCreateView):
             .prefetch_related(*self.list_prefetch_related)
         )
 
-        # Annotate with total paid per facture and filter for unpaid
-        queryset = base_queryset.annotate(
-            total_paid=Coalesce(
-                DjangoSum(
-                    "reglements__montant",
-                    filter=Q(reglements__statut="Valide"),
-                ),
-                Value(Decimal("0.00")),
-            )
-        ).filter(
+        # Annotate with total paid and credit notes, then filter for unpaid.
+        queryset = _annotate_payment_and_avoir_totals(base_queryset).filter(
             # Only include factures where payment is less than total
-            total_paid__lt=F("total_ttc_apres_remise")
+            total_paid__lt=F("net_total")
         )
 
         filterset = self.filter_class(request.GET, queryset=queryset)
@@ -239,22 +279,17 @@ class FactureClientForPaymentView(APIView):
             )
 
         # Get factures with allowed statuses
-        factures = (
+        base_factures = (
             FactureClient.objects.filter(
                 client__company_id=company_id, statut__in=["Envoyé", "Accepté"]
             )
             .select_related("client")
-            .annotate(
-                total_paid=Coalesce(
-                    DjangoSum(
-                        "reglements__montant", filter=Q(reglements__statut="Valide")
-                    ),
-                    Value(Decimal("0.00")),
-                )
-            )
+        )
+        factures = (
+            _annotate_payment_and_avoir_totals(base_factures)
             .filter(
                 # Only include factures with remaining amount to pay
-                total_paid__lt=F("total_ttc_apres_remise")
+                total_paid__lt=F("net_total")
             )
             .order_by("-date_facture")
         )
@@ -262,7 +297,8 @@ class FactureClientForPaymentView(APIView):
         # Build response data
         results = []
         for facture in factures:
-            remaining = facture.total_ttc_apres_remise - facture.total_paid  # type: ignore[attr-defined]
+            net_total = facture.net_total  # type: ignore[attr-defined]
+            remaining = net_total - facture.total_paid  # type: ignore[attr-defined]
             results.append(
                 {
                     "id": facture.id,
@@ -273,8 +309,9 @@ class FactureClientForPaymentView(APIView):
                         or "Client inconnu"
                     ),
                     "date_facture": facture.date_facture,
-                    "total_ttc_apres_remise": str(facture.total_ttc_apres_remise),
+                    "total_ttc_apres_remise": str(net_total),
                     "total_paid": str(facture.total_paid),  # type: ignore[attr-defined]
+                    "total_avoirs": str(facture.total_avoirs),  # type: ignore[attr-defined]
                     "remaining_amount": str(remaining),
                     "statut": facture.statut,
                     "devise": facture.devise,

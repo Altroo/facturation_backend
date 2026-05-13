@@ -129,4 +129,7 @@ class Reglement(models.Model):
         total_reglements = Reglement.get_total_reglements_for_facture(
             facture_client.id, exclude_reglement_id
         )
-        return montant_facture - total_reglements
+        from facture_avoir.models import FactureAvoir
+
+        total_avoirs = FactureAvoir.get_total_avoirs_for_facture(facture_client.id)
+        return montant_facture - total_avoirs - total_reglements

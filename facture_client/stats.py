@@ -3,6 +3,7 @@ from decimal import Decimal
 from django.db.models import Sum
 
 from company.models import Company
+from facture_avoir.models import AVOIR_ACTIVE_STATUSES, FactureAvoir
 from reglement.models import Reglement
 from .models import FactureClient
 
@@ -31,6 +32,13 @@ def get_stats_by_currency(company_id: int) -> dict:
             chiffre_affaire = factures_devise.aggregate(
                 total=Sum("total_ttc_apres_remise")
             )["total"] or Decimal("0.00")
+            avoirs = FactureAvoir.objects.filter(
+                company_id=company_id,
+                devise=devise,
+                statut__in=AVOIR_ACTIVE_STATUSES,
+            ).aggregate(total=Sum("total_ttc_apres_remise"))["total"] or Decimal(
+                "0.00"
+            )
 
             reglements = Reglement.objects.filter(
                 facture_client__client__company_id=company_id,
@@ -38,40 +46,50 @@ def get_stats_by_currency(company_id: int) -> dict:
                 statut="Valide",
             ).aggregate(total=Sum("montant"))["total"] or Decimal("0.00")
 
-            impayes = chiffre_affaire - reglements
+            chiffre_affaire_net = chiffre_affaire - avoirs
+            impayes = chiffre_affaire_net - reglements
 
             stats_by_currency[devise] = {
-                "chiffre_affaire_total": str(chiffre_affaire),
+                "chiffre_affaire_total": str(chiffre_affaire_net),
                 "total_reglements": str(reglements),
                 "total_impayes": str(impayes),
+                "total_avoirs": str(avoirs),
             }
     else:
         # Only send MAD stats if company doesn't use foreign currency
         chiffre_affaire = factures.aggregate(total=Sum("total_ttc_apres_remise"))[
             "total"
         ] or Decimal("0.00")
+        avoirs = FactureAvoir.objects.filter(
+            company_id=company_id,
+            statut__in=AVOIR_ACTIVE_STATUSES,
+        ).aggregate(total=Sum("total_ttc_apres_remise"))["total"] or Decimal("0.00")
 
         reglements = Reglement.objects.filter(
             facture_client__client__company_id=company_id, statut="Valide"
         ).aggregate(total=Sum("montant"))["total"] or Decimal("0.00")
 
-        impayes = chiffre_affaire - reglements
+        chiffre_affaire_net = chiffre_affaire - avoirs
+        impayes = chiffre_affaire_net - reglements
 
         stats_by_currency["MAD"] = {
-            "chiffre_affaire_total": str(chiffre_affaire),
+            "chiffre_affaire_total": str(chiffre_affaire_net),
             "total_reglements": str(reglements),
             "total_impayes": str(impayes),
+            "total_avoirs": str(avoirs),
         }
         # Initialize EUR and USD to zeros for consistency
         stats_by_currency["EUR"] = {
             "chiffre_affaire_total": "0.00",
             "total_reglements": "0.00",
             "total_impayes": "0.00",
+            "total_avoirs": "0.00",
         }
         stats_by_currency["USD"] = {
             "chiffre_affaire_total": "0.00",
             "total_reglements": "0.00",
             "total_impayes": "0.00",
+            "total_avoirs": "0.00",
         }
 
     return stats_by_currency

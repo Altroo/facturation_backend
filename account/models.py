@@ -39,6 +39,15 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(
         _("Adresse e‑mail"), unique=True, help_text=_("Adresse e‑mail de l'utilisateur")
     )
+    sso_subject = models.CharField(
+        _("Identifiant SSO"),
+        max_length=64,
+        unique=True,
+        null=True,
+        blank=True,
+        db_index=True,
+        help_text=_("Identifiant stable du compte central E.B.H."),
+    )
     first_name = models.CharField(
         _("Prénom"), max_length=30, blank=True, help_text=_("Prénom de l'utilisateur")
     )
