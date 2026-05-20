@@ -102,6 +102,20 @@ class TestCompanyAPI:
         assert response.status_code == status.HTTP_200_OK
         assert response.data["raison_sociale"] == "TestCorp"
 
+    def test_staff_can_get_company_detail_without_membership(self):
+        staff_user = self.user_model.objects.create_user(
+            email="staff@example.com", password="pass", is_staff=True
+        )
+        staff_client = APIClient()
+        staff_client.force_authenticate(user=staff_user)
+
+        url = reverse("company:company-detail", args=[self.company.id])
+        response = staff_client.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["raison_sociale"] == "TestCorp"
+        assert "managed_by" in response.data
+
     def test_company_member_can_get_basic_company_detail(self):
         member = self.user_model.objects.create_user(
             email="member@example.com", password="pass"

@@ -10,6 +10,7 @@ from rest_framework.views import APIView
 from account.models import Membership
 from account.models import Role
 from core.constants import ROLE_CAISSIER, ROLES_RESTRICTED
+from core.permissions import can_delete, can_update, can_view
 from facturation_backend.utils import CustomPagination
 from .filters import CompanyFilter
 from .models import Company
@@ -26,6 +27,10 @@ def _is_admin_for_company(user, company):
     return Membership.objects.filter(
         user=user, company=company, user__is_staff=True
     ).exists()
+
+
+def _has_staff_company_access(user):
+    return user.is_staff or user.is_superuser
 
 
 class CompanyListCreateView(APIView):
@@ -113,13 +118,15 @@ class CompanyDetailEditDeleteView(APIView):
             raise Http404(_("Aucune entreprise ne correspond à la requête."))
 
         if require_admin:
-            if not _is_admin_for_company(user, company):
+            if not (
+                _has_staff_company_access(user) or _is_admin_for_company(user, company)
+            ):
                 raise PermissionDenied(
                     detail=_("Seuls les administrateurs peuvent accéder à cette société.")
                 )
             return company
 
-        if not Membership.objects.filter(user=user, company=company).exists():
+        if not (_has_staff_company_access(user) or can_view(user, company.id)):
             raise PermissionDenied(
                 detail=_("Vous n'avez pas accès à cette société.")
             )
@@ -128,19 +135,22 @@ class CompanyDetailEditDeleteView(APIView):
 
     def get(self, request, pk, *args, **kwargs):
         company = self.get_object(pk, require_admin=False)
-        if _is_admin_for_company(request.user, company):
+        if _has_staff_company_access(request.user) or _is_admin_for_company(
+            request.user, company
+        ):
             serializer = CompanyDetailSerializer(company, context={"request": request})
         else:
             serializer = CompanyBasicListSerializer(company, context={"request": request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def put(self, request, pk, *args, **kwargs):
-        from core.permissions import can_update
-
         company = self.get_object(pk, require_admin=True)
 
         # Check if user has update permission
-        if not can_update(request.user, company.id):
+        if not (
+            _has_staff_company_access(request.user)
+            or can_update(request.user, company.id)
+        ):
             raise PermissionDenied(
                 detail=_("Vous n'avez pas les droits pour modifier cette société.")
             )
@@ -153,12 +163,13 @@ class CompanyDetailEditDeleteView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def delete(self, request, pk, *args, **kwargs):
-        from core.permissions import can_delete
-
         company = self.get_object(pk, require_admin=True)
 
         # Check if user has deleted permission
-        if not can_delete(request.user, company.id):
+        if not (
+            _has_staff_company_access(request.user)
+            or can_delete(request.user, company.id)
+        ):
             raise PermissionDenied(
                 detail=_("Vous n'avez pas les droits pour supprimer cette société.")
             )
