@@ -98,32 +98,46 @@ class CompanyListCreateView(APIView):
 
 
 class CompanyDetailEditDeleteView(APIView):
-    permission_classes = (permissions.IsAdminUser,)
+    permission_classes = (permissions.IsAuthenticated,)
 
-    def get_object(self, pk):
+    def get_permissions(self):
+        if self.request.method == "GET":
+            return [permissions.IsAuthenticated()]
+        return [permissions.IsAdminUser()]
+
+    def get_object(self, pk, require_admin=True):
         user = self.request.user
         try:
             company = Company.objects.get(pk=pk)
         except Company.DoesNotExist:
             raise Http404(_("Aucune entreprise ne correspond à la requête."))
 
-        # Check if user has isAdmin membership for this company
-        if not _is_admin_for_company(user, company):
+        if require_admin:
+            if not _is_admin_for_company(user, company):
+                raise PermissionDenied(
+                    detail=_("Seuls les administrateurs peuvent accéder à cette société.")
+                )
+            return company
+
+        if not Membership.objects.filter(user=user, company=company).exists():
             raise PermissionDenied(
-                detail=_("Seuls les administrateurs peuvent accéder à cette société.")
+                detail=_("Vous n'avez pas accès à cette société.")
             )
 
         return company
 
     def get(self, request, pk, *args, **kwargs):
-        company = self.get_object(pk)
-        serializer = CompanyDetailSerializer(company, context={"request": request})
+        company = self.get_object(pk, require_admin=False)
+        if _is_admin_for_company(request.user, company):
+            serializer = CompanyDetailSerializer(company, context={"request": request})
+        else:
+            serializer = CompanyBasicListSerializer(company, context={"request": request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def put(self, request, pk, *args, **kwargs):
         from core.permissions import can_update
 
-        company = self.get_object(pk)
+        company = self.get_object(pk, require_admin=True)
 
         # Check if user has update permission
         if not can_update(request.user, company.id):
@@ -141,7 +155,7 @@ class CompanyDetailEditDeleteView(APIView):
     def delete(self, request, pk, *args, **kwargs):
         from core.permissions import can_delete
 
-        company = self.get_object(pk)
+        company = self.get_object(pk, require_admin=True)
 
         # Check if user has deleted permission
         if not can_delete(request.user, company.id):

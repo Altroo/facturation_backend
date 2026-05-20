@@ -102,6 +102,43 @@ class TestCompanyAPI:
         assert response.status_code == status.HTTP_200_OK
         assert response.data["raison_sociale"] == "TestCorp"
 
+    def test_company_member_can_get_basic_company_detail(self):
+        member = self.user_model.objects.create_user(
+            email="member@example.com", password="pass"
+        )
+        member_role, _ = Role.objects.get_or_create(name="Commercial")
+        Membership.objects.create(
+            company=self.company, user=member, role=member_role
+        )
+        member_client = APIClient()
+        member_client.force_authenticate(user=member)
+
+        url = reverse("company:company-detail", args=[self.company.id])
+        response = member_client.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["id"] == self.company.id
+        assert response.data["raison_sociale"] == "TestCorp"
+        assert "uses_foreign_currency" in response.data
+        assert "managed_by" not in response.data
+        assert "admins" not in response.data
+
+    def test_company_member_cannot_update_company_detail(self):
+        member = self.user_model.objects.create_user(
+            email="member-update@example.com", password="pass"
+        )
+        member_role, _ = Role.objects.get_or_create(name="Commercial")
+        Membership.objects.create(
+            company=self.company, user=member, role=member_role
+        )
+        member_client = APIClient()
+        member_client.force_authenticate(user=member)
+
+        url = reverse("company:company-detail", args=[self.company.id])
+        response = member_client.put(url, {"raison_sociale": "Blocked"})
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
     def test_update_company(self):
         url = reverse("company:company-detail", args=[self.company.id])
         payload = {
