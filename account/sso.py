@@ -1,3 +1,4 @@
+import hmac
 import json
 import urllib.error
 import urllib.request
@@ -13,6 +14,40 @@ from rest_framework_simplejwt.settings import api_settings as jwt_settings
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import CustomUser
+
+
+class SSOCredentialCheckView(APIView):
+    permission_classes = (permissions.AllowAny,)
+
+    @staticmethod
+    def post(request, *args, **kwargs):
+        service_secret = str(request.data.get("service_secret", ""))
+        expected_secret = str(getattr(settings, "EBH_SSO_SHARED_SECRET", ""))
+        if not expected_secret or not hmac.compare_digest(
+            service_secret, expected_secret
+        ):
+            raise PermissionDenied("Service SSO non autorisé.")
+
+        email = str(request.data.get("email", "")).strip().lower()
+        password = request.data.get("password")
+        if not email or not isinstance(password, str):
+            raise ValidationError({"credentials": ["Email et mot de passe requis."]})
+
+        user = CustomUser.objects.filter(email=email, is_active=True).first()
+        if user is None or not user.check_password(password):
+            return Response({"valid": False}, status=status.HTTP_200_OK)
+
+        return Response(
+            {
+                "valid": True,
+                "user": {
+                    "email": user.email,
+                    "first_name": user.first_name,
+                    "last_name": user.last_name,
+                },
+            },
+            status=status.HTTP_200_OK,
+        )
 
 
 class SSOExchangeView(APIView):
