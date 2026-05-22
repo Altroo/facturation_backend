@@ -11,6 +11,7 @@ from article.models import Article
 from bon_de_livraison.models import BonDeLivraison
 from client.models import Client
 from company.models import Company
+from core.nectar import NECTAR_RAISON_SOCIALE
 from core.tests import (
     DocConfig,
     SharedDocumentAPITestsMixin,
@@ -23,6 +24,7 @@ from facture_client.utils import get_next_numero_facture_client
 from parameter.models import ModePaiement, Ville
 from .filters import FactureClientFilter
 from .models import FactureClient, FactureClientLine
+from .serializers import FactureClientSerializer
 
 # -----------------------------------------------------------------------------
 # Fixtures
@@ -460,6 +462,109 @@ class TestFactureClientUtilsExtra:
 
         next_num = get_next_numero_facture_client(company.id)
         assert next_num == f"0003/{year_suffix}"
+
+    def test_nectar_numero_uses_next_max_with_five_digits(self):
+        """Nectar invoices must stay chronological instead of filling gaps."""
+
+        company = Company.objects.create(
+            raison_sociale=NECTAR_RAISON_SOCIALE,
+            ICE="NECTARUTIL",
+        )
+        ville = Ville.objects.create(nom="NectarVille", company=company)
+        client = Client.objects.create(
+            code_client="NECTARUTIL001",
+            client_type="PM",
+            raison_sociale="Nectar Client",
+            ville=ville,
+            company=company,
+        )
+        user = CustomUser.objects.create_user(
+            email="nectar_util_fc@example.com", password="pass"
+        )
+        mode = ModePaiement.objects.create(nom="NectarCash", company=company)
+
+        year_suffix = f"{datetime.now().year % 100:02d}"
+        FactureClient.objects.create(
+            numero_facture=f"00001/{year_suffix}",
+            client=client,
+            date_facture="2026-01-01",
+            mode_paiement=mode,
+            statut="Brouillon",
+            created_by_user=user,
+        )
+        FactureClient.objects.create(
+            numero_facture=f"00003/{year_suffix}",
+            client=client,
+            date_facture="2026-01-02",
+            mode_paiement=mode,
+            statut="Brouillon",
+            created_by_user=user,
+        )
+
+        next_num = get_next_numero_facture_client(company.id)
+        assert next_num == f"00004/{year_suffix}"
+
+    def test_nectar_serializer_removes_remise_and_remarque(self):
+        """Nectar documents ignore remise and remarque even if posted."""
+
+        company = Company.objects.create(
+            raison_sociale=NECTAR_RAISON_SOCIALE,
+            ICE="NECTARSER",
+        )
+        ville = Ville.objects.create(nom="NectarSerializerVille", company=company)
+        client = Client.objects.create(
+            code_client="NECTARSER001",
+            client_type="PM",
+            raison_sociale="Nectar Serializer Client",
+            ville=ville,
+            company=company,
+        )
+        user = CustomUser.objects.create_user(
+            email="nectar_serializer_fc@example.com", password="pass"
+        )
+        mode = ModePaiement.objects.create(nom="NectarTransfer", company=company)
+        article = Article.objects.create(
+            company=company,
+            reference="NECTAR001",
+            designation="Location bureau",
+            prix_achat=Decimal("1000.00"),
+            prix_vente=Decimal("1750.00"),
+            tva=Decimal("20.00"),
+        )
+
+        serializer = FactureClientSerializer(
+            data={
+                "numero_facture": "00415/26",
+                "client": client.id,
+                "date_facture": "2026-01-01",
+                "date_echeance": "2026-01-05",
+                "mode_paiement": mode.id,
+                "remarque": "Must be removed",
+                "remise_type": "Pourcentage",
+                "remise": "15.00",
+                "lignes": [
+                    {
+                        "article": article.id,
+                        "prix_achat": "1000.00",
+                        "prix_vente": "1750.00",
+                        "quantity": "3.00",
+                        "remise_type": "Fixe",
+                        "remise": "200.00",
+                    }
+                ],
+            }
+        )
+
+        assert serializer.is_valid(), serializer.errors
+        facture = serializer.save(created_by_user=user)
+        line = facture.lignes.get()
+
+        assert facture.date_echeance.isoformat() == "2026-01-05"
+        assert facture.remarque is None
+        assert facture.remise_type == ""
+        assert facture.remise == Decimal("0")
+        assert line.remise_type == ""
+        assert line.remise == Decimal("0")
 
 
 @pytest.mark.django_db

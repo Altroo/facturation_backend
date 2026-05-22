@@ -21,6 +21,8 @@ from reportlab.platypus import (
     KeepTogether,
 )
 
+from core.nectar import is_nectar_company
+
 logger = logging.getLogger(__name__)
 
 
@@ -602,6 +604,44 @@ class BasePDFGenerator:
                 fontSize=8,
                 leading=11,
                 textColor=colors.HexColor("#444444"),
+            )
+        )
+        self.styles.add(
+            ParagraphStyle(
+                name="NectarTitle",
+                parent=self.styles["Heading1"],
+                fontSize=24,
+                fontName="Helvetica",
+                leading=30,
+                textColor=colors.HexColor("#666666"),
+            )
+        )
+        self.styles.add(
+            ParagraphStyle(
+                name="NectarHeaderRight",
+                parent=self.styles["Normal"],
+                fontSize=12,
+                leading=16,
+                alignment=TA_RIGHT,  # type: ignore[arg-type]
+                textColor=colors.HexColor("#454c55"),
+            )
+        )
+        self.styles.add(
+            ParagraphStyle(
+                name="NectarClient",
+                parent=self.styles["Normal"],
+                fontSize=11,
+                leading=15,
+                textColor=colors.HexColor("#454c55"),
+            )
+        )
+        self.styles.add(
+            ParagraphStyle(
+                name="NectarLabel",
+                parent=self.styles["Normal"],
+                fontSize=11,
+                leading=14,
+                fontName="Helvetica-Bold",
             )
         )
 
@@ -1290,6 +1330,220 @@ class BasePDFGenerator:
                 Paragraph(remarks_text.replace("\n", "<br/>"), self.styles["Remarks"])
             )
         return tail
+
+    def _uses_nectar_layout(self) -> bool:
+        return is_nectar_company(self.company)
+
+    @staticmethod
+    def _nectar_display_number(numero: str) -> str:
+        return (numero or "").split("/")[0]
+
+    @staticmethod
+    def _format_date_for_nectar(value) -> str:
+        return value.strftime("%d/%m/%Y") if value else "-"
+
+    def _build_nectar_header(self) -> list:
+        logo_img = self._get_logo_image(width=3.2 * cm, height=3.2 * cm)
+        company_name = self.company.raison_sociale or "-"
+        address_parts = []
+        if self.company.adresse:
+            address_parts.append(self.company.adresse)
+        if self.company.telephone:
+            address_parts.append(self.company.telephone)
+        header_lines = [f"<b>{company_name}</b>"] + address_parts
+        header_text = "<br/>".join(header_lines)
+        right = Paragraph(header_text, self.styles["NectarHeaderRight"])
+        left = logo_img if logo_img else Paragraph("", self.styles["CustomNormal"])
+        table = Table([[left, right]], colWidths=[self.HALF_WIDTH, self.HALF_WIDTH])
+        table.setStyle(
+            TableStyle(
+                [
+                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                    ("ALIGN", (0, 0), (0, 0), "LEFT"),
+                    ("ALIGN", (1, 0), (1, 0), "RIGHT"),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 10),
+                ]
+            )
+        )
+        line = Table([[""]], colWidths=[self.CONTENT_WIDTH], rowHeights=[0.01 * cm])
+        line.setStyle(
+            TableStyle([("LINEBELOW", (0, 0), (-1, -1), 0.5, colors.HexColor("#e5e7eb"))])
+        )
+        return [table, line]
+
+    def _build_nectar_client_block(self):
+        client = self.document.client
+        lines = []
+        if client.client_type == "PM" and client.raison_sociale:
+            lines.append(f"<b>{client.raison_sociale}</b>")
+        else:
+            name = f"{client.prenom or ''} {client.nom or ''}".strip()
+            if name:
+                lines.append(f"<b>{name}</b>")
+        if client.adresse:
+            lines.append(client.adresse)
+        if getattr(client, "ville", None):
+            lines.append(str(client.ville))
+        lines.append("Maroc")
+        if client.ICE:
+            lines.extend(["", f"ICE: {client.ICE}"])
+
+        para = Paragraph("<br/>".join(lines), self.styles["NectarClient"])
+        table = Table([["", para]], colWidths=[self.CONTENT_WIDTH * 0.6, self.CONTENT_WIDTH * 0.4])
+        table.setStyle(TableStyle([("VALIGN", (0, 0), (-1, -1), "TOP")]))
+        return table
+
+    def _build_nectar_articles_table(self) -> Table:
+        from decimal import Decimal as _Decimal
+
+        headers = ["DESCRIPTION", "QUANTITÉ", "PRIX UNITAIRE", "TAXES", "MONTANT"]
+        col_widths = [self.CONTENT_WIDTH * 0.34, self.CONTENT_WIDTH * 0.16, self.CONTENT_WIDTH * 0.22, self.CONTENT_WIDTH * 0.11, self.CONTENT_WIDTH * 0.17]
+        table_data = [[Paragraph(f"<b>{h}</b>", self.styles["CustomSmall"]) for h in headers]]
+
+        for line in (
+            self.document.lignes.select_related("article")
+            .order_by("article__reference")
+            .all()
+        ):
+            designation = line.article.designation or "-"
+            if line.article.reference:
+                designation = f"{line.article.reference} {designation}"
+            tva_pct = line.article.tva if line.article.tva else _Decimal("0")
+            total_ht = line.prix_vente * line.quantity
+            table_data.append(
+                [
+                    Paragraph(designation, self.styles["CustomSmall"]),
+                    Paragraph(format_number_for_pdf(line.quantity), self.styles["CustomSmallCenter"]),
+                    Paragraph(format_number_for_pdf(line.prix_vente), self.styles["CustomSmallCenter"]),
+                    Paragraph(f"{tva_pct:.1f}%", self.styles["CustomSmallCenter"]),
+                    Paragraph(format_number_for_pdf(total_ht), self.styles["CustomSmallCenter"]),
+                ]
+            )
+
+        table = Table(table_data, colWidths=col_widths, repeatRows=1)
+        last_row = len(table_data) - 1
+        table.setStyle(
+            TableStyle(
+                [
+                    ("GRID", (0, 0), (-1, -1), 0.6, colors.HexColor("#4f5964")),
+                    ("BACKGROUND", (-1, 1), (-1, last_row), colors.HexColor("#e6e6e6")),
+                    ("ALIGN", (1, 0), (-1, -1), "RIGHT"),
+                    ("ALIGN", (0, 0), (0, -1), "LEFT"),
+                    ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                    ("FONTSIZE", (0, 0), (-1, -1), 10),
+                    ("TOPPADDING", (0, 0), (-1, -1), 7),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 7),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 4),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+                ]
+            )
+        )
+        return table
+
+    def _build_nectar_totals_table(self) -> Table:
+        devise = "DH" if (self.document.devise or "MAD") == "MAD" else self.document.devise
+        rows = [
+            ["Montant HT", f"{format_number_for_pdf(self.document.total_ht)} {devise}"],
+            ["TVA", f"{format_number_for_pdf(self.document.total_tva)} {devise}"],
+            ["Total", f"{format_number_for_pdf(self.document.total_ttc)} {devise}"],
+        ]
+        table = Table(rows, colWidths=[4.7 * cm, 4.8 * cm])
+        table.hAlign = "RIGHT"
+        table.setStyle(
+            TableStyle(
+                [
+                    ("GRID", (0, 0), (-1, -1), 0.6, colors.HexColor("#4f5964")),
+                    ("BACKGROUND", (1, 1), (1, 1), colors.HexColor("#e6e6e6")),
+                    ("BACKGROUND", (0, -1), (-1, -1), colors.HexColor("#6d6d6d")),
+                    ("TEXTCOLOR", (0, -1), (-1, -1), colors.white),
+                    ("FONTNAME", (0, -1), (-1, -1), "Helvetica-Bold"),
+                    ("FONTNAME", (0, 0), (0, 0), "Helvetica-Bold"),
+                    ("ALIGN", (1, 0), (1, -1), "RIGHT"),
+                    ("FONTSIZE", (0, 0), (-1, -1), 11),
+                    ("TOPPADDING", (0, 0), (-1, -1), 7),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 7),
+                ]
+            )
+        )
+        return table
+
+    def _build_nectar_document_content(
+        self,
+        document_label: str,
+        numero: str,
+        document_date,
+    ) -> list:
+        display_number = self._nectar_display_number(numero)
+        lower_label = document_label.lower()
+        date_article = "du" if lower_label.startswith(("devis", "bon")) else "de la"
+        amount_intro = (
+            f"Arrêtée la présente {lower_label}, toutes taxes comprises, à la somme de :"
+            if lower_label.startswith("facture")
+            else f"Arrêté le présent {lower_label}, toutes taxes comprises, à la somme de :"
+        )
+        elements = []
+        elements.extend(self._build_nectar_header())
+        elements.append(Spacer(1, 1.5 * cm))
+        elements.append(self._build_nectar_client_block())
+        elements.append(Spacer(1, 0.8 * cm))
+        elements.append(
+            Paragraph(f"{document_label} {display_number}", self.styles["NectarTitle"])
+        )
+        elements.append(Spacer(1, 0.35 * cm))
+
+        due_date = getattr(self.document, "date_echeance", None)
+        date_table = Table(
+            [
+                [
+                    Paragraph(f"<b>Date {date_article} {lower_label}:</b>", self.styles["CustomNormal"]),
+                    Paragraph("<b>Date d'échéance:</b>", self.styles["CustomNormal"]),
+                ],
+                [
+                    Paragraph(self._format_date_for_nectar(document_date), self.styles["NectarClient"]),
+                    Paragraph(self._format_date_for_nectar(due_date), self.styles["NectarClient"]),
+                ],
+            ],
+            colWidths=[self.HALF_WIDTH, self.HALF_WIDTH],
+        )
+        date_table.setStyle(
+            TableStyle(
+                [
+                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                    ("TOPPADDING", (0, 0), (-1, -1), 2),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
+                ]
+            )
+        )
+        elements.append(date_table)
+        elements.append(Spacer(1, 0.8 * cm))
+        elements.append(self._build_nectar_articles_table())
+        elements.append(Spacer(1, 0.35 * cm))
+        elements.append(self._build_nectar_totals_table())
+        elements.append(Spacer(1, 0.35 * cm))
+
+        total_price = self.document.total_ttc
+        price_in_words = number_to_french_words(total_price, self.document.devise)
+        elements.append(
+            Paragraph(
+                amount_intro,
+                self.styles["NectarClient"],
+            )
+        )
+        elements.append(
+            Paragraph(
+                f"<b>{price_in_words.capitalize()} TTC</b>",
+                self.styles["PriceWords"],
+            )
+        )
+        elements.append(Spacer(1, 1.0 * cm))
+        elements.append(
+            Paragraph(
+                "Merci d'utiliser la référence suivante pour votre paiement: "
+                f"<b>{display_number}</b>",
+                self.styles["NectarClient"],
+            )
+        )
+        return elements
 
     def _build_content(self) -> list:
         """Build PDF content. Override in subclasses."""

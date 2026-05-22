@@ -326,6 +326,13 @@ class FactureClientPDFGenerator(BasePDFGenerator):
 
     def _build_content(self) -> list:
         """Build PDF content for facture client."""
+        if self._uses_nectar_layout():
+            return self._build_nectar_document_content(
+                "Facture",
+                self.document.numero_facture,
+                self.document.date_facture,
+            )
+
         elements = []
         elements.append(
             self._build_doc_header(

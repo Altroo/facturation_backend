@@ -51,6 +51,14 @@ class BonDeLivraison(BaseDeviFactureDocument):
         db_index=True,
     )
 
+    date_echeance = models.DateField(
+        verbose_name=_("Date d'échéance"),
+        help_text=_("Date limite de paiement du bon de livraison"),
+        blank=True,
+        null=True,
+        db_index=True,
+    )
+
     numero_bon_commande_client = models.CharField(
         max_length=50,
         verbose_name=_("Numéro de bon de commande client"),

@@ -3,6 +3,7 @@ from re import search
 from django.db import transaction
 from django.utils import timezone
 
+from core.nectar import is_nectar_company_id
 from core.utils import format_number_with_dynamic_digits
 from .models import FactureProForma
 
@@ -36,6 +37,12 @@ def get_next_numero_facture_pro_forma(company_id: int) -> str:
                     continue
 
         used_numbers = sorted(set(used_numbers))
+        if is_nectar_company_id(company_id):
+            next_number = (max(used_numbers) if used_numbers else 0) + 1
+            formatted_number = format_number_with_dynamic_digits(
+                next_number, min_digits=5
+            )
+            return f"{formatted_number}/{year_suffix}"
 
         # Find first gap
         next_number = None

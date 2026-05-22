@@ -74,6 +74,13 @@ class DeviPDFGenerator(BasePDFGenerator):
 
     def _build_content(self) -> list:
         """Build PDF content for devis."""
+        if self._uses_nectar_layout():
+            return self._build_nectar_document_content(
+                "Devis",
+                self.document.numero_devis,
+                self.document.date_devis,
+            )
+
         elements = []
         elements.append(
             self._build_doc_header(

@@ -4,8 +4,26 @@ from django.db import transaction
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
+from client.models import Client
 from core.constants import ROLE_COMMERCIAL
+from core.nectar import is_nectar_company_id
 from core.permissions import get_user_role
+
+
+def sanitize_nectar_document_data(data, company_id=None):
+    """Force Nectar documents to ignore remise and remarque fields."""
+    if not is_nectar_company_id(company_id):
+        return data
+
+    data["remarque"] = None
+    data["remise_type"] = ""
+    data["remise"] = 0
+
+    for line_data in data.get("lignes") or []:
+        line_data["remise_type"] = ""
+        line_data["remise"] = 0
+
+    return data
 
 
 def validate_line_currency(data, instance, parent_field_name):
@@ -208,8 +226,8 @@ class BaseDetailSerializer(serializers.ModelSerializer):
         raise NotImplementedError("Subclasses must implement get_numero_field_name()")
 
     def validate_numero(self, value):
-        """Validate numero format: 0001/25"""
-        if not match(r"^\d{4}/\d{2}$", value):
+        """Validate numero format: 0001/25, with more digits after 9999."""
+        if not match(r"^\d{4,}/\d{2}$", value):
             field_name = self.get_numero_field_name()
             raise serializers.ValidationError(
                 _("Format de %(field_name)s invalide. Format attendu: 0001/25")
@@ -340,15 +358,50 @@ class BaseCreateSerializer(BaseDetailSerializer):
             "Subclasses must implement get_line_serializer_class()"
         )
 
+    def _get_raw_company_id(self, data):
+        if getattr(self, "instance", None) is not None:
+            return self.instance.client.company_id
+        client_id = data.get("client") if hasattr(data, "get") else None
+        if not client_id:
+            return None
+        try:
+            return (
+                Client.objects.filter(pk=client_id)
+                .values_list("company_id", flat=True)
+                .first()
+            )
+        except (TypeError, ValueError):
+            return None
+
+    @staticmethod
+    def _copy_for_nectar_sanitization(data):
+        copied = data.copy()
+        lines = copied.get("lignes") if hasattr(copied, "get") else None
+        if isinstance(lines, list):
+            copied["lignes"] = [
+                line.copy() if hasattr(line, "copy") else line for line in lines
+            ]
+        return copied
+
+    def to_internal_value(self, data):
+        company_id = self._get_raw_company_id(data)
+        if is_nectar_company_id(company_id):
+            data = sanitize_nectar_document_data(
+                self._copy_for_nectar_sanitization(data), company_id
+            )
+        return super().to_internal_value(data)
+
     def validate(self, data):
         """Add company_id and document_devise to context for nested line serializers."""
         data = super().validate(data)
         # Store company_id in context for line serializers to access
         if "client" in data:
             self.context["company_id"] = data["client"].company_id
+            sanitize_nectar_document_data(data, data["client"].company_id)
         # Store document_devise if it exists (for line validation)
         if hasattr(self, "instance") and self.instance:
             self.context["document_devise"] = self.instance.devise
+            sanitize_nectar_document_data(data, self.instance.client.company_id)
         return data
 
     def create(self, validated_data):

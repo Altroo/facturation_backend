@@ -198,6 +198,13 @@ class BonDeLivraisonPDFGenerator(BasePDFGenerator):
 
     def _build_content(self) -> list:
         """Build PDF content for bon de livraison."""
+        if self._uses_nectar_layout():
+            return self._build_nectar_document_content(
+                "Bon de Livraison",
+                self.document.numero_bon_livraison,
+                self.document.date_bon_livraison,
+            )
+
         elements = []
         elements.append(
             self._build_doc_header(

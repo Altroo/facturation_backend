@@ -34,6 +34,14 @@ class FactureProForma(BaseDeviFactureDocument):
         db_index=True,
     )
 
+    date_echeance = models.DateField(
+        verbose_name=_("Date d'échéance"),
+        help_text=_("Date limite de paiement de la facture pro forma"),
+        blank=True,
+        null=True,
+        db_index=True,
+    )
+
     numero_bon_commande_client = models.CharField(
         max_length=50,
         verbose_name=_("Numéro de bon de commande client"),
@@ -92,6 +100,7 @@ class FactureProForma(BaseDeviFactureDocument):
             company=self.company,
             client=self.client,
             date_facture=self.date_facture,
+            date_echeance=self.date_echeance,
             numero_bon_commande_client=self.numero_bon_commande_client,
             mode_paiement=self.mode_paiement,
             remarque=self.remarque,
