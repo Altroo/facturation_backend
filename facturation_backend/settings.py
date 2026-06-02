@@ -322,6 +322,7 @@ SECURE_BROWSER_XSS_FILTER = True
 # ──────────────────────────────────────────────
 AXES_FAILURE_LIMIT = 5  # Lock after 5 failed attempts
 AXES_COOLOFF_TIME = timedelta(minutes=15)  # Lockout duration
+AXES_LOCKOUT_PARAMETERS = ["username", "ip_address"]
 AXES_RESET_ON_SUCCESS = True  # Reset counter on successful login
 AXES_LOCKOUT_CALLABLE = None  # Use default 403 response
 # Get real IP from X-Forwarded-For header (behind nginx proxy)
