@@ -293,6 +293,7 @@ class BasePDFGenerator:
     HALF_WIDTH = CONTENT_WIDTH / 2
     INNER_COL_WIDTH = HALF_WIDTH - 0.5 * cm  # inner column with gap
     MAX_TAIL_COMPANION_ROWS = 4
+    NECTAR_FOOTER_MARGIN = 3.2 * cm
 
     def __init__(
         self, document, company, pdf_type: str = "normal", language: str = "fr"
@@ -694,7 +695,7 @@ class BasePDFGenerator:
             rightMargin=self.MARGIN,
             leftMargin=self.MARGIN,
             topMargin=self.MARGIN,
-            bottomMargin=self.BOTTOM_MARGIN,
+            bottomMargin=self._get_bottom_margin(),
         )
         page_counter = [0]
 
@@ -716,7 +717,7 @@ class BasePDFGenerator:
             rightMargin=self.MARGIN,
             leftMargin=self.MARGIN,
             topMargin=self.MARGIN,
-            bottomMargin=self.BOTTOM_MARGIN,
+            bottomMargin=self._get_bottom_margin(),
             title=pdf_title,
             author=(
                 self.company.raison_sociale
@@ -734,11 +735,13 @@ class BasePDFGenerator:
             elements = self._balance_elements(elements)
             self.total_pages = self._count_pages(elements)
 
-        doc.build(
-            elements,
-            onFirstPage=self._add_page_footer,
-            onLaterPages=self._add_page_footer,
+        footer_callback = (
+            self._add_nectar_page_footer
+            if self._uses_nectar_layout()
+            else self._add_page_footer
         )
+
+        doc.build(elements, onFirstPage=footer_callback, onLaterPages=footer_callback)
 
         self.buffer.seek(0)
         response = HttpResponse(self.buffer, content_type="application/pdf")
@@ -747,6 +750,11 @@ class BasePDFGenerator:
         response["Pragma"] = "no-cache"
 
         return response
+
+    def _get_bottom_margin(self) -> float:
+        if self._uses_nectar_layout():
+            return self.NECTAR_FOOTER_MARGIN
+        return self.BOTTOM_MARGIN
 
     def _add_page_footer(self, canvas, _doc):
         """Add footer with company info and page number at the bottom."""
@@ -773,6 +781,44 @@ class BasePDFGenerator:
 
         # Draw page number on the right side
         canvas.drawRightString(self.PAGE_WIDTH - self.MARGIN, 0.4 * cm, page_text)
+
+        canvas.restoreState()
+
+    def _add_nectar_page_footer(self, canvas, _doc):
+        """Add Nectar-specific legal footer."""
+        canvas.saveState()
+
+        page_num = canvas.getPageNumber()
+        total = getattr(self, "total_pages", 1)
+        center_x = self.PAGE_WIDTH / 2
+
+        canvas.setStrokeColor(colors.black)
+        canvas.setLineWidth(1.2)
+        canvas.line(self.MARGIN, 2.78 * cm, self.PAGE_WIDTH - self.MARGIN, 2.78 * cm)
+
+        canvas.setFont("Helvetica", 8)
+        canvas.setFillColor(colors.black)
+        canvas.drawCentredString(
+            center_x,
+            2.43 * cm,
+            "S.A.R.L. au capital de 14 461 000,00DH, Adresse : 148 AV MED 5 IMM Nectar N°13, 90000 TANGER",
+        )
+        canvas.drawCentredString(
+            center_x,
+            1.74 * cm,
+            "RC:23851 , ICE:000534755000065 , CNSS: 2693452  IF4906318 , TP:50472831",
+        )
+
+        canvas.setFillColor(colors.HexColor("#7f91ad"))
+        canvas.drawCentredString(
+            center_x,
+            1.05 * cm,
+            "Email: nectarimmobiliere@gmail.com / Tel :07 73 86 35 85",
+        )
+
+        canvas.setFont("Helvetica", 10)
+        canvas.setFillColor(colors.HexColor("#4b5563"))
+        canvas.drawCentredString(center_x, 0.43 * cm, f"Page: {page_num} / {total}")
 
         canvas.restoreState()
 
