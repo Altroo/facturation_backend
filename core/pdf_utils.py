@@ -806,7 +806,7 @@ class BasePDFGenerator:
         canvas.drawCentredString(
             center_x,
             1.74 * cm,
-            "RC:23851 , ICE:000534755000065 , CNSS: 2693452  IF4906318 , TP:50472831",
+            "RC:23851 , ICE:000534755000065 , CNSS: 2693452 IF4906318 , TP:50472831",
         )
 
         canvas.setFillColor(colors.HexColor("#7f91ad"))
