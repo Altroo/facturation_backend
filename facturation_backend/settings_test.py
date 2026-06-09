@@ -28,6 +28,15 @@ EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
 CELERY_TASK_ALWAYS_EAGER = True
 CELERY_TASK_EAGER_PROPAGATES = True
 
+# Disable throttling in tests to avoid rate-limit flakiness
+REST_FRAMEWORK["DEFAULT_THROTTLE_CLASSES"] = []  # noqa: F405
+REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"] = {  # noqa: F405
+    "anon": "10000/minute",
+    "user": "10000/minute",
+    "login": "10000/minute",
+    "password_reset": "10000/minute",
+}
+
 # Use in-memory channel layer (no Redis dependency for tests)
 CHANNEL_LAYERS = {
     "default": {

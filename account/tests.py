@@ -2522,7 +2522,9 @@ class TestAccountAdditionalCoverage:
 
         url = reverse("account:password_reset")
 
-        with patch("account.views.current_app") as mock_celery:
+        with patch("account.views.platform", "win32"), patch(
+            "account.views.current_app"
+        ) as mock_celery:
             response = self.client.put(
                 url,
                 {
