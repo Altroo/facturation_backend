@@ -42,6 +42,12 @@ python manage.py runserver 8000
 python -m pytest
 ```
 
-## Screenshot
+## Screenshots
+
+Sanitized product workspace:
+
+![Facturation product workspace](docs/screenshots/facturation-showcase.png)
+
+Authentication screen:
 
 ![Facturation login](docs/screenshots/facturation-login.png)
