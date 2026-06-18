@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
+from simple_history.admin import SimpleHistoryAdmin
 
 from core.admin import BaseDocumentAdmin, BaseDocumentLineInline
 from .models import FactureAvoir, FactureAvoirLine
@@ -98,7 +99,7 @@ class FactureAvoirAdmin(BaseDocumentAdmin):
         return False
 
 
-class FactureAvoirLineAdmin(admin.ModelAdmin):
+class FactureAvoirLineAdmin(SimpleHistoryAdmin):
     list_display = (
         "numero_avoir",
         "article_reference",
@@ -130,5 +131,104 @@ class FactureAvoirLineAdmin(admin.ModelAdmin):
         return obj.article.designation
 
 
+# Historical Model Admins (Read-only)
+class HistoricalFactureAvoirAdmin(admin.ModelAdmin):
+    """Read-only admin for viewing historical FactureAvoir records."""
+
+    list_display = (
+        "history_id",
+        "id",
+        "numero_avoir",
+        "client",
+        "facture_origine",
+        "statut",
+        "history_type",
+        "history_date",
+        "history_user",
+    )
+
+    list_filter = (
+        "history_type",
+        "history_date",
+        "statut",
+        "motif_avoir",
+    )
+
+    search_fields = (
+        "numero_avoir",
+        "facture_origine__numero_facture",
+        "client__raison_sociale",
+    )
+
+    readonly_fields = [
+        field.name
+        for field in FactureAvoir._meta.get_fields()
+        if hasattr(field, "name") and not field.many_to_many and not field.one_to_many
+    ] + [
+        "history_id",
+        "history_date",
+        "history_change_reason",
+        "history_type",
+        "history_user",
+    ]
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+
+class HistoricalFactureAvoirLineAdmin(admin.ModelAdmin):
+    """Read-only admin for viewing historical FactureAvoirLine records."""
+
+    list_display = (
+        "history_id",
+        "id",
+        "facture_avoir",
+        "article",
+        "quantity",
+        "history_type",
+        "history_date",
+        "history_user",
+    )
+
+    list_filter = (
+        "history_type",
+        "history_date",
+    )
+
+    search_fields = (
+        "facture_avoir__numero_avoir",
+        "article__reference",
+    )
+
+    readonly_fields = [
+        field.name
+        for field in FactureAvoirLine._meta.get_fields()
+        if hasattr(field, "name") and not field.many_to_many and not field.one_to_many
+    ] + [
+        "history_id",
+        "history_date",
+        "history_change_reason",
+        "history_type",
+        "history_user",
+    ]
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+
 admin.site.register(FactureAvoir, FactureAvoirAdmin)
 admin.site.register(FactureAvoirLine, FactureAvoirLineAdmin)
+admin.site.register(FactureAvoir.history.model, HistoricalFactureAvoirAdmin)
+admin.site.register(FactureAvoirLine.history.model, HistoricalFactureAvoirLineAdmin)

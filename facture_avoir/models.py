@@ -5,6 +5,7 @@ from django.db.models import Sum
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from django.utils.translation import gettext_lazy as _
+from simple_history.models import HistoricalRecords
 
 from article.models import Article
 from core.models import (
@@ -65,6 +66,11 @@ class FactureAvoir(BaseDeviFactureDocument):
         blank=True,
         null=True,
         help_text=_("Référence optionnelle pour les avoirs libres"),
+    )
+
+    history = HistoricalRecords(
+        verbose_name=_("Historique Facture d'avoir"),
+        verbose_name_plural=_("Historiques Factures d'avoir"),
     )
 
     class Meta:
@@ -141,6 +147,11 @@ class FactureAvoirLine(BaseDeviFactureLine):
         on_delete=models.PROTECT,
         verbose_name=_("Article"),
         help_text=_("Article associé à cette ligne d'avoir"),
+    )
+
+    history = HistoricalRecords(
+        verbose_name=_("Historique Ligne de facture d'avoir"),
+        verbose_name_plural=_("Historiques Lignes de factures d'avoir"),
     )
 
     class Meta:
