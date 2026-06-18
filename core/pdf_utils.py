@@ -294,6 +294,8 @@ class BasePDFGenerator:
     INNER_COL_WIDTH = HALF_WIDTH - 0.5 * cm  # inner column with gap
     MAX_TAIL_COMPANION_ROWS = 4
     NECTAR_FOOTER_MARGIN = 3.2 * cm
+    PDF_TYPES_WITH_REMISE = {"avec_remise", "avec_unite", "avec_unite_avec_remise"}
+    PDF_TYPES_WITH_UNITE = {"avec_unite", "avec_unite_sans_remise", "avec_unite_avec_remise"}
 
     def __init__(
         self, document, company, pdf_type: str = "normal", language: str = "fr"
@@ -316,6 +318,14 @@ class BasePDFGenerator:
         self.styles = getSampleStyleSheet()
         self._setup_translations()
         self._setup_custom_styles()
+
+    def _should_show_remise(self) -> bool:
+        """Return whether this PDF variant should display remise columns and totals."""
+        return self.pdf_type in self.PDF_TYPES_WITH_REMISE
+
+    def _should_show_unite(self) -> bool:
+        """Return whether this PDF variant should display article units."""
+        return self.pdf_type in self.PDF_TYPES_WITH_UNITE
 
     def _setup_translations(self) -> None:
         """Setup translation dictionary for French and English."""

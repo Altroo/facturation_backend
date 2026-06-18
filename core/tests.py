@@ -2068,6 +2068,26 @@ class TestBasePDFGenerator:
         generator = BasePDFGenerator(pdf_devi, pdf_company, pdf_type="avec_remise")
         assert generator.pdf_type == "avec_remise"
 
+    @pytest.mark.parametrize(
+        ("pdf_type", "expected_remise", "expected_unite"),
+        [
+            ("avec_remise", True, False),
+            ("sans_remise", False, False),
+            ("avec_unite_sans_remise", False, True),
+            ("avec_unite_avec_remise", True, True),
+            ("avec_unite", True, True),
+        ],
+    )
+    def test_pdf_variant_visibility_helpers(
+        self, pdf_devi, pdf_company, pdf_type, expected_remise, expected_unite
+    ):
+        """PDF variants consistently control remise and unit visibility."""
+
+        generator = BasePDFGenerator(pdf_devi, pdf_company, pdf_type=pdf_type)
+
+        assert generator._should_show_remise() is expected_remise
+        assert generator._should_show_unite() is expected_unite
+
     def test_setup_custom_styles(self, pdf_devi, pdf_company):
         """Test custom styles are set up correctly."""
 

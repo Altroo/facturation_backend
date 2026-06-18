@@ -178,3 +178,36 @@ def test_avoir_delete_is_not_allowed(avoir_context):
     )
 
     assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
+
+
+@pytest.mark.parametrize(
+    "pdf_type", ["avec_unite_sans_remise", "avec_unite_avec_remise"]
+)
+def test_avoir_pdf_accepts_explicit_unit_variants(avoir_context, pdf_type):
+    avoir = FactureAvoir.objects.create(
+        client=avoir_context["client"],
+        company=avoir_context["company"],
+        date_avoir=timezone.localdate(),
+        motif_avoir="autre",
+        mode_paiement=avoir_context["mode_paiement"],
+        created_by_user=avoir_context["user"],
+    )
+    FactureAvoirLine.objects.create(
+        facture_avoir=avoir,
+        article=avoir_context["article"],
+        prix_achat=Decimal("80.00"),
+        prix_vente=Decimal("100.00"),
+        quantity=Decimal("1.00"),
+        remise_type="Pourcentage",
+        remise=Decimal("10.00"),
+    )
+    avoir.recalc_totals()
+    avoir.save()
+
+    response = avoir_context["api_client"].get(
+        reverse("facture_avoir:facture-avoir-pdf-fr", kwargs={"pk": avoir.pk})
+        + f"?company_id={avoir_context['company'].id}&type={pdf_type}"
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response["Content-Type"] == "application/pdf"

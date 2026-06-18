@@ -98,8 +98,8 @@ class DeviPDFGenerator(BasePDFGenerator):
             )
         )
         elements.append(Spacer(1, 0.7 * cm))
-        show_remise = self.pdf_type != "sans_remise"
-        show_unite = self.pdf_type == "avec_unite"
+        show_remise = self._should_show_remise()
+        show_unite = self._should_show_unite()
         elements.append(
             self._build_standard_articles_table(
                 show_remise=show_remise, show_unite=show_unite
