@@ -208,6 +208,11 @@ class Membership(models.Model):
         blank=True,
         help_text=_("Rôle assigné à l'utilisateur dans l'entreprise"),
     )
+    can_validate_factures = models.BooleanField(
+        default=False,
+        verbose_name=_("Autoriser la validation des factures"),
+        help_text=_("Autorise cet utilisateur à valider les factures client."),
+    )
 
     history = HistoricalRecords(
         verbose_name=_("Historique Membre"),

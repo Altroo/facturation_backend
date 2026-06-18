@@ -43,6 +43,13 @@ class Reglement(models.Model):
         default="",
     )
 
+    observations = models.TextField(
+        verbose_name=_("Observations"),
+        help_text=_("Observations optionnelles concernant le règlement"),
+        blank=True,
+        default="",
+    )
+
     montant = models.DecimalField(
         max_digits=10,
         decimal_places=2,

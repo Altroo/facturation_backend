@@ -11,8 +11,71 @@ from core.serializers import (
 from .models import FactureClient, FactureClientLine
 
 
-class FactureClientListSerializer(BaseListSerializer):
+class FactureClientPaymentFieldsMixin:
+    nombre_paiements = serializers.SerializerMethodField()
+    total_paye = serializers.SerializerMethodField()
+    reste_a_payer = serializers.SerializerMethodField()
+    statut_paiement = serializers.SerializerMethodField()
+
+    @staticmethod
+    def _get_total_paye(obj):
+        annotated = getattr(obj, "total_paid", None)
+        if annotated is not None:
+            return annotated
+
+        from reglement.models import Reglement
+
+        return Reglement.get_total_reglements_for_facture(obj.id)
+
+    @staticmethod
+    def _get_total_avoirs(obj):
+        annotated = getattr(obj, "total_avoirs", None)
+        if annotated is not None:
+            return annotated
+
+        from facture_avoir.models import FactureAvoir
+
+        return FactureAvoir.get_total_avoirs_for_facture(obj.id)
+
+    @staticmethod
+    def get_nombre_paiements(obj):
+        annotated = getattr(obj, "payment_count", None)
+        if annotated is not None:
+            return annotated
+
+        from reglement.models import Reglement
+
+        return Reglement.objects.filter(
+            facture_client_id=obj.id, statut="Valide"
+        ).count()
+
+    def get_total_paye(self, obj):
+        return self._get_total_paye(obj)
+
+    def get_reste_a_payer(self, obj):
+        return (
+            obj.total_ttc_apres_remise
+            - self._get_total_avoirs(obj)
+            - self._get_total_paye(obj)
+        )
+
+    def get_statut_paiement(self, obj):
+        total_paye = self._get_total_paye(obj)
+        reste_a_payer = self.get_reste_a_payer(obj)
+        if reste_a_payer <= 0:
+            return "Payée"
+        if total_paye > 0:
+            return "Partiellement payée"
+        return "Non payée"
+
+
+class FactureClientListSerializer(FactureClientPaymentFieldsMixin, BaseListSerializer):
     """List serializer for FactureClient with totals as decimals."""
+
+    nombre_paiements = serializers.SerializerMethodField()
+    total_paye = serializers.SerializerMethodField()
+    reste_a_payer = serializers.SerializerMethodField()
+    statut_paiement = serializers.SerializerMethodField()
 
     class Meta:
         model = FactureClient
@@ -32,6 +95,10 @@ class FactureClientListSerializer(BaseListSerializer):
             "created_by_user",
             "created_by_user_name",
             "lignes_count",
+            "nombre_paiements",
+            "total_paye",
+            "reste_a_payer",
+            "statut_paiement",
             "remise_type",
             "remise",
             # totals (read-only)
@@ -103,9 +170,13 @@ class FactureClientLineSerializer(serializers.ModelSerializer):
         ]
 
 
-class FactureClientSerializer(BaseCreateSerializer):
+class FactureClientSerializer(FactureClientPaymentFieldsMixin, BaseCreateSerializer):
     """Base serializer for FactureClient create operations."""
 
+    nombre_paiements = serializers.SerializerMethodField()
+    total_paye = serializers.SerializerMethodField()
+    reste_a_payer = serializers.SerializerMethodField()
+    statut_paiement = serializers.SerializerMethodField()
     lignes = FactureClientLineWriteSerializer(
         many=True, write_only=True, required=False
     )
@@ -143,6 +214,10 @@ class FactureClientSerializer(BaseCreateSerializer):
             "created_by_user",
             "created_by_user_id",
             "created_by_user_name",
+            "nombre_paiements",
+            "total_paye",
+            "reste_a_payer",
+            "statut_paiement",
             "lignes",
             "remise_type",
             "remise",
@@ -160,6 +235,10 @@ class FactureClientSerializer(BaseCreateSerializer):
             "company",
             "created_by_user",
             "statut",
+            "nombre_paiements",
+            "total_paye",
+            "reste_a_payer",
+            "statut_paiement",
             "total_ht",
             "total_tva",
             "total_ttc",
@@ -169,9 +248,15 @@ class FactureClientSerializer(BaseCreateSerializer):
         ]
 
 
-class FactureClientDetailSerializer(BaseDetailUpdateSerializer):
+class FactureClientDetailSerializer(
+    FactureClientPaymentFieldsMixin, BaseDetailUpdateSerializer
+):
     """Detailed serializer for retrieve/update with upsert semantics."""
 
+    nombre_paiements = serializers.SerializerMethodField()
+    total_paye = serializers.SerializerMethodField()
+    reste_a_payer = serializers.SerializerMethodField()
+    statut_paiement = serializers.SerializerMethodField()
     lignes = FactureClientLineWriteSerializer(
         many=True, write_only=True, required=False
     )

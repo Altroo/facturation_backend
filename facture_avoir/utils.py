@@ -7,7 +7,7 @@ from core.utils import format_number_with_dynamic_digits
 
 
 def get_next_numero_facture_avoir(company_id: int) -> str:
-    """Return the next credit-note number like the other documents: '0001/26'."""
+    """Return the next credit-note number, independently from invoices: 'AV001/26'."""
     year_suffix = f"{timezone.localtime(timezone.now()).year % 100:02d}"
 
     from .models import FactureAvoir
@@ -25,7 +25,7 @@ def get_next_numero_facture_avoir(company_id: int) -> str:
 
         used_numbers = []
         for raw in existing:
-            match = search(r"^(\d+)/\d{2}$", raw or "")
+            match = search(r"^AV(\d+)/\d{2}$", raw or "")
             if match:
                 try:
                     used_numbers.append(int(match.group(1)))
@@ -39,5 +39,5 @@ def get_next_numero_facture_avoir(company_id: int) -> str:
                 next_number = i
                 break
 
-        formatted_number = format_number_with_dynamic_digits(next_number, min_digits=4)
-        return f"{formatted_number}/{year_suffix}"
+        formatted_number = format_number_with_dynamic_digits(next_number, min_digits=3)
+        return f"AV{formatted_number}/{year_suffix}"

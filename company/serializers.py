@@ -18,7 +18,7 @@ class MembershipUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Membership
-        fields = ["id", "first_name", "last_name", "role"]
+        fields = ["id", "first_name", "last_name", "role", "can_validate_factures"]
         read_only_fields = fields
 
 
@@ -32,7 +32,13 @@ class MembershipCompanySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Membership
-        fields = ["membership_id", "company_id", "raison_sociale", "role"]
+        fields = [
+            "membership_id",
+            "company_id",
+            "raison_sociale",
+            "role",
+            "can_validate_factures",
+        ]
         read_only_fields = fields
 
 
@@ -63,10 +69,17 @@ class CompanyListSerializer(serializers.ModelSerializer):
 
 class CompanyBasicListSerializer(serializers.ModelSerializer):
     role = serializers.SerializerMethodField()
+    can_validate_factures = serializers.SerializerMethodField()
 
     class Meta:
         model = Company
-        fields = ["id", "raison_sociale", "role", "uses_foreign_currency"]
+        fields = [
+            "id",
+            "raison_sociale",
+            "role",
+            "uses_foreign_currency",
+            "can_validate_factures",
+        ]
         read_only_fields = fields
 
     def get_role(self, obj):
@@ -93,6 +106,19 @@ class CompanyBasicListSerializer(serializers.ModelSerializer):
             .first()
         )
         return membership.role.name if membership and membership.role else None
+
+    def get_can_validate_factures(self, obj):
+        user_memberships = getattr(obj, "_user_memberships", None)
+        if user_memberships is not None:
+            if user_memberships:
+                return user_memberships[0].can_validate_factures
+            return False
+
+        request = self.context.get("request")
+        if not request:
+            return False
+        membership = Membership.objects.filter(user=request.user, company=obj).first()
+        return bool(membership and membership.can_validate_factures)
 
 
 class CompanySerializer(serializers.ModelSerializer):
@@ -276,9 +302,10 @@ class CompanySerializer(serializers.ModelSerializer):
 class ManagedByItemSerializer(serializers.Serializer):
     pk = serializers.IntegerField()
     role = serializers.CharField()
+    can_validate_factures = serializers.BooleanField(required=False, default=False)
 
     class Meta:
-        fields = ["pk", "role"]
+        fields = ["pk", "role", "can_validate_factures"]
 
 
 class CompanyDetailSerializer(CompanySerializer):
@@ -307,6 +334,7 @@ class CompanyDetailSerializer(CompanySerializer):
         for item in items:
             user_id = item["pk"]
             role_name = item["role"]
+            can_validate_factures = item.get("can_validate_factures", False)
             try:
                 role_group = Role.objects.get(name=role_name)
             except Role.DoesNotExist:
@@ -317,6 +345,7 @@ class CompanyDetailSerializer(CompanySerializer):
                 company=company,
                 user_id=user_id,
                 role=role_group,
+                can_validate_factures=can_validate_factures,
             )
 
     def update(self, instance, validated_data):
@@ -341,7 +370,11 @@ class CompanyDetailSerializer(CompanySerializer):
 
         # Build the list of {pk, role}
         representation["managed_by"] = [
-            {"pk": m.user.id, "role": m.role.name}
+            {
+                "pk": m.user.id,
+                "role": m.role.name,
+                "can_validate_factures": m.can_validate_factures,
+            }
             for m in instance.memberships.select_related("user", "role")
         ]
 

@@ -23,6 +23,9 @@ class ReglementFilter(IsEmptyAutoMixin, django_filters.FilterSet):
     facture_client_id = django_filters.NumberFilter(
         field_name="facture_client__id", label=_("Facture Client ID")
     )
+    facture_client = django_filters.NumberFilter(
+        field_name="facture_client__id", label=_("Facture Client ID")
+    )
     mode_reglement_id = django_filters.NumberFilter(
         field_name="mode_reglement__id", label=_("Mode Règlement ID")
     )
@@ -89,6 +92,9 @@ class ReglementFilter(IsEmptyAutoMixin, django_filters.FilterSet):
         field_name="libelle", lookup_expr="iendswith"
     )
     libelle = django_filters.CharFilter(field_name="libelle", lookup_expr="exact")
+    observations__icontains = django_filters.CharFilter(
+        field_name="observations", lookup_expr="icontains"
+    )
 
     # Text lookup filters for facture_client_numero (mapped to facture_client__numero_facture)
     facture_client_numero__icontains = django_filters.CharFilter(
@@ -137,6 +143,7 @@ class ReglementFilter(IsEmptyAutoMixin, django_filters.FilterSet):
         fields = [
             "statut",
             "facture_client_id",
+            "facture_client",
             "mode_reglement_id",
             "date_reglement",
             "date_echeance",
@@ -150,6 +157,7 @@ class ReglementFilter(IsEmptyAutoMixin, django_filters.FilterSet):
             "libelle__icontains",
             "libelle__istartswith",
             "libelle__iendswith",
+            "observations__icontains",
             "facture_client_numero",
             "facture_client_numero__icontains",
             "facture_client_numero__istartswith",
@@ -176,6 +184,7 @@ class ReglementFilter(IsEmptyAutoMixin, django_filters.FilterSet):
         """
         Global search across:
         - libelle
+        - observations
         - facture_client.numero_facture
         - facture_client.client.raison_sociale
         """
@@ -190,6 +199,7 @@ class ReglementFilter(IsEmptyAutoMixin, django_filters.FilterSet):
 
         search_vector = (
             SearchVector("libelle", weight="A")
+            + SearchVector("observations", weight="C")
             + SearchVector("facture_client__numero_facture", weight="A")
             + SearchVector("facture_client__client__raison_sociale", weight="B")
         )
@@ -214,6 +224,7 @@ class ReglementFilter(IsEmptyAutoMixin, django_filters.FilterSet):
         # Fallback to icontains search
         fallback_q = (
             Q(libelle__icontains=value)
+            | Q(observations__icontains=value)
             | Q(facture_client__numero_facture__icontains=value)
             | Q(facture_client__client__raison_sociale__icontains=value)
         )

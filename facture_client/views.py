@@ -2,6 +2,7 @@ from decimal import Decimal
 
 from django.db.models import (
     F,
+    Count,
     Sum as DjangoSum,
     Value,
     Subquery,
@@ -25,6 +26,7 @@ from bon_de_livraison.utils import get_next_numero_bon_livraison
 from company.models import Company
 from core.authentication import JWTQueryParamAuthentication
 from core.pdf_utils import BasePDFGenerator
+from core.permissions import can_update, can_validate_factures
 from core.views import (
     BaseDocumentListCreateView,
     BaseDocumentDetailEditDeleteView,
@@ -49,6 +51,12 @@ from .utils import get_next_numero_facture_client
 
 def _annotate_payment_and_avoir_totals(queryset):
     """Annotate invoice balances without multiplying reglement/avoir joins."""
+    payment_count_subquery = Subquery(
+        Reglement.objects.filter(facture_client_id=OuterRef("pk"), statut="Valide")
+        .values("facture_client_id")
+        .annotate(total=Count("id"))
+        .values("total")[:1],
+    )
     total_paid_subquery = Subquery(
         Reglement.objects.filter(facture_client_id=OuterRef("pk"), statut="Valide")
         .values("facture_client_id")
@@ -72,6 +80,10 @@ def _annotate_payment_and_avoir_totals(queryset):
             total_paid_subquery,
             Value(Decimal("0.00")),
             output_field=money_field,
+        ),
+        payment_count=Coalesce(
+            payment_count_subquery,
+            Value(0),
         ),
         total_avoirs=Coalesce(
             total_avoirs_subquery,
@@ -111,7 +123,7 @@ class FactureClientListCreateView(BaseDocumentListCreateView):
                 {"company_id": _("company_id doit être un entier valide.")}
             )
         self._check_company_access(request, company_id)
-        base_queryset = (
+        base_queryset = _annotate_payment_and_avoir_totals(
             self.model.objects.filter(client__company_id=company_id)
             .select_related(*self.list_select_related)
             .prefetch_related(*self.list_prefetch_related)
@@ -159,6 +171,27 @@ class GenerateNumeroFactureView(BaseGenerateNumeroView):
 class FactureClientStatusUpdateView(BaseStatusUpdateView):
     model = FactureClient
     document_name = "facture client"
+
+    def patch(self, request, pk, *args, **kwargs):
+        object_ = self.get_object(pk)
+        if not self._has_membership(request.user, object_.client.company_id):
+            raise PermissionDenied(
+                _("Vous n'êtes pas autorisé à modifier cette facture client.")
+            )
+        if not can_update(request.user, object_.client.company_id):
+            raise PermissionDenied(
+                _("Vous n'avez pas les droits pour modifier cette facture client.")
+            )
+
+        new_status = request.data.get("statut")
+        if new_status == "Accepté" and not can_validate_factures(
+            request.user, object_.client.company_id
+        ):
+            raise PermissionDenied(
+                _("Vous n'avez pas les droits pour valider cette facture client.")
+            )
+
+        return super().patch(request, pk, *args, **kwargs)
 
 
 class FactureClientConvertToBonDeLivraisonView(BaseConversionView):
@@ -279,12 +312,9 @@ class FactureClientForPaymentView(APIView):
             )
 
         # Get factures with allowed statuses
-        base_factures = (
-            FactureClient.objects.filter(
-                client__company_id=company_id, statut__in=["Envoyé", "Accepté"]
-            )
-            .select_related("client")
-        )
+        base_factures = FactureClient.objects.filter(
+            client__company_id=company_id, statut__in=["Envoyé", "Accepté"]
+        ).select_related("client")
         factures = (
             _annotate_payment_and_avoir_totals(base_factures)
             .filter(
@@ -323,6 +353,9 @@ class FactureClientForPaymentView(APIView):
 
 class FactureClientPDFGenerator(BasePDFGenerator):
     """PDF generator for FactureClient documents."""
+
+    def _should_show_draft_watermark(self) -> bool:
+        return self.document.statut != "Accepté"
 
     def _build_content(self) -> list:
         """Build PDF content for facture client."""
@@ -411,6 +444,10 @@ class FactureClientPDFView(APIView):
         if not can_print(request.user, company.pk):
             raise PermissionDenied(
                 _("Vous n'avez pas les droits pour imprimer ce document.")
+            )
+        if facture_client.statut != "Accepté":
+            raise PermissionDenied(
+                _("Impossible d'imprimer une facture qui n'est pas validée.")
             )
 
         # Generate PDF

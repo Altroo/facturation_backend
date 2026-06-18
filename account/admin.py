@@ -106,8 +106,8 @@ class CustomUserAdmin(UserAdmin):
 
 
 class MembershipAdmin(ModelAdmin):
-    list_display = ("id", "user", "company", "role")
-    list_filter = ("role", "company")
+    list_display = ("id", "user", "company", "role", "can_validate_factures")
+    list_filter = ("role", "company", "can_validate_factures")
     search_fields = ("user__email", "company__raison_sociale", "role__name")
 
 
@@ -173,6 +173,7 @@ class HistoricalMembershipAdmin(admin.ModelAdmin):
         "user",
         "company",
         "role",
+        "can_validate_factures",
         "history_type",
         "history_date",
         "history_user",

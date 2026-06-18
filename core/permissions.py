@@ -135,3 +135,19 @@ def can_print(user: "CustomUser", company_id: int) -> bool:
     # Caissier, Comptable, and Commercial can print
     # Lecture cannot print
     return role in ROLES_WITH_PRINT
+
+
+def can_validate_factures(user: "CustomUser", company_id: int) -> bool:
+    """Check if user can validate client invoices for a company."""
+    if getattr(user, "is_superuser", False):
+        return True
+
+    from account.models import Membership
+
+    try:
+        membership = Membership.objects.only("can_validate_factures").get(
+            user=user, company_id=company_id
+        )
+    except Membership.DoesNotExist:
+        return False
+    return membership.can_validate_factures

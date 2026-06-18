@@ -141,6 +141,81 @@ class ClientDetailEditDeleteView(CompanyAccessMixin, APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+class ClientHistoryView(CompanyAccessMixin, APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    @staticmethod
+    def get_object(pk):
+        try:
+            return Client.objects.get(pk=pk)
+        except Client.DoesNotExist:
+            raise Http404(_("Aucun client ne correspond à la requête."))
+
+    def get(self, request, pk, *args, **kwargs):
+        client = self.get_object(pk)
+        if not self._has_membership(request.user, client.company_id):
+            raise PermissionDenied(_("Vous n'êtes pas autorisé à consulter ce client."))
+
+        from devi.models import Devi
+        from devi.serializers import DeviListSerializer
+        from facture_avoir.models import FactureAvoir
+        from facture_avoir.serializers import FactureAvoirListSerializer
+        from facture_client.models import FactureClient
+        from facture_client.serializers import FactureClientListSerializer
+        from facture_client.views import _annotate_payment_and_avoir_totals
+        from reglement.models import Reglement
+        from reglement.serializers import ReglementListSerializer
+
+        devis = (
+            Devi.objects.filter(client=client)
+            .select_related("client", "mode_paiement", "created_by_user")
+            .prefetch_related("lignes")
+            .order_by("-date_devis", "-id")
+        )
+        factures = _annotate_payment_and_avoir_totals(
+            FactureClient.objects.filter(client=client)
+            .select_related("client", "mode_paiement", "created_by_user")
+            .prefetch_related("lignes")
+        ).order_by("-date_facture", "-id")
+        avoirs = (
+            FactureAvoir.objects.filter(client=client)
+            .select_related(
+                "client",
+                "mode_paiement",
+                "created_by_user",
+                "facture_origine",
+            )
+            .prefetch_related("lignes")
+            .order_by("-date_avoir", "-id")
+        )
+        reglements = (
+            Reglement.objects.filter(facture_client__client=client)
+            .select_related(
+                "facture_client",
+                "facture_client__client",
+                "mode_reglement",
+            )
+            .order_by("-date_reglement", "-id")
+        )
+
+        context = {"request": request}
+        return Response(
+            {
+                "devis": DeviListSerializer(devis, many=True, context=context).data,
+                "factures": FactureClientListSerializer(
+                    factures, many=True, context=context
+                ).data,
+                "avoirs": FactureAvoirListSerializer(
+                    avoirs, many=True, context=context
+                ).data,
+                "reglements": ReglementListSerializer(
+                    reglements, many=True, context=context
+                ).data,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
 class GenerateClientCodeView(CompanyAccessMixin, APIView):
     """Return the next available ``code_client`` (e.g. ``CLT0018``).
     Automatically increases digit count when 9999 is reached."""

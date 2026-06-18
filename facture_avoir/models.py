@@ -15,7 +15,6 @@ from core.models import (
 from facture_client.models import FactureClient
 from .utils import get_next_numero_facture_avoir
 
-
 AVOIR_ACTIVE_STATUSES = ("Envoyé", "Accepté")
 
 
@@ -47,7 +46,7 @@ class FactureAvoir(BaseDeviFactureDocument):
     numero_avoir = models.CharField(
         max_length=20,
         verbose_name=_("Numéro de la facture d'avoir"),
-        help_text=_("Format ex: AV-2026-0001"),
+        help_text=_("Format ex: AV001/26"),
     )
     date_avoir = models.DateField(
         verbose_name=_("Date de l'avoir"),
@@ -115,7 +114,9 @@ class FactureAvoir(BaseDeviFactureDocument):
         ] or Decimal("0.00")
 
     @staticmethod
-    def get_total_avoirs_for_company(company_id: int, devise: str | None = None) -> Decimal:
+    def get_total_avoirs_for_company(
+        company_id: int, devise: str | None = None
+    ) -> Decimal:
         queryset = FactureAvoir.objects.filter(
             company_id=company_id,
             statut__in=AVOIR_ACTIVE_STATUSES,

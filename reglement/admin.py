@@ -85,6 +85,7 @@ class ReglementAdmin(SimpleHistoryAdmin):
         "client_name",
         "mode_reglement",
         "libelle",
+        "observations",
         "montant",
         "date_reglement",
         "date_echeance",
@@ -101,6 +102,7 @@ class ReglementAdmin(SimpleHistoryAdmin):
 
     search_fields = (
         "libelle",
+        "observations",
         "facture_client__numero_facture",
         "facture_client__client__raison_sociale",
     )
@@ -118,6 +120,7 @@ class ReglementAdmin(SimpleHistoryAdmin):
                     "facture_client",
                     "mode_reglement",
                     "libelle",
+                    "observations",
                     "montant",
                 )
             },

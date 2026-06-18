@@ -25,13 +25,20 @@ class MembershipSerializer(serializers.ModelSerializer):
 
     # Role is sent as a string (e.g. "Caissier")
     role = serializers.CharField(write_only=True)
+    can_validate_factures = serializers.BooleanField(required=False, default=False)
 
     # Returned for read‑only purposes
     raison_sociale = serializers.CharField(source="company.name", read_only=True)
 
     class Meta:
         model = Membership
-        fields = ["membership_id", "company_id", "role", "raison_sociale"]
+        fields = [
+            "membership_id",
+            "company_id",
+            "role",
+            "raison_sociale",
+            "can_validate_factures",
+        ]
 
     def to_representation(self, instance):
         """Handle None company gracefully."""
@@ -108,6 +115,9 @@ class MembershipSerializer(serializers.ModelSerializer):
         if "role" in validated_data:
             role_name = validated_data.pop("role")
             instance.role = self._get_role(role_name)
+
+        if "can_validate_factures" in validated_data:
+            instance.can_validate_factures = validated_data.pop("can_validate_factures")
 
         instance.save()
         return instance

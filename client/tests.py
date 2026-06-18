@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 import pytest
 from django.contrib.auth import get_user_model
 from django.urls import reverse
@@ -9,7 +11,11 @@ from client.models import Client
 from client.serializers import ClientListSerializer
 from client.views import ArchiveToggleClientView
 from company.models import Company
-from parameter.models import Ville
+from devi.models import Devi
+from facture_avoir.models import FactureAvoir
+from facture_client.models import FactureClient
+from parameter.models import ModePaiement, Ville
+from reglement.models import Reglement
 from .filters import ClientFilter
 
 
@@ -112,6 +118,47 @@ class TestClientAPI:
         response = self.client.get(url)
         assert response.status_code == status.HTTP_200_OK
         assert response.data["code_client"] == self.client_pm.code_client
+
+    def test_client_history_returns_documents_and_payments(self):
+        mode = ModePaiement.objects.create(nom="Virement", company=self.company)
+        Devi.objects.create(
+            numero_devis="DEV-HIST/26",
+            client=self.client_pm,
+            date_devis="2026-01-01",
+            mode_paiement=mode,
+        )
+        facture = FactureClient.objects.create(
+            numero_facture="FAC-HIST/26",
+            client=self.client_pm,
+            date_facture="2026-01-02",
+            mode_paiement=mode,
+            statut="Accepté",
+            total_ttc_apres_remise=Decimal("100.00"),
+        )
+        FactureAvoir.objects.create(
+            facture_origine=facture,
+            date_avoir="2026-01-03",
+            motif_avoir="autre",
+            statut="Accepté",
+            total_ttc_apres_remise=Decimal("10.00"),
+        )
+        Reglement.objects.create(
+            facture_client=facture,
+            mode_reglement=mode,
+            libelle="PAY-HIST/26",
+            montant=Decimal("25.00"),
+            date_reglement="2026-01-04",
+            date_echeance="2026-01-04",
+        )
+
+        url = reverse("client:client-history", args=[self.client_pm.id])
+        response = self.client.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["devis"][0]["numero_devis"] == "DEV-HIST/26"
+        assert response.data["factures"][0]["numero_facture"] == "FAC-HIST/26"
+        assert response.data["avoirs"][0]["numero_avoir"].startswith("AV")
+        assert response.data["reglements"][0]["libelle"] == "PAY-HIST/26"
 
     def test_update_client_pm(self):
         url = reverse("client:client-detail", args=[self.client_pm.id])

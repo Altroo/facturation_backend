@@ -741,7 +741,11 @@ class BasePDFGenerator:
             else self._add_page_footer
         )
 
-        doc.build(elements, onFirstPage=footer_callback, onLaterPages=footer_callback)
+        def page_callback(canvas, pdf_doc):
+            footer_callback(canvas, pdf_doc)
+            self._add_draft_watermark(canvas, pdf_doc)
+
+        doc.build(elements, onFirstPage=page_callback, onLaterPages=page_callback)
 
         self.buffer.seek(0)
         response = HttpResponse(self.buffer, content_type="application/pdf")
@@ -755,6 +759,26 @@ class BasePDFGenerator:
         if self._uses_nectar_layout():
             return self.NECTAR_FOOTER_MARGIN
         return self.BOTTOM_MARGIN
+
+    def _should_show_draft_watermark(self) -> bool:
+        return False
+
+    def _add_draft_watermark(self, canvas, _doc):
+        if not self._should_show_draft_watermark():
+            return
+
+        canvas.saveState()
+        try:
+            canvas.setFillAlpha(0.14)
+        except AttributeError:
+            pass
+        canvas.setFillColor(colors.HexColor("#7A7A7A"))
+        canvas.setFont("Helvetica-Bold", 76)
+        canvas.translate(self.PAGE_WIDTH / 2, self.PAGE_HEIGHT / 2)
+        canvas.rotate(35)
+        watermark = "DRAFT" if self.language == "en" else "BROUILLON"
+        canvas.drawCentredString(0, 0, watermark)
+        canvas.restoreState()
 
     def _add_page_footer(self, canvas, _doc):
         """Add footer with company info and page number at the bottom."""
@@ -1413,7 +1437,9 @@ class BasePDFGenerator:
         )
         line = Table([[""]], colWidths=[self.CONTENT_WIDTH], rowHeights=[0.01 * cm])
         line.setStyle(
-            TableStyle([("LINEBELOW", (0, 0), (-1, -1), 0.5, colors.HexColor("#e5e7eb"))])
+            TableStyle(
+                [("LINEBELOW", (0, 0), (-1, -1), 0.5, colors.HexColor("#e5e7eb"))]
+            )
         )
         return [table, line]
 
@@ -1435,7 +1461,9 @@ class BasePDFGenerator:
             lines.extend(["", f"ICE: {client.ICE}"])
 
         para = Paragraph("<br/>".join(lines), self.styles["NectarClient"])
-        table = Table([["", para]], colWidths=[self.CONTENT_WIDTH * 0.6, self.CONTENT_WIDTH * 0.4])
+        table = Table(
+            [["", para]], colWidths=[self.CONTENT_WIDTH * 0.6, self.CONTENT_WIDTH * 0.4]
+        )
         table.setStyle(TableStyle([("VALIGN", (0, 0), (-1, -1), "TOP")]))
         return table
 
@@ -1443,8 +1471,16 @@ class BasePDFGenerator:
         from decimal import Decimal as _Decimal
 
         headers = ["DESCRIPTION", "QUANTITÉ", "PRIX UNITAIRE", "TAXES", "MONTANT"]
-        col_widths = [self.CONTENT_WIDTH * 0.34, self.CONTENT_WIDTH * 0.16, self.CONTENT_WIDTH * 0.22, self.CONTENT_WIDTH * 0.11, self.CONTENT_WIDTH * 0.17]
-        table_data = [[Paragraph(f"<b>{h}</b>", self.styles["CustomSmall"]) for h in headers]]
+        col_widths = [
+            self.CONTENT_WIDTH * 0.34,
+            self.CONTENT_WIDTH * 0.16,
+            self.CONTENT_WIDTH * 0.22,
+            self.CONTENT_WIDTH * 0.11,
+            self.CONTENT_WIDTH * 0.17,
+        ]
+        table_data = [
+            [Paragraph(f"<b>{h}</b>", self.styles["CustomSmall"]) for h in headers]
+        ]
 
         for line in (
             self.document.lignes.select_related("article")
@@ -1459,10 +1495,19 @@ class BasePDFGenerator:
             table_data.append(
                 [
                     Paragraph(designation, self.styles["CustomSmall"]),
-                    Paragraph(format_number_for_pdf(line.quantity), self.styles["CustomSmallCenter"]),
-                    Paragraph(format_number_for_pdf(line.prix_vente), self.styles["CustomSmallCenter"]),
+                    Paragraph(
+                        format_number_for_pdf(line.quantity),
+                        self.styles["CustomSmallCenter"],
+                    ),
+                    Paragraph(
+                        format_number_for_pdf(line.prix_vente),
+                        self.styles["CustomSmallCenter"],
+                    ),
                     Paragraph(f"{tva_pct:.1f}%", self.styles["CustomSmallCenter"]),
-                    Paragraph(format_number_for_pdf(total_ht), self.styles["CustomSmallCenter"]),
+                    Paragraph(
+                        format_number_for_pdf(total_ht),
+                        self.styles["CustomSmallCenter"],
+                    ),
                 ]
             )
 
@@ -1487,7 +1532,9 @@ class BasePDFGenerator:
         return table
 
     def _build_nectar_totals_table(self) -> Table:
-        devise = "DH" if (self.document.devise or "MAD") == "MAD" else self.document.devise
+        devise = (
+            "DH" if (self.document.devise or "MAD") == "MAD" else self.document.devise
+        )
         rows = [
             ["Montant HT", f"{format_number_for_pdf(self.document.total_ht)} {devise}"],
             ["TVA", f"{format_number_for_pdf(self.document.total_tva)} {devise}"],
@@ -1541,12 +1588,21 @@ class BasePDFGenerator:
         date_table = Table(
             [
                 [
-                    Paragraph(f"<b>Date {date_article} {lower_label}:</b>", self.styles["CustomNormal"]),
+                    Paragraph(
+                        f"<b>Date {date_article} {lower_label}:</b>",
+                        self.styles["CustomNormal"],
+                    ),
                     Paragraph("<b>Date d'échéance:</b>", self.styles["CustomNormal"]),
                 ],
                 [
-                    Paragraph(self._format_date_for_nectar(document_date), self.styles["NectarClient"]),
-                    Paragraph(self._format_date_for_nectar(due_date), self.styles["NectarClient"]),
+                    Paragraph(
+                        self._format_date_for_nectar(document_date),
+                        self.styles["NectarClient"],
+                    ),
+                    Paragraph(
+                        self._format_date_for_nectar(due_date),
+                        self.styles["NectarClient"],
+                    ),
                 ],
             ],
             colWidths=[self.HALF_WIDTH, self.HALF_WIDTH],

@@ -54,6 +54,12 @@ def _create_fc_membership(user, company):
     return Membership.objects.create(user=user, company=company, role=caissier_role)
 
 
+def _accept_facture(facture):
+    facture.statut = "Accepté"
+    facture.save(update_fields=["statut"])
+    return facture
+
+
 @pytest.fixture
 def fc_conv_ville(fc_conv_company):
     return Ville.objects.create(nom="FCConvVille", company=fc_conv_company)
@@ -215,6 +221,26 @@ class TestFactureClientAPI(SharedDocumentAPITestsMixin):
 
     def test_update_facture_client_status_invalid(self):
         self.shared_test_update_status_invalid()
+
+    def test_accept_facture_requires_validation_permission(self):
+        url = self._status_url(self.doc.id)
+        response = self.client_api.patch(url, {"statut": "Accepté"}, format="json")
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        self.doc.refresh_from_db()
+        assert self.doc.statut != "Accepté"
+
+    def test_accept_facture_with_validation_permission(self):
+        Membership.objects.filter(user=self.user, company=self.company).update(
+            can_validate_factures=True
+        )
+
+        url = self._status_url(self.doc.id)
+        response = self.client_api.patch(url, {"statut": "Accepté"}, format="json")
+
+        assert response.status_code == status.HTTP_200_OK
+        self.doc.refresh_from_db()
+        assert self.doc.statut == "Accepté"
 
     def test_smoke_totals_present_on_detail(self):
         self.shared_test_get_detail()
@@ -700,6 +726,7 @@ class TestFactureClientPDFGeneration:
         """Test generating PDF for facture client."""
 
         _create_fc_membership(fc_conv_user, fc_conv_company)
+        _accept_facture(fc_conv_with_lines)
 
         client_api = APIClient()
         client_api.force_authenticate(user=fc_conv_user)
@@ -776,6 +803,7 @@ class TestFactureClientPDFGeneration:
         """Test PDF generation with sans_remise type."""
 
         _create_fc_membership(fc_conv_user, fc_conv_company)
+        _accept_facture(fc_conv_with_lines)
 
         client_api = APIClient()
         client_api.force_authenticate(user=fc_conv_user)
@@ -797,6 +825,7 @@ class TestFactureClientPDFGeneration:
         """Test PDF generation with avec_unite type."""
 
         _create_fc_membership(fc_conv_user, fc_conv_company)
+        _accept_facture(fc_conv_with_lines)
 
         client_api = APIClient()
         client_api.force_authenticate(user=fc_conv_user)
@@ -811,6 +840,26 @@ class TestFactureClientPDFGeneration:
 
         assert response.status_code == status.HTTP_200_OK
         assert response["Content-Type"] == "application/pdf"
+
+    def test_pdf_draft_forbidden(
+        self, fc_conv_user, fc_conv_company, fc_conv_with_lines
+    ):
+        """Draft facture client PDFs are blocked until validation."""
+
+        _create_fc_membership(fc_conv_user, fc_conv_company)
+
+        client_api = APIClient()
+        client_api.force_authenticate(user=fc_conv_user)
+
+        url = (
+            reverse(
+                "facture_client:facture-client-pdf-fr", args=[fc_conv_with_lines.id]
+            )
+            + f"?company_id={fc_conv_company.id}"
+        )
+        response = client_api.get(url)
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
 @pytest.mark.django_db

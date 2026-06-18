@@ -90,6 +90,7 @@ class CompanyListCreateView(APIView):
             company=company,
             user=request.user,
             role=admin_group,
+            can_validate_factures=True,
         )
 
         managed_by = request.data.get("managed_by")
@@ -122,14 +123,14 @@ class CompanyDetailEditDeleteView(APIView):
                 _has_staff_company_access(user) or _is_admin_for_company(user, company)
             ):
                 raise PermissionDenied(
-                    detail=_("Seuls les administrateurs peuvent accéder à cette société.")
+                    detail=_(
+                        "Seuls les administrateurs peuvent accéder à cette société."
+                    )
                 )
             return company
 
         if not (_has_staff_company_access(user) or can_view(user, company.id)):
-            raise PermissionDenied(
-                detail=_("Vous n'avez pas accès à cette société.")
-            )
+            raise PermissionDenied(detail=_("Vous n'avez pas accès à cette société."))
 
         return company
 
@@ -140,7 +141,9 @@ class CompanyDetailEditDeleteView(APIView):
         ):
             serializer = CompanyDetailSerializer(company, context={"request": request})
         else:
-            serializer = CompanyBasicListSerializer(company, context={"request": request})
+            serializer = CompanyBasicListSerializer(
+                company, context={"request": request}
+            )
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def put(self, request, pk, *args, **kwargs):

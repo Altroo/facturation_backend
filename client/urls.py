@@ -3,6 +3,7 @@ from django.urls import path
 from .views import (
     ClientListCreateView,
     ClientDetailEditDeleteView,
+    ClientHistoryView,
     GenerateClientCodeView,
     ArchiveToggleClientView,
     BulkDeleteClientView,
@@ -18,6 +19,8 @@ urlpatterns = [
     path("bulk_delete/", BulkDeleteClientView.as_view(), name="client-bulk-delete"),
     # PATCH bulk archive/unarchive clients
     path("bulk_archive/", BulkArchiveClientView.as_view(), name="client-bulk-archive"),
+    # GET full client document/payment history
+    path("<int:pk>/history/", ClientHistoryView.as_view(), name="client-history"),
     # GET Client detail, PUT update, DELETE
     path("<int:pk>/", ClientDetailEditDeleteView.as_view(), name="client-detail"),
     # GET generated code client
