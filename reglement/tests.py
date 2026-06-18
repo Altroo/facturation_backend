@@ -1203,6 +1203,46 @@ class TestReglementSerializers:
         assert "date_echeance" in data
         assert "statut" in data
 
+    def test_serializers_display_physical_person_client_name(
+        self,
+        reglement_ville,
+        reglement_company,
+        reglement_user,
+        reglement_mode_paiement,
+        reglement_mode_reglement,
+    ):
+        """Test payment serializers display PP clients instead of blank names."""
+
+        client = Client.objects.create(
+            code_client="REGLPP",
+            client_type=Client.PERSONNE_PHYSIQUE,
+            nom="Doe",
+            prenom="Jane",
+            ville=reglement_ville,
+            company=reglement_company,
+            delai_de_paiement=30,
+        )
+        facture = FactureClient.objects.create(
+            numero_facture="REG/PP",
+            client=client,
+            date_facture="2025-01-01",
+            mode_paiement=reglement_mode_paiement,
+            statut="Accepté",
+            created_by_user=reglement_user,
+        )
+        reglement = Reglement.objects.create(
+            facture_client=facture,
+            mode_reglement=reglement_mode_reglement,
+            libelle="Physical person payment",
+            montant=Decimal("10.00"),
+            date_reglement="2025-01-15",
+            date_echeance="2025-02-15",
+            statut="Valide",
+        )
+
+        assert ReglementListSerializer(reglement).data["client_name"] == "Doe Jane"
+        assert ReglementDetailSerializer(reglement).data["client_name"] == "Doe Jane"
+
     def test_detail_serializer_financial_fields(self, reglement_obj):
         """Test ReglementDetailSerializer contains financial fields."""
 

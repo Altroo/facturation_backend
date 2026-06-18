@@ -9,19 +9,23 @@ from .models import Reglement
 ALLOWED_FACTURE_STATUSES = ["Envoyé", "Accepté"]
 
 
-class ReglementListSerializer(serializers.ModelSerializer):
+class ReglementClientNameMixin:
+    @staticmethod
+    def get_client_name(obj):
+        client = obj.facture_client.client
+        return str(client) if client else None
+
+
+class ReglementListSerializer(ReglementClientNameMixin, serializers.ModelSerializer):
     """Serializer for listing règlements."""
 
+    client_name = serializers.SerializerMethodField()
     facture_client_numero = serializers.CharField(
         source="facture_client.numero_facture",
         read_only=True,
     )
     client = serializers.IntegerField(
         source="facture_client.client.id",
-        read_only=True,
-    )
-    client_name = serializers.CharField(
-        source="facture_client.client.raison_sociale",
         read_only=True,
     )
     mode_reglement_name = serializers.CharField(
@@ -59,19 +63,16 @@ class ReglementListSerializer(serializers.ModelSerializer):
 # NOTE: This serializer is designed for single-object retrieval only.
 # Using it in a list context will cause N+1 queries (one per SerializerMethodField).
 # For lists, use ReglementListSerializer.
-class ReglementDetailSerializer(serializers.ModelSerializer):
+class ReglementDetailSerializer(ReglementClientNameMixin, serializers.ModelSerializer):
     """Serializer for règlement detail with invoice-specific financial info."""
 
+    client_name = serializers.SerializerMethodField()
     facture_client_numero = serializers.CharField(
         source="facture_client.numero_facture",
         read_only=True,
     )
     client = serializers.IntegerField(
         source="facture_client.client.id",
-        read_only=True,
-    )
-    client_name = serializers.CharField(
-        source="facture_client.client.raison_sociale",
         read_only=True,
     )
     mode_reglement_name = serializers.CharField(
@@ -130,15 +131,12 @@ class ReglementDetailSerializer(serializers.ModelSerializer):
         return Reglement.get_reste_a_payer(obj.facture_client)
 
 
-class ReglementCreateSerializer(serializers.ModelSerializer):
+class ReglementCreateSerializer(ReglementClientNameMixin, serializers.ModelSerializer):
     """Serializer for creating règlements with montant validation."""
 
+    client_name = serializers.SerializerMethodField()
     facture_client_numero = serializers.CharField(
         source="facture_client.numero_facture",
-        read_only=True,
-    )
-    client_name = serializers.CharField(
-        source="facture_client.client.raison_sociale",
         read_only=True,
     )
     mode_reglement_name = serializers.CharField(
@@ -222,15 +220,12 @@ class ReglementCreateSerializer(serializers.ModelSerializer):
         return data
 
 
-class ReglementUpdateSerializer(serializers.ModelSerializer):
+class ReglementUpdateSerializer(ReglementClientNameMixin, serializers.ModelSerializer):
     """Serializer for updating règlements with montant validation."""
 
+    client_name = serializers.SerializerMethodField()
     facture_client_numero = serializers.CharField(
         source="facture_client.numero_facture",
-        read_only=True,
-    )
-    client_name = serializers.CharField(
-        source="facture_client.client.raison_sociale",
         read_only=True,
     )
     mode_reglement_name = serializers.CharField(
