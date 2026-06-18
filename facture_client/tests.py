@@ -25,7 +25,6 @@ from parameter.models import ModePaiement, Ville
 from .filters import FactureClientFilter
 from .models import FactureClient, FactureClientLine
 from .serializers import FactureClientSerializer
-from .views import FactureClientPDFGenerator
 
 # -----------------------------------------------------------------------------
 # Fixtures
@@ -842,10 +841,10 @@ class TestFactureClientPDFGeneration:
         assert response.status_code == status.HTTP_200_OK
         assert response["Content-Type"] == "application/pdf"
 
-    def test_pdf_draft_allowed_with_watermark(
+    def test_pdf_draft_forbidden(
         self, fc_conv_user, fc_conv_company, fc_conv_with_lines
     ):
-        """Draft facture client PDFs are generated with a watermark."""
+        """Draft facture client PDFs are blocked until validation."""
 
         _create_fc_membership(fc_conv_user, fc_conv_company)
 
@@ -860,14 +859,7 @@ class TestFactureClientPDFGeneration:
         )
         response = client_api.get(url)
 
-        assert response.status_code == status.HTTP_200_OK
-        assert response["Content-Type"] == "application/pdf"
-        assert (
-            FactureClientPDFGenerator(
-                fc_conv_with_lines, fc_conv_company, "avec_remise", "fr"
-            )._should_show_draft_watermark()
-            is True
-        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
 @pytest.mark.django_db

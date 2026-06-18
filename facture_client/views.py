@@ -445,7 +445,12 @@ class FactureClientPDFView(APIView):
             raise PermissionDenied(
                 _("Vous n'avez pas les droits pour imprimer ce document.")
             )
-        # Generate PDF. Non-accepted invoices are watermarked by the generator.
+        if facture_client.statut != "Accepté":
+            raise PermissionDenied(
+                _("Impossible d'imprimer une facture qui n'est pas validée.")
+            )
+
+        # Generate PDF.
         pdf_generator = FactureClientPDFGenerator(
             facture_client, company, pdf_type, language
         )
