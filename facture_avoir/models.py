@@ -119,6 +119,34 @@ class FactureAvoir(BaseDeviFactureDocument):
             "total"
         ] or Decimal("0.00")
 
+    def validate_against_origin_total(self) -> None:
+        """Ensure an active credit note never exceeds the linked invoice total."""
+        if not self.facture_origine_id:
+            from django.core.exceptions import ValidationError
+
+            raise ValidationError(_("Une facture d'origine est requise."))
+
+        credited_before = FactureAvoir.get_total_avoirs_for_facture(
+            self.facture_origine_id,
+            exclude_avoir_id=self.pk,
+        )
+        available = self.facture_origine.total_ttc_apres_remise - credited_before
+        if self.total_ttc_apres_remise <= Decimal("0.00"):
+            from django.core.exceptions import ValidationError
+
+            raise ValidationError(
+                _("Le montant de l'avoir doit être supérieur à 0.")
+            )
+        if self.total_ttc_apres_remise > available:
+            from django.core.exceptions import ValidationError
+
+            raise ValidationError(
+                _(
+                    "Le montant de l'avoir dépasse le montant restant à créditer "
+                    "sur la facture d'origine."
+                )
+            )
+
     @staticmethod
     def get_total_avoirs_for_company(
         company_id: int, devise: str | None = None

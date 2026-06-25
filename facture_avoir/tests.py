@@ -110,7 +110,7 @@ def test_create_avoir_from_facture_assigns_legal_number_and_origin_data(avoir_co
     assert response.data["facture_origine"] == avoir_context["facture"].id
 
 
-def test_create_free_avoir_requires_client_and_allows_no_origin(avoir_context):
+def test_create_avoir_requires_origin_facture(avoir_context):
     url = reverse("facture_avoir:facture-avoir-list-create")
     response = avoir_context["api_client"].post(
         url,
@@ -124,9 +124,8 @@ def test_create_free_avoir_requires_client_and_allows_no_origin(avoir_context):
         format="json",
     )
 
-    assert response.status_code == status.HTTP_201_CREATED
-    assert response.data["facture_origine"] is None
-    assert response.data["client"] == avoir_context["client"].id
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert "facture_origine" in response.data["details"]
 
 
 def test_active_origin_avoir_cannot_credit_more_than_original_quantity(avoir_context):
@@ -166,6 +165,7 @@ def test_active_origin_avoir_cannot_credit_more_than_original_quantity(avoir_con
 
 def test_avoir_delete_is_not_allowed(avoir_context):
     avoir = FactureAvoir.objects.create(
+        facture_origine=avoir_context["facture"],
         client=avoir_context["client"],
         company=avoir_context["company"],
         date_avoir=timezone.localdate(),
@@ -185,11 +185,13 @@ def test_avoir_delete_is_not_allowed(avoir_context):
 )
 def test_avoir_pdf_accepts_explicit_unit_variants(avoir_context, pdf_type):
     avoir = FactureAvoir.objects.create(
+        facture_origine=avoir_context["facture"],
         client=avoir_context["client"],
         company=avoir_context["company"],
         date_avoir=timezone.localdate(),
         motif_avoir="autre",
         mode_paiement=avoir_context["mode_paiement"],
+        statut="Accepté",
         created_by_user=avoir_context["user"],
     )
     FactureAvoirLine.objects.create(
@@ -211,3 +213,23 @@ def test_avoir_pdf_accepts_explicit_unit_variants(avoir_context, pdf_type):
 
     assert response.status_code == status.HTTP_200_OK
     assert response["Content-Type"] == "application/pdf"
+
+
+def test_avoir_pdf_rejects_draft(avoir_context):
+    avoir = FactureAvoir.objects.create(
+        facture_origine=avoir_context["facture"],
+        client=avoir_context["client"],
+        company=avoir_context["company"],
+        date_avoir=timezone.localdate(),
+        motif_avoir="autre",
+        mode_paiement=avoir_context["mode_paiement"],
+        statut="Brouillon",
+        created_by_user=avoir_context["user"],
+    )
+
+    response = avoir_context["api_client"].get(
+        reverse("facture_avoir:facture-avoir-pdf-fr", kwargs={"pk": avoir.pk})
+        + f"?company_id={avoir_context['company'].id}"
+    )
+
+    assert response.status_code == status.HTTP_403_FORBIDDEN

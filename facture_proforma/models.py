@@ -50,6 +50,13 @@ class FactureProForma(BaseDeviFactureDocument):
         help_text=_("Numéro du bon de commande client (optionnel)"),
     )
 
+    termes_paiement = models.TextField(
+        verbose_name=_("Termes de paiement"),
+        blank=True,
+        null=True,
+        help_text=_("Conditions ou termes de paiement de la facture pro forma"),
+    )
+
     history = HistoricalRecords(
         verbose_name=_("Historique Facture Pro-Forma"),
         verbose_name_plural=_("Historiques Factures Pro-Forma"),
@@ -102,6 +109,7 @@ class FactureProForma(BaseDeviFactureDocument):
             date_facture=self.date_facture,
             date_echeance=self.date_echeance,
             numero_bon_commande_client=self.numero_bon_commande_client,
+            termes_paiement=self.termes_paiement,
             mode_paiement=self.mode_paiement,
             remarque=self.remarque,
             statut="Brouillon",

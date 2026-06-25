@@ -26,6 +26,12 @@ class ReglementFilter(IsEmptyAutoMixin, django_filters.FilterSet):
     facture_client = django_filters.NumberFilter(
         field_name="facture_client__id", label=_("Facture Client ID")
     )
+    client_id = django_filters.NumberFilter(
+        field_name="facture_client__client_id", label=_("Client ID")
+    )
+    client = django_filters.NumberFilter(
+        field_name="facture_client__client_id", label=_("Client ID")
+    )
     mode_reglement_id = django_filters.NumberFilter(
         field_name="mode_reglement__id", label=_("Mode Règlement ID")
     )
@@ -144,6 +150,8 @@ class ReglementFilter(IsEmptyAutoMixin, django_filters.FilterSet):
             "statut",
             "facture_client_id",
             "facture_client",
+            "client_id",
+            "client",
             "mode_reglement_id",
             "date_reglement",
             "date_echeance",

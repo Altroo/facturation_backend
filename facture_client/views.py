@@ -315,6 +315,16 @@ class FactureClientForPaymentView(APIView):
         base_factures = FactureClient.objects.filter(
             client__company_id=company_id, statut__in=["Envoyé", "Accepté"]
         ).select_related("client")
+        client_id = request.query_params.get("client_id") or request.query_params.get(
+            "client"
+        )
+        if client_id:
+            try:
+                base_factures = base_factures.filter(client_id=int(client_id))
+            except (ValueError, TypeError):
+                raise ValidationError(
+                    {"client_id": _("client_id doit être un entier valide.")}
+                )
         factures = (
             _annotate_payment_and_avoir_totals(base_factures)
             .filter(

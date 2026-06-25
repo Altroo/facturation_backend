@@ -1,3 +1,6 @@
+from re import match
+
+from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 from core.serializers import (
@@ -27,6 +30,7 @@ class FactureProformaListSerializer(BaseListSerializer):
             "mode_paiement",
             "mode_paiement_name",
             "numero_bon_commande_client",
+            "termes_paiement",
             "statut",
             "remarque",
             "created_by_user",
@@ -114,7 +118,11 @@ class FactureProformaSerializer(BaseCreateSerializer):
         return "numero_facture"
 
     def validate_numero_facture(self, value):
-        return self.validate_numero(value)
+        if not match(r"^(?:P\d{3,}|\d{4,})/\d{2}$", value):
+            raise serializers.ValidationError(
+                _("Format de numero facture invalide. Format attendu: P001/25")
+            )
+        return value
 
     def get_line_model_class(self):
         return FactureProFormaLine
@@ -136,6 +144,7 @@ class FactureProformaSerializer(BaseCreateSerializer):
             "date_facture",
             "date_echeance",
             "numero_bon_commande_client",
+            "termes_paiement",
             "mode_paiement",
             "mode_paiement_name",
             "statut",
@@ -184,6 +193,13 @@ class FactureProformaDetailSerializer(BaseDetailUpdateSerializer):
 
     def get_line_serializer_class(self):
         return FactureProFormaLineSerializer
+
+    def validate_numero_facture(self, value):
+        if not match(r"^(?:P\d{3,}|\d{4,})/\d{2}$", value):
+            raise serializers.ValidationError(
+                _("Format de numero facture invalide. Format attendu: P001/25")
+            )
+        return value
 
     class Meta(FactureProformaSerializer.Meta):
         read_only_fields = [

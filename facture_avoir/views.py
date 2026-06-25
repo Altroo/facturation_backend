@@ -1,5 +1,6 @@
 from decimal import Decimal
 
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db.models import DecimalField, Sum as DjangoSum, Value
 from django.db.models.functions import Coalesce
 from django.http import Http404
@@ -84,20 +85,13 @@ class FactureAvoirListCreateView(BaseDocumentListCreateView):
 
     def post(self, request, *args, **kwargs):
         facture_origine_id = request.data.get("facture_origine")
-        client_id = request.data.get("client")
 
-        if facture_origine_id:
-            facture_origine = get_object_or_404(FactureClient, pk=facture_origine_id)
-            company_id = facture_origine.company_id
-        elif client_id:
-            from client.models import Client
-
-            client = get_object_or_404(Client, pk=client_id)
-            company_id = client.company_id
-        else:
+        if not facture_origine_id:
             raise ValidationError(
-                {"client": _("Un client ou une facture d'origine est requis.")}
+                {"facture_origine": _("Une facture d'origine est requise.")}
             )
+        facture_origine = get_object_or_404(FactureClient, pk=facture_origine_id)
+        company_id = facture_origine.company_id
 
         self._check_company_access(request, company_id)
         if not can_create(request.user, company_id):
@@ -170,6 +164,11 @@ class FactureAvoirStatusUpdateView(BaseStatusUpdateView):
         valid_statuses = [choice[0] for choice in self.model.STATUT_CHOICES]
         if new_status not in valid_statuses:
             raise ValidationError({"statut": _("Statut invalide.")})
+        if new_status in ("Envoyé", "Accepté"):
+            try:
+                object_.validate_against_origin_total()
+            except DjangoValidationError as exc:
+                raise ValidationError({"total_ttc_apres_remise": exc.messages})
         object_.statut = new_status
         object_.save(update_fields=["statut"])
         return Response({"statut": object_.statut}, status=status.HTTP_200_OK)
@@ -353,6 +352,14 @@ class FactureAvoirPDFView(APIView):
         if not can_print(request.user, company.pk):
             raise PermissionDenied(
                 _("Vous n'avez pas les droits pour imprimer ce document.")
+            )
+        if facture_avoir.statut == "Brouillon":
+            raise PermissionDenied(
+                _("Impossible d'imprimer un document en brouillon.")
+            )
+        if not facture_avoir.facture_origine_id:
+            raise PermissionDenied(
+                _("Une facture d'origine est requise pour imprimer cet avoir.")
             )
 
         pdf_generator = FactureAvoirPDFGenerator(

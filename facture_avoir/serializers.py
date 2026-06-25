@@ -159,6 +159,10 @@ class FactureAvoirSerializer(BaseCreateSerializer):
             data["client"] = facture_origine.client
             data["mode_paiement"] = data.get("mode_paiement") or facture_origine.mode_paiement
             data["devise"] = data.get("devise") or facture_origine.devise
+        elif not self.instance:
+            raise serializers.ValidationError(
+                {"facture_origine": _("Une facture d'origine est requise.")}
+            )
         elif not client:
             raise serializers.ValidationError(
                 {"client": _("Un client est requis pour un avoir libre.")}

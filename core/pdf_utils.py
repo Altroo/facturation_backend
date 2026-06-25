@@ -342,6 +342,7 @@ class BasePDFGenerator:
                 "Delivered_By": "Livré par",
                 "Recipient": "DESTINATAIRE",
                 "Remarks": "Remarques",
+                "Payment_Terms": "Termes de paiement",
                 "Page": "Page",
                 "On": "sur",
                 "Phone": "Tél",
@@ -427,6 +428,7 @@ class BasePDFGenerator:
                 "Delivered_By": "Delivered By",
                 "Recipient": "RECIPIENT",
                 "Remarks": "Remarks",
+                "Payment_Terms": "Payment terms",
                 "Page": "Page",
                 "On": "of",
                 "Phone": "Phone",
@@ -1408,6 +1410,18 @@ class BasePDFGenerator:
                 remarks_text = self.document.remarque + "\n\n" + remarks_text
             tail.append(
                 Paragraph(remarks_text.replace("\n", "<br/>"), self.styles["Remarks"])
+            )
+        termes_paiement = getattr(self.document, "termes_paiement", None)
+        if termes_paiement:
+            tail.append(Spacer(1, 0.25 * cm))
+            tail.append(
+                Paragraph(
+                    f"<b>{self._('Payment_Terms')} :</b>",
+                    self.styles["SectionHeader"],
+                )
+            )
+            tail.append(
+                Paragraph(str(termes_paiement).replace("\n", "<br/>"), self.styles["Remarks"])
             )
         return tail
 

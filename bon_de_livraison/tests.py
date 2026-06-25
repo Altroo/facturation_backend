@@ -673,6 +673,10 @@ class TestBonDeLivraisonLineModelExtra:
 class TestBonDeLivraisonPDFGeneration:
     """Test PDF generation for bon de livraison."""
 
+    def _mark_printable(self, bon_de_livraison):
+        bon_de_livraison.statut = "Envoyé"
+        bon_de_livraison.save(update_fields=["statut"])
+
     def test_generate_pdf(
         self,
         bon_de_livraison_user,
@@ -681,6 +685,7 @@ class TestBonDeLivraisonPDFGeneration:
     ):
         """Test generating PDF for bon de livraison."""
 
+        self._mark_printable(bon_de_livraison_with_lines)
         caissier_role, _ = Role.objects.get_or_create(
             name="Caissier",
         )
@@ -705,6 +710,37 @@ class TestBonDeLivraisonPDFGeneration:
         assert response.status_code == status.HTTP_200_OK
         assert response["Content-Type"] == "application/pdf"
         assert "filename" in response["Content-Disposition"]
+
+    def test_pdf_rejects_draft(
+        self,
+        bon_de_livraison_user,
+        bon_de_livraison_company,
+        bon_de_livraison_with_lines,
+    ):
+        """Draft delivery note PDFs are blocked."""
+
+        caissier_role, _ = Role.objects.get_or_create(
+            name="Caissier",
+        )
+        Membership.objects.create(
+            user=bon_de_livraison_user,
+            company=bon_de_livraison_company,
+            role=caissier_role,
+        )
+
+        client_api = APIClient()
+        client_api.force_authenticate(user=bon_de_livraison_user)
+
+        url = (
+            reverse(
+                "bon_de_livraison:bon-de-livraison-pdf-fr",
+                args=[bon_de_livraison_with_lines.id],
+            )
+            + f"?company_id={bon_de_livraison_company.id}"
+        )
+        response = client_api.get(url)
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
 
     def test_pdf_no_company_id(
         self,
@@ -799,6 +835,7 @@ class TestBonDeLivraisonPDFGeneration:
     ):
         """Test PDF generation with quantity_only type."""
 
+        self._mark_printable(bon_de_livraison_with_lines)
         caissier_role, _ = Role.objects.get_or_create(
             name="Caissier",
         )
@@ -831,6 +868,7 @@ class TestBonDeLivraisonPDFGeneration:
     ):
         """Test PDF generation with avec_remise type."""
 
+        self._mark_printable(bon_de_livraison_with_lines)
         caissier_role, _ = Role.objects.get_or_create(
             name="Caissier",
         )
@@ -863,6 +901,7 @@ class TestBonDeLivraisonPDFGeneration:
     ):
         """Test PDF generation with avec_unite type."""
 
+        self._mark_printable(bon_de_livraison_with_lines)
         caissier_role, _ = Role.objects.get_or_create(
             name="Caissier",
         )

@@ -1,5 +1,6 @@
 from datetime import datetime
 from decimal import Decimal
+from re import match
 
 import pytest
 from django.urls import reverse
@@ -207,7 +208,12 @@ class TestFactureProFormaAPI(SharedDocumentAPITestsMixin):
         self.shared_test_search_by_numero()
 
     def test_generate_numero_facture(self):
-        self.shared_test_generate_numero()
+        year_suffix = f"{datetime.now().year % 100:02d}"
+        url = self._generate_url() + f"?company_id={self.company.id}"
+        response = self.client_api.get(url)
+        assert response.status_code == status.HTTP_200_OK
+        assert match(r"^P\d{3}/\d{2}$", response.data[self.cfg.numero_field])
+        assert response.data[self.cfg.numero_field].endswith(f"/{year_suffix}")
 
     def test_update_proforma_status(self):
         self.shared_test_update_status()
@@ -357,9 +363,9 @@ class TestFactureProFormaUtilsExtra:
 
         year_suffix = f"{datetime.now().year % 100:02d}"
 
-        # Create with gap (0001, 0003)
+        # Create with gap (P001, P003)
         FactureProForma.objects.create(
-            numero_facture=f"0001/{year_suffix}",
+            numero_facture=f"P001/{year_suffix}",
             client=client,
             date_facture="2025-01-01",
             mode_paiement=mode,
@@ -367,7 +373,7 @@ class TestFactureProFormaUtilsExtra:
             created_by_user=user,
         )
         FactureProForma.objects.create(
-            numero_facture=f"0003/{year_suffix}",
+            numero_facture=f"P003/{year_suffix}",
             client=client,
             date_facture="2025-01-02",
             mode_paiement=mode,
@@ -376,7 +382,7 @@ class TestFactureProFormaUtilsExtra:
         )
 
         next_num = get_next_numero_facture_pro_forma(company.id)
-        assert next_num == f"0002/{year_suffix}"
+        assert next_num == f"P002/{year_suffix}"
 
     def test_get_next_numero_with_invalid_format(self):
         """Test get_next_numero_facture_pro_forma handles invalid formats."""
@@ -408,7 +414,7 @@ class TestFactureProFormaUtilsExtra:
         )
 
         next_num = get_next_numero_facture_pro_forma(company.id)
-        assert "0001" in next_num or "0002" in next_num
+        assert next_num == f"P001/{year_suffix}"
 
     def test_get_next_numero_empty_db(self):
         """Test get_next_numero_facture_pro_forma with no existing records."""
@@ -420,7 +426,7 @@ class TestFactureProFormaUtilsExtra:
 
         year_suffix = f"{datetime.now().year % 100:02d}"
         next_num = get_next_numero_facture_pro_forma(company.id)
-        assert next_num == f"0001/{year_suffix}"
+        assert next_num == f"P001/{year_suffix}"
 
     def test_get_next_numero_consecutive(self):
         """Test get_next_numero_facture_pro_forma with consecutive numbers."""
@@ -443,7 +449,7 @@ class TestFactureProFormaUtilsExtra:
 
         # Create consecutive factures
         FactureProForma.objects.create(
-            numero_facture=f"0001/{year_suffix}",
+            numero_facture=f"P001/{year_suffix}",
             client=client,
             date_facture="2025-01-01",
             mode_paiement=mode,
@@ -451,7 +457,7 @@ class TestFactureProFormaUtilsExtra:
             created_by_user=user,
         )
         FactureProForma.objects.create(
-            numero_facture=f"0002/{year_suffix}",
+            numero_facture=f"P002/{year_suffix}",
             client=client,
             date_facture="2025-01-02",
             mode_paiement=mode,
@@ -460,7 +466,7 @@ class TestFactureProFormaUtilsExtra:
         )
 
         next_num = get_next_numero_facture_pro_forma(company.id)
-        assert next_num == f"0003/{year_suffix}"
+        assert next_num == f"P003/{year_suffix}"
 
 
 @pytest.mark.django_db
@@ -623,6 +629,26 @@ class TestFactureProFormaPDFGeneration:
         response = client_api.get(url)
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_pdf_rejects_draft(self, pf_conv_user, pf_conv_company, pf_conv_with_lines):
+        """Draft proforma PDFs are blocked."""
+
+        _create_pf_membership(pf_conv_user, pf_conv_company)
+        pf_conv_with_lines.statut = "Brouillon"
+        pf_conv_with_lines.save(update_fields=["statut"])
+
+        client_api = APIClient()
+        client_api.force_authenticate(user=pf_conv_user)
+
+        url = (
+            reverse(
+                "facture_proforma:facture-proforma-pdf-fr", args=[pf_conv_with_lines.id]
+            )
+            + f"?company_id={pf_conv_company.id}"
+        )
+        response = client_api.get(url)
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
 
     def test_pdf_sans_remise_type(
         self, pf_conv_user, pf_conv_company, pf_conv_with_lines

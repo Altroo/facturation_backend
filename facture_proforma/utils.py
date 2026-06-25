@@ -10,7 +10,7 @@ from .models import FactureProForma
 
 def get_next_numero_facture_pro_forma(company_id: int) -> str:
     """
-    Return the next available numero_facture string like '0001/25' for the given company.
+    Return the next available numero_facture string like 'P001/25' for the given company.
     Automatically increases digit count when 9999 is reached.
     """
     year_suffix = f"{timezone.localtime(timezone.now()).year % 100:02d}"
@@ -29,7 +29,7 @@ def get_next_numero_facture_pro_forma(company_id: int) -> str:
 
         used_numbers = []
         for raw in existing:
-            m = search(r"^(\d+)/\d{2}$", raw or "")
+            m = search(r"^P(\d+)/\d{2}$", raw or "")
             if m:
                 try:
                     used_numbers.append(int(m.group(1)))
@@ -40,9 +40,9 @@ def get_next_numero_facture_pro_forma(company_id: int) -> str:
         if is_nectar_company_id(company_id):
             next_number = (max(used_numbers) if used_numbers else 0) + 1
             formatted_number = format_number_with_dynamic_digits(
-                next_number, min_digits=5
+                next_number, min_digits=3
             )
-            return f"{formatted_number}/{year_suffix}"
+            return f"P{formatted_number}/{year_suffix}"
 
         # Find first gap
         next_number = None
@@ -51,5 +51,5 @@ def get_next_numero_facture_pro_forma(company_id: int) -> str:
                 next_number = i
                 break
 
-        formatted_number = format_number_with_dynamic_digits(next_number, min_digits=4)
-        return f"{formatted_number}/{year_suffix}"
+        formatted_number = format_number_with_dynamic_digits(next_number, min_digits=3)
+        return f"P{formatted_number}/{year_suffix}"

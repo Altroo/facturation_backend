@@ -52,6 +52,13 @@ class FactureClient(BaseDeviFactureDocument):
         help_text=_("Numéro du bon de commande client (optionnel)"),
     )
 
+    termes_paiement = models.TextField(
+        verbose_name=_("Termes de paiement"),
+        blank=True,
+        null=True,
+        help_text=_("Conditions ou termes de paiement de la facture"),
+    )
+
     history = HistoricalRecords(
         verbose_name=_("Historique Facture Client"),
         verbose_name_plural=_("Historiques Factures Client"),

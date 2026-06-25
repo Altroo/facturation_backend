@@ -44,6 +44,7 @@ class FactureClientAdmin(BaseDocumentAdmin):
         "client__raison_sociale",
         "client__code_client",
         "numero_bon_commande_client",
+        "termes_paiement",
         "remarque",
     )
     fieldsets = (
@@ -64,6 +65,7 @@ class FactureClientAdmin(BaseDocumentAdmin):
             {
                 "fields": (
                     "numero_bon_commande_client",
+                    "termes_paiement",
                     "mode_paiement",
                     "remarque",
                     "remise_type",

@@ -155,6 +155,10 @@ class FactureProFormaPDFView(APIView):
             raise PermissionDenied(
                 _("Vous n'avez pas les droits pour imprimer ce document.")
             )
+        if facture_proforma.statut == "Brouillon":
+            raise PermissionDenied(
+                _("Impossible d'imprimer un document en brouillon.")
+            )
 
         # Generate PDF
         pdf_generator = FactureProFormaPDFGenerator(

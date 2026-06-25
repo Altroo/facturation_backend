@@ -1003,6 +1003,64 @@ class TestFactureClientForPaymentView:
         assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.data, list)
 
+    def test_for_payment_view_filters_by_client(
+        self, fc_conv_user, fc_conv_company, fc_conv_client, fc_conv_article
+    ):
+        """Test filtering payment invoices by client."""
+
+        _create_fc_membership(fc_conv_user, fc_conv_company)
+        other_client = Client.objects.create(
+            code_client="FCPAY002",
+            client_type="PM",
+            raison_sociale="Other Pay Client",
+            company=fc_conv_company,
+        )
+
+        expected = FactureClient.objects.create(
+            numero_facture="FC/PAY/001",
+            client=fc_conv_client,
+            date_facture="2025-01-01",
+            statut="Accepté",
+            created_by_user=fc_conv_user,
+        )
+        FactureClientLine.objects.create(
+            facture_client=expected,
+            article=fc_conv_article,
+            prix_achat=Decimal("80.00"),
+            prix_vente=Decimal("100.00"),
+            quantity=Decimal("1.00"),
+        )
+        expected.recalc_totals()
+        expected.save()
+        other_facture = FactureClient.objects.create(
+            numero_facture="FC/PAY/002",
+            client=other_client,
+            date_facture="2025-01-01",
+            statut="Accepté",
+            created_by_user=fc_conv_user,
+        )
+        FactureClientLine.objects.create(
+            facture_client=other_facture,
+            article=fc_conv_article,
+            prix_achat=Decimal("80.00"),
+            prix_vente=Decimal("100.00"),
+            quantity=Decimal("1.00"),
+        )
+        other_facture.recalc_totals()
+        other_facture.save()
+
+        client_api = APIClient()
+        client_api.force_authenticate(user=fc_conv_user)
+
+        url = (
+            reverse("facture_client:facture-client-for-payment")
+            + f"?company_id={fc_conv_company.id}&client_id={fc_conv_client.id}"
+        )
+        response = client_api.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert [item["id"] for item in response.data] == [expected.id]
+
 
 # -----------------------------------------------------------------------------
 # Bulk Delete Tests
