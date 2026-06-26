@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from notification.models import Notification, NotificationPreference
+from notification.services import resolve_notification_target_url
 
 
 class NotificationPreferenceSerializer(serializers.ModelSerializer):
@@ -20,6 +21,12 @@ class NotificationPreferenceSerializer(serializers.ModelSerializer):
 
 
 class NotificationSerializer(serializers.ModelSerializer):
+    target_url = serializers.SerializerMethodField()
+
+    @staticmethod
+    def get_target_url(obj):
+        return resolve_notification_target_url(obj)
+
     class Meta:
         model = Notification
         fields = [

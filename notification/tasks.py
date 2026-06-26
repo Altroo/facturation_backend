@@ -10,6 +10,7 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from notification.models import Notification, NotificationPreference
+from notification.services import _dashboard_url, resolve_notification_target_url
 
 logger = logging.getLogger(__name__)
 
@@ -77,6 +78,7 @@ def check_facturation_notifications():
                             },
                             notification_type="overdue_invoice",
                             object_id=facture.id,
+                            target_url=_dashboard_url("facture-client", facture.id),
                         )
                         _broadcast(channel_layer, user.id, notif)
 
@@ -110,6 +112,7 @@ def check_facturation_notifications():
                         },
                         notification_type="expiring_quote",
                         object_id=devis.id,
+                        target_url=_dashboard_url("devis", devis.id),
                     )
                     _broadcast(channel_layer, user.id, notif)
 
@@ -145,6 +148,7 @@ def check_facturation_notifications():
                         },
                         notification_type="uninvoiced_bdl",
                         object_id=bdl.id,
+                        target_url=_dashboard_url("bon-de-livraison", bdl.id),
                     )
                     _broadcast(channel_layer, user.id, notif)
 
@@ -176,7 +180,7 @@ def _broadcast(channel_layer, user_id, notification):
                     "message": notification.message,
                     "notification_type": notification.notification_type,
                     "object_id": notification.object_id,
-                    "target_url": notification.target_url,
+                    "target_url": resolve_notification_target_url(notification),
                     "is_read": notification.is_read,
                     "date_created": notification.date_created.isoformat(),
                 },

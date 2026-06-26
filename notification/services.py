@@ -9,6 +9,63 @@ from notification.models import Notification, NotificationPreference
 
 logger = logging.getLogger(__name__)
 
+NOTIFICATION_TARGET_ROUTES = {
+    "overdue_invoice": "facture-client",
+    "expiring_quote": "devis",
+    "uninvoiced_bdl": "bon-de-livraison",
+}
+
+DOCUMENT_TARGET_ROUTES = {
+    "Devi": "devis",
+    "FactureClient": "facture-client",
+    "FactureProForma": "facture-pro-forma",
+    "BonDeLivraison": "bon-de-livraison",
+    "FactureAvoir": "facture-avoir",
+    "Reglement": "reglements",
+}
+
+DOCUMENT_LABEL_TARGET_ROUTES = [
+    (
+        ("facture pro-forma", "facture proforma", "pro-forma", "proforma"),
+        "facture-pro-forma",
+    ),
+    (("facture d'avoir", "facture avoir", "avoir"), "facture-avoir"),
+    (("facture client",), "facture-client"),
+    (("bon de livraison",), "bon-de-livraison"),
+    (("règlement", "reglement"), "reglements"),
+    (("devis",), "devis"),
+]
+
+
+def _dashboard_url(route: str, object_id) -> str:
+    if not route or not object_id:
+        return ""
+    return f"/dashboard/{route}/{object_id}"
+
+
+def resolve_notification_target_url(notification) -> str:
+    """Return a navigable dashboard URL for new and legacy notifications."""
+    if getattr(notification, "target_url", ""):
+        return notification.target_url
+
+    object_id = getattr(notification, "object_id", None)
+    if not object_id:
+        return ""
+
+    notification_type = getattr(notification, "notification_type", "")
+    route = NOTIFICATION_TARGET_ROUTES.get(notification_type)
+    if route:
+        return _dashboard_url(route, object_id)
+
+    if notification_type != "document_created":
+        return ""
+
+    message = (getattr(notification, "message", "") or "").lower()
+    for labels, route in DOCUMENT_LABEL_TARGET_ROUTES:
+        if any(label in message for label in labels):
+            return _dashboard_url(route, object_id)
+    return ""
+
 
 def _broadcast_notification(channel_layer, user_id, notification):
     try:
@@ -23,7 +80,7 @@ def _broadcast_notification(channel_layer, user_id, notification):
                     "message": notification.message,
                     "notification_type": notification.notification_type,
                     "object_id": notification.object_id,
-                    "target_url": notification.target_url,
+                    "target_url": resolve_notification_target_url(notification),
                     "is_read": notification.is_read,
                     "date_created": notification.date_created.isoformat(),
                 },
@@ -60,19 +117,8 @@ def _get_document_number(document) -> str:
 
 
 def _get_document_target_url(document) -> str:
-    routes = {
-        "Devi": "devis",
-        "FactureClient": "facture-client",
-        "FactureProForma": "facture-pro-forma",
-        "BonDeLivraison": "bon-de-livraison",
-        "FactureAvoir": "facture-avoir",
-        "Reglement": "reglements",
-    }
-    route = routes.get(document.__class__.__name__)
-    document_id = getattr(document, "id", None)
-    if not route or not document_id:
-        return ""
-    return f"/dashboard/{route}/{document_id}"
+    route = DOCUMENT_TARGET_ROUTES.get(document.__class__.__name__)
+    return _dashboard_url(route, getattr(document, "id", None))
 
 
 def notify_document_created(document, *, company_id, document_label, creator=None):
