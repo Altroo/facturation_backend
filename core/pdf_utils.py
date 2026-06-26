@@ -809,10 +809,10 @@ class BasePDFGenerator:
 
         canvas.saveState()
         try:
-            canvas.setFillAlpha(0.12)
+            canvas.setFillAlpha(0.04)
         except AttributeError:
             pass
-        canvas.setFillColor(colors.HexColor("#7A7A7A"))
+        canvas.setFillColor(colors.HexColor("#D4D4D4"))
         canvas.setFont("Helvetica-Bold", 86)
         canvas.translate(self.PAGE_WIDTH / 2, self.PAGE_HEIGHT / 2)
         canvas.rotate(-35)
