@@ -37,17 +37,90 @@ DOCUMENT_LABEL_TARGET_ROUTES = [
 ]
 
 
-def _dashboard_url(route: str, object_id) -> str:
+def _dashboard_url(route: str, object_id, company_id=None) -> str:
     if not route or not object_id:
         return ""
-    return f"/dashboard/{route}/{object_id}"
+    url = f"/dashboard/{route}/{object_id}"
+    if company_id:
+        url = f"{url}?company_id={company_id}"
+    return url
 
 
-def resolve_notification_target_url(notification) -> str:
-    """Return a navigable dashboard URL for new and legacy notifications."""
-    if getattr(notification, "target_url", ""):
-        return notification.target_url
+def _get_document_company_id(document):
+    company_id = getattr(document, "company_id", None)
+    if company_id:
+        return company_id
 
+    company = getattr(document, "company", None)
+    company_id = getattr(company, "id", None)
+    if company_id:
+        return company_id
+
+    client = getattr(document, "client", None)
+    company_id = getattr(client, "company_id", None)
+    if company_id:
+        return company_id
+
+    facture_client = getattr(document, "facture_client", None)
+    client = getattr(facture_client, "client", None)
+    return getattr(client, "company_id", None)
+
+
+def _get_model_for_route(route: str):
+    if route == "devis":
+        from devi.models import Devi
+
+        return Devi
+    if route == "facture-client":
+        from facture_client.models import FactureClient
+
+        return FactureClient
+    if route == "facture-pro-forma":
+        from facture_proforma.models import FactureProForma
+
+        return FactureProForma
+    if route == "bon-de-livraison":
+        from bon_de_livraison.models import BonDeLivraison
+
+        return BonDeLivraison
+    if route == "facture-avoir":
+        from facture_avoir.models import FactureAvoir
+
+        return FactureAvoir
+    if route == "reglements":
+        from reglement.models import Reglement
+
+        return Reglement
+    return None
+
+
+def _resolve_document_company_id(route: str, object_id):
+    model = _get_model_for_route(route)
+    if model is None:
+        return None
+    try:
+        document = model.objects.get(pk=object_id)
+    except model.DoesNotExist:
+        return None
+    return _get_document_company_id(document)
+
+
+def _route_from_document_message(message: str) -> str:
+    for labels, route in DOCUMENT_LABEL_TARGET_ROUTES:
+        if any(label in message for label in labels):
+            return route
+    return ""
+
+
+def _route_from_target_url(target_url: str) -> str:
+    path = (target_url or "").split("?", 1)[0].strip("/")
+    parts = path.split("/")
+    if len(parts) >= 3 and parts[0] == "dashboard":
+        return parts[1]
+    return ""
+
+
+def _route_from_notification(notification) -> str:
     object_id = getattr(notification, "object_id", None)
     if not object_id:
         return ""
@@ -55,16 +128,34 @@ def resolve_notification_target_url(notification) -> str:
     notification_type = getattr(notification, "notification_type", "")
     route = NOTIFICATION_TARGET_ROUTES.get(notification_type)
     if route:
-        return _dashboard_url(route, object_id)
+        return route
 
     if notification_type != "document_created":
         return ""
 
     message = (getattr(notification, "message", "") or "").lower()
-    for labels, route in DOCUMENT_LABEL_TARGET_ROUTES:
-        if any(label in message for label in labels):
-            return _dashboard_url(route, object_id)
-    return ""
+    return _route_from_document_message(message)
+
+
+def resolve_notification_target_url(notification) -> str:
+    """Return a navigable dashboard URL for new and legacy notifications."""
+    object_id = getattr(notification, "object_id", None)
+    target_url = getattr(notification, "target_url", "") or ""
+
+    if not object_id:
+        return target_url
+
+    route = _route_from_notification(notification) or _route_from_target_url(target_url)
+    if not route:
+        return target_url
+
+    if target_url and "company_id=" in target_url:
+        return target_url
+
+    company_id = getattr(notification, "company_id", None) or _resolve_document_company_id(
+        route, object_id
+    )
+    return _dashboard_url(route, object_id, company_id) or target_url
 
 
 def _broadcast_notification(channel_layer, user_id, notification):
@@ -118,7 +209,11 @@ def _get_document_number(document) -> str:
 
 def _get_document_target_url(document) -> str:
     route = DOCUMENT_TARGET_ROUTES.get(document.__class__.__name__)
-    return _dashboard_url(route, getattr(document, "id", None))
+    return _dashboard_url(
+        route,
+        getattr(document, "id", None),
+        _get_document_company_id(document),
+    )
 
 
 def notify_document_created(document, *, company_id, document_label, creator=None):

@@ -78,7 +78,9 @@ def check_facturation_notifications():
                             },
                             notification_type="overdue_invoice",
                             object_id=facture.id,
-                            target_url=_dashboard_url("facture-client", facture.id),
+                            target_url=_dashboard_url(
+                                "facture-client", facture.id, facture.company_id
+                            ),
                         )
                         _broadcast(channel_layer, user.id, notif)
 
@@ -112,7 +114,7 @@ def check_facturation_notifications():
                         },
                         notification_type="expiring_quote",
                         object_id=devis.id,
-                        target_url=_dashboard_url("devis", devis.id),
+                        target_url=_dashboard_url("devis", devis.id, devis.company_id),
                     )
                     _broadcast(channel_layer, user.id, notif)
 
@@ -148,7 +150,9 @@ def check_facturation_notifications():
                         },
                         notification_type="uninvoiced_bdl",
                         object_id=bdl.id,
-                        target_url=_dashboard_url("bon-de-livraison", bdl.id),
+                        target_url=_dashboard_url(
+                            "bon-de-livraison", bdl.id, bdl.company_id
+                        ),
                     )
                     _broadcast(channel_layer, user.id, notif)
 

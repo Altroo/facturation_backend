@@ -15,6 +15,7 @@ def _notification(**overrides):
         "notification_type": "document_created",
         "object_id": 41,
         "target_url": "",
+        "company_id": 3,
         "is_read": False,
         "date_created": "2026-06-26T00:00:00Z",
     }
@@ -23,9 +24,15 @@ def _notification(**overrides):
 
 
 def test_notification_target_url_preserves_stored_url():
-    notification = _notification(target_url="/dashboard/devis/12")
+    notification = _notification(
+        object_id=12,
+        target_url="/dashboard/devis/12?company_id=9",
+        company_id=9,
+    )
 
-    assert resolve_notification_target_url(notification) == "/dashboard/devis/12"
+    assert resolve_notification_target_url(notification) == (
+        "/dashboard/devis/12?company_id=9"
+    )
 
 
 def test_notification_target_url_infers_legacy_document_created_url():
@@ -35,7 +42,7 @@ def test_notification_target_url_infers_legacy_document_created_url():
 
     assert (
         resolve_notification_target_url(notification)
-        == "/dashboard/facture-pro-forma/41"
+        == "/dashboard/facture-pro-forma/41?company_id=3"
     )
 
 
@@ -45,7 +52,10 @@ def test_notification_target_url_infers_periodic_notification_url():
         object_id=82,
     )
 
-    assert resolve_notification_target_url(notification) == "/dashboard/facture-client/82"
+    assert (
+        resolve_notification_target_url(notification)
+        == "/dashboard/facture-client/82?company_id=3"
+    )
 
 
 def test_notification_serializer_returns_resolved_target_url():
@@ -55,11 +65,13 @@ def test_notification_serializer_returns_resolved_target_url():
     )
 
     assert NotificationSerializer(notification).data["target_url"] == (
-        "/dashboard/bon-de-livraison/5"
+        "/dashboard/bon-de-livraison/5?company_id=3"
     )
 
 
 def test_document_target_url_uses_document_class_name():
-    document = type("FactureProForma", (), {"id": 40})()
+    document = type("FactureProForma", (), {"id": 40, "company_id": 3})()
 
-    assert _get_document_target_url(document) == "/dashboard/facture-pro-forma/40"
+    assert _get_document_target_url(document) == (
+        "/dashboard/facture-pro-forma/40?company_id=3"
+    )
