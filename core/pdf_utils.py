@@ -11,6 +11,7 @@ from reportlab.lib.enums import TA_RIGHT, TA_CENTER
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import cm
+from reportlab.pdfbase import pdfmetrics
 from reportlab.platypus import (
     BaseDocTemplate,
     Frame,
@@ -808,16 +809,19 @@ class BasePDFGenerator:
             return
 
         canvas.saveState()
+        canvas.setFillColor(colors.HexColor("#777777"))
         try:
-            canvas.setFillAlpha(0.04)
+            canvas.setFillAlpha(0.18)
         except AttributeError:
             pass
-        canvas.setFillColor(colors.HexColor("#D4D4D4"))
-        canvas.setFont("Helvetica-Bold", 86)
-        canvas.translate(self.PAGE_WIDTH / 2, self.PAGE_HEIGHT / 2)
-        canvas.rotate(-35)
         watermark = "Draft" if self.language == "en" else "Brouillon"
-        canvas.drawCentredString(0, 0, watermark)
+        font_name = "Helvetica-Bold"
+        target_width = math.hypot(self.PAGE_WIDTH, self.PAGE_HEIGHT) * 0.55
+        font_size = target_width / pdfmetrics.stringWidth(watermark, font_name, 1)
+        canvas.setFont(font_name, font_size)
+        canvas.translate(self.PAGE_WIDTH / 2, self.PAGE_HEIGHT / 2)
+        canvas.rotate(-math.degrees(math.atan(self.PAGE_HEIGHT / self.PAGE_WIDTH)))
+        canvas.drawCentredString(0, -font_size * 0.28, watermark)
         canvas.restoreState()
 
     def _add_page_footer(self, canvas, _doc):

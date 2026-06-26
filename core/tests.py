@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
 from io import BytesIO
+import math
 from re import match
 from types import SimpleNamespace
 from typing import Any, Mapping, Optional, Protocol
@@ -17,6 +18,8 @@ from django.contrib.postgres.search import SearchQuery
 from django.db import DatabaseError
 from django.db.models import QuerySet
 from django.urls import reverse
+from reportlab.lib import colors
+from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfgen import canvas
 from reportlab.platypus import KeepTogether, Table
 from rest_framework import serializers as drf_serializers, status
@@ -4032,9 +4035,29 @@ class TestBasePDFGeneratorDraftWatermark:
 
         generator._add_draft_watermark(fake_canvas, None)
 
-        assert ("rotate", -35) in fake_canvas.calls
-        assert ("drawCentredString", 0, 0, "Brouillon") in fake_canvas.calls
-        assert ("setFillAlpha", 0.04) in fake_canvas.calls
+        rotate_call = next(call for call in fake_canvas.calls if call[0] == "rotate")
+        assert rotate_call[1] == pytest.approx(
+            -math.degrees(math.atan(generator.PAGE_HEIGHT / generator.PAGE_WIDTH))
+        )
+        assert any(
+            call[0] == "drawCentredString" and call[3] == "Brouillon"
+            for call in fake_canvas.calls
+        )
+        assert ("setFillAlpha", 0.18) in fake_canvas.calls
+        assert fake_canvas.calls.index(
+            ("setFillColor", colors.HexColor("#777777"))
+        ) < fake_canvas.calls.index(("setFillAlpha", 0.18))
+        set_font_call = next(call for call in fake_canvas.calls if call[0] == "setFont")
+        expected_font_size = (
+            math.hypot(generator.PAGE_WIDTH, generator.PAGE_HEIGHT)
+            * 0.55
+            / pdfmetrics.stringWidth("Brouillon", "Helvetica-Bold", 1)
+        )
+        assert set_font_call == (
+            "setFont",
+            "Helvetica-Bold",
+            pytest.approx(expected_font_size),
+        )
 
     def test_draft_watermark_uses_english_label(self):
         generator = BasePDFGenerator(
@@ -4046,7 +4069,10 @@ class TestBasePDFGeneratorDraftWatermark:
 
         generator._add_draft_watermark(fake_canvas, None)
 
-        assert ("drawCentredString", 0, 0, "Draft") in fake_canvas.calls
+        assert any(
+            call[0] == "drawCentredString" and call[3] == "Draft"
+            for call in fake_canvas.calls
+        )
 
     def test_draft_watermark_is_skipped_for_non_draft_document(self):
         generator = BasePDFGenerator(
