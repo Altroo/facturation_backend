@@ -12,7 +12,10 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import cm
 from reportlab.platypus import (
+    BaseDocTemplate,
+    Frame,
     SimpleDocTemplate,
+    PageTemplate,
     Table,
     TableStyle,
     Paragraph,
@@ -753,11 +756,36 @@ class BasePDFGenerator:
             else self._add_page_footer
         )
 
-        def page_callback(canvas, pdf_doc):
-            footer_callback(canvas, pdf_doc)
+        def watermark_callback(canvas, pdf_doc):
             self._add_draft_watermark(canvas, pdf_doc)
 
-        doc.build(elements, onFirstPage=page_callback, onLaterPages=page_callback)
+        doc._calc()
+        frame = Frame(
+            doc.leftMargin,
+            doc.bottomMargin,
+            doc.width,
+            doc.height,
+            id="normal",
+        )
+        doc.addPageTemplates(
+            [
+                PageTemplate(
+                    id="First",
+                    frames=frame,
+                    onPage=footer_callback,
+                    onPageEnd=watermark_callback,
+                    pagesize=doc.pagesize,
+                ),
+                PageTemplate(
+                    id="Later",
+                    frames=frame,
+                    onPage=footer_callback,
+                    onPageEnd=watermark_callback,
+                    pagesize=doc.pagesize,
+                ),
+            ]
+        )
+        BaseDocTemplate.build(doc, elements)
 
         self.buffer.seek(0)
         response = HttpResponse(self.buffer, content_type="application/pdf")
@@ -781,7 +809,7 @@ class BasePDFGenerator:
 
         canvas.saveState()
         try:
-            canvas.setFillAlpha(0.14)
+            canvas.setFillAlpha(0.28)
         except AttributeError:
             pass
         canvas.setFillColor(colors.HexColor("#7A7A7A"))
