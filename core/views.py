@@ -11,7 +11,12 @@ from rest_framework.views import APIView
 
 from account.models import Membership
 from client.models import Client
-from core.permissions import can_create, can_update, can_delete
+from core.permissions import (
+    can_change_document_status,
+    can_create,
+    can_update,
+    can_delete,
+)
 from facturation_backend.utils import CustomPagination
 
 
@@ -124,6 +129,14 @@ class BaseDocumentListCreateView(CompanyAccessMixin, APIView):
         )
         serializer.is_valid(raise_exception=True)
         instance = serializer.save(created_by_user=request.user)
+        from notification.services import notify_document_created
+
+        notify_document_created(
+            instance,
+            company_id=client_obj.company_id,
+            document_label=self.document_name,
+            creator=request.user,
+        )
         response_serializer = self.detail_serializer_class(
             instance, context={"request": request}
         )
@@ -267,6 +280,11 @@ class BaseStatusUpdateView(CompanyAccessMixin, APIView):
                 _("Vous n'avez pas les droits pour modifier ce %(name)s.")
                 % {"name": self.document_name}
             )
+        if not can_change_document_status(request.user, object_.client.company_id):
+            raise PermissionDenied(
+                _("Vous n'avez pas les droits pour modifier le statut de ce %(name)s.")
+                % {"name": self.document_name}
+            )
 
         new_status = request.data.get("statut")
         valid_statuses = [choice[0] for choice in self.model.STATUT_CHOICES]
@@ -287,6 +305,7 @@ class BaseConversionView(CompanyAccessMixin, APIView):
     numero_generator = None
     conversion_method = None
     numero_param_name = "numero_facture"  # Default for most conversions
+    converted_document_name = "document"
 
     def get_object(self, pk):
         try:
@@ -343,6 +362,14 @@ class BaseConversionView(CompanyAccessMixin, APIView):
             converted = conversion_func(
                 **{self.numero_param_name: numero},
                 created_by_user=request.user,
+            )
+            from notification.services import notify_document_created
+
+            notify_document_created(
+                converted,
+                company_id=object_.client.company_id,
+                document_label=self.converted_document_name,
+                creator=request.user,
             )
             return Response({"id": converted.id}, status=status.HTTP_201_CREATED)
         except Exception as e:

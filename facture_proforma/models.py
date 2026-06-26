@@ -101,11 +101,14 @@ class FactureProForma(BaseDeviFactureDocument):
                     "Impossible de convertir un document avec le statut '{statut}'"
                 ).format(statut=self.statut)
             )
+        if self.converted_factures.exists():
+            raise ValueError(_("Cette proforma a déjà été convertie en facture."))
 
         facture_client = FactureClient.objects.create(
             numero_facture=numero_facture,
             company=self.company,
             client=self.client,
+            source_proforma=self,
             date_facture=self.date_facture,
             date_echeance=self.date_echeance,
             numero_bon_commande_client=self.numero_bon_commande_client,

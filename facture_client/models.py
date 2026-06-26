@@ -59,6 +59,16 @@ class FactureClient(BaseDeviFactureDocument):
         help_text=_("Conditions ou termes de paiement de la facture"),
     )
 
+    source_proforma = models.ForeignKey(
+        "facture_proforma.FactureProForma",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="converted_factures",
+        verbose_name=_("Proforma d'origine"),
+        help_text=_("Facture pro forma ayant généré cette facture client"),
+    )
+
     history = HistoricalRecords(
         verbose_name=_("Historique Facture Client"),
         verbose_name_plural=_("Historiques Factures Client"),

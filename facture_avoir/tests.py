@@ -28,7 +28,12 @@ def avoir_context():
     )
     company = Company.objects.create(raison_sociale="Avoir Co", ICE="ICE-AVOIR")
     role, _ = Role.objects.get_or_create(name="Caissier")
-    Membership.objects.create(user=user, company=company, role=role)
+    Membership.objects.create(
+        user=user,
+        company=company,
+        role=role,
+        can_change_document_status=True,
+    )
     ville = Ville.objects.create(nom="Avoir Ville", company=company)
     client = Client.objects.create(
         code_client="AVC001",
@@ -163,7 +168,7 @@ def test_active_origin_avoir_cannot_credit_more_than_original_quantity(avoir_con
     assert "lignes" in response.data["details"]
 
 
-def test_avoir_delete_is_not_allowed(avoir_context):
+def test_avoir_delete_is_allowed(avoir_context):
     avoir = FactureAvoir.objects.create(
         facture_origine=avoir_context["facture"],
         client=avoir_context["client"],
@@ -177,7 +182,36 @@ def test_avoir_delete_is_not_allowed(avoir_context):
         reverse("facture_avoir:facture-avoir-detail", kwargs={"pk": avoir.pk})
     )
 
-    assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+    assert not FactureAvoir.objects.filter(pk=avoir.pk).exists()
+
+
+def test_avoir_bulk_delete_is_allowed(avoir_context):
+    avoir_1 = FactureAvoir.objects.create(
+        facture_origine=avoir_context["facture"],
+        client=avoir_context["client"],
+        company=avoir_context["company"],
+        date_avoir=timezone.localdate(),
+        motif_avoir="autre",
+        created_by_user=avoir_context["user"],
+    )
+    avoir_2 = FactureAvoir.objects.create(
+        facture_origine=avoir_context["facture"],
+        client=avoir_context["client"],
+        company=avoir_context["company"],
+        date_avoir=timezone.localdate(),
+        motif_avoir="retour_marchandise",
+        created_by_user=avoir_context["user"],
+    )
+
+    response = avoir_context["api_client"].delete(
+        reverse("facture_avoir:facture-avoir-bulk-delete"),
+        {"ids": [avoir_1.pk, avoir_2.pk]},
+        format="json",
+    )
+
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+    assert not FactureAvoir.objects.filter(pk__in=[avoir_1.pk, avoir_2.pk]).exists()
 
 
 @pytest.mark.parametrize(

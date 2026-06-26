@@ -11,6 +11,7 @@ class NotificationPreferenceAdmin(SimpleHistoryAdmin):
         "notify_overdue_invoice",
         "notify_expiring_quote",
         "notify_uninvoiced_bdl",
+        "notify_document_created",
         "date_updated",
     )
     search_fields = ("user__email",)

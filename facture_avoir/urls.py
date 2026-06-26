@@ -7,6 +7,7 @@ from .views import (
     FactureAvoirStatusUpdateView,
     FactureAvoirFromFactureView,
     FactureAvoirPDFView,
+    BulkDeleteFactureAvoirView,
 )
 
 app_name = "facture_avoir"
@@ -22,6 +23,11 @@ urlpatterns = [
         "generate_num_facture_avoir/",
         GenerateNumeroFactureAvoirView.as_view(),
         name="generate-numero-facture-avoir",
+    ),
+    path(
+        "bulk_delete/",
+        BulkDeleteFactureAvoirView.as_view(),
+        name="facture-avoir-bulk-delete",
     ),
     path(
         "switch_statut/<int:pk>/",

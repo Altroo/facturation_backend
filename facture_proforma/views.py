@@ -36,6 +36,7 @@ class FactureProFormaListCreateView(BaseDocumentListCreateView):
     create_serializer_class = FactureProformaSerializer
     detail_serializer_class = FactureProformaDetailSerializer
     document_name = "la facture proforma"
+    list_prefetch_related = ("lignes", "converted_factures")
 
 
 class FactureProFormaDetailEditDeleteView(BaseDocumentDetailEditDeleteView):
@@ -59,6 +60,7 @@ class FactureProFormaConvertToFactureClientView(BaseConversionView):
     document_name = "facture pro-forma"
     numero_generator = staticmethod(get_next_numero_facture_client)
     conversion_method = "convert_to_facture_client"
+    converted_document_name = "facture client"
 
 
 class FactureProFormaPDFGenerator(BasePDFGenerator):

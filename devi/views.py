@@ -60,6 +60,7 @@ class DeviConvertToFactureProformaView(BaseConversionView):
     document_name = "devis"
     numero_generator = staticmethod(get_next_numero_facture_pro_forma)
     conversion_method = "convert_to_facture_proforma"
+    converted_document_name = "facture pro-forma"
 
 
 class DeviConvertToFactureClientView(BaseConversionView):
@@ -67,6 +68,7 @@ class DeviConvertToFactureClientView(BaseConversionView):
     document_name = "devis"
     numero_generator = staticmethod(get_next_numero_facture_client)
     conversion_method = "convert_to_facture_client"
+    converted_document_name = "facture client"
 
 
 class DeviPDFGenerator(BasePDFGenerator):

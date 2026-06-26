@@ -91,6 +91,7 @@ class CompanyListCreateView(APIView):
             user=request.user,
             role=admin_group,
             can_validate_factures=True,
+            can_change_document_status=True,
         )
 
         managed_by = request.data.get("managed_by")

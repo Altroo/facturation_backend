@@ -16,14 +16,19 @@ class MembershipInlineForm(forms.ModelForm):
 
     class Meta:
         model = Membership
-        fields = ("user", "role", "can_validate_factures")
+        fields = (
+            "user",
+            "role",
+            "can_validate_factures",
+            "can_change_document_status",
+        )
 
 
 class MembershipInline(admin.TabularInline):
     model = Membership
     form = MembershipInlineForm
     extra = 1
-    fields = ("user", "role", "can_validate_factures")
+    fields = ("user", "role", "can_validate_factures", "can_change_document_status")
     autocomplete_fields = ("user",)
     verbose_name = "Manager"
     verbose_name_plural = "Managers"

@@ -34,7 +34,12 @@ def _create_devi_membership(user, company):
     caissier_role, _ = Role.objects.get_or_create(
         name="Caissier",
     )
-    return Membership.objects.create(user=user, company=company, role=caissier_role)
+    return Membership.objects.create(
+        user=user,
+        company=company,
+        role=caissier_role,
+        can_change_document_status=True,
+    )
 
 
 @pytest.fixture

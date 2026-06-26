@@ -136,7 +136,10 @@ def common_membership(common_user, common_company):
         name="Caissier",
     )
     return Membership.objects.create(
-        user=common_user, company=common_company, role=caissier_role
+        user=common_user,
+        company=common_company,
+        role=caissier_role,
+        can_change_document_status=True,
     )
 
 
@@ -145,7 +148,12 @@ def _create_core_membership(user, company):
     caissier_role, _ = Role.objects.get_or_create(
         name="Caissier",
     )
-    return Membership.objects.create(user=user, company=company, role=caissier_role)
+    return Membership.objects.create(
+        user=user,
+        company=company,
+        role=caissier_role,
+        can_change_document_status=True,
+    )
 
 
 # -----------------------------------------------------------------------------
@@ -1702,6 +1710,45 @@ class TestBaseStatusUpdateViewPermissions:
 
         response = view(request, pk=99999)
         assert response.status_code == 404
+
+    def test_status_update_requires_document_status_permission(self, extra_ville):
+        """Caissier without the status permission cannot switch status."""
+
+        user_obj = get_user_model()
+        user = user_obj.objects.create_user(email="status@test.com", password="pass")
+        caissier_role, _ = Role.objects.get_or_create(name="Caissier")
+        company = Company.objects.create(raison_sociale="StatusCo", ICE="123456783")
+        Membership.objects.create(
+            user=user,
+            company=company,
+            role=caissier_role,
+            can_change_document_status=False,
+        )
+        client_obj = Client.objects.create(
+            code_client="CLT_status_perm",
+            client_type="PM",
+            raison_sociale="Status Client",
+            ville=extra_ville,
+            company=company,
+        )
+        devi = Devi.objects.create(
+            client=client_obj,
+            numero_devis="0003/25",
+            date_devis="2024-01-01",
+            created_by_user=user,
+        )
+
+        class TestStatusView(BaseStatusUpdateView):
+            model = Devi
+            document_name = "devis"
+
+        view = TestStatusView.as_view()
+        factory = APIRequestFactory()
+        request = factory.patch("/", {"statut": "Accepté"}, format="json")
+        force_authenticate(request, user=user)
+
+        response = view(request, pk=devi.pk)
+        assert response.status_code == 403
 
 
 @pytest.mark.django_db

@@ -213,6 +213,11 @@ class Membership(models.Model):
         verbose_name=_("Autoriser la validation des factures"),
         help_text=_("Autorise cet utilisateur à valider les factures client."),
     )
+    can_change_document_status = models.BooleanField(
+        default=False,
+        verbose_name=_("Autoriser le changement de statut des documents"),
+        help_text=_("Autorise cet utilisateur à modifier le statut des documents."),
+    )
 
     history = HistoricalRecords(
         verbose_name=_("Historique Membre"),

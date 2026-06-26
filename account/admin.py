@@ -106,8 +106,20 @@ class CustomUserAdmin(UserAdmin):
 
 
 class MembershipAdmin(ModelAdmin):
-    list_display = ("id", "user", "company", "role", "can_validate_factures")
-    list_filter = ("role", "company", "can_validate_factures")
+    list_display = (
+        "id",
+        "user",
+        "company",
+        "role",
+        "can_validate_factures",
+        "can_change_document_status",
+    )
+    list_filter = (
+        "role",
+        "company",
+        "can_validate_factures",
+        "can_change_document_status",
+    )
     search_fields = ("user__email", "company__raison_sociale", "role__name")
 
 

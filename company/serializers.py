@@ -18,7 +18,14 @@ class MembershipUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Membership
-        fields = ["id", "first_name", "last_name", "role", "can_validate_factures"]
+        fields = [
+            "id",
+            "first_name",
+            "last_name",
+            "role",
+            "can_validate_factures",
+            "can_change_document_status",
+        ]
         read_only_fields = fields
 
 
@@ -38,6 +45,7 @@ class MembershipCompanySerializer(serializers.ModelSerializer):
             "raison_sociale",
             "role",
             "can_validate_factures",
+            "can_change_document_status",
         ]
         read_only_fields = fields
 
@@ -70,6 +78,7 @@ class CompanyListSerializer(serializers.ModelSerializer):
 class CompanyBasicListSerializer(serializers.ModelSerializer):
     role = serializers.SerializerMethodField()
     can_validate_factures = serializers.SerializerMethodField()
+    can_change_document_status = serializers.SerializerMethodField()
 
     class Meta:
         model = Company
@@ -79,6 +88,7 @@ class CompanyBasicListSerializer(serializers.ModelSerializer):
             "role",
             "uses_foreign_currency",
             "can_validate_factures",
+            "can_change_document_status",
         ]
         read_only_fields = fields
 
@@ -119,6 +129,19 @@ class CompanyBasicListSerializer(serializers.ModelSerializer):
             return False
         membership = Membership.objects.filter(user=request.user, company=obj).first()
         return bool(membership and membership.can_validate_factures)
+
+    def get_can_change_document_status(self, obj):
+        user_memberships = getattr(obj, "_user_memberships", None)
+        if user_memberships is not None:
+            if user_memberships:
+                return user_memberships[0].can_change_document_status
+            return False
+
+        request = self.context.get("request")
+        if not request:
+            return False
+        membership = Membership.objects.filter(user=request.user, company=obj).first()
+        return bool(membership and membership.can_change_document_status)
 
 
 class CompanySerializer(serializers.ModelSerializer):
@@ -303,9 +326,17 @@ class ManagedByItemSerializer(serializers.Serializer):
     pk = serializers.IntegerField()
     role = serializers.CharField()
     can_validate_factures = serializers.BooleanField(required=False, default=False)
+    can_change_document_status = serializers.BooleanField(
+        required=False, default=False
+    )
 
     class Meta:
-        fields = ["pk", "role", "can_validate_factures"]
+        fields = [
+            "pk",
+            "role",
+            "can_validate_factures",
+            "can_change_document_status",
+        ]
 
 
 class CompanyDetailSerializer(CompanySerializer):
@@ -335,6 +366,7 @@ class CompanyDetailSerializer(CompanySerializer):
             user_id = item["pk"]
             role_name = item["role"]
             can_validate_factures = item.get("can_validate_factures", False)
+            can_change_document_status = item.get("can_change_document_status", False)
             try:
                 role_group = Role.objects.get(name=role_name)
             except Role.DoesNotExist:
@@ -346,6 +378,7 @@ class CompanyDetailSerializer(CompanySerializer):
                 user_id=user_id,
                 role=role_group,
                 can_validate_factures=can_validate_factures,
+                can_change_document_status=can_change_document_status,
             )
 
     def update(self, instance, validated_data):
@@ -374,6 +407,7 @@ class CompanyDetailSerializer(CompanySerializer):
                 "pk": m.user.id,
                 "role": m.role.name,
                 "can_validate_factures": m.can_validate_factures,
+                "can_change_document_status": m.can_change_document_status,
             }
             for m in instance.memberships.select_related("user", "role")
         ]

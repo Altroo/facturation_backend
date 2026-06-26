@@ -33,7 +33,12 @@ pytestmark = pytest.mark.django_db
 def _create_pf_membership(user, company):
     """Helper to create membership with Caissier role."""
     caissier_role, _ = Role.objects.get_or_create(name="Caissier")
-    return Membership.objects.create(user=user, company=company, role=caissier_role)
+    return Membership.objects.create(
+        user=user,
+        company=company,
+        role=caissier_role,
+        can_change_document_status=True,
+    )
 
 
 @pytest.fixture
@@ -492,7 +497,24 @@ class TestFactureProFormaModelExtra(SharedDocumentModelTestsMixin):
         assert facture.client == pf_conv_with_lines.client
         assert facture.mode_paiement == pf_conv_with_lines.mode_paiement
         assert facture.created_by_user == pf_conv_user
+        assert facture.source_proforma == pf_conv_with_lines
         assert facture.lignes.count() == pf_conv_with_lines.lignes.count()
+
+    def test_convert_to_facture_client_only_once_until_facture_deleted(
+        self, pf_conv_with_lines, pf_conv_user
+    ):
+        """Conversion is blocked while the generated invoice exists."""
+        facture = pf_conv_with_lines.convert_to_facture_client("FC-PF004", pf_conv_user)
+
+        with pytest.raises(ValueError, match="déjà été convertie"):
+            pf_conv_with_lines.convert_to_facture_client("FC-PF005", pf_conv_user)
+
+        facture.delete()
+        next_facture = pf_conv_with_lines.convert_to_facture_client(
+            "FC-PF006", pf_conv_user
+        )
+
+        assert next_facture.source_proforma == pf_conv_with_lines
 
     def test_conversion_copies_remise(self, pf_conv_with_lines, pf_conv_user):
         """Test that conversion copies remise fields."""

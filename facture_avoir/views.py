@@ -17,12 +17,18 @@ from rest_framework.views import APIView
 from company.models import Company
 from core.authentication import JWTQueryParamAuthentication
 from core.pdf_utils import BasePDFGenerator
-from core.permissions import can_create, can_update, can_print
+from core.permissions import (
+    can_change_document_status,
+    can_create,
+    can_update,
+    can_print,
+)
 from core.views import (
     BaseDocumentDetailEditDeleteView,
     BaseDocumentListCreateView,
     BaseGenerateNumeroView,
     BaseStatusUpdateView,
+    BaseBulkDeleteView,
 )
 from facture_client.models import FactureClient
 from facturation_backend.utils import CustomPagination
@@ -104,6 +110,14 @@ class FactureAvoirListCreateView(BaseDocumentListCreateView):
         )
         serializer.is_valid(raise_exception=True)
         instance = serializer.save(created_by_user=request.user)
+        from notification.services import notify_document_created
+
+        notify_document_created(
+            instance,
+            company_id=company_id,
+            document_label="facture d'avoir",
+            creator=request.user,
+        )
         response_serializer = self.detail_serializer_class(
             instance, context={"request": request}
         )
@@ -129,16 +143,6 @@ class FactureAvoirDetailEditView(BaseDocumentDetailEditDeleteView):
             )
         return super().put(request, pk, *args, **kwargs)
 
-    def delete(self, request, pk, *args, **kwargs):
-        return Response(
-            {
-                "detail": _(
-                    "Les factures d'avoir numérotées ne peuvent pas être supprimées."
-                )
-            },
-            status=status.HTTP_405_METHOD_NOT_ALLOWED,
-        )
-
 
 class GenerateNumeroFactureAvoirView(BaseGenerateNumeroView):
     numero_generator = get_next_numero_facture_avoir
@@ -159,6 +163,12 @@ class FactureAvoirStatusUpdateView(BaseStatusUpdateView):
             raise PermissionDenied(
                 _("Vous n'avez pas les droits pour modifier cette facture d'avoir.")
             )
+        if not can_change_document_status(request.user, object_.company_id):
+            raise PermissionDenied(
+                _(
+                    "Vous n'avez pas les droits pour modifier le statut de cette facture d'avoir."
+                )
+            )
 
         new_status = request.data.get("statut")
         valid_statuses = [choice[0] for choice in self.model.STATUT_CHOICES]
@@ -172,6 +182,19 @@ class FactureAvoirStatusUpdateView(BaseStatusUpdateView):
         object_.statut = new_status
         object_.save(update_fields=["statut"])
         return Response({"statut": object_.statut}, status=status.HTTP_200_OK)
+
+
+class BulkDeleteFactureAvoirView(BaseBulkDeleteView):
+    model = FactureAvoir
+    document_name = "facture d'avoir"
+
+    def get_queryset_with_related(self, ids):
+        return FactureAvoir.objects.filter(pk__in=ids).select_related(
+            "client", "facture_origine"
+        )
+
+    def get_company_id(self, obj):
+        return obj.company_id
 
 
 class FactureAvoirFromFactureView(APIView):

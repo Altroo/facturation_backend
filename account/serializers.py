@@ -26,6 +26,9 @@ class MembershipSerializer(serializers.ModelSerializer):
     # Role is sent as a string (e.g. "Caissier")
     role = serializers.CharField(write_only=True)
     can_validate_factures = serializers.BooleanField(required=False, default=False)
+    can_change_document_status = serializers.BooleanField(
+        required=False, default=False
+    )
 
     # Returned for read‑only purposes
     raison_sociale = serializers.CharField(source="company.name", read_only=True)
@@ -38,6 +41,7 @@ class MembershipSerializer(serializers.ModelSerializer):
             "role",
             "raison_sociale",
             "can_validate_factures",
+            "can_change_document_status",
         ]
 
     def to_representation(self, instance):
@@ -118,6 +122,10 @@ class MembershipSerializer(serializers.ModelSerializer):
 
         if "can_validate_factures" in validated_data:
             instance.can_validate_factures = validated_data.pop("can_validate_factures")
+        if "can_change_document_status" in validated_data:
+            instance.can_change_document_status = validated_data.pop(
+                "can_change_document_status"
+            )
 
         instance.save()
         return instance

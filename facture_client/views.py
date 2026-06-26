@@ -200,6 +200,7 @@ class FactureClientConvertToBonDeLivraisonView(BaseConversionView):
     numero_generator = staticmethod(get_next_numero_bon_livraison)
     conversion_method = "convert_to_bon_de_livraison"
     numero_param_name = "numero_bon_livraison"
+    converted_document_name = "bon de livraison"
 
 
 class FactureClientUnpaidListView(BaseDocumentListCreateView):

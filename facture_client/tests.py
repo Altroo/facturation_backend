@@ -51,7 +51,12 @@ def _create_fc_membership(user, company):
     caissier_role, _ = Role.objects.get_or_create(
         name="Caissier",
     )
-    return Membership.objects.create(user=user, company=company, role=caissier_role)
+    return Membership.objects.create(
+        user=user,
+        company=company,
+        role=caissier_role,
+        can_change_document_status=True,
+    )
 
 
 def _accept_facture(facture):

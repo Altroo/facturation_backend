@@ -21,7 +21,12 @@ from core.pdf_utils import (
     number_to_english_words,
     format_number_for_pdf,
 )
-from core.permissions import can_create, can_update, can_delete
+from core.permissions import (
+    can_change_document_status,
+    can_create,
+    can_update,
+    can_delete,
+)
 from facturation_backend.utils import CustomPagination
 from facture_client.models import FactureClient
 from facture_client.stats import get_stats_by_currency
@@ -132,6 +137,14 @@ class ReglementListCreateView(CompanyAccessMixin, APIView):
         )
         serializer.is_valid(raise_exception=True)
         instance = serializer.save()
+        from notification.services import notify_document_created
+
+        notify_document_created(
+            instance,
+            company_id=facture_client.client.company_id,
+            document_label="règlement",
+            creator=request.user,
+        )
 
         response_serializer = ReglementDetailSerializer(
             instance, context={"request": request}
@@ -257,6 +270,12 @@ class ReglementStatusUpdateView(APIView):
         if not can_update(request.user, reglement.facture_client.client.company_id):
             raise PermissionDenied(
                 _("Vous n'avez pas les droits pour modifier ce règlement.")
+            )
+        if not can_change_document_status(
+            request.user, reglement.facture_client.client.company_id
+        ):
+            raise PermissionDenied(
+                _("Vous n'avez pas les droits pour modifier le statut de ce règlement.")
             )
 
         new_status = request.data.get("statut")

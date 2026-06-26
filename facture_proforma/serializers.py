@@ -17,6 +17,25 @@ from .models import FactureProForma, FactureProFormaLine
 class FactureProformaListSerializer(BaseListSerializer):
     """List serializer for FactureProForma with totals as decimals."""
 
+    converted_facture_client = serializers.SerializerMethodField()
+    converted_facture_client_numero = serializers.SerializerMethodField()
+
+    def _get_converted_facture(self, obj):
+        prefetched = getattr(obj, "_prefetched_objects_cache", {}).get(
+            "converted_factures"
+        )
+        if prefetched is not None:
+            return prefetched[0] if prefetched else None
+        return obj.converted_factures.only("id", "numero_facture").first()
+
+    def get_converted_facture_client(self, obj):
+        facture = self._get_converted_facture(obj)
+        return facture.id if facture else None
+
+    def get_converted_facture_client_numero(self, obj):
+        facture = self._get_converted_facture(obj)
+        return facture.numero_facture if facture else None
+
     class Meta:
         model = FactureProForma
         fields = [
@@ -31,6 +50,8 @@ class FactureProformaListSerializer(BaseListSerializer):
             "mode_paiement_name",
             "numero_bon_commande_client",
             "termes_paiement",
+            "converted_facture_client",
+            "converted_facture_client_numero",
             "statut",
             "remarque",
             "created_by_user",
@@ -113,6 +134,24 @@ class FactureProformaSerializer(BaseCreateSerializer):
     lignes = FactureProformaLineWriteSerializer(
         many=True, write_only=True, required=False
     )
+    converted_facture_client = serializers.SerializerMethodField()
+    converted_facture_client_numero = serializers.SerializerMethodField()
+
+    def _get_converted_facture(self, obj):
+        prefetched = getattr(obj, "_prefetched_objects_cache", {}).get(
+            "converted_factures"
+        )
+        if prefetched is not None:
+            return prefetched[0] if prefetched else None
+        return obj.converted_factures.only("id", "numero_facture").first()
+
+    def get_converted_facture_client(self, obj):
+        facture = self._get_converted_facture(obj)
+        return facture.id if facture else None
+
+    def get_converted_facture_client_numero(self, obj):
+        facture = self._get_converted_facture(obj)
+        return facture.numero_facture if facture else None
 
     def get_numero_field_name(self):
         return "numero_facture"
@@ -145,6 +184,8 @@ class FactureProformaSerializer(BaseCreateSerializer):
             "date_echeance",
             "numero_bon_commande_client",
             "termes_paiement",
+            "converted_facture_client",
+            "converted_facture_client_numero",
             "mode_paiement",
             "mode_paiement_name",
             "statut",
@@ -169,6 +210,8 @@ class FactureProformaSerializer(BaseCreateSerializer):
             "company",
             "created_by_user",
             "statut",
+            "converted_facture_client",
+            "converted_facture_client_numero",
             "total_ht",
             "total_tva",
             "total_ttc",
@@ -184,6 +227,24 @@ class FactureProformaDetailSerializer(BaseDetailUpdateSerializer):
     lignes = FactureProformaLineWriteSerializer(
         many=True, write_only=True, required=False
     )
+    converted_facture_client = serializers.SerializerMethodField()
+    converted_facture_client_numero = serializers.SerializerMethodField()
+
+    def _get_converted_facture(self, obj):
+        prefetched = getattr(obj, "_prefetched_objects_cache", {}).get(
+            "converted_factures"
+        )
+        if prefetched is not None:
+            return prefetched[0] if prefetched else None
+        return obj.converted_factures.only("id", "numero_facture").first()
+
+    def get_converted_facture_client(self, obj):
+        facture = self._get_converted_facture(obj)
+        return facture.id if facture else None
+
+    def get_converted_facture_client_numero(self, obj):
+        facture = self._get_converted_facture(obj)
+        return facture.numero_facture if facture else None
 
     def get_line_model_class(self):
         return FactureProFormaLine
@@ -206,6 +267,8 @@ class FactureProformaDetailSerializer(BaseDetailUpdateSerializer):
             "id",
             "company",
             "created_by_user",
+            "converted_facture_client",
+            "converted_facture_client_numero",
             "date_created",
             "date_updated",
         ]

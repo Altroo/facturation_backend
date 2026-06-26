@@ -151,3 +151,19 @@ def can_validate_factures(user: "CustomUser", company_id: int) -> bool:
     except Membership.DoesNotExist:
         return False
     return membership.can_validate_factures
+
+
+def can_change_document_status(user: "CustomUser", company_id: int) -> bool:
+    """Check if user can change document statuses for a company."""
+    if getattr(user, "is_superuser", False):
+        return True
+
+    from account.models import Membership
+
+    try:
+        membership = Membership.objects.only("can_change_document_status").get(
+            user=user, company_id=company_id
+        )
+    except Membership.DoesNotExist:
+        return False
+    return membership.can_change_document_status

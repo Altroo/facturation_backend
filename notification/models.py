@@ -35,6 +35,10 @@ class NotificationPreference(models.Model):
         default=True,
         verbose_name=_("Notifier les BLs non facturés"),
     )
+    notify_document_created = models.BooleanField(
+        default=True,
+        verbose_name=_("Notifier la création de documents"),
+    )
     quote_expiry_days = models.IntegerField(
         choices=REMINDER_CHOICES,
         default=7,
@@ -67,6 +71,7 @@ class Notification(models.Model):
         ("expiring_quote", _("Devis expirant")),
         ("uninvoiced_bdl", _("BL non facturé")),
         ("status_change", _("Changement de statut")),
+        ("document_created", _("Document créé")),
     ]
 
     user = models.ForeignKey(

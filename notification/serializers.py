@@ -11,6 +11,7 @@ class NotificationPreferenceSerializer(serializers.ModelSerializer):
             "notify_overdue_invoice",
             "notify_expiring_quote",
             "notify_uninvoiced_bdl",
+            "notify_document_created",
             "quote_expiry_days",
             "date_created",
             "date_updated",
