@@ -284,6 +284,38 @@ class TestDeviFilters(SharedDocumentFilterTestsMixin):
     def test_client_id_filter(self):
         self.shared_test_client_id_filter()
 
+    def test_search_and_client_name_filter_match_personne_physique(self):
+        physical_client = Client.objects.create(
+            code_client="C003",
+            client_type=Client.PERSONNE_PHYSIQUE,
+            nom="Fatima",
+            prenom="Bennani",
+            company=self.company,
+            ville=self.ville,
+        )
+        physical_devis = Devi.objects.create(
+            numero_devis="NUM-003",
+            client=physical_client,
+            date_devis="2024-06-03",
+            numero_demande_prix_client="REQ-PHYSIQUE",
+            mode_paiement=self.mode,
+            remise=0.00,
+            remise_type="Pourcentage",
+            created_by_user=self.user,
+        )
+
+        for params in (
+            {"search": "Fatima"},
+            {"search": "Bennani"},
+            {"search": "Fatima Bennani"},
+            {"client_name": "Fatima Bennani"},
+            {"client_name__icontains": "Fatima"},
+            {"client_name__istartswith": "Fatima"},
+            {"client_name__iendswith": "Bennani"},
+        ):
+            filterset = DeviFilter(params, queryset=Devi.objects.all())
+            assert physical_devis in filterset.qs
+
     def test_empty_search_returns_queryset_unchanged(self):
         self.shared_test_empty_search_returns_queryset_unchanged()
 

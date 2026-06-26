@@ -1,6 +1,7 @@
 import django_filters
 from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
-from django.db.models import Q, Value, F, FloatField, Count
+from django.db.models import Q, Value, F, FloatField, Count, CharField
+from django.db.models.functions import Coalesce, Concat
 from django.db.utils import DatabaseError
 from django.utils.translation import gettext_lazy as _
 
@@ -127,19 +128,18 @@ class BaseDocumentFilter(django_filters.FilterSet):
         method="filter_lignes_count_ne", label=_("Lignes Count (!=)")
     )
 
-    # Text lookup filters for client_name (mapped to client__raison_sociale)
+    # Text lookup filters for the displayed client name. Personne morale uses
+    # raison_sociale; personne physique uses "nom prenom".
     client_name__icontains = django_filters.CharFilter(
-        field_name="client__raison_sociale", lookup_expr="icontains"
+        method="filter_client_name_icontains"
     )
     client_name__istartswith = django_filters.CharFilter(
-        field_name="client__raison_sociale", lookup_expr="istartswith"
+        method="filter_client_name_istartswith"
     )
     client_name__iendswith = django_filters.CharFilter(
-        field_name="client__raison_sociale", lookup_expr="iendswith"
+        method="filter_client_name_iendswith"
     )
-    client_name = django_filters.CharFilter(
-        field_name="client__raison_sociale", lookup_expr="exact"
-    )
+    client_name = django_filters.CharFilter(method="filter_client_name_exact")
 
     # Subclasses should override these
     numero_field = (
@@ -193,6 +193,48 @@ class BaseDocumentFilter(django_filters.FilterSet):
         if not queryset.query.annotations.get("lignes_count"):
             queryset = queryset.annotate(lignes_count=Count("lignes"))
         return queryset
+
+    @staticmethod
+    def _client_full_name_expression():
+        return Concat(
+            Coalesce("client__nom", Value("")),
+            Value(" "),
+            Coalesce("client__prenom", Value("")),
+            output_field=CharField(),
+        )
+
+    @classmethod
+    def _filter_client_name(cls, queryset, value, lookup_expr):
+        if not value or not str(value).strip():
+            return queryset
+
+        value = str(value).strip()
+        queryset = queryset.annotate(
+            _client_full_name=cls._client_full_name_expression()
+        )
+        lookup = f"__{lookup_expr}"
+        return queryset.filter(
+            Q(**{f"client__raison_sociale{lookup}": value})
+            | Q(**{f"client__nom{lookup}": value})
+            | Q(**{f"client__prenom{lookup}": value})
+            | Q(**{f"_client_full_name{lookup}": value})
+        )
+
+    @classmethod
+    def filter_client_name_exact(cls, queryset, _name, value):
+        return cls._filter_client_name(queryset, value, "iexact")
+
+    @classmethod
+    def filter_client_name_icontains(cls, queryset, _name, value):
+        return cls._filter_client_name(queryset, value, "icontains")
+
+    @classmethod
+    def filter_client_name_istartswith(cls, queryset, _name, value):
+        return cls._filter_client_name(queryset, value, "istartswith")
+
+    @classmethod
+    def filter_client_name_iendswith(cls, queryset, _name, value):
+        return cls._filter_client_name(queryset, value, "iendswith")
 
     @classmethod
     def filter_lignes_count_exact(cls, queryset, _name, value):
@@ -264,9 +306,15 @@ class BaseDocumentFilter(django_filters.FilterSet):
         ts_meta = set(":*?&|!()<>")
         skip_fts = any(ch in ts_meta for ch in value.lower())
 
+        queryset = queryset.annotate(
+            _client_full_name=self._client_full_name_expression()
+        )
+
         search_vector = (
             SearchVector(self.numero_field, weight="A")
             + SearchVector("client__raison_sociale", weight="A")
+            + SearchVector("client__nom", weight="A")
+            + SearchVector("client__prenom", weight="A")
             + SearchVector(self.req_field, weight="B")
         )
 
@@ -290,6 +338,9 @@ class BaseDocumentFilter(django_filters.FilterSet):
         fallback_q = (
             Q(**{f"{self.numero_field}__icontains": value})
             | Q(client__raison_sociale__icontains=value)
+            | Q(client__nom__icontains=value)
+            | Q(client__prenom__icontains=value)
+            | Q(_client_full_name__icontains=value)
             | Q(**{f"{self.req_field}__icontains": value})
         )
 
