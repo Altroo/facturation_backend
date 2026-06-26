@@ -249,7 +249,7 @@ def test_avoir_pdf_accepts_explicit_unit_variants(avoir_context, pdf_type):
     assert response["Content-Type"] == "application/pdf"
 
 
-def test_avoir_pdf_rejects_draft(avoir_context):
+def test_avoir_pdf_allows_draft(avoir_context):
     avoir = FactureAvoir.objects.create(
         facture_origine=avoir_context["facture"],
         client=avoir_context["client"],
@@ -266,4 +266,5 @@ def test_avoir_pdf_rejects_draft(avoir_context):
         + f"?company_id={avoir_context['company'].id}"
     )
 
-    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert response.status_code == status.HTTP_200_OK
+    assert response["Content-Type"] == "application/pdf"

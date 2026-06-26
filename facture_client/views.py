@@ -373,9 +373,6 @@ class FactureClientForPaymentView(APIView):
 class FactureClientPDFGenerator(BasePDFGenerator):
     """PDF generator for FactureClient documents."""
 
-    def _should_show_draft_watermark(self) -> bool:
-        return self.document.statut != "Accepté"
-
     def _build_content(self) -> list:
         """Build PDF content for facture client."""
         if self._uses_nectar_layout():
@@ -464,7 +461,7 @@ class FactureClientPDFView(APIView):
             raise PermissionDenied(
                 _("Vous n'avez pas les droits pour imprimer ce document.")
             )
-        if facture_client.statut != "Accepté":
+        if facture_client.statut not in ["Brouillon", "Accepté"]:
             raise PermissionDenied(
                 _("Impossible d'imprimer une facture qui n'est pas validée.")
             )

@@ -711,13 +711,13 @@ class TestBonDeLivraisonPDFGeneration:
         assert response["Content-Type"] == "application/pdf"
         assert "filename" in response["Content-Disposition"]
 
-    def test_pdf_rejects_draft(
+    def test_pdf_allows_draft(
         self,
         bon_de_livraison_user,
         bon_de_livraison_company,
         bon_de_livraison_with_lines,
     ):
-        """Draft delivery note PDFs are blocked."""
+        """Draft delivery note PDFs are generated with a watermark."""
 
         caissier_role, _ = Role.objects.get_or_create(
             name="Caissier",
@@ -740,7 +740,8 @@ class TestBonDeLivraisonPDFGeneration:
         )
         response = client_api.get(url)
 
-        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.status_code == status.HTTP_200_OK
+        assert response["Content-Type"] == "application/pdf"
 
     def test_pdf_no_company_id(
         self,

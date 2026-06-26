@@ -638,6 +638,27 @@ class TestDeviPDFGeneration:
         assert response["Content-Type"] == "application/pdf"
         assert "filename" in response["Content-Disposition"]
 
+    def test_generate_draft_pdf(
+        self, devi_conv_user, devi_conv_company, devi_conv_with_lines
+    ):
+        """Draft devis PDFs are generated with a watermark."""
+
+        _create_devi_membership(devi_conv_user, devi_conv_company)
+        devi_conv_with_lines.statut = "Brouillon"
+        devi_conv_with_lines.save(update_fields=["statut"])
+
+        client_api = APIClient()
+        client_api.force_authenticate(user=devi_conv_user)
+
+        url = (
+            reverse("devi:devi-pdf-fr", args=[devi_conv_with_lines.id])
+            + f"?company_id={devi_conv_company.id}"
+        )
+        response = client_api.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response["Content-Type"] == "application/pdf"
+
     def test_pdf_no_company_id(
         self, devi_conv_user, devi_conv_company, devi_conv_with_lines
     ):

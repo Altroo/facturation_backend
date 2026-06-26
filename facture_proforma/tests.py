@@ -652,8 +652,8 @@ class TestFactureProFormaPDFGeneration:
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
-    def test_pdf_rejects_draft(self, pf_conv_user, pf_conv_company, pf_conv_with_lines):
-        """Draft proforma PDFs are blocked."""
+    def test_pdf_allows_draft(self, pf_conv_user, pf_conv_company, pf_conv_with_lines):
+        """Draft proforma PDFs are generated with a watermark."""
 
         _create_pf_membership(pf_conv_user, pf_conv_company)
         pf_conv_with_lines.statut = "Brouillon"
@@ -670,7 +670,8 @@ class TestFactureProFormaPDFGeneration:
         )
         response = client_api.get(url)
 
-        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.status_code == status.HTTP_200_OK
+        assert response["Content-Type"] == "application/pdf"
 
     def test_pdf_sans_remise_type(
         self, pf_conv_user, pf_conv_company, pf_conv_with_lines

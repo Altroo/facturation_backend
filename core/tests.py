@@ -3991,3 +3991,71 @@ class TestCoreModelsCoverage:
 
         # Should return early without error
         handler(sender=None, instance=instance)
+
+
+class TestBasePDFGeneratorDraftWatermark:
+    class FakeCanvas:
+        def __init__(self):
+            self.calls = []
+
+        def saveState(self):
+            self.calls.append(("saveState",))
+
+        def setFillAlpha(self, alpha):
+            self.calls.append(("setFillAlpha", alpha))
+
+        def setFillColor(self, color):
+            self.calls.append(("setFillColor", color))
+
+        def setFont(self, font, size):
+            self.calls.append(("setFont", font, size))
+
+        def translate(self, x, y):
+            self.calls.append(("translate", x, y))
+
+        def rotate(self, angle):
+            self.calls.append(("rotate", angle))
+
+        def drawCentredString(self, x, y, text):
+            self.calls.append(("drawCentredString", x, y, text))
+
+        def restoreState(self):
+            self.calls.append(("restoreState",))
+
+    def test_draft_watermark_uses_french_label_and_descending_angle(self):
+        generator = BasePDFGenerator(
+            SimpleNamespace(statut="Brouillon"),
+            SimpleNamespace(),
+            language="fr",
+        )
+        fake_canvas = self.FakeCanvas()
+
+        generator._add_draft_watermark(fake_canvas, None)
+
+        assert ("rotate", -35) in fake_canvas.calls
+        assert ("drawCentredString", 0, 0, "Brouillon") in fake_canvas.calls
+        assert ("setFillAlpha", 0.14) in fake_canvas.calls
+
+    def test_draft_watermark_uses_english_label(self):
+        generator = BasePDFGenerator(
+            SimpleNamespace(statut="Brouillon"),
+            SimpleNamespace(),
+            language="en",
+        )
+        fake_canvas = self.FakeCanvas()
+
+        generator._add_draft_watermark(fake_canvas, None)
+
+        assert ("drawCentredString", 0, 0, "Draft") in fake_canvas.calls
+
+    def test_draft_watermark_is_skipped_for_non_draft_document(self):
+        generator = BasePDFGenerator(
+            SimpleNamespace(statut="Accepté"),
+            SimpleNamespace(),
+            language="fr",
+        )
+        fake_canvas = self.FakeCanvas()
+
+        generator._add_draft_watermark(fake_canvas, None)
+
+        assert fake_canvas.calls == []

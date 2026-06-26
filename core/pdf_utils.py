@@ -773,7 +773,7 @@ class BasePDFGenerator:
         return self.BOTTOM_MARGIN
 
     def _should_show_draft_watermark(self) -> bool:
-        return False
+        return getattr(self.document, "statut", None) == "Brouillon"
 
     def _add_draft_watermark(self, canvas, _doc):
         if not self._should_show_draft_watermark():
@@ -785,10 +785,10 @@ class BasePDFGenerator:
         except AttributeError:
             pass
         canvas.setFillColor(colors.HexColor("#7A7A7A"))
-        canvas.setFont("Helvetica-Bold", 76)
+        canvas.setFont("Helvetica-Bold", 86)
         canvas.translate(self.PAGE_WIDTH / 2, self.PAGE_HEIGHT / 2)
-        canvas.rotate(35)
-        watermark = "DRAFT" if self.language == "en" else "BROUILLON"
+        canvas.rotate(-35)
+        watermark = "Draft" if self.language == "en" else "Brouillon"
         canvas.drawCentredString(0, 0, watermark)
         canvas.restoreState()
 

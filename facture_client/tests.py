@@ -880,12 +880,14 @@ class TestFactureClientPDFGeneration:
         assert response.status_code == status.HTTP_200_OK
         assert response["Content-Type"] == "application/pdf"
 
-    def test_pdf_draft_forbidden(
+    def test_pdf_draft_allowed(
         self, fc_conv_user, fc_conv_company, fc_conv_with_lines
     ):
-        """Draft facture client PDFs are blocked until validation."""
+        """Draft facture client PDFs are generated with a watermark."""
 
         _create_fc_membership(fc_conv_user, fc_conv_company)
+        fc_conv_with_lines.statut = "Brouillon"
+        fc_conv_with_lines.save(update_fields=["statut"])
 
         client_api = APIClient()
         client_api.force_authenticate(user=fc_conv_user)
@@ -898,7 +900,8 @@ class TestFactureClientPDFGeneration:
         )
         response = client_api.get(url)
 
-        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.status_code == status.HTTP_200_OK
+        assert response["Content-Type"] == "application/pdf"
 
 
 @pytest.mark.django_db

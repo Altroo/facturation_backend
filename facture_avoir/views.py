@@ -376,10 +376,6 @@ class FactureAvoirPDFView(APIView):
             raise PermissionDenied(
                 _("Vous n'avez pas les droits pour imprimer ce document.")
             )
-        if facture_avoir.statut == "Brouillon":
-            raise PermissionDenied(
-                _("Impossible d'imprimer un document en brouillon.")
-            )
         if not facture_avoir.facture_origine_id:
             raise PermissionDenied(
                 _("Une facture d'origine est requise pour imprimer cet avoir.")

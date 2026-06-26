@@ -164,11 +164,6 @@ class DeviPDFView(APIView):
             raise PermissionDenied(
                 _("Vous n'avez pas les droits pour imprimer ce document.")
             )
-        if devis.statut == "Brouillon":
-            raise PermissionDenied(
-                _("Impossible d'imprimer un document en brouillon.")
-            )
-
         # Generate PDF
         pdf_generator = DeviPDFGenerator(devis, company, pdf_type, language)
         return pdf_generator.generate_pdf()
