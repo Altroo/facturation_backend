@@ -817,7 +817,7 @@ class BasePDFGenerator:
         watermark = "Draft" if self.language == "en" else "Brouillon"
         font_name = "Helvetica-Bold"
         target_width = math.hypot(self.PAGE_WIDTH, self.PAGE_HEIGHT) * 0.55
-        font_size = target_width / pdfmetrics.stringWidth(watermark, font_name, 1)
+        font_size = target_width / pdfmetrics.stringWidth("Brouillon", font_name, 1)
         canvas.setFont(font_name, font_size)
         canvas.translate(self.PAGE_WIDTH / 2, self.PAGE_HEIGHT / 2)
         canvas.rotate(-math.degrees(math.atan(self.PAGE_HEIGHT / self.PAGE_WIDTH)))

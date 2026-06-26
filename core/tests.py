@@ -4047,7 +4047,9 @@ class TestBasePDFGeneratorDraftWatermark:
         assert fake_canvas.calls.index(
             ("setFillColor", colors.HexColor("#777777"))
         ) < fake_canvas.calls.index(("setFillAlpha", 0.18))
-        set_font_call = next(call for call in fake_canvas.calls if call[0] == "setFont")
+        set_font_call = next(
+            call for call in fake_canvas.calls if call[0] == "setFont"
+        )
         expected_font_size = (
             math.hypot(generator.PAGE_WIDTH, generator.PAGE_HEIGHT)
             * 0.55
@@ -4072,6 +4074,17 @@ class TestBasePDFGeneratorDraftWatermark:
         assert any(
             call[0] == "drawCentredString" and call[3] == "Draft"
             for call in fake_canvas.calls
+        )
+        set_font_call = next(call for call in fake_canvas.calls if call[0] == "setFont")
+        expected_font_size = (
+            math.hypot(generator.PAGE_WIDTH, generator.PAGE_HEIGHT)
+            * 0.55
+            / pdfmetrics.stringWidth("Brouillon", "Helvetica-Bold", 1)
+        )
+        assert set_font_call == (
+            "setFont",
+            "Helvetica-Bold",
+            pytest.approx(expected_font_size),
         )
 
     def test_draft_watermark_is_skipped_for_non_draft_document(self):
