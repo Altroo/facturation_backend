@@ -162,6 +162,18 @@ class FactureClientDetailEditDeleteView(BaseDocumentDetailEditDeleteView):
     detail_serializer_class = FactureClientDetailSerializer
     document_name = "facture client"
 
+    def get_object(self, pk):
+        try:
+            return (
+                self.model.objects.select_related(*self.detail_select_related)
+                .prefetch_related(*self.detail_prefetch_related)
+                .get(pk=pk)
+            )
+        except self.model.DoesNotExist:
+            raise Http404(
+                _("Cette facture client est introuvable ou n'est plus disponible.")
+            )
+
     def validate_status_change_permission(self, request, object_, new_status):
         if new_status == "Accepté" and not can_validate_factures(
             request.user, object_.client.company_id
