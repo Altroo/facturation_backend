@@ -227,6 +227,16 @@ class TestFactureClientAPI(SharedDocumentAPITestsMixin):
     def test_update_facture_client_status_invalid(self):
         self.shared_test_update_status_invalid()
 
+    def test_update_facture_client_status_not_found_message_is_user_friendly(self):
+        url = self._status_url(99999)
+        response = self.client_api.patch(url, {"statut": "Envoyé"}, format="json")
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert (
+            response.data["details"]["detail"]
+            == "Cette facture client est introuvable ou n'est plus disponible."
+        )
+
     def test_accept_facture_requires_validation_permission(self):
         url = self._status_url(self.doc.id)
         response = self.client_api.patch(url, {"statut": "Accepté"}, format="json")

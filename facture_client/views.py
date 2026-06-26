@@ -180,6 +180,14 @@ class FactureClientStatusUpdateView(BaseStatusUpdateView):
     model = FactureClient
     document_name = "facture client"
 
+    def get_object(self, pk):
+        try:
+            return self.model.objects.select_related("client").get(pk=pk)
+        except self.model.DoesNotExist:
+            raise Http404(
+                _("Cette facture client est introuvable ou n'est plus disponible.")
+            )
+
     def patch(self, request, pk, *args, **kwargs):
         object_ = self.get_object(pk)
         if not self._has_membership(request.user, object_.client.company_id):
