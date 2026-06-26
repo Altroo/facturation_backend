@@ -23,6 +23,7 @@ def _broadcast_notification(channel_layer, user_id, notification):
                     "message": notification.message,
                     "notification_type": notification.notification_type,
                     "object_id": notification.object_id,
+                    "target_url": notification.target_url,
                     "is_read": notification.is_read,
                     "date_created": notification.date_created.isoformat(),
                 },
@@ -58,6 +59,22 @@ def _get_document_number(document) -> str:
     return str(getattr(document, "id", ""))
 
 
+def _get_document_target_url(document) -> str:
+    routes = {
+        "Devi": "devis",
+        "FactureClient": "facture-client",
+        "FactureProForma": "facture-pro-forma",
+        "BonDeLivraison": "bon-de-livraison",
+        "FactureAvoir": "facture-avoir",
+        "Reglement": "reglements",
+    }
+    route = routes.get(document.__class__.__name__)
+    document_id = getattr(document, "id", None)
+    if not route or not document_id:
+        return ""
+    return f"/dashboard/{route}/{document_id}"
+
+
 def notify_document_created(document, *, company_id, document_label, creator=None):
     """Notify company admins that a document has been created."""
     if not company_id:
@@ -67,6 +84,7 @@ def notify_document_created(document, *, company_id, document_label, creator=Non
 
     label = _clean_document_label(document_label)
     numero = _get_document_number(document)
+    target_url = _get_document_target_url(document)
     client = getattr(document, "client", None)
     if client is None:
         facture_client = getattr(document, "facture_client", None)
@@ -108,6 +126,7 @@ def notify_document_created(document, *, company_id, document_label, creator=Non
                 },
                 notification_type="document_created",
                 object_id=getattr(document, "id", None),
+                target_url=target_url,
             )
             _broadcast_notification(channel_layer, membership.user_id, notif)
     except Exception:

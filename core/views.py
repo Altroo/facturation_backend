@@ -182,6 +182,10 @@ class BaseDocumentDetailEditDeleteView(CompanyAccessMixin, APIView):
         serializer = self.detail_serializer_class(object_, context={"request": request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    def validate_status_change_permission(self, request, object_, new_status):
+        """Hook for document-specific status transition permissions."""
+        return None
+
     def put(self, request, pk, *args, **kwargs):
         object_ = self.get_object(pk)
         if not self._has_membership(request.user, object_.client.company_id):
@@ -196,6 +200,17 @@ class BaseDocumentDetailEditDeleteView(CompanyAccessMixin, APIView):
                 _("Vous n'avez pas les droits pour modifier ce %(name)s.")
                 % {"name": self.document_name}
             )
+
+        new_status = request.data.get("statut")
+        if new_status is not None and new_status != object_.statut:
+            if not can_change_document_status(request.user, object_.client.company_id):
+                raise PermissionDenied(
+                    _(
+                        "Vous n'avez pas les droits pour modifier le statut de ce %(name)s."
+                    )
+                    % {"name": self.document_name}
+                )
+            self.validate_status_change_permission(request, object_, new_status)
 
         serializer = self.detail_serializer_class(
             object_, data=request.data, context={"request": request}

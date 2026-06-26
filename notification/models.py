@@ -92,6 +92,12 @@ class Notification(models.Model):
         blank=True,
         verbose_name=_("ID de l'objet lié"),
     )
+    target_url = models.CharField(
+        max_length=255,
+        blank=True,
+        default="",
+        verbose_name=_("Lien cible"),
+    )
     is_read = models.BooleanField(default=False, verbose_name=_("Lu"))
     date_created = models.DateTimeField(
         auto_now_add=True, verbose_name=_("Date création"), db_index=True

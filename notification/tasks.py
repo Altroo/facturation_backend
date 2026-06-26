@@ -176,6 +176,7 @@ def _broadcast(channel_layer, user_id, notification):
                     "message": notification.message,
                     "notification_type": notification.notification_type,
                     "object_id": notification.object_id,
+                    "target_url": notification.target_url,
                     "is_read": notification.is_read,
                     "date_created": notification.date_created.isoformat(),
                 },

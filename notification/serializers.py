@@ -28,6 +28,7 @@ class NotificationSerializer(serializers.ModelSerializer):
             "message",
             "notification_type",
             "object_id",
+            "target_url",
             "is_read",
             "date_created",
         ]
@@ -37,5 +38,6 @@ class NotificationSerializer(serializers.ModelSerializer):
             "message",
             "notification_type",
             "object_id",
+            "target_url",
             "date_created",
         ]

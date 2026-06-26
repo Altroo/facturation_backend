@@ -247,6 +247,40 @@ class TestFactureClientAPI(SharedDocumentAPITestsMixin):
         self.doc.refresh_from_db()
         assert self.doc.statut == "Accepté"
 
+    def test_detail_update_status_requires_status_permission(self):
+        Membership.objects.filter(user=self.user, company=self.company).update(
+            can_change_document_status=False,
+            can_validate_factures=True,
+        )
+        url = self._detail_url(self.doc.id)
+        payload = self._base_payload(
+            numero="0002/25", date_str="2024-06-03", req="REQ-001"
+        )
+        payload["statut"] = "Envoyé"
+
+        response = self.client_api.put(url, payload, format="json")
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        self.doc.refresh_from_db()
+        assert self.doc.statut != "Envoyé"
+
+    def test_detail_update_accept_requires_validation_permission(self):
+        Membership.objects.filter(user=self.user, company=self.company).update(
+            can_change_document_status=True,
+            can_validate_factures=False,
+        )
+        url = self._detail_url(self.doc.id)
+        payload = self._base_payload(
+            numero="0002/25", date_str="2024-06-03", req="REQ-001"
+        )
+        payload["statut"] = "Accepté"
+
+        response = self.client_api.put(url, payload, format="json")
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        self.doc.refresh_from_db()
+        assert self.doc.statut != "Accepté"
+
     def test_smoke_totals_present_on_detail(self):
         self.shared_test_get_detail()
 

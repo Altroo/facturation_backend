@@ -162,6 +162,14 @@ class FactureClientDetailEditDeleteView(BaseDocumentDetailEditDeleteView):
     detail_serializer_class = FactureClientDetailSerializer
     document_name = "facture client"
 
+    def validate_status_change_permission(self, request, object_, new_status):
+        if new_status == "Accepté" and not can_validate_factures(
+            request.user, object_.client.company_id
+        ):
+            raise PermissionDenied(
+                _("Vous n'avez pas les droits pour valider cette facture client.")
+            )
+
 
 class GenerateNumeroFactureView(BaseGenerateNumeroView):
     numero_generator = get_next_numero_facture_client
