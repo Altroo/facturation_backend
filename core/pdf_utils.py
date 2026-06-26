@@ -809,7 +809,7 @@ class BasePDFGenerator:
 
         canvas.saveState()
         try:
-            canvas.setFillAlpha(0.28)
+            canvas.setFillAlpha(0.12)
         except AttributeError:
             pass
         canvas.setFillColor(colors.HexColor("#7A7A7A"))

@@ -4034,7 +4034,7 @@ class TestBasePDFGeneratorDraftWatermark:
 
         assert ("rotate", -35) in fake_canvas.calls
         assert ("drawCentredString", 0, 0, "Brouillon") in fake_canvas.calls
-        assert ("setFillAlpha", 0.28) in fake_canvas.calls
+        assert ("setFillAlpha", 0.12) in fake_canvas.calls
 
     def test_draft_watermark_uses_english_label(self):
         generator = BasePDFGenerator(
