@@ -7,6 +7,7 @@ from ws.models import WsMaintenanceState
 
 class GetMaintenanceView(APIView):
     permission_classes = (permissions.AllowAny,)
+    throttle_classes = ()
 
     @staticmethod
     def get(request, *args, **kwargs):

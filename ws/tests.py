@@ -1,11 +1,14 @@
 import pytest
 from channels.db import database_sync_to_async
 from channels.testing import WebsocketCommunicator
+from django.core.cache import cache
 from django.contrib.auth import get_user_model
+from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import AccessToken
 from unittest.mock import AsyncMock, MagicMock
 
 from facturation_backend.asgi import application
+from ws.models import WsMaintenanceState
 from ws.jwt_middleware import (
     _AwaitableUser,
     SimpleJwtTokenAuthMiddleware,
@@ -61,6 +64,26 @@ class TestWebSocketConsumer:
         result = simplejwttokenauthmiddlewarestack(lambda scope, receive, send: None)
         assert callable(result)
         assert isinstance(result, SimpleJwtTokenAuthMiddleware)
+
+
+@pytest.mark.django_db
+def test_get_maintenance_view_is_public_and_not_throttled(settings):
+    cache.clear()
+    settings.REST_FRAMEWORK = {
+        **settings.REST_FRAMEWORK,
+        "DEFAULT_THROTTLE_CLASSES": ["rest_framework.throttling.AnonRateThrottle"],
+        "DEFAULT_THROTTLE_RATES": {
+            **settings.REST_FRAMEWORK.get("DEFAULT_THROTTLE_RATES", {}),
+            "anon": "1/minute",
+        },
+    }
+    WsMaintenanceState.objects.create(maintenance=True)
+    client = APIClient()
+
+    responses = [client.get("/api/ws/maintenance/") for _ in range(3)]
+
+    assert [response.status_code for response in responses] == [200, 200, 200]
+    assert responses[-1].data == {"maintenance": True}
 
 
 class TestAwaitableUserExtra:
