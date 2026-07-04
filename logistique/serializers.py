@@ -3,7 +3,7 @@ from decimal import Decimal
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
-from account.models import CustomUser
+from account.models import CustomUser, Membership
 from parameter.models import Marque
 
 from .models import LogisticsOrder, LogisticsOrderEvent, LogisticsOrderLine
@@ -33,6 +33,7 @@ class LogisticsOrderLineSerializer(serializers.ModelSerializer):
             "article_reference",
             "designation",
             "marque_name",
+            "project_reference",
             "quantity",
             "prix_achat",
             "devise_prix_achat",
@@ -72,10 +73,13 @@ class LogisticsOrderEventSerializer(serializers.ModelSerializer):
 class LogisticsOrderBaseSerializer(serializers.ModelSerializer):
     marque_name = serializers.CharField(source="marque.nom", read_only=True)
     responsable_name = serializers.SerializerMethodField()
+    demande_paiement_envoyee_par_name = serializers.SerializerMethodField()
+    paiement_valide_par_name = serializers.SerializerMethodField()
     created_by_user_name = serializers.SerializerMethodField()
     proformas_count = serializers.SerializerMethodField()
     lignes_count = serializers.SerializerMethodField()
     clients_display = serializers.SerializerMethodField()
+    projects_display = serializers.SerializerMethodField()
     alerts = serializers.SerializerMethodField()
 
     class Meta:
@@ -112,8 +116,10 @@ class LogisticsOrderBaseSerializer(serializers.ModelSerializer):
             "statut_paiement",
             "demande_paiement_envoyee_le",
             "demande_paiement_envoyee_par",
+            "demande_paiement_envoyee_par_name",
             "paiement_valide_le",
             "paiement_valide_par",
+            "paiement_valide_par_name",
             "date_paiement",
             "montant_paiement",
             "reference_paiement",
@@ -139,6 +145,7 @@ class LogisticsOrderBaseSerializer(serializers.ModelSerializer):
             "proformas_count",
             "lignes_count",
             "clients_display",
+            "projects_display",
             "alerts",
         ]
         read_only_fields = [
@@ -149,8 +156,10 @@ class LogisticsOrderBaseSerializer(serializers.ModelSerializer):
             "responsable_name",
             "demande_paiement_envoyee_le",
             "demande_paiement_envoyee_par",
+            "demande_paiement_envoyee_par_name",
             "paiement_valide_le",
             "paiement_valide_par",
+            "paiement_valide_par_name",
             "date_upload_swift",
             "swift_envoye_fournisseur_le",
             "cout_achat",
@@ -162,12 +171,21 @@ class LogisticsOrderBaseSerializer(serializers.ModelSerializer):
             "proformas_count",
             "lignes_count",
             "clients_display",
+            "projects_display",
             "alerts",
         ]
 
     @staticmethod
     def get_responsable_name(obj):
         return _user_display_name(obj.responsable)
+
+    @staticmethod
+    def get_demande_paiement_envoyee_par_name(obj):
+        return _user_display_name(obj.demande_paiement_envoyee_par)
+
+    @staticmethod
+    def get_paiement_valide_par_name(obj):
+        return _user_display_name(obj.paiement_valide_par)
 
     @staticmethod
     def get_created_by_user_name(obj):
@@ -202,13 +220,30 @@ class LogisticsOrderBaseSerializer(serializers.ModelSerializer):
         return ", ".join(names)
 
     @staticmethod
+    def get_projects_display(obj):
+        lines = getattr(obj, "_prefetched_objects_cache", {}).get("lignes")
+        if lines is None:
+            lines = obj.lignes.all()
+        refs = []
+        seen = set()
+        for line in lines:
+            ref = (line.project_reference or "").strip()
+            if ref and ref not in seen:
+                refs.append(ref)
+                seen.add(ref)
+        return ", ".join(refs)
+
+    @staticmethod
     def get_alerts(obj):
         alerts = []
         if obj.statut_paiement == "En attente":
             alerts.append("Retard paiement en attente")
         if obj.has_missing_swift:
             alerts.append("SWIFT manquant")
-        if obj.statut in {"Documents originaux", "Transit"} and not obj.documents_originaux_file:
+        if (
+            obj.statut in {"Documents originaux", "Transit"}
+            and not obj.documents_originaux_file
+        ):
             alerts.append("Documents non reçus")
         if obj.statut in {"Expédition", "Documents originaux"}:
             alerts.append("Transit non lancé")
@@ -233,6 +268,8 @@ class LogisticsOrderListSerializer(LogisticsOrderBaseSerializer):
             "statut",
             "statut_paiement",
             "methode_paiement",
+            "responsable",
+            "responsable_name",
             "cout_total",
             "created_by_user_name",
             "date_created",
@@ -240,6 +277,7 @@ class LogisticsOrderListSerializer(LogisticsOrderBaseSerializer):
             "proformas_count",
             "lignes_count",
             "clients_display",
+            "projects_display",
             "alerts",
         ]
         read_only_fields = fields
@@ -269,6 +307,7 @@ class LogisticsOrderDetailSerializer(LogisticsOrderBaseSerializer):
                 "id": proforma.id,
                 "numero_facture": proforma.numero_facture,
                 "client_name": str(proforma.client) if proforma.client else None,
+                "project_reference": proforma.numero_bon_commande_client or "",
                 "date_facture": proforma.date_facture,
                 "total_ttc_apres_remise": proforma.total_ttc_apres_remise,
                 "devise": proforma.devise,
@@ -284,7 +323,9 @@ class LogisticsOrderCreateSerializer(serializers.Serializer):
     )
     fournisseur = serializers.CharField(required=False, allow_blank=True, default="")
     devise = serializers.ChoiceField(
-        choices=[choice[0] for choice in LogisticsOrder._meta.get_field("devise").choices],
+        choices=[
+            choice[0] for choice in LogisticsOrder._meta.get_field("devise").choices
+        ],
         required=False,
     )
     incoterm = serializers.CharField(required=False, allow_blank=True, default="")
@@ -324,7 +365,9 @@ class LogisticsOrderCreateSerializer(serializers.Serializer):
         max_digits=12, decimal_places=2, required=False, default=Decimal("0")
     )
     devise_titre_importation = serializers.ChoiceField(
-        choices=[choice[0] for choice in LogisticsOrder._meta.get_field("devise").choices],
+        choices=[
+            choice[0] for choice in LogisticsOrder._meta.get_field("devise").choices
+        ],
         required=False,
         default="MAD",
     )
@@ -359,6 +402,25 @@ class LogisticsOrderCreateSerializer(serializers.Serializer):
     autres_frais = serializers.DecimalField(
         max_digits=12, decimal_places=2, required=False, default=Decimal("0")
     )
+    titre_importation_file = serializers.FileField(required=False, allow_null=True)
+    proforma_fournisseur_file = serializers.FileField(required=False, allow_null=True)
+    justificatifs_file = serializers.FileField(required=False, allow_null=True)
+    swift_file = serializers.FileField(required=False, allow_null=True)
+    documents_originaux_file = serializers.FileField(required=False, allow_null=True)
+
+    def validate_responsable(self, value):
+        company_id = self.context.get("company_id")
+        if (
+            value
+            and company_id
+            and not Membership.objects.filter(
+                user=value, company_id=company_id
+            ).exists()
+        ):
+            raise serializers.ValidationError(
+                _("Ce responsable n'appartient pas à cette société.")
+            )
+        return value
 
     def validate(self, attrs):
         date_prevue = attrs.get("date_prevue")
@@ -417,7 +479,21 @@ class LogisticsOrderUpdateSerializer(serializers.ModelSerializer):
 
     def validate_marque(self, value):
         if value and value.company_id != self.instance.company_id:
-            raise serializers.ValidationError(_("Cette marque appartient à une autre société."))
+            raise serializers.ValidationError(
+                _("Cette marque appartient à une autre société.")
+            )
+        return value
+
+    def validate_responsable(self, value):
+        if (
+            value
+            and not Membership.objects.filter(
+                user=value, company_id=self.instance.company_id
+            ).exists()
+        ):
+            raise serializers.ValidationError(
+                _("Ce responsable n'appartient pas à cette société.")
+            )
         return value
 
     def update(self, instance, validated_data):
@@ -433,7 +509,9 @@ class LogisticsOrderUpdateSerializer(serializers.ModelSerializer):
                 new_value=instance.statut,
             )
         if not old_swift and instance.swift_file:
-            instance.date_upload_swift = instance.date_upload_swift or instance.date_updated
+            instance.date_upload_swift = (
+                instance.date_upload_swift or instance.date_updated
+            )
             instance.save(update_fields=["date_upload_swift", "date_updated"])
             request = self.context.get("request")
             instance.add_event(

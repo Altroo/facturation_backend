@@ -11,6 +11,7 @@ from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from account.models import Membership
 from core.constants import ROLE_CAISSIER, ROLE_COMPTABLE, ROLE_LOGISTIQUE
 from core.permissions import can_create, can_delete, can_update, get_user_role
 from core.views import BaseBulkDeleteView, CompanyAccessMixin
@@ -42,11 +43,17 @@ def _has_payment_validation_permission(user, company_id):
 
 
 def _can_manage_logistics(user, company_id):
-    return can_update(user, company_id) or get_user_role(user, company_id) == ROLE_LOGISTIQUE
+    return (
+        can_update(user, company_id)
+        or get_user_role(user, company_id) == ROLE_LOGISTIQUE
+    )
 
 
 def _can_create_logistics(user, company_id):
-    return can_create(user, company_id) or get_user_role(user, company_id) == ROLE_LOGISTIQUE
+    return (
+        can_create(user, company_id)
+        or get_user_role(user, company_id) == ROLE_LOGISTIQUE
+    )
 
 
 def _notify_logistics_responsible(order, message):
@@ -87,7 +94,9 @@ def get_logistics_stats(company_id):
         "documents_non_recus": base.filter(
             statut__in=["Documents originaux", "Transit"],
         )
-        .filter(Q(documents_originaux_file="") | Q(documents_originaux_file__isnull=True))
+        .filter(
+            Q(documents_originaux_file="") | Q(documents_originaux_file__isnull=True)
+        )
         .count(),
         "transit_non_lance": base.filter(
             statut__in=["Expédition", "Documents originaux"]
@@ -109,6 +118,7 @@ def get_logistics_stats(company_id):
 
 class LogisticsOrderListCreateView(CompanyAccessMixin, APIView):
     permission_classes = (permissions.IsAuthenticated,)
+    parser_classes = (JSONParser, MultiPartParser, FormParser)
 
     def get(self, request, *args, **kwargs):
         pagination = self._get_bool_param(request, "pagination")
@@ -139,18 +149,27 @@ class LogisticsOrderListCreateView(CompanyAccessMixin, APIView):
         serializer = LogisticsOrderListSerializer(
             ordered_qs, many=True, context={"request": request}
         )
-        return Response({"results": serializer.data, **stats}, status=status.HTTP_200_OK)
+        return Response(
+            {"results": serializer.data, **stats}, status=status.HTTP_200_OK
+        )
 
     def post(self, request, *args, **kwargs):
-        company_id = request.data.get("company_id") or request.query_params.get("company_id")
-        company_id = self._parse_company_id(company_id, error_message="company_id est requis.")
+        company_id = request.data.get("company_id") or request.query_params.get(
+            "company_id"
+        )
+        company_id = self._parse_company_id(
+            company_id, error_message="company_id est requis."
+        )
         self._check_company_access(request, company_id)
         if not _can_create_logistics(request.user, company_id):
             raise PermissionDenied(
                 _("Vous n'avez pas les droits pour créer une commande logistique.")
             )
 
-        serializer = LogisticsOrderCreateSerializer(data=request.data)
+        serializer = LogisticsOrderCreateSerializer(
+            data=request.data,
+            context={"company_id": company_id, "request": request},
+        )
         serializer.is_valid(raise_exception=True)
         defaults = serializer.validated_data.copy()
         proforma_ids = defaults.pop("proformas")
@@ -227,7 +246,9 @@ class LogisticsOrderDetailEditDeleteView(CompanyAccessMixin, APIView):
         self._check_company_access(request, order.company_id)
         if not can_delete(request.user, order.company_id):
             raise PermissionDenied(
-                _("Vous n'avez pas les droits pour supprimer cette commande logistique.")
+                _(
+                    "Vous n'avez pas les droits pour supprimer cette commande logistique."
+                )
             )
         order.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -246,6 +267,40 @@ class GenerateNumeroLogistiqueView(CompanyAccessMixin, APIView):
             {"numero_commande": get_next_numero_logistique(company_id)},
             status=status.HTTP_200_OK,
         )
+
+
+class LogisticsResponsibleOptionsView(CompanyAccessMixin, APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get(self, request, *args, **kwargs):
+        company_id = self._parse_company_id(
+            request.query_params.get("company_id"),
+            error_message="company_id est requis.",
+        )
+        self._check_company_access(request, company_id)
+        memberships = (
+            Membership.objects.filter(company_id=company_id, user__is_active=True)
+            .select_related("user", "role")
+            .order_by("user__first_name", "user__last_name", "user__email")
+        )
+        results = []
+        for membership in memberships:
+            user = membership.user
+            display_name = f"{user.first_name} {user.last_name}".strip() or user.email
+            role_name = membership.role.name if membership.role else ""
+            results.append(
+                {
+                    "id": user.id,
+                    "first_name": user.first_name,
+                    "last_name": user.last_name,
+                    "email": user.email,
+                    "role": role_name,
+                    "label": (
+                        f"{display_name} - {role_name}" if role_name else display_name
+                    ),
+                }
+            )
+        return Response(results, status=status.HTTP_200_OK)
 
 
 class LogisticsOrderStatusUpdateView(CompanyAccessMixin, APIView):
@@ -300,7 +355,9 @@ class LogisticsPaymentValidateView(CompanyAccessMixin, APIView):
         order.paiement_valide_par = request.user
         order.date_paiement = data.get("date_paiement") or timezone.localdate()
         order.montant_paiement = data.get("montant_paiement") or order.montant_paiement
-        order.reference_paiement = data.get("reference_paiement", order.reference_paiement)
+        order.reference_paiement = data.get(
+            "reference_paiement", order.reference_paiement
+        )
         order.methode_paiement = data.get("methode_paiement") or order.methode_paiement
         if data.get("swift_file"):
             order.swift_file = data["swift_file"]

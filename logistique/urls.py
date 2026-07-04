@@ -6,6 +6,7 @@ from .views import (
     LogisticsDashboardView,
     LogisticsOrderDetailEditDeleteView,
     LogisticsOrderListCreateView,
+    LogisticsResponsibleOptionsView,
     LogisticsOrderStatusUpdateView,
     LogisticsPaymentRejectView,
     LogisticsPaymentRequestView,
@@ -28,7 +29,16 @@ urlpatterns = [
         GenerateNumeroLogistiqueView.as_view(),
         name="generate-numero-logistique",
     ),
-    path("<int:pk>/", LogisticsOrderDetailEditDeleteView.as_view(), name="logistique-detail"),
+    path(
+        "responsables/",
+        LogisticsResponsibleOptionsView.as_view(),
+        name="logistique-responsables",
+    ),
+    path(
+        "<int:pk>/",
+        LogisticsOrderDetailEditDeleteView.as_view(),
+        name="logistique-detail",
+    ),
     path(
         "switch_statut/<int:pk>/",
         LogisticsOrderStatusUpdateView.as_view(),

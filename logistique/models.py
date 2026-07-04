@@ -252,7 +252,9 @@ class LogisticsOrder(models.Model):
         )
 
     def recalc_costs(self):
-        lines_total = sum((line.total_achat for line in self.lignes.all()), Decimal("0"))
+        lines_total = sum(
+            (line.total_achat for line in self.lignes.all()), Decimal("0")
+        )
         self.cout_achat = lines_total
         self.cout_total = (
             self.cout_achat
@@ -358,6 +360,7 @@ class LogisticsOrderLine(models.Model):
     article_reference = models.CharField(max_length=100, blank=True, default="")
     designation = models.TextField(blank=True, default="")
     marque_name = models.CharField(max_length=255, blank=True, default="")
+    project_reference = models.CharField(max_length=100, blank=True, default="")
     quantity = models.DecimalField(max_digits=10, decimal_places=3)
     prix_achat = models.DecimalField(max_digits=10, decimal_places=2)
     devise_prix_achat = models.CharField(

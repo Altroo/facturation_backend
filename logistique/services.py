@@ -110,6 +110,12 @@ def create_orders_from_proformas(*, company_id, proforma_ids, user, defaults):
             tva=defaults.get("tva") or Decimal("0"),
             livraison_locale=defaults.get("livraison_locale") or Decimal("0"),
             autres_frais=defaults.get("autres_frais") or Decimal("0"),
+            titre_importation_file=defaults.get("titre_importation_file"),
+            proforma_fournisseur_file=defaults.get("proforma_fournisseur_file"),
+            justificatifs_file=defaults.get("justificatifs_file"),
+            swift_file=defaults.get("swift_file"),
+            date_upload_swift=timezone.now() if defaults.get("swift_file") else None,
+            documents_originaux_file=defaults.get("documents_originaux_file"),
             created_by_user=user,
         )
         linked_proformas = {
@@ -129,6 +135,8 @@ def create_orders_from_proformas(*, company_id, proforma_ids, user, defaults):
                 article_reference=article.reference or "",
                 designation=article.designation or "",
                 marque_name=str(article.marque) if article.marque else "",
+                project_reference=line.facture_pro_forma.numero_bon_commande_client
+                or "",
                 quantity=line.quantity,
                 prix_achat=line.prix_achat,
                 devise_prix_achat=line.devise_prix_achat,

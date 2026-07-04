@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 import pytest
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
@@ -105,6 +106,7 @@ def logistics_proformas(logistics_company, logistics_user):
         numero_facture="P001/26",
         client=client,
         date_facture="2026-07-01",
+        numero_bon_commande_client="PROJET-LOG-001",
         mode_paiement=mode,
         statut="Accepté",
         created_by_user=logistics_user,
@@ -153,6 +155,7 @@ def test_create_logistics_orders_splits_proforma_lines_by_brand(
     assert orders[0].fournisseur == "Supplier One"
     assert orders[0].cout_achat == Decimal("200.000")
     assert orders[0].cout_total == Decimal("250.000")
+    assert orders[0].lignes.first().project_reference == "PROJET-LOG-001"
     assert LogisticsOrderEvent.objects.filter(action="Création").count() == 2
 
 
@@ -194,6 +197,11 @@ def test_comptable_can_validate_requested_payment(
     comptable_client = APIClient()
     comptable_client.force_authenticate(user=comptable_user)
     validate_url = reverse("logistique:logistique-validate-payment", args=[order.id])
+    swift_file = SimpleUploadedFile(
+        "swift.pdf",
+        b"%PDF-1.4 swift",
+        content_type="application/pdf",
+    )
     validate_response = comptable_client.post(
         validate_url,
         {
@@ -201,8 +209,9 @@ def test_comptable_can_validate_requested_payment(
             "montant_paiement": "250.00",
             "reference_paiement": "SWIFT-001",
             "methode_paiement": "Virement",
+            "swift_file": swift_file,
         },
-        format="json",
+        format="multipart",
     )
 
     assert validate_response.status_code == status.HTTP_200_OK
@@ -211,4 +220,56 @@ def test_comptable_can_validate_requested_payment(
     assert order.statut_paiement == "Validé"
     assert order.paiement_valide_par == comptable_user
     assert order.reference_paiement == "SWIFT-001"
+    assert order.swift_file
+    assert order.date_upload_swift is not None
     assert order.events.filter(action="Validation paiement").exists()
+
+
+def test_logistics_responsible_options_are_company_scoped(
+    api_client, logistics_company, logistics_user
+):
+    url = reverse("logistique:logistique-responsables")
+
+    response = api_client.get(url, {"company_id": logistics_company.id})
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data == [
+        {
+            "id": logistics_user.id,
+            "first_name": "Log",
+            "last_name": "User",
+            "email": "logistics@example.com",
+            "role": "Caissier",
+            "label": "Log User - Caissier",
+        }
+    ]
+
+
+def test_create_logistics_order_accepts_document_files(
+    api_client, logistics_company, logistics_proformas
+):
+    proforma, _, _ = logistics_proformas
+    url = reverse("logistique:logistique-list-create")
+    supplier_file = SimpleUploadedFile(
+        "supplier-proforma.pdf",
+        b"%PDF-1.4 supplier proforma",
+        content_type="application/pdf",
+    )
+
+    response = api_client.post(
+        url,
+        {
+            "company_id": logistics_company.id,
+            "proformas": [proforma.id],
+            "proforma_fournisseur_file": supplier_file,
+        },
+        format="multipart",
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert (
+        LogisticsOrder.objects.exclude(proforma_fournisseur_file="")
+        .exclude(proforma_fournisseur_file__isnull=True)
+        .count()
+        == 2
+    )
