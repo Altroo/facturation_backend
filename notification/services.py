@@ -22,6 +22,7 @@ DOCUMENT_TARGET_ROUTES = {
     "BonDeLivraison": "bon-de-livraison",
     "FactureAvoir": "facture-avoir",
     "Reglement": "reglements",
+    "LogisticsOrder": "logistique",
 }
 
 DOCUMENT_LABEL_TARGET_ROUTES = [
@@ -33,6 +34,7 @@ DOCUMENT_LABEL_TARGET_ROUTES = [
     (("facture client",), "facture-client"),
     (("bon de livraison",), "bon-de-livraison"),
     (("règlement", "reglement"), "reglements"),
+    (("commande logistique", "logistique"), "logistique"),
     (("devis",), "devis"),
 ]
 
@@ -91,6 +93,10 @@ def _get_model_for_route(route: str):
         from reglement.models import Reglement
 
         return Reglement
+    if route == "logistique":
+        from logistique.models import LogisticsOrder
+
+        return LogisticsOrder
     return None
 
 
@@ -199,6 +205,7 @@ def _get_document_number(document) -> str:
         "numero_facture",
         "numero_bon_livraison",
         "numero_avoir",
+        "numero_commande",
         "libelle",
     ):
         value = getattr(document, field, None)

@@ -6,16 +6,17 @@ This command creates the following groups:
 - Comptable (formerly Finance): Read and print only, no edit/create/delete
 - Commercial: Create everything except users & companies, cannot update prix_vente
 - Lecture: View only, no print/create/delete/edit
+- Logistique: Logistics module operations
 """
 
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
-from models import Role
+from account.models import Role
 
 
 class Command(BaseCommand):
-    help = "Set up permission Roles (Caissier, Comptable, Commercial, Lecture)"
+    help = "Set up permission Roles (Caissier, Comptable, Commercial, Lecture, Logistique)"
 
     def handle(self, *args, **options):
         self.stdout.write(self.style.MIGRATE_HEADING("Setting up permission Roles..."))
@@ -62,6 +63,18 @@ class Command(BaseCommand):
             else:
                 self.stdout.write(
                     self.style.WARNING("  - Role already exists: Lecture")
+                )
+
+            logistique, created = Role.objects.get_or_create(name="Logistique")
+            if created:
+                self.stdout.write(
+                    self.style.SUCCESS(
+                        "  ✓ Created Role: Logistique (logistics operations)"
+                    )
+                )
+            else:
+                self.stdout.write(
+                    self.style.WARNING("  - Role already exists: Logistique")
                 )
 
         self.stdout.write(

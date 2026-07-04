@@ -69,6 +69,7 @@ INSTALLED_APPS = [
     "facture_avoir.apps.FactureAvoirConfig",
     "bon_de_livraison.apps.BonDeLivraisonConfig",
     "reglement.apps.ReglementConfig",
+    "logistique.apps.LogistiqueConfig",
     "dashboard.apps.DashboardConfig",
     "notification.apps.NotificationConfig",
     "axes",

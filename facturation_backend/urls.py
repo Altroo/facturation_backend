@@ -72,6 +72,8 @@ urlpatterns = [
     path("api/bon_de_livraison/", include("bon_de_livraison.urls")),
     # Reglement
     path("api/reglement/", include("reglement.urls")),
+    # Logistique
+    path("api/logistique/", include("logistique.urls")),
     # Parameter
     path("api/parameter/", include("parameter.urls")),
     # Dashboard
