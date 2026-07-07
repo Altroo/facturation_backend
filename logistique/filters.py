@@ -35,9 +35,7 @@ class LogisticsOrderFilter(IsEmptyAutoMixin, django_filters.FilterSet):
     numero_commande__icontains = django_filters.CharFilter(
         field_name="numero_commande", lookup_expr="icontains"
     )
-    fournisseur = django_filters.CharFilter(
-        field_name="fournisseur", lookup_expr="exact"
-    )
+    fournisseur = django_filters.CharFilter(method="filter_fournisseur")
     fournisseur__icontains = django_filters.CharFilter(
         field_name="fournisseur", lookup_expr="icontains"
     )
@@ -91,19 +89,45 @@ class LogisticsOrderFilter(IsEmptyAutoMixin, django_filters.FilterSet):
     def filter_statut(queryset, _name, value):
         if not value:
             return queryset
-        return queryset.filter(statut__iexact=value.strip())
+        values = [item.strip() for item in value.split(",") if item.strip()]
+        if not values:
+            return queryset
+        if len(values) == 1:
+            return queryset.filter(statut__iexact=values[0])
+        return queryset.filter(statut__in=values)
 
     @staticmethod
     def filter_statut_paiement(queryset, _name, value):
         if not value:
             return queryset
-        return queryset.filter(statut_paiement__iexact=value.strip())
+        values = [item.strip() for item in value.split(",") if item.strip()]
+        if not values:
+            return queryset
+        if len(values) == 1:
+            return queryset.filter(statut_paiement__iexact=values[0])
+        return queryset.filter(statut_paiement__in=values)
 
     @staticmethod
     def filter_statut_titre_importation(queryset, _name, value):
         if not value:
             return queryset
-        return queryset.filter(statut_titre_importation__iexact=value.strip())
+        values = [item.strip() for item in value.split(",") if item.strip()]
+        if not values:
+            return queryset
+        if len(values) == 1:
+            return queryset.filter(statut_titre_importation__iexact=values[0])
+        return queryset.filter(statut_titre_importation__in=values)
+
+    @staticmethod
+    def filter_fournisseur(queryset, _name, value):
+        if not value:
+            return queryset
+        values = [item.strip() for item in value.split(",") if item.strip()]
+        if not values:
+            return queryset
+        if len(values) == 1:
+            return queryset.filter(fournisseur__iexact=values[0])
+        return queryset.filter(fournisseur__in=values)
 
     @staticmethod
     def filter_client_name(queryset, _name, value):

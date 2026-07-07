@@ -1,3 +1,4 @@
+from datetime import datetime, time
 from decimal import Decimal
 
 from django.db.models import Count, Sum, Q, DecimalField
@@ -34,6 +35,17 @@ from .utils import get_next_numero_logistique
 
 def _money_field():
     return DecimalField(max_digits=12, decimal_places=2)
+
+
+def _add_months(date_value, months):
+    month_index = date_value.month - 1 + months
+    year = date_value.year + month_index // 12
+    month = month_index % 12 + 1
+    return date_value.replace(year=year, month=month, day=1)
+
+
+def _month_start_datetime(date_value):
+    return timezone.make_aware(datetime.combine(date_value, time.min))
 
 
 def _has_payment_validation_permission(user, company_id):
@@ -74,10 +86,42 @@ def _notify_logistics_responsible(order, message):
 def get_logistics_stats(company_id):
     base = LogisticsOrder.objects.filter(company_id=company_id)
     today = timezone.localdate()
+    current_month = today.replace(day=1)
+    months = [_add_months(current_month, offset) for offset in range(-5, 1)]
     active = base.exclude(statut__in=["Clôture", "Annulé"])
     delayed = active.filter(date_prevue__lt=today)
     pending_payments = base.filter(statut_paiement="En attente")
     delivered = base.filter(statut__in=["Livraison client", "Clôture"])
+    monthly_flow = []
+
+    for month_start in months:
+        month_end = _add_months(month_start, 1)
+        month_start_dt = _month_start_datetime(month_start)
+        month_end_dt = _month_start_datetime(month_end)
+        created_in_month = base.filter(
+            date_created__gte=month_start_dt,
+            date_created__lt=month_end_dt,
+        )
+        monthly_flow.append(
+            {
+                "month": month_start.strftime("%Y-%m"),
+                "commandes": created_in_month.count(),
+                "livraisons": delivered.filter(
+                    date_reelle__gte=month_start,
+                    date_reelle__lt=month_end,
+                ).count(),
+                "paiements": base.filter(
+                    statut_paiement="Validé",
+                    paiement_valide_le__gte=month_start_dt,
+                    paiement_valide_le__lt=month_end_dt,
+                ).count(),
+                "cout_total": created_in_month.aggregate(
+                    total=Coalesce(
+                        Sum("cout_total"), Decimal("0"), output_field=_money_field()
+                    )
+                )["total"],
+            }
+        )
 
     stats = {
         "commandes_en_cours": active.count(),
@@ -101,7 +145,43 @@ def get_logistics_stats(company_id):
         "transit_non_lance": base.filter(
             statut__in=["Expédition", "Documents originaux"]
         ).count(),
+        "statuts_workflow": list(
+            base.values("statut").annotate(total=Count("id")).order_by("statut")
+        ),
+        "statuts_paiement": list(
+            base.values("statut_paiement")
+            .annotate(total=Count("id"))
+            .order_by("statut_paiement")
+        ),
+        "couts_detail": base.aggregate(
+            achat=Coalesce(Sum("cout_achat"), Decimal("0"), output_field=_money_field()),
+            transport=Coalesce(
+                Sum("cout_transport"), Decimal("0"), output_field=_money_field()
+            ),
+            transit=Coalesce(
+                Sum("frais_transit"), Decimal("0"), output_field=_money_field()
+            ),
+            douane=Coalesce(
+                Sum("frais_douane"), Decimal("0"), output_field=_money_field()
+            ),
+            tva=Coalesce(Sum("tva"), Decimal("0"), output_field=_money_field()),
+            livraison_locale=Coalesce(
+                Sum("livraison_locale"), Decimal("0"), output_field=_money_field()
+            ),
+            autres=Coalesce(
+                Sum("autres_frais"), Decimal("0"), output_field=_money_field()
+            ),
+            total=Coalesce(Sum("cout_total"), Decimal("0"), output_field=_money_field()),
+        ),
+        "monthly_flow": monthly_flow,
     }
+    stats["fournisseurs"] = [
+        {"fournisseur": fournisseur}
+        for fournisseur in base.exclude(fournisseur="")
+        .order_by("fournisseur")
+        .values_list("fournisseur", flat=True)
+        .distinct()[:100]
+    ]
     stats["kpi_fournisseurs"] = list(
         base.values("fournisseur")
         .exclude(fournisseur="")

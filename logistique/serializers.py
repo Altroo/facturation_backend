@@ -9,10 +9,44 @@ from parameter.models import Marque
 from .models import LogisticsOrder, LogisticsOrderEvent, LogisticsOrderLine
 
 
+REQUIRED_ORDER_FIELDS = (
+    "fournisseur",
+    "devise",
+    "incoterm",
+    "transport",
+    "conditions_paiement",
+    "responsable",
+    "date_prevue",
+    "statut",
+    "origine_marchandise",
+    "nature_marchandise",
+)
+REQUIRED_POSITIVE_ORDER_FIELDS = ("poids_net", "poids_brut", "volume")
+
+
 def _user_display_name(user):
     if not user:
         return None
     return f"{user.first_name} {user.last_name}".strip() or user.email
+
+
+def _is_blank(value):
+    return value is None or (isinstance(value, str) and not value.strip())
+
+
+def validate_required_order_fields(attrs):
+    errors = {}
+    for field in REQUIRED_ORDER_FIELDS:
+        if _is_blank(attrs.get(field)):
+            errors[field] = _("Ce champ est obligatoire.")
+
+    for field in REQUIRED_POSITIVE_ORDER_FIELDS:
+        value = attrs.get(field)
+        if value is None or value <= 0:
+            errors[field] = _("Ce champ doit être supérieur à zéro.")
+
+    if errors:
+        raise serializers.ValidationError(errors)
 
 
 class LogisticsOrderLineSerializer(serializers.ModelSerializer):
@@ -423,6 +457,7 @@ class LogisticsOrderCreateSerializer(serializers.Serializer):
         return value
 
     def validate(self, attrs):
+        validate_required_order_fields(attrs)
         date_prevue = attrs.get("date_prevue")
         date_reelle = attrs.get("date_reelle")
         if date_prevue and date_reelle and date_reelle < date_prevue:
@@ -495,6 +530,10 @@ class LogisticsOrderUpdateSerializer(serializers.ModelSerializer):
                 _("Ce responsable n'appartient pas à cette société.")
             )
         return value
+
+    def validate(self, attrs):
+        validate_required_order_fields(attrs)
+        return attrs
 
     def update(self, instance, validated_data):
         old_status = instance.statut

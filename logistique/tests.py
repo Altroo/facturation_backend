@@ -71,6 +71,28 @@ def api_client(logistics_user):
     return client
 
 
+def valid_logistics_payload(logistics_company, logistics_user, proforma, **overrides):
+    payload = {
+        "company_id": logistics_company.id,
+        "proformas": [proforma.id],
+        "fournisseur": "Supplier One",
+        "devise": "MAD",
+        "incoterm": "FOB",
+        "transport": "Maritime",
+        "conditions_paiement": "Paiement 30 jours",
+        "responsable": logistics_user.id,
+        "date_prevue": "2026-07-20",
+        "statut": "Réception commande",
+        "poids_net": "120.00",
+        "poids_brut": "135.00",
+        "volume": "3.500",
+        "origine_marchandise": "Espagne",
+        "nature_marchandise": "Articles de test",
+    }
+    payload.update(overrides)
+    return payload
+
+
 @pytest.fixture
 def logistics_proformas(logistics_company, logistics_user):
     ville = Ville.objects.create(nom="Casablanca", company=logistics_company)
@@ -129,21 +151,20 @@ def logistics_proformas(logistics_company, logistics_user):
 
 
 def test_create_logistics_orders_splits_proforma_lines_by_brand(
-    api_client, logistics_company, logistics_proformas
+    api_client, logistics_company, logistics_user, logistics_proformas
 ):
     proforma, brand_a, brand_b = logistics_proformas
     url = reverse("logistique:logistique-list-create")
 
     response = api_client.post(
         url,
-        {
-            "company_id": logistics_company.id,
-            "proformas": [proforma.id],
-            "fournisseur": "Supplier One",
-            "transport": "Maritime",
-            "methode_paiement": "Virement",
-            "cout_transport": "50.00",
-        },
+        valid_logistics_payload(
+            logistics_company,
+            logistics_user,
+            proforma,
+            methode_paiement="Virement",
+            cout_transport="50.00",
+        ),
         format="json",
     )
 
@@ -159,11 +180,30 @@ def test_create_logistics_orders_splits_proforma_lines_by_brand(
     assert LogisticsOrderEvent.objects.filter(action="Création").count() == 2
 
 
-def test_logistics_list_returns_dashboard_stats(
+def test_create_logistics_order_rejects_missing_required_fields(
     api_client, logistics_company, logistics_proformas
 ):
+    proforma, _, _ = logistics_proformas
+    url = reverse("logistique:logistique-list-create")
+
+    response = api_client.post(
+        url,
+        {"company_id": logistics_company.id, "proformas": [proforma.id]},
+        format="json",
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert "fournisseur" in response.data["details"]
+    assert "date_prevue" in response.data["details"]
+    assert "poids_net" in response.data["details"]
+    assert LogisticsOrder.objects.count() == 0
+
+
+def test_logistics_list_returns_dashboard_stats(
+    api_client, logistics_company, logistics_user, logistics_proformas
+):
     test_create_logistics_orders_splits_proforma_lines_by_brand(
-        api_client, logistics_company, logistics_proformas
+        api_client, logistics_company, logistics_user, logistics_proformas
     )
     url = reverse("logistique:logistique-list-create")
 
@@ -177,13 +217,65 @@ def test_logistics_list_returns_dashboard_stats(
     assert response.data["stats"]["total_commandes"] == 2
     assert response.data["stats"]["commandes_en_cours"] == 2
     assert response.data["stats"]["couts_logistiques"] == Decimal("500.00")
+    assert response.data["stats"]["couts_detail"]["transport"] == Decimal("100.00")
+    assert response.data["stats"]["statuts_workflow"] == [
+        {"statut": "Réception commande", "total": 2}
+    ]
+    assert response.data["stats"]["statuts_paiement"] == [
+        {"statut_paiement": "Non demandé", "total": 2}
+    ]
+    assert response.data["stats"]["fournisseurs"] == [{"fournisseur": "Supplier One"}]
+    assert len(response.data["stats"]["monthly_flow"]) == 6
+    assert {
+        "month",
+        "commandes",
+        "livraisons",
+        "paiements",
+        "cout_total",
+    }.issubset(response.data["stats"]["monthly_flow"][-1].keys())
+
+
+def test_logistics_filters_accept_selectable_multi_values(
+    api_client, logistics_company, logistics_user, logistics_proformas
+):
+    test_create_logistics_orders_splits_proforma_lines_by_brand(
+        api_client, logistics_company, logistics_user, logistics_proformas
+    )
+    LogisticsOrder.objects.filter(marque__nom="Brand A").update(
+        fournisseur="Supplier One",
+        statut="Réception commande",
+        statut_paiement="Non demandé",
+        statut_titre_importation="À ouvrir",
+    )
+    LogisticsOrder.objects.filter(marque__nom="Brand B").update(
+        fournisseur="Supplier Two",
+        statut="Transit",
+        statut_paiement="Validé",
+        statut_titre_importation="Validé",
+    )
+    url = reverse("logistique:logistique-list-create")
+
+    response = api_client.get(
+        url,
+        {
+            "company_id": logistics_company.id,
+            "pagination": "true",
+            "fournisseur": "Supplier One,Supplier Two",
+            "statut": "Réception commande,Transit",
+            "statut_paiement": "Non demandé,Validé",
+            "statut_titre_importation": "À ouvrir,Validé",
+        },
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data["count"] == 2
 
 
 def test_comptable_can_validate_requested_payment(
-    api_client, logistics_company, logistics_proformas, comptable_user
+    api_client, logistics_company, logistics_user, logistics_proformas, comptable_user
 ):
     test_create_logistics_orders_splits_proforma_lines_by_brand(
-        api_client, logistics_company, logistics_proformas
+        api_client, logistics_company, logistics_user, logistics_proformas
     )
     order = LogisticsOrder.objects.first()
 
@@ -246,7 +338,7 @@ def test_logistics_responsible_options_are_company_scoped(
 
 
 def test_create_logistics_order_accepts_document_files(
-    api_client, logistics_company, logistics_proformas
+    api_client, logistics_company, logistics_user, logistics_proformas
 ):
     proforma, _, _ = logistics_proformas
     url = reverse("logistique:logistique-list-create")
@@ -258,11 +350,12 @@ def test_create_logistics_order_accepts_document_files(
 
     response = api_client.post(
         url,
-        {
-            "company_id": logistics_company.id,
-            "proformas": [proforma.id],
-            "proforma_fournisseur_file": supplier_file,
-        },
+        valid_logistics_payload(
+            logistics_company,
+            logistics_user,
+            proforma,
+            proforma_fournisseur_file=supplier_file,
+        ),
         format="multipart",
     )
 
