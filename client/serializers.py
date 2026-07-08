@@ -3,6 +3,12 @@ from rest_framework import serializers
 
 from .models import Client, Ville
 
+NECTAR_RAISON_SOCIALE = "IMMOBILIERE NECTAR"
+
+
+def _normalize_company_name(value):
+    return (value or "").strip().upper()
+
 
 class ClientBaseSerializer(serializers.ModelSerializer):
     """Common fields and validation for all client serializers."""
@@ -43,6 +49,7 @@ class ClientBaseSerializer(serializers.ModelSerializer):
         client_type = attrs.get("client_type") or getattr(
             self.instance, "client_type", None
         )
+        company = attrs.get("company") or getattr(self.instance, "company", None)
         errors = {}
 
         if client_type == Client.PERSONNE_MORALE:
@@ -53,7 +60,7 @@ class ClientBaseSerializer(serializers.ModelSerializer):
                 "registre_de_commerce": "Registre de commerce",
                 "delai_de_paiement": "Délai de paiement",
             }
-        else:  # PERSONNE_PHYSIQUE
+        elif client_type == Client.PERSONNE_PHYSIQUE:
             required = {
                 "nom": "Nom",
                 "prenom": "Prénom",
@@ -61,6 +68,15 @@ class ClientBaseSerializer(serializers.ModelSerializer):
                 "ville": "Ville",
                 "delai_de_paiement": "Délai de paiement",
             }
+        else:
+            required = {}
+
+        if client_type == Client.CLIENT_DIVERS and _normalize_company_name(
+            getattr(company, "raison_sociale", None)
+        ) != NECTAR_RAISON_SOCIALE:
+            errors["client_type"] = _(
+                "Client Divers est disponible uniquement pour IMMOBILIERE NECTAR."
+            )
 
         for field, label in required.items():
             if not attrs.get(field) and not (

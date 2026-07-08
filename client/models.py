@@ -11,9 +11,12 @@ from parameter.models import Ville
 class Client(models.Model):
     PERSONNE_MORALE = "PM"
     PERSONNE_PHYSIQUE = "PP"
+    CLIENT_DIVERS = "CD"
+    PERSONNE_MORALE_FIELD_TYPES = (PERSONNE_MORALE, CLIENT_DIVERS)
     TYPE_CHOICES = [
         (PERSONNE_MORALE, _("Personne morale")),
         (PERSONNE_PHYSIQUE, _("Personne physique")),
+        (CLIENT_DIVERS, _("Client Divers")),
     ]
 
     code_client = models.CharField(
@@ -25,7 +28,9 @@ class Client(models.Model):
         max_length=2,
         choices=TYPE_CHOICES,
         verbose_name=_("Type de client"),
-        help_text=_("Type : Personne morale (PM) ou physique (PP)"),
+        help_text=_(
+            "Type : Personne morale (PM), physique (PP), ou client divers (CD)"
+        ),
     )
     company = models.ForeignKey(
         Company,
@@ -191,7 +196,7 @@ class Client(models.Model):
         ]
 
     def __str__(self):
-        if self.client_type == self.PERSONNE_MORALE and self.raison_sociale:
+        if self.client_type in self.PERSONNE_MORALE_FIELD_TYPES and self.raison_sociale:
             name = self.raison_sociale
         elif self.client_type == self.PERSONNE_PHYSIQUE:
             name = f"{self.nom or ''} {self.prenom or ''}".strip()

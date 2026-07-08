@@ -135,6 +135,7 @@ class ClientFilter(IsEmptyAutoMixin, django_filters.FilterSet):
             client_type_display=Case(
                 When(client_type="PM", then=Value("Personne morale")),
                 When(client_type="PP", then=Value("Personne physique")),
+                When(client_type="CD", then=Value("Client Divers")),
                 default=Value(""),
                 output_field=CharField(),
             )

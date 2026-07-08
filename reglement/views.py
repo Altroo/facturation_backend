@@ -399,7 +399,7 @@ class ReglementPDFGenerator(BasePDFGenerator):
 
         # Client name
         client = self.document.facture_client.client
-        if client.client_type == "PM" and client.raison_sociale:
+        if client.client_type in ("PM", "CD") and client.raison_sociale:
             client_name = client.raison_sociale
         else:
             client_name = f"{client.prenom or ''} {client.nom or ''}".strip()

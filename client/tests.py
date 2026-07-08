@@ -96,6 +96,47 @@ class TestClientAPI:
         assert response.status_code == status.HTTP_201_CREATED
         assert Client.objects.filter(code_client="CLT0003").exists()
 
+    def test_create_client_divers_for_nectar_without_required_pm_fields(self):
+        nectar = Company.objects.create(
+            raison_sociale="IMMOBILIERE NECTAR",
+            ICE="ICE_NECTAR",
+            registre_de_commerce="RC_NECTAR",
+            nbr_employe=10,
+        )
+        Membership.objects.create(
+            user=self.user, company=nectar, role=self.caissier_role
+        )
+        url = reverse("client:client-list-create")
+        payload = {
+            "code_client": "CLT-DIV-001",
+            "client_type": "CD",
+            "company": nectar.id,
+            "raison_sociale": "",
+            "ICE": "",
+            "ville": None,
+            "delai_de_paiement": None,
+        }
+
+        response = self.client.post(url, payload)
+
+        assert response.status_code == status.HTTP_201_CREATED
+        client = Client.objects.get(code_client="CLT-DIV-001")
+        assert client.client_type == Client.CLIENT_DIVERS
+        assert client.company == nectar
+
+    def test_create_client_divers_rejected_for_non_nectar_company(self):
+        url = reverse("client:client-list-create")
+        payload = {
+            "code_client": "CLT-DIV-002",
+            "client_type": "CD",
+            "company": self.company.id,
+        }
+
+        response = self.client.post(url, payload)
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "client_type" in response.data
+
     def test_create_client_pp(self):
         url = reverse("client:client-list-create")
         payload = {
@@ -858,6 +899,16 @@ class TestClientModelExtra:
         )
         assert str(client) == "PM002"
 
+    def test_str_client_divers_with_raison_sociale(self):
+        """Test __str__ for client divers with raison_sociale."""
+        client = Client.objects.create(
+            code_client="CD001",
+            client_type=Client.CLIENT_DIVERS,
+            raison_sociale="Divers Client",
+            company=self.company,
+        )
+        assert str(client) == "Divers Client"
+
 
 @pytest.mark.django_db
 class TestClientSerializerCoverage:
@@ -910,6 +961,23 @@ class TestClientSerializerCoverage:
 
         # Verify that get_client_type returns None for empty client_type
         assert serializer.data["client_type"] is None
+
+    def test_client_list_serializer_get_client_type_client_divers(self):
+        """Test ClientListSerializer.get_client_type for client divers."""
+        company = Company.objects.create(
+            raison_sociale="IMMOBILIERE NECTAR",
+            ICE="ICE_SERIALIZER3",
+            registre_de_commerce="RC_SERIALIZER3",
+        )
+        client = Client.objects.create(
+            code_client="SER003",
+            client_type=Client.CLIENT_DIVERS,
+            company=company,
+        )
+
+        serializer = ClientListSerializer(client)
+
+        assert serializer.data["client_type"] == "Client Divers"
 
 
 @pytest.mark.django_db

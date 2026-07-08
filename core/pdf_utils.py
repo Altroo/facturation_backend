@@ -1187,7 +1187,7 @@ class BasePDFGenerator:
         """Build list of client info Paragraphs."""
         client = self.document.client
         lines = []
-        if client.client_type == "PM" and client.raison_sociale:
+        if client.client_type in ("PM", "CD") and client.raison_sociale:
             lines.append(
                 Paragraph(
                     f"<b>{client.raison_sociale}</b>", self.styles["CustomNormal"]
@@ -1502,7 +1502,7 @@ class BasePDFGenerator:
     def _build_nectar_client_block(self):
         client = self.document.client
         lines = []
-        if client.client_type == "PM" and client.raison_sociale:
+        if client.client_type in ("PM", "CD") and client.raison_sociale:
             lines.append(f"<b>{client.raison_sociale}</b>")
         else:
             name = f"{client.prenom or ''} {client.nom or ''}".strip()
