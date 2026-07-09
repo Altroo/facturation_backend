@@ -3,50 +3,16 @@ from decimal import Decimal
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
-from account.models import CustomUser, Membership
+from account.models import Membership
 from parameter.models import Marque
 
 from .models import LogisticsOrder, LogisticsOrderEvent, LogisticsOrderLine
-
-
-REQUIRED_ORDER_FIELDS = (
-    "fournisseur",
-    "devise",
-    "incoterm",
-    "transport",
-    "conditions_paiement",
-    "responsable",
-    "date_prevue",
-    "statut",
-    "origine_marchandise",
-    "nature_marchandise",
-)
-REQUIRED_POSITIVE_ORDER_FIELDS = ("poids_net", "poids_brut", "volume")
 
 
 def _user_display_name(user):
     if not user:
         return None
     return f"{user.first_name} {user.last_name}".strip() or user.email
-
-
-def _is_blank(value):
-    return value is None or (isinstance(value, str) and not value.strip())
-
-
-def validate_required_order_fields(attrs):
-    errors = {}
-    for field in REQUIRED_ORDER_FIELDS:
-        if _is_blank(attrs.get(field)):
-            errors[field] = _("Ce champ est obligatoire.")
-
-    for field in REQUIRED_POSITIVE_ORDER_FIELDS:
-        value = attrs.get(field)
-        if value is None or value <= 0:
-            errors[field] = _("Ce champ doit être supérieur à zéro.")
-
-    if errors:
-        raise serializers.ValidationError(errors)
 
 
 class LogisticsOrderLineSerializer(serializers.ModelSerializer):
@@ -355,113 +321,61 @@ class LogisticsOrderCreateSerializer(serializers.Serializer):
         child=serializers.IntegerField(min_value=1),
         allow_empty=False,
     )
-    fournisseur = serializers.CharField(required=False, allow_blank=True, default="")
-    devise = serializers.ChoiceField(
-        choices=[
-            choice[0] for choice in LogisticsOrder._meta.get_field("devise").choices
-        ],
-        required=False,
-    )
-    incoterm = serializers.CharField(required=False, allow_blank=True, default="")
-    transport = serializers.CharField(required=False, allow_blank=True, default="")
-    conditions_paiement = serializers.CharField(
-        required=False, allow_blank=True, default=""
-    )
-    responsable = serializers.PrimaryKeyRelatedField(
-        queryset=CustomUser.objects.all(), required=False, allow_null=True
-    )
-    date_prevue = serializers.DateField(required=False, allow_null=True)
+    date_prevue = serializers.DateField(required=False)
     date_reelle = serializers.DateField(required=False, allow_null=True)
-    statut = serializers.ChoiceField(
-        choices=[choice[0] for choice in LogisticsOrder.STATUT_CHOICES],
-        required=False,
-    )
-    poids_net = serializers.DecimalField(
-        max_digits=10, decimal_places=2, required=False, default=Decimal("0")
-    )
-    poids_brut = serializers.DecimalField(
-        max_digits=10, decimal_places=2, required=False, default=Decimal("0")
-    )
-    volume = serializers.DecimalField(
-        max_digits=10, decimal_places=3, required=False, default=Decimal("0")
-    )
     origine_marchandise = serializers.CharField(
         required=False, allow_blank=True, default=""
     )
     nature_marchandise = serializers.CharField(
         required=False, allow_blank=True, default=""
     )
-    numero_domiciliation = serializers.CharField(
-        required=False, allow_blank=True, default=""
-    )
-    banque = serializers.CharField(required=False, allow_blank=True, default="")
-    montant_titre_importation = serializers.DecimalField(
-        max_digits=12, decimal_places=2, required=False, default=Decimal("0")
-    )
-    devise_titre_importation = serializers.ChoiceField(
-        choices=[
-            choice[0] for choice in LogisticsOrder._meta.get_field("devise").choices
-        ],
+    brand_details = serializers.ListField(
+        child=serializers.DictField(),
         required=False,
-        default="MAD",
+        allow_empty=True,
+        default=list,
     )
-    date_titre_importation = serializers.DateField(required=False, allow_null=True)
-    date_validation_titre_importation = serializers.DateField(
-        required=False, allow_null=True
-    )
-    statut_titre_importation = serializers.ChoiceField(
-        choices=[choice[0] for choice in LogisticsOrder.TI_STATUT_CHOICES],
-        required=False,
-    )
-    methode_paiement = serializers.ChoiceField(
-        choices=[choice[0] for choice in LogisticsOrder.PAYMENT_METHOD_CHOICES],
-        required=False,
-        allow_blank=True,
-    )
-    cout_transport = serializers.DecimalField(
-        max_digits=12, decimal_places=2, required=False, default=Decimal("0")
-    )
-    frais_transit = serializers.DecimalField(
-        max_digits=12, decimal_places=2, required=False, default=Decimal("0")
-    )
-    frais_douane = serializers.DecimalField(
-        max_digits=12, decimal_places=2, required=False, default=Decimal("0")
-    )
-    tva = serializers.DecimalField(
-        max_digits=12, decimal_places=2, required=False, default=Decimal("0")
-    )
-    livraison_locale = serializers.DecimalField(
-        max_digits=12, decimal_places=2, required=False, default=Decimal("0")
-    )
-    autres_frais = serializers.DecimalField(
-        max_digits=12, decimal_places=2, required=False, default=Decimal("0")
-    )
-    titre_importation_file = serializers.FileField(required=False, allow_null=True)
-    proforma_fournisseur_file = serializers.FileField(required=False, allow_null=True)
-    justificatifs_file = serializers.FileField(required=False, allow_null=True)
-    swift_file = serializers.FileField(required=False, allow_null=True)
-    documents_originaux_file = serializers.FileField(required=False, allow_null=True)
-
-    def validate_responsable(self, value):
-        company_id = self.context.get("company_id")
-        if (
-            value
-            and company_id
-            and not Membership.objects.filter(
-                user=value, company_id=company_id
-            ).exists()
-        ):
-            raise serializers.ValidationError(
-                _("Ce responsable n'appartient pas à cette société.")
-            )
-        return value
 
     def validate(self, attrs):
-        validate_required_order_fields(attrs)
-        date_prevue = attrs.get("date_prevue")
-        date_reelle = attrs.get("date_reelle")
-        if date_prevue and date_reelle and date_reelle < date_prevue:
-            return attrs
+        details = []
+        errors = {}
+        for index, item in enumerate(attrs.get("brand_details", []) or []):
+            detail_errors = {}
+            try:
+                marque = int(item.get("marque"))
+            except (TypeError, ValueError):
+                detail_errors["marque"] = _("Marque invalide.")
+                marque = None
+
+            normalized = {"marque": marque}
+            for field in ("date_prevue", "date_reelle"):
+                value = item.get(field)
+                if value in (None, ""):
+                    normalized[field] = None
+                    continue
+                field_serializer = serializers.DateField(required=field == "date_prevue")
+                try:
+                    normalized[field] = field_serializer.to_internal_value(value)
+                except serializers.ValidationError:
+                    detail_errors[field] = _("Date invalide.")
+
+            for field in ("origine_marchandise", "nature_marchandise"):
+                value = item.get(field, "")
+                normalized[field] = str(value).strip()
+                if not normalized[field]:
+                    detail_errors[field] = _("Ce champ est obligatoire.")
+
+            if not normalized.get("date_prevue"):
+                detail_errors["date_prevue"] = _("Ce champ est obligatoire.")
+
+            if detail_errors:
+                errors[str(index)] = detail_errors
+            details.append(normalized)
+
+        if errors:
+            raise serializers.ValidationError({"brand_details": errors})
+
+        attrs["brand_details"] = details
         return attrs
 
 
@@ -473,9 +387,7 @@ class LogisticsOrderUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = LogisticsOrder
         fields = [
-            "fournisseur",
             "marque",
-            "devise",
             "incoterm",
             "transport",
             "conditions_paiement",
@@ -532,7 +444,6 @@ class LogisticsOrderUpdateSerializer(serializers.ModelSerializer):
         return value
 
     def validate(self, attrs):
-        validate_required_order_fields(attrs)
         return attrs
 
     def update(self, instance, validated_data):

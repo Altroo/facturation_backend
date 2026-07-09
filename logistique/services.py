@@ -20,17 +20,15 @@ def _get_line_brand(line):
     return article.marque_id, article.marque
 
 
-def _get_comptable_emails(company_id):
-    return list(
-        Membership.objects.filter(company_id=company_id, role__name=ROLE_COMPTABLE)
-        .select_related("user")
-        .values_list("user__email", flat=True)
-    )
+def _line_purchase_currency(line):
+    return line.devise_prix_achat or "MAD"
 
 
-@transaction.atomic
-def create_orders_from_proformas(*, company_id, proforma_ids, user, defaults):
-    """Create one logistics order per detected article brand."""
+def _brand_name(brand):
+    return str(brand) if brand else _("Sans marque")
+
+
+def _load_proforma_lines(*, company_id, proforma_ids):
     if not proforma_ids:
         raise ValidationError({"proformas": _("Sélectionnez au moins une proforma.")})
 
@@ -38,7 +36,9 @@ def create_orders_from_proformas(*, company_id, proforma_ids, user, defaults):
         FactureProForma.objects.filter(
             id__in=proforma_ids,
             company_id=company_id,
-        ).select_related("client", "company")
+        )
+        .select_related("client", "company", "source_devis")
+        .order_by("id")
     )
     found_ids = {proforma.id for proforma in proformas}
     missing_ids = set(proforma_ids) - found_ids
@@ -52,6 +52,7 @@ def create_orders_from_proformas(*, company_id, proforma_ids, user, defaults):
         .select_related(
             "facture_pro_forma",
             "facture_pro_forma__client",
+            "facture_pro_forma__source_devis",
             "article",
             "article__marque",
         )
@@ -62,60 +63,221 @@ def create_orders_from_proformas(*, company_id, proforma_ids, user, defaults):
             {"proformas": _("Impossible de créer une commande sans lignes proforma.")}
         )
 
+    missing_brand_refs = [
+        line.article.reference or line.article.designation or str(line.article_id)
+        for line in lines
+        if not line.article.marque_id
+    ]
+    if missing_brand_refs:
+        raise ValidationError(
+            {
+                "proformas": _(
+                    "Tous les articles sélectionnés doivent avoir une marque avant la création logistique. Articles concernés: %(articles)s."
+                )
+                % {"articles": ", ".join(missing_brand_refs[:5])}
+            }
+        )
+
+    return proformas, lines
+
+
+def _group_lines_by_brand(lines):
     grouped_lines = defaultdict(list)
     brand_by_key = {}
     for line in lines:
         brand_id, brand = _get_line_brand(line)
-        key = brand_id or 0
-        grouped_lines[key].append(line)
-        brand_by_key[key] = brand
+        grouped_lines[brand_id].append(line)
+        brand_by_key[brand_id] = brand
+    return grouped_lines, brand_by_key
+
+
+def _validate_brand_currencies(grouped_lines, brand_by_key):
+    for key, brand_lines in grouped_lines.items():
+        currencies = sorted({_line_purchase_currency(line) for line in brand_lines})
+        if len(currencies) > 1:
+            raise ValidationError(
+                {
+                    "proformas": _(
+                        "La marque %(marque)s contient plusieurs devises d'achat (%(devises)s). Séparez la sélection par devise avant de créer la commande logistique."
+                    )
+                    % {
+                        "marque": _brand_name(brand_by_key.get(key)),
+                        "devises": ", ".join(currencies),
+                    }
+                }
+            )
+
+
+def _unique_non_empty(values):
+    seen = []
+    for value in values:
+        if not value:
+            continue
+        value = str(value)
+        if value not in seen:
+            seen.append(value)
+    return seen
+
+
+def _proforma_summary(proforma):
+    return {
+        "id": proforma.id,
+        "numero_facture": proforma.numero_facture,
+        "source_devis": proforma.source_devis_id,
+        "source_devis_numero": (
+            proforma.source_devis.numero_devis if proforma.source_devis else ""
+        ),
+        "client_name": str(proforma.client) if proforma.client else "",
+        "project_reference": proforma.numero_bon_commande_client or "",
+        "date_facture": proforma.date_facture,
+        "total_ttc_apres_remise": proforma.total_ttc_apres_remise,
+        "devise": proforma.devise,
+    }
+
+
+def build_proforma_source_preview(*, company_id, proforma_ids):
+    """Return selected proformas grouped by brand for the logistics add form."""
+    proformas, lines = _load_proforma_lines(
+        company_id=company_id, proforma_ids=proforma_ids
+    )
+    grouped_lines, brand_by_key = _group_lines_by_brand(lines)
+    _validate_brand_currencies(grouped_lines, brand_by_key)
+
+    brands = []
+    for key, brand_lines in grouped_lines.items():
+        brand = brand_by_key.get(key)
+        proforma_by_id = {
+            line.facture_pro_forma_id: line.facture_pro_forma for line in brand_lines
+        }
+        source_devis_numbers = _unique_non_empty(
+            proforma.source_devis.numero_devis if proforma.source_devis else ""
+            for proforma in proforma_by_id.values()
+        )
+        brands.append(
+            {
+                "marque": key,
+                "marque_name": _brand_name(brand),
+                "devise": _line_purchase_currency(brand_lines[0]),
+                "proforma_ids": list(proforma_by_id.keys()),
+                "proforma_numbers": _unique_non_empty(
+                    proforma.numero_facture for proforma in proforma_by_id.values()
+                ),
+                "source_devis_numbers": source_devis_numbers,
+                "client_names": _unique_non_empty(
+                    line.facture_pro_forma.client for line in brand_lines
+                ),
+                "project_references": _unique_non_empty(
+                    line.facture_pro_forma.numero_bon_commande_client
+                    for line in brand_lines
+                ),
+                "articles_count": len(brand_lines),
+                "total_quantity": sum(
+                    (line.quantity for line in brand_lines), Decimal("0")
+                ),
+                "total_achat": sum(
+                    (
+                        (line.prix_achat or Decimal("0"))
+                        * (line.quantity or Decimal("0"))
+                        for line in brand_lines
+                    ),
+                    Decimal("0"),
+                ),
+            }
+        )
+
+    brands.sort(key=lambda item: item["marque_name"])
+    return {
+        "proformas": [_proforma_summary(proforma) for proforma in proformas],
+        "brands": brands,
+    }
+
+
+def _detail_value(detail, defaults, field):
+    if detail and detail.get(field) not in (None, ""):
+        return detail.get(field)
+    return defaults.get(field)
+
+
+def _get_brand_creation_defaults(*, brand_key, brand, grouped_count, defaults):
+    details = {
+        item.get("marque"): item for item in defaults.get("brand_details", []) or []
+    }
+    detail = details.get(brand_key)
+    if not detail and grouped_count > 1:
+        raise ValidationError(
+            {
+                "brand_details": _(
+                    "Renseignez les informations logistiques pour la marque %(marque)s."
+                )
+                % {"marque": _brand_name(brand)}
+            }
+        )
+
+    required_fields = ("date_prevue", "origine_marchandise", "nature_marchandise")
+    missing_fields = [
+        field
+        for field in required_fields
+        if _detail_value(detail, defaults, field) in (None, "")
+    ]
+    if missing_fields:
+        raise ValidationError(
+            {
+                "brand_details": _(
+                    "Champs obligatoires manquants pour la marque %(marque)s: %(fields)s."
+                )
+                % {
+                    "marque": _brand_name(brand),
+                    "fields": ", ".join(missing_fields),
+                }
+            }
+        )
+
+    return {
+        "date_prevue": _detail_value(detail, defaults, "date_prevue"),
+        "date_reelle": _detail_value(detail, defaults, "date_reelle"),
+        "origine_marchandise": _detail_value(
+            detail, defaults, "origine_marchandise"
+        ),
+        "nature_marchandise": _detail_value(detail, defaults, "nature_marchandise"),
+    }
+
+
+def _get_comptable_emails(company_id):
+    return list(
+        Membership.objects.filter(company_id=company_id, role__name=ROLE_COMPTABLE)
+        .select_related("user")
+        .values_list("user__email", flat=True)
+    )
+
+
+@transaction.atomic
+def create_orders_from_proformas(*, company_id, proforma_ids, user, defaults):
+    """Create one logistics order per detected article brand."""
+    proformas, lines = _load_proforma_lines(
+        company_id=company_id, proforma_ids=proforma_ids
+    )
+    grouped_lines, brand_by_key = _group_lines_by_brand(lines)
+    _validate_brand_currencies(grouped_lines, brand_by_key)
 
     orders = []
     for key, brand_lines in grouped_lines.items():
         brand = brand_by_key.get(key)
         first_line = brand_lines[0]
+        brand_defaults = _get_brand_creation_defaults(
+            brand_key=key,
+            brand=brand,
+            grouped_count=len(grouped_lines),
+            defaults=defaults,
+        )
         order = LogisticsOrder.objects.create(
             company_id=company_id,
             numero_commande=get_next_numero_logistique(company_id),
             marque=brand,
-            devise=defaults.get("devise") or first_line.devise_prix_achat or "MAD",
-            fournisseur=defaults.get("fournisseur", ""),
-            incoterm=defaults.get("incoterm", ""),
-            transport=defaults.get("transport", ""),
-            conditions_paiement=defaults.get("conditions_paiement", ""),
-            responsable=defaults.get("responsable"),
-            date_prevue=defaults.get("date_prevue"),
-            date_reelle=defaults.get("date_reelle"),
-            statut=defaults.get("statut") or "Réception commande",
-            poids_net=defaults.get("poids_net") or Decimal("0"),
-            poids_brut=defaults.get("poids_brut") or Decimal("0"),
-            volume=defaults.get("volume") or Decimal("0"),
-            origine_marchandise=defaults.get("origine_marchandise", ""),
-            nature_marchandise=defaults.get("nature_marchandise", ""),
-            numero_domiciliation=defaults.get("numero_domiciliation", ""),
-            banque=defaults.get("banque", ""),
-            montant_titre_importation=defaults.get("montant_titre_importation")
-            or Decimal("0"),
-            devise_titre_importation=defaults.get("devise_titre_importation") or "MAD",
-            date_titre_importation=defaults.get("date_titre_importation"),
-            date_validation_titre_importation=defaults.get(
-                "date_validation_titre_importation"
-            ),
-            statut_titre_importation=defaults.get("statut_titre_importation")
-            or "À ouvrir",
-            methode_paiement=defaults.get("methode_paiement", ""),
-            cout_transport=defaults.get("cout_transport") or Decimal("0"),
-            frais_transit=defaults.get("frais_transit") or Decimal("0"),
-            frais_douane=defaults.get("frais_douane") or Decimal("0"),
-            tva=defaults.get("tva") or Decimal("0"),
-            livraison_locale=defaults.get("livraison_locale") or Decimal("0"),
-            autres_frais=defaults.get("autres_frais") or Decimal("0"),
-            titre_importation_file=defaults.get("titre_importation_file"),
-            proforma_fournisseur_file=defaults.get("proforma_fournisseur_file"),
-            justificatifs_file=defaults.get("justificatifs_file"),
-            swift_file=defaults.get("swift_file"),
-            date_upload_swift=timezone.now() if defaults.get("swift_file") else None,
-            documents_originaux_file=defaults.get("documents_originaux_file"),
+            devise=_line_purchase_currency(first_line),
+            date_prevue=brand_defaults["date_prevue"],
+            date_reelle=brand_defaults["date_reelle"],
+            origine_marchandise=brand_defaults["origine_marchandise"],
+            nature_marchandise=brand_defaults["nature_marchandise"],
             created_by_user=user,
         )
         linked_proformas = {

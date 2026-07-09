@@ -6,6 +6,7 @@ from .views import (
     LogisticsDashboardView,
     LogisticsOrderDetailEditDeleteView,
     LogisticsOrderListCreateView,
+    LogisticsOrderSourcePreviewView,
     LogisticsResponsibleOptionsView,
     LogisticsOrderStatusUpdateView,
     LogisticsPaymentRejectView,
@@ -18,6 +19,11 @@ app_name = "logistique"
 
 urlpatterns = [
     path("", LogisticsOrderListCreateView.as_view(), name="logistique-list-create"),
+    path(
+        "source_preview/",
+        LogisticsOrderSourcePreviewView.as_view(),
+        name="logistique-source-preview",
+    ),
     path("dashboard/", LogisticsDashboardView.as_view(), name="logistique-dashboard"),
     path(
         "bulk_delete/",

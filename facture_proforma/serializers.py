@@ -19,6 +19,10 @@ class FactureProformaListSerializer(BaseListSerializer):
 
     converted_facture_client = serializers.SerializerMethodField()
     converted_facture_client_numero = serializers.SerializerMethodField()
+    source_devis = serializers.IntegerField(source="source_devis_id", read_only=True)
+    source_devis_numero = serializers.CharField(
+        source="source_devis.numero_devis", read_only=True
+    )
 
     def _get_converted_facture(self, obj):
         prefetched = getattr(obj, "_prefetched_objects_cache", {}).get(
@@ -50,6 +54,8 @@ class FactureProformaListSerializer(BaseListSerializer):
             "mode_paiement_name",
             "numero_bon_commande_client",
             "termes_paiement",
+            "source_devis",
+            "source_devis_numero",
             "converted_facture_client",
             "converted_facture_client_numero",
             "statut",
@@ -136,6 +142,10 @@ class FactureProformaSerializer(BaseCreateSerializer):
     )
     converted_facture_client = serializers.SerializerMethodField()
     converted_facture_client_numero = serializers.SerializerMethodField()
+    source_devis = serializers.IntegerField(source="source_devis_id", read_only=True)
+    source_devis_numero = serializers.CharField(
+        source="source_devis.numero_devis", read_only=True
+    )
 
     def _get_converted_facture(self, obj):
         prefetched = getattr(obj, "_prefetched_objects_cache", {}).get(
@@ -184,6 +194,8 @@ class FactureProformaSerializer(BaseCreateSerializer):
             "date_echeance",
             "numero_bon_commande_client",
             "termes_paiement",
+            "source_devis",
+            "source_devis_numero",
             "converted_facture_client",
             "converted_facture_client_numero",
             "mode_paiement",
@@ -209,6 +221,8 @@ class FactureProformaSerializer(BaseCreateSerializer):
             "id",
             "company",
             "created_by_user",
+            "source_devis",
+            "source_devis_numero",
             "statut",
             "converted_facture_client",
             "converted_facture_client_numero",
@@ -229,6 +243,10 @@ class FactureProformaDetailSerializer(BaseDetailUpdateSerializer):
     )
     converted_facture_client = serializers.SerializerMethodField()
     converted_facture_client_numero = serializers.SerializerMethodField()
+    source_devis = serializers.IntegerField(source="source_devis_id", read_only=True)
+    source_devis_numero = serializers.CharField(
+        source="source_devis.numero_devis", read_only=True
+    )
 
     def _get_converted_facture(self, obj):
         prefetched = getattr(obj, "_prefetched_objects_cache", {}).get(

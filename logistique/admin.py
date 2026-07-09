@@ -48,7 +48,6 @@ class LogisticsOrderAdmin(SimpleHistoryAdmin):
     list_display = (
         "numero_commande",
         "company",
-        "fournisseur",
         "marque",
         "statut",
         "statut_paiement",
@@ -56,7 +55,7 @@ class LogisticsOrderAdmin(SimpleHistoryAdmin):
         "date_created",
     )
     list_filter = ("company", "statut", "statut_paiement", "marque")
-    search_fields = ("numero_commande", "fournisseur", "marque__nom")
+    search_fields = ("numero_commande", "marque__nom")
     inlines = [
         LogisticsOrderProformaInline,
         LogisticsOrderLineInline,
@@ -73,7 +72,7 @@ class HistoricalLogisticsOrderAdmin(admin.ModelAdmin):
         "id",
         "numero_commande",
         "company",
-        "fournisseur",
+        "marque",
         "statut",
         "statut_paiement",
         "history_type",
@@ -87,7 +86,7 @@ class HistoricalLogisticsOrderAdmin(admin.ModelAdmin):
         "statut",
         "statut_paiement",
     )
-    search_fields = ("numero_commande", "fournisseur", "marque__nom")
+    search_fields = ("numero_commande", "marque__nom")
     readonly_fields = [
         field.name
         for field in LogisticsOrder._meta.get_fields()

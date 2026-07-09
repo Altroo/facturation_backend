@@ -56,6 +56,14 @@ class FactureProForma(BaseDeviFactureDocument):
         null=True,
         help_text=_("Conditions ou termes de paiement de la facture pro forma"),
     )
+    source_devis = models.ForeignKey(
+        "devi.Devi",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="converted_proformas",
+        verbose_name=_("Devis source"),
+    )
 
     history = HistoricalRecords(
         verbose_name=_("Historique Facture Pro-Forma"),

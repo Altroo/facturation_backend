@@ -27,6 +27,7 @@ class FactureProFormaAdmin(BaseDocumentAdmin):
         "numero_facture",
         "company",
         "client",
+        "source_devis",
         "date_facture",
         "statut_badge",
         "mode_paiement",
@@ -66,6 +67,7 @@ class FactureProFormaAdmin(BaseDocumentAdmin):
                 "fields": (
                     "numero_bon_commande_client",
                     "termes_paiement",
+                    "source_devis",
                     "mode_paiement",
                     "remarque",
                     "remise_type",

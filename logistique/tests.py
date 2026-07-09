@@ -75,17 +75,7 @@ def valid_logistics_payload(logistics_company, logistics_user, proforma, **overr
     payload = {
         "company_id": logistics_company.id,
         "proformas": [proforma.id],
-        "fournisseur": "Supplier One",
-        "devise": "MAD",
-        "incoterm": "FOB",
-        "transport": "Maritime",
-        "conditions_paiement": "Paiement 30 jours",
-        "responsable": logistics_user.id,
         "date_prevue": "2026-07-20",
-        "statut": "Réception commande",
-        "poids_net": "120.00",
-        "poids_brut": "135.00",
-        "volume": "3.500",
         "origine_marchandise": "Espagne",
         "nature_marchandise": "Articles de test",
     }
@@ -162,8 +152,20 @@ def test_create_logistics_orders_splits_proforma_lines_by_brand(
             logistics_company,
             logistics_user,
             proforma,
-            methode_paiement="Virement",
-            cout_transport="50.00",
+            brand_details=[
+                {
+                    "marque": brand_a.id,
+                    "date_prevue": "2026-07-20",
+                    "origine_marchandise": "Espagne",
+                    "nature_marchandise": "Articles marque A",
+                },
+                {
+                    "marque": brand_b.id,
+                    "date_prevue": "2026-07-22",
+                    "origine_marchandise": "France",
+                    "nature_marchandise": "Articles marque B",
+                },
+            ],
         ),
         format="json",
     )
@@ -173,9 +175,11 @@ def test_create_logistics_orders_splits_proforma_lines_by_brand(
     orders = LogisticsOrder.objects.order_by("marque__nom")
     assert [order.marque_id for order in orders] == [brand_a.id, brand_b.id]
     assert [order.lignes.count() for order in orders] == [1, 1]
-    assert orders[0].fournisseur == "Supplier One"
+    assert orders[0].fournisseur == ""
+    assert orders[0].origine_marchandise == "Espagne"
+    assert orders[1].origine_marchandise == "France"
     assert orders[0].cout_achat == Decimal("200.000")
-    assert orders[0].cout_total == Decimal("250.000")
+    assert orders[0].cout_total == Decimal("200.000")
     assert orders[0].lignes.first().project_reference == "PROJET-LOG-001"
     assert LogisticsOrderEvent.objects.filter(action="Création").count() == 2
 
@@ -193,15 +197,74 @@ def test_create_logistics_order_rejects_missing_required_fields(
     )
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert "fournisseur" in response.data["details"]
-    assert "date_prevue" in response.data["details"]
-    assert "poids_net" in response.data["details"]
+    assert "brand_details" in response.data["details"]
+    assert LogisticsOrder.objects.count() == 0
+
+
+def test_logistics_source_preview_groups_by_brand(
+    api_client, logistics_company, logistics_proformas
+):
+    proforma, brand_a, brand_b = logistics_proformas
+    url = reverse("logistique:logistique-source-preview")
+
+    response = api_client.post(
+        url,
+        {"company_id": logistics_company.id, "proformas": [proforma.id]},
+        format="json",
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert [brand["marque"] for brand in response.data["brands"]] == [
+        brand_a.id,
+        brand_b.id,
+    ]
+    assert response.data["brands"][0]["devise"] == "MAD"
+    assert response.data["proformas"][0]["numero_facture"] == "P001/26"
+
+
+def test_create_logistics_order_rejects_mixed_purchase_currencies(
+    api_client, logistics_company, logistics_user, logistics_proformas
+):
+    proforma, brand_a, _ = logistics_proformas
+    line = FactureProFormaLine.objects.filter(article__marque=brand_a).first()
+    FactureProFormaLine.objects.create(
+        facture_pro_forma=proforma,
+        article=line.article,
+        prix_achat=Decimal("50.00"),
+        devise_prix_achat="EUR",
+        prix_vente=Decimal("75.00"),
+        devise_prix_vente="EUR",
+        quantity=1,
+    )
+    url = reverse("logistique:logistique-list-create")
+
+    response = api_client.post(
+        url,
+        valid_logistics_payload(
+            logistics_company,
+            logistics_user,
+            proforma,
+            brand_details=[
+                {
+                    "marque": brand_a.id,
+                    "date_prevue": "2026-07-20",
+                    "origine_marchandise": "Espagne",
+                    "nature_marchandise": "Articles marque A",
+                }
+            ],
+        ),
+        format="json",
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert "plusieurs devises d'achat" in str(response.data["details"]["proformas"])
     assert LogisticsOrder.objects.count() == 0
 
 
 def test_logistics_list_returns_dashboard_stats(
     api_client, logistics_company, logistics_user, logistics_proformas
 ):
+    _, brand_a, brand_b = logistics_proformas
     test_create_logistics_orders_splits_proforma_lines_by_brand(
         api_client, logistics_company, logistics_user, logistics_proformas
     )
@@ -216,15 +279,22 @@ def test_logistics_list_returns_dashboard_stats(
     assert response.data["count"] == 2
     assert response.data["stats"]["total_commandes"] == 2
     assert response.data["stats"]["commandes_en_cours"] == 2
-    assert response.data["stats"]["couts_logistiques"] == Decimal("500.00")
-    assert response.data["stats"]["couts_detail"]["transport"] == Decimal("100.00")
+    assert response.data["stats"]["couts_logistiques"] == Decimal("400.00")
+    assert response.data["stats"]["couts_detail"]["transport"] == Decimal("0.00")
     assert response.data["stats"]["statuts_workflow"] == [
         {"statut": "Réception commande", "total": 2}
     ]
     assert response.data["stats"]["statuts_paiement"] == [
         {"statut_paiement": "Non demandé", "total": 2}
     ]
-    assert response.data["stats"]["fournisseurs"] == [{"fournisseur": "Supplier One"}]
+    assert response.data["stats"]["marques"] == [
+        {"id": brand_a.id, "nom": "Brand A"},
+        {"id": brand_b.id, "nom": "Brand B"},
+    ]
+    assert [item["marque__nom"] for item in response.data["stats"]["kpi_marques"]] == [
+        "Brand A",
+        "Brand B",
+    ]
     assert len(response.data["stats"]["monthly_flow"]) == 6
     assert {
         "month",
@@ -238,17 +308,16 @@ def test_logistics_list_returns_dashboard_stats(
 def test_logistics_filters_accept_selectable_multi_values(
     api_client, logistics_company, logistics_user, logistics_proformas
 ):
+    _, brand_a, brand_b = logistics_proformas
     test_create_logistics_orders_splits_proforma_lines_by_brand(
         api_client, logistics_company, logistics_user, logistics_proformas
     )
     LogisticsOrder.objects.filter(marque__nom="Brand A").update(
-        fournisseur="Supplier One",
         statut="Réception commande",
         statut_paiement="Non demandé",
         statut_titre_importation="À ouvrir",
     )
     LogisticsOrder.objects.filter(marque__nom="Brand B").update(
-        fournisseur="Supplier Two",
         statut="Transit",
         statut_paiement="Validé",
         statut_titre_importation="Validé",
@@ -260,7 +329,7 @@ def test_logistics_filters_accept_selectable_multi_values(
         {
             "company_id": logistics_company.id,
             "pagination": "true",
-            "fournisseur": "Supplier One,Supplier Two",
+            "marque_ids": f"{brand_a.id},{brand_b.id}",
             "statut": "Réception commande,Transit",
             "statut_paiement": "Non demandé,Validé",
             "statut_titre_importation": "À ouvrir,Validé",
@@ -335,34 +404,3 @@ def test_logistics_responsible_options_are_company_scoped(
             "label": "Log User - Caissier",
         }
     ]
-
-
-def test_create_logistics_order_accepts_document_files(
-    api_client, logistics_company, logistics_user, logistics_proformas
-):
-    proforma, _, _ = logistics_proformas
-    url = reverse("logistique:logistique-list-create")
-    supplier_file = SimpleUploadedFile(
-        "supplier-proforma.pdf",
-        b"%PDF-1.4 supplier proforma",
-        content_type="application/pdf",
-    )
-
-    response = api_client.post(
-        url,
-        valid_logistics_payload(
-            logistics_company,
-            logistics_user,
-            proforma,
-            proforma_fournisseur_file=supplier_file,
-        ),
-        format="multipart",
-    )
-
-    assert response.status_code == status.HTTP_201_CREATED
-    assert (
-        LogisticsOrder.objects.exclude(proforma_fournisseur_file="")
-        .exclude(proforma_fournisseur_file__isnull=True)
-        .count()
-        == 2
-    )

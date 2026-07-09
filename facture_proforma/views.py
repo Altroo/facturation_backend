@@ -36,6 +36,12 @@ class FactureProFormaListCreateView(BaseDocumentListCreateView):
     create_serializer_class = FactureProformaSerializer
     detail_serializer_class = FactureProformaDetailSerializer
     document_name = "la facture proforma"
+    list_select_related = (
+        "client",
+        "mode_paiement",
+        "created_by_user",
+        "source_devis",
+    )
     list_prefetch_related = ("lignes", "converted_factures")
 
 
@@ -43,6 +49,12 @@ class FactureProFormaDetailEditDeleteView(BaseDocumentDetailEditDeleteView):
     model = FactureProForma
     detail_serializer_class = FactureProformaDetailSerializer
     document_name = "facture proforma"
+    detail_select_related = (
+        "client",
+        "mode_paiement",
+        "created_by_user",
+        "source_devis",
+    )
 
 
 class GenerateNumeroFactureView(BaseGenerateNumeroView):

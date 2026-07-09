@@ -98,6 +98,7 @@ class Devi(BaseDeviFactureDocument):
             numero_facture=numero_facture,
             company=self.company,
             client=self.client,
+            source_devis=self,
             date_facture=self.date_devis,
             date_echeance=self.date_echeance,
             numero_bon_commande_client=self.numero_demande_prix_client,

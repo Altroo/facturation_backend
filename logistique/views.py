@@ -29,7 +29,11 @@ from .serializers import (
     LogisticsPaymentValidationSerializer,
     LogisticsStatusSerializer,
 )
-from .services import create_orders_from_proformas, send_payment_request_email
+from .services import (
+    build_proforma_source_preview,
+    create_orders_from_proformas,
+    send_payment_request_email,
+)
 from .utils import get_next_numero_logistique
 
 
@@ -175,16 +179,18 @@ def get_logistics_stats(company_id):
         ),
         "monthly_flow": monthly_flow,
     }
-    stats["fournisseurs"] = [
-        {"fournisseur": fournisseur}
-        for fournisseur in base.exclude(fournisseur="")
-        .order_by("fournisseur")
-        .values_list("fournisseur", flat=True)
+    stats["marques"] = [
+        {"id": brand["marque"], "nom": brand["marque__nom"]}
+        for brand in base.exclude(marque__isnull=True)
+        .exclude(marque__nom="")
+        .order_by("marque__nom")
+        .values("marque", "marque__nom")
         .distinct()[:100]
     ]
-    stats["kpi_fournisseurs"] = list(
-        base.values("fournisseur")
-        .exclude(fournisseur="")
+    stats["kpi_marques"] = list(
+        base.exclude(marque__isnull=True)
+        .exclude(marque__nom="")
+        .values("marque", "marque__nom")
         .annotate(
             total_commandes=Count("id"),
             cout_total=Coalesce(
@@ -193,6 +199,17 @@ def get_logistics_stats(company_id):
         )
         .order_by("-total_commandes")[:5]
     )
+    stats["fournisseurs"] = [
+        {"fournisseur": item["nom"]} for item in stats["marques"]
+    ]
+    stats["kpi_fournisseurs"] = [
+        {
+            "fournisseur": item["marque__nom"],
+            "total_commandes": item["total_commandes"],
+            "cout_total": item["cout_total"],
+        }
+        for item in stats["kpi_marques"]
+    ]
     return stats
 
 
@@ -266,6 +283,27 @@ class LogisticsOrderListCreateView(CompanyAccessMixin, APIView):
             {"created": len(orders), "orders": response_serializer.data},
             status=status.HTTP_201_CREATED,
         )
+
+
+class LogisticsOrderSourcePreviewView(CompanyAccessMixin, APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+    parser_classes = (JSONParser,)
+
+    def post(self, request, *args, **kwargs):
+        company_id = request.data.get("company_id") or request.query_params.get(
+            "company_id"
+        )
+        company_id = self._parse_company_id(
+            company_id, error_message="company_id est requis."
+        )
+        self._check_company_access(request, company_id)
+
+        proformas = request.data.get("proformas") or []
+        preview = build_proforma_source_preview(
+            company_id=company_id,
+            proforma_ids=proformas,
+        )
+        return Response(preview, status=status.HTTP_200_OK)
 
 
 class LogisticsOrderDetailEditDeleteView(CompanyAccessMixin, APIView):
