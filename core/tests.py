@@ -16,7 +16,6 @@ from django.contrib.admin.sites import AdminSite
 from django.contrib.auth import get_user_model
 from django.contrib.postgres.search import SearchQuery
 from django.db import DatabaseError
-from django.db.models import QuerySet
 from django.urls import reverse
 from reportlab.lib import colors
 from reportlab.pdfbase import pdfmetrics
@@ -4001,16 +4000,16 @@ class TestBasePDFGeneratorDraftWatermark:
         def __init__(self):
             self.calls = []
 
-        def saveState(self):
+        def save_state(self):
             self.calls.append(("saveState",))
 
-        def setFillAlpha(self, alpha):
+        def set_fill_alpha(self, alpha):
             self.calls.append(("setFillAlpha", alpha))
 
-        def setFillColor(self, color):
+        def set_fill_color(self, color):
             self.calls.append(("setFillColor", color))
 
-        def setFont(self, font, size):
+        def set_font(self, font, size):
             self.calls.append(("setFont", font, size))
 
         def translate(self, x, y):
@@ -4019,10 +4018,10 @@ class TestBasePDFGeneratorDraftWatermark:
         def rotate(self, angle):
             self.calls.append(("rotate", angle))
 
-        def drawCentredString(self, x, y, text):
+        def draw_centred_string(self, x, y, text):
             self.calls.append(("drawCentredString", x, y, text))
 
-        def restoreState(self):
+        def restore_state(self):
             self.calls.append(("restoreState",))
 
     def test_draft_watermark_uses_french_label_and_descending_angle(self):
@@ -4047,9 +4046,7 @@ class TestBasePDFGeneratorDraftWatermark:
         assert fake_canvas.calls.index(
             ("setFillColor", colors.HexColor("#777777"))
         ) < fake_canvas.calls.index(("setFillAlpha", 0.18))
-        set_font_call = next(
-            call for call in fake_canvas.calls if call[0] == "setFont"
-        )
+        set_font_call = next(call for call in fake_canvas.calls if call[0] == "setFont")
         expected_font_size = (
             math.hypot(generator.PAGE_WIDTH, generator.PAGE_HEIGHT)
             * 0.55

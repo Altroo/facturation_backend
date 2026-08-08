@@ -110,7 +110,7 @@ class Reglement(models.Model):
 
     @staticmethod
     def get_total_reglements_for_facture(
-        facture_client_id: int, exclude_reglement_id: int = None
+        facture_client_id: int, exclude_reglement_id: int | None = None
     ) -> Decimal:
         """
         Get the total of all valid règlements for a specific facture client.
@@ -127,7 +127,7 @@ class Reglement(models.Model):
 
     @staticmethod
     def get_reste_a_payer(
-        facture_client: FactureClient, exclude_reglement_id: int = None
+        facture_client: FactureClient, exclude_reglement_id: int | None = None
     ) -> Decimal:
         """
         Calculate the remaining amount to pay for a facture client.

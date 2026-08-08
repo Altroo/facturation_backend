@@ -6,6 +6,7 @@ from django.utils.translation import gettext as _
 
 from core.constants import ROLE_CAISSIER
 from notification.models import Notification, NotificationPreference
+from account.models import Membership
 
 logger = logging.getLogger(__name__)
 
@@ -71,31 +72,24 @@ def _get_document_company_id(document):
 def _get_model_for_route(route: str):
     if route == "devis":
         from devi.models import Devi
-
         return Devi
     if route == "facture-client":
         from facture_client.models import FactureClient
-
         return FactureClient
     if route == "facture-pro-forma":
         from facture_proforma.models import FactureProForma
-
         return FactureProForma
     if route == "bon-de-livraison":
         from bon_de_livraison.models import BonDeLivraison
-
         return BonDeLivraison
     if route == "facture-avoir":
         from facture_avoir.models import FactureAvoir
-
         return FactureAvoir
     if route == "reglements":
         from reglement.models import Reglement
-
         return Reglement
     if route == "logistique":
         from logistique.models import LogisticsOrder
-
         return LogisticsOrder
     return None
 
@@ -227,8 +221,6 @@ def notify_document_created(document, *, company_id, document_label, creator=Non
     """Notify company admins that a document has been created."""
     if not company_id:
         return
-
-    from account.models import Membership
 
     label = _clean_document_label(document_label)
     numero = _get_document_number(document)

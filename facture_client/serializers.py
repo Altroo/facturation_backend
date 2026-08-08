@@ -9,6 +9,8 @@ from core.serializers import (
     update_document_devise_on_first_line,
 )
 from .models import FactureClient, FactureClientLine
+from facture_avoir.models import FactureAvoir
+from reglement.models import Reglement
 
 
 class FactureClientPaymentFieldsMixin:
@@ -22,9 +24,6 @@ class FactureClientPaymentFieldsMixin:
         annotated = getattr(obj, "total_paid", None)
         if annotated is not None:
             return annotated
-
-        from reglement.models import Reglement
-
         return Reglement.get_total_reglements_for_facture(obj.id)
 
     @staticmethod
@@ -32,9 +31,6 @@ class FactureClientPaymentFieldsMixin:
         annotated = getattr(obj, "total_avoirs", None)
         if annotated is not None:
             return annotated
-
-        from facture_avoir.models import FactureAvoir
-
         return FactureAvoir.get_total_avoirs_for_facture(obj.id)
 
     @staticmethod
@@ -42,9 +38,6 @@ class FactureClientPaymentFieldsMixin:
         annotated = getattr(obj, "payment_count", None)
         if annotated is not None:
             return annotated
-
-        from reglement.models import Reglement
-
         return Reglement.objects.filter(
             facture_client_id=obj.id, statut="Valide"
         ).count()
@@ -139,10 +132,10 @@ class FactureClientLineSerializer(serializers.ModelSerializer):
     designation = serializers.CharField(source="article.designation", read_only=True)
     reference = serializers.CharField(source="article.reference", read_only=True)
 
-    def validate(self, data):
+    def validate(self, attrs):
         """Validate that line currency matches parent document currency."""
-        validate_line_currency(data, self.instance, "facture_client")
-        return data
+        validate_line_currency(attrs, self.instance, "facture_client")
+        return attrs
 
     def create(self, validated_data):
         """Create line and set document devise if it's the first line."""

@@ -26,7 +26,7 @@ app.autodiscover_tasks(
 
 app.conf.beat_schedule = {
     "check-facturation-notifications-every-hour": {
-        "task": "notification.check_facturation_notifications",
+        "task": "notification.tasks.check_facturation_notifications",
         "schedule": crontab(minute=0),  # every hour
     },
 }

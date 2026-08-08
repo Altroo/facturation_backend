@@ -3,11 +3,11 @@ from os import path
 from uuid import uuid4
 
 from django.contrib.auth.models import AbstractBaseUser
-from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.models import PermissionsMixin
 from django.core.files.base import ContentFile
 from django.db import models
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 from simple_history.models import HistoricalRecords
 
 from facturation_backend.settings import API_URL
@@ -17,8 +17,12 @@ from .managers import CustomUserManager
 class Role(models.Model):
     """Custom role model to extend Django's Group with additional fields."""
 
-    name = models.CharField(max_length=150, unique=True, verbose_name=_("Nom rôle"))
-    name.help_text = _("Nom unique du rôle")
+    name = models.CharField(
+        max_length=150,
+        unique=True,
+        verbose_name=_("Nom rôle"),
+        help_text=_("Nom unique du rôle"),
+    )
 
     class Meta:
         verbose_name = _("Rôle")

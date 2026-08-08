@@ -1,12 +1,12 @@
 from typing import cast
+
+from django.utils.translation import gettext_lazy as _
 from rest_framework import viewsets, permissions
 from rest_framework.exceptions import PermissionDenied
-from django.utils.translation import gettext_lazy as _
 
 from account.models import Membership, CustomUser
 from core.constants import ROLE_CAISSIER
 from core.permissions import get_user_role
-
 from .models import (
     Ville,
     Marque,

@@ -4,7 +4,6 @@ from decimal import Decimal, InvalidOperation
 from re import search
 
 import openpyxl
-
 from django.db import IntegrityError
 from django.http import Http404
 from django.utils.translation import gettext_lazy as _
@@ -15,10 +14,11 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from account.models import Membership
-from core.views import CompanyAccessMixin, BaseBulkDeleteView, BaseBulkArchiveView
+from account.tasks import send_csv_example_email
 from core.constants import CURRENCY_CHOICES
 from core.permissions import can_create, can_update, can_delete
 from core.utils import format_number_with_dynamic_digits
+from core.views import CompanyAccessMixin, BaseBulkDeleteView, BaseBulkArchiveView
 from facturation_backend.utils import CustomPagination
 from parameter.models import Marque, Categorie, Unite, Emplacement
 from .filters import ArticleFilter
@@ -611,8 +611,6 @@ class SendCSVExampleEmailView(APIView):
     @staticmethod
     def post(request, *args, **kwargs):
         """Send import guide via email with CSV and Excel templates attached."""
-        from account.tasks import send_csv_example_email
-
         company_id = request.data.get("company_id")
         if not company_id:
             raise PermissionDenied(_("L'ID de la société est requis."))

@@ -134,9 +134,7 @@ class FactureAvoir(BaseDeviFactureDocument):
         if self.total_ttc_apres_remise <= Decimal("0.00"):
             from django.core.exceptions import ValidationError
 
-            raise ValidationError(
-                _("Le montant de l'avoir doit être supérieur à 0.")
-            )
+            raise ValidationError(_("Le montant de l'avoir doit être supérieur à 0."))
         if self.total_ttc_apres_remise > available:
             from django.core.exceptions import ValidationError
 

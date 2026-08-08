@@ -1,10 +1,9 @@
 import logging
 
+from django.db import transaction
 from django.http import Http404
 from django.utils.translation import gettext_lazy as _
 from rest_framework import permissions, status
-
-logger = logging.getLogger(__name__)
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -18,6 +17,9 @@ from core.permissions import (
     can_delete,
 )
 from facturation_backend.utils import CustomPagination
+from notification.services import notify_document_created
+
+logger = logging.getLogger(__name__)
 
 
 class CompanyAccessMixin:
@@ -129,7 +131,6 @@ class BaseDocumentListCreateView(CompanyAccessMixin, APIView):
         )
         serializer.is_valid(raise_exception=True)
         instance = serializer.save(created_by_user=request.user)
-        from notification.services import notify_document_created
 
         notify_document_created(
             instance,
@@ -378,7 +379,6 @@ class BaseConversionView(CompanyAccessMixin, APIView):
                 **{self.numero_param_name: numero},
                 created_by_user=request.user,
             )
-            from notification.services import notify_document_created
 
             notify_document_created(
                 converted,
@@ -430,9 +430,6 @@ class BaseBulkDeleteView(CompanyAccessMixin, APIView):
             raise Http404(
                 _("Certains %(name)s sont introuvables.") % {"name": self.document_name}
             )
-
-        from django.db import transaction
-
         with transaction.atomic():
             for obj in objects:
                 company_id = self.get_company_id(obj)
@@ -490,8 +487,6 @@ class BaseBulkArchiveView(CompanyAccessMixin, APIView):
             raise Http404(
                 _("Certains %(name)s sont introuvables.") % {"name": self.document_name}
             )
-
-        from django.db import transaction
 
         with transaction.atomic():
             for obj in objects:

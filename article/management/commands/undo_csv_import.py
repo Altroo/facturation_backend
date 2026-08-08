@@ -37,7 +37,8 @@ class Command(BaseCommand):
             help="Show what would be done without making changes",
         )
 
-    def _detect_delimiter(self, sample: str) -> str:
+    @staticmethod
+    def _detect_delimiter(sample: str) -> str:
         try:
             dialect = csv.Sniffer().sniff(sample, delimiters=",;\t|")
             return dialect.delimiter

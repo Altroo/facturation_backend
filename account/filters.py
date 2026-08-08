@@ -4,8 +4,8 @@ from django.db.models import Case, When, Value, CharField, Q, F, FloatField
 from django.db.utils import DatabaseError
 from django.utils.translation import gettext_lazy as _
 
-from .models import CustomUser
 from core.filters import IsEmptyAutoMixin
+from .models import CustomUser
 
 
 class UsersFilter(IsEmptyAutoMixin, django_filters.FilterSet):

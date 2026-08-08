@@ -4,8 +4,8 @@ from django.db.models import Case, When, Value, CharField, Q, F, FloatField
 from django.db.utils import DatabaseError
 from django.utils.translation import gettext_lazy as _
 
-from .models import Client
 from core.filters import IsEmptyAutoMixin, CommaSeparatedIDsFilter
+from .models import Client
 
 
 class ClientFilter(IsEmptyAutoMixin, django_filters.FilterSet):

@@ -299,7 +299,11 @@ class BasePDFGenerator:
     MAX_TAIL_COMPANION_ROWS = 4
     NECTAR_FOOTER_MARGIN = 3.2 * cm
     PDF_TYPES_WITH_REMISE = {"avec_remise", "avec_unite", "avec_unite_avec_remise"}
-    PDF_TYPES_WITH_UNITE = {"avec_unite", "avec_unite_sans_remise", "avec_unite_avec_remise"}
+    PDF_TYPES_WITH_UNITE = {
+        "avec_unite",
+        "avec_unite_sans_remise",
+        "avec_unite_avec_remise",
+    }
 
     def __init__(
         self, document, company, pdf_type: str = "normal", language: str = "fr"
@@ -310,7 +314,7 @@ class BasePDFGenerator:
         Args:
             document: The document model instance (Devi, FactureClient, etc.)
             company: The Company model instance
-            pdf_type: Type of PDF to generate (avec_remise, sans_remise, avec_unite, etc.)
+            PDF_type: Type of PDF to generate (avec_remise, sans_remise, avec_unite, etc.)
             language: Language for PDF generation ('fr' or 'en')
         """
         self.total_pages = 1
@@ -742,7 +746,7 @@ class BasePDFGenerator:
             ),
         )
 
-        # Build content and balance across pages if multi-page
+        # Build content and balance across pages if multipage
         elements = self._build_content()
         self.total_pages = self._count_pages(elements)
 
@@ -1453,7 +1457,9 @@ class BasePDFGenerator:
                 )
             )
             tail.append(
-                Paragraph(str(termes_paiement).replace("\n", "<br/>"), self.styles["Remarks"])
+                Paragraph(
+                    str(termes_paiement).replace("\n", "<br/>"), self.styles["Remarks"]
+                )
             )
         return tail
 

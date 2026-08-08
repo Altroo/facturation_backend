@@ -1126,8 +1126,8 @@ class TestClientViewsCoverage:
 @pytest.mark.django_db
 class TestBulkDeleteClientAPI:
     def setup_method(self):
-        User = get_user_model()
-        self.user = User.objects.create_user(
+        user = get_user_model()
+        self.user = user.objects.create_user(
             email="bulk_clt_d@example.com", password="pass"
         )
         self.api_client = APIClient()
@@ -1206,8 +1206,8 @@ class TestBulkDeleteClientAPI:
 @pytest.mark.django_db
 class TestBulkArchiveClientAPI:
     def setup_method(self):
-        User = get_user_model()
-        self.user = User.objects.create_user(
+        user = get_user_model()
+        self.user = user.objects.create_user(
             email="bulk_clt_a@example.com", password="pass"
         )
         self.api_client = APIClient()

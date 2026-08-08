@@ -176,13 +176,13 @@ class ReglementCreateSerializer(ReglementClientNameMixin, serializers.ModelSeria
             raise serializers.ValidationError(_("Le montant doit être supérieur à 0."))
         return value
 
-    def validate(self, data):
+    def validate(self, attrs):
         """
         Validate that the montant doesn't exceed the remaining amount to pay.
         Also validate that facture_client has an allowed status.
         """
-        facture_client = data.get("facture_client")
-        montant = data.get("montant")
+        facture_client = attrs.get("facture_client")
+        montant = attrs.get("montant")
 
         if facture_client:
             # Validate facture status
@@ -190,7 +190,8 @@ class ReglementCreateSerializer(ReglementClientNameMixin, serializers.ModelSeria
                 raise serializers.ValidationError(
                     {
                         "facture_client": _(
-                            "Impossible d'ajouter un règlement pour une facture avec le statut '%(status)s'. Statuts autorisés: %(allowed)s."
+                            "Impossible d'ajouter un règlement pour une facture avec le statut '%(status)s'. "
+                            "Statuts autorisés: %(allowed)s."
                         )
                         % {
                             "status": facture_client.statut,
@@ -207,7 +208,8 @@ class ReglementCreateSerializer(ReglementClientNameMixin, serializers.ModelSeria
                     raise serializers.ValidationError(
                         {
                             "montant": _(
-                                "Le montant (%(montant)s %(devise)s) dépasse le reste à payer (%(reste)s %(devise)s) pour cette facture."
+                                "Le montant (%(montant)s %(devise)s) dépasse le reste à payer (%(reste)s %(devise)s) "
+                                "pour cette facture."
                             )
                             % {
                                 "montant": montant,
@@ -217,7 +219,7 @@ class ReglementCreateSerializer(ReglementClientNameMixin, serializers.ModelSeria
                         }
                     )
 
-        return data
+        return attrs
 
 
 class ReglementUpdateSerializer(ReglementClientNameMixin, serializers.ModelSerializer):
@@ -292,17 +294,17 @@ class ReglementUpdateSerializer(ReglementClientNameMixin, serializers.ModelSeria
             raise serializers.ValidationError(_("Le montant doit être supérieur à 0."))
         return value
 
-    def validate(self, data):
+    def validate(self, attrs):
         """
         Validate that the montant doesn't exceed the remaining amount to pay.
         When updating, we need to exclude the current reglement from the calculation.
         Also validate that facture_client has an allowed status.
         """
         # Get facture_client from data or instance
-        facture_client = data.get(
+        facture_client = attrs.get(
             "facture_client", self.instance.facture_client if self.instance else None
         )
-        montant = data.get("montant", self.instance.montant if self.instance else None)
+        montant = attrs.get("montant", self.instance.montant if self.instance else None)
 
         if facture_client:
             # Validate facture status
@@ -310,7 +312,8 @@ class ReglementUpdateSerializer(ReglementClientNameMixin, serializers.ModelSeria
                 raise serializers.ValidationError(
                     {
                         "facture_client": _(
-                            "Impossible de modifier un règlement pour une facture avec le statut '%(status)s'. Statuts autorisés: %(allowed)s."
+                            "Impossible de modifier un règlement pour une facture avec le statut '%(status)s'. "
+                            "Statuts autorisés: %(allowed)s."
                         )
                         % {
                             "status": facture_client.statut,
@@ -329,7 +332,8 @@ class ReglementUpdateSerializer(ReglementClientNameMixin, serializers.ModelSeria
                     raise serializers.ValidationError(
                         {
                             "montant": _(
-                                "Le montant (%(montant)s %(devise)s) dépasse le reste à payer (%(reste)s %(devise)s) pour cette facture."
+                                "Le montant (%(montant)s %(devise)s) dépasse le reste à payer (%(reste)s %(devise)s) "
+                                "pour cette facture."
                             )
                             % {
                                 "montant": montant,
@@ -339,4 +343,4 @@ class ReglementUpdateSerializer(ReglementClientNameMixin, serializers.ModelSeria
                         }
                     )
 
-        return data
+        return attrs

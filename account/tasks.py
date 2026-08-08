@@ -1,7 +1,7 @@
 from io import BytesIO
 from random import shuffle
-import openpyxl
 
+import openpyxl
 from PIL import Image, ImageDraw, ImageFont
 from asgiref.sync import async_to_sync, sync_to_async
 from celery.utils.log import get_task_logger
@@ -256,11 +256,9 @@ def generate_user_thumbnail(self, user_pk):
 def resize_images_v2(bytes_) -> BytesIO:
     image_processor = ImageProcessor()
     loaded_img = image_processor.load_image_from_io(bytes_)
-
     # Avatar 600x600 with blurred background
     avatar_img = image_processor.resize_with_blurred_background(loaded_img, 600)
     avatar_io = image_processor.from_img_to_io(avatar_img, "WEBP")
-
     return avatar_io
 
 

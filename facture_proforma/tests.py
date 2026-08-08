@@ -616,7 +616,7 @@ class TestFactureProFormaPDFGeneration:
     def test_pdf_forbidden_cross_company_document(
         self, pf_conv_user, pf_conv_company, pf_conv_with_lines
     ):
-        """Test PDF fails when company_id doesn't own the facture proforma."""
+        """Test PDF fails when company_id doesn't own the facture pro forma."""
 
         other_company = Company.objects.create(
             raison_sociale="Other PF Co", ICE="OTHPF"
@@ -637,7 +637,7 @@ class TestFactureProFormaPDFGeneration:
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
     def test_pdf_not_found(self, pf_conv_user, pf_conv_company):
-        """Test PDF fails for non-existent facture proforma."""
+        """Test PDF fails for non-existent facture pro forma."""
 
         _create_pf_membership(pf_conv_user, pf_conv_company)
 
@@ -653,7 +653,7 @@ class TestFactureProFormaPDFGeneration:
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
     def test_pdf_allows_draft(self, pf_conv_user, pf_conv_company, pf_conv_with_lines):
-        """Draft proforma PDFs are generated with a watermark."""
+        """Draft pro forma PDFs are generated with a watermark."""
 
         _create_pf_membership(pf_conv_user, pf_conv_company)
         pf_conv_with_lines.statut = "Brouillon"

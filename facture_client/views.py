@@ -18,15 +18,17 @@ from reportlab.lib.units import cm
 from reportlab.platypus import Spacer, Paragraph, KeepTogether
 from rest_framework import permissions
 from rest_framework import status
-from rest_framework.exceptions import PermissionDenied, ValidationError
+from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from account.models import Membership
 from bon_de_livraison.utils import get_next_numero_bon_livraison
 from company.models import Company
 from core.authentication import JWTQueryParamAuthentication
 from core.pdf_utils import BasePDFGenerator
-from core.permissions import can_update, can_validate_factures
+from core.permissions import can_update, can_validate_factures, can_print
 from core.views import (
     BaseDocumentListCreateView,
     BaseDocumentDetailEditDeleteView,
@@ -49,7 +51,7 @@ from .stats import get_stats_by_currency
 from .utils import get_next_numero_facture_client
 
 
-def _annotate_payment_and_avoir_totals(queryset):
+def annotate_payment_and_avoir_totals(queryset):
     """Annotate invoice balances without multiplying reglement/avoir joins."""
     payment_count_subquery = Subquery(
         Reglement.objects.filter(facture_client_id=OuterRef("pk"), statut="Valide")
@@ -123,7 +125,7 @@ class FactureClientListCreateView(BaseDocumentListCreateView):
                 {"company_id": _("company_id doit être un entier valide.")}
             )
         self._check_company_access(request, company_id)
-        base_queryset = _annotate_payment_and_avoir_totals(
+        base_queryset = annotate_payment_and_avoir_totals(
             self.model.objects.filter(client__company_id=company_id)
             .select_related(*self.list_select_related)
             .prefetch_related(*self.list_prefetch_related)
@@ -265,7 +267,7 @@ class FactureClientUnpaidListView(BaseDocumentListCreateView):
         )
 
         # Annotate with total paid and credit notes, then filter for unpaid.
-        queryset = _annotate_payment_and_avoir_totals(base_queryset).filter(
+        queryset = annotate_payment_and_avoir_totals(base_queryset).filter(
             # Only include factures where payment is less than total
             total_paid__lt=F("net_total")
         )
@@ -316,8 +318,6 @@ class FactureClientForPaymentView(APIView):
 
     @staticmethod
     def _has_membership(user, company_id):
-        from account.models import Membership
-
         return Membership.objects.filter(user=user, company_id=company_id).exists()
 
     def get(self, request):
@@ -334,8 +334,6 @@ class FactureClientForPaymentView(APIView):
             )
 
         if not self._has_membership(request.user, company_id):
-            from rest_framework.exceptions import PermissionDenied
-
             raise PermissionDenied(
                 _("Vous n'êtes pas autorisé à accéder à cette société.")
             )
@@ -355,7 +353,7 @@ class FactureClientForPaymentView(APIView):
                     {"client_id": _("client_id doit être un entier valide.")}
                 )
         factures = (
-            _annotate_payment_and_avoir_totals(base_factures)
+            annotate_payment_and_avoir_totals(base_factures)
             .filter(
                 # Only include factures with remaining amount to pay
                 total_paid__lt=F("net_total")
@@ -462,8 +460,6 @@ class FactureClientPDFView(APIView):
     @staticmethod
     def get(request, pk: int, language: str = "fr"):
         """Generate and return PDF for the facture client."""
-        from core.permissions import can_print
-
         company_id = request.query_params.get("company_id")
         pdf_type = request.query_params.get("type", "avec_remise")
 

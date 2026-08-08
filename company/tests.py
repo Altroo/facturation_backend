@@ -121,9 +121,7 @@ class TestCompanyAPI:
             email="member@example.com", password="pass"
         )
         member_role, _ = Role.objects.get_or_create(name="Commercial")
-        Membership.objects.create(
-            company=self.company, user=member, role=member_role
-        )
+        Membership.objects.create(company=self.company, user=member, role=member_role)
         member_client = APIClient()
         member_client.force_authenticate(user=member)
 
@@ -142,9 +140,7 @@ class TestCompanyAPI:
             email="member-update@example.com", password="pass"
         )
         member_role, _ = Role.objects.get_or_create(name="Commercial")
-        Membership.objects.create(
-            company=self.company, user=member, role=member_role
-        )
+        Membership.objects.create(company=self.company, user=member, role=member_role)
         member_client = APIClient()
         member_client.force_authenticate(user=member)
 
@@ -697,7 +693,7 @@ class TestCompanySerializerExtra:
             CompanySerializer._process_image_field("logo", validated_data, None)
 
     def test_company_list_serializer_with_logo_and_request(self):
-        """Test CompanyListSerializer get_logo with logo file and request (lines 49-50)."""
+        """Test CompanyListSerializer get_logo with Logo file and request (lines 49-50)."""
 
         # Add a logo to the company
         self.company.logo.save(
@@ -715,7 +711,7 @@ class TestCompanySerializerExtra:
         ].startswith("http")
 
     def test_company_list_serializer_with_logo_no_request(self):
-        """Test CompanyListSerializer get_logo with logo file but no request (line 50 else branch)."""
+        """Test CompanyListSerializer get_logo with Logo file but no request (line 50 else branch)."""
 
         # Add a logo to the company
         self.company.logo.save(
@@ -748,7 +744,8 @@ class TestCompanySerializerExtra:
         # Create a minimal valid 10x10 PNG image
         minimal_png = (
             b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\n\x00\x00\x00\n\x08\x06\x00\x00\x00\x8d2\xcf\xbd"
-            b"\x00\x00\x00\x0eIDATx\x9cc`\x18\x05\x83\x13\x00\x00\x01\x9a\x00\x01\x1d\x82V\xa8\x00\x00\x00\x00IEND\xaeB`\x82"
+            b"\x00\x00\x00\x0eIDATx\x9cc`\x18\x05\x83\x13\x00\x00\x01\x9a\x00\x01\x1d\x82V\xa8\x00\x00\x00\
+            x00IEND\xaeB`\x82"
         )
         file = SimpleUploadedFile(
             "test.png",
@@ -768,7 +765,8 @@ class TestCompanySerializerExtra:
         # Create a minimal valid 10x10 PNG image
         minimal_png = (
             b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\n\x00\x00\x00\n\x08\x06\x00\x00\x00\x8d2\xcf\xbd"
-            b"\x00\x00\x00\x0eIDATx\x9cc`\x18\x05\x83\x13\x00\x00\x01\x9a\x00\x01\x1d\x82V\xa8\x00\x00\x00\x00IEND\xaeB`\x82"
+            b"\x00\x00\x00\x0eIDATx\x9cc`\x18\x05\x83\x13\x00\x00\x01\x9a\x00\x01\x1d\x82V\xa8\x00\x00\x00\
+            x00IEND\xaeB`\x82"
         )
         file = SimpleUploadedFile(
             "testimage",  # No extension

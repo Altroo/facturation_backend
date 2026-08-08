@@ -3,7 +3,6 @@ from decimal import Decimal
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db.models import DecimalField, Sum as DjangoSum, Value
 from django.db.models.functions import Coalesce
-from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -14,6 +13,7 @@ from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from account.models import Membership
 from company.models import Company
 from core.authentication import JWTQueryParamAuthentication
 from core.pdf_utils import BasePDFGenerator
@@ -30,8 +30,9 @@ from core.views import (
     BaseStatusUpdateView,
     BaseBulkDeleteView,
 )
-from facture_client.models import FactureClient
 from facturation_backend.utils import CustomPagination
+from facture_client.models import FactureClient
+from notification.services import notify_document_created
 from .filters import FactureAvoirFilter
 from .models import FactureAvoir
 from .serializers import (
@@ -110,8 +111,6 @@ class FactureAvoirListCreateView(BaseDocumentListCreateView):
         )
         serializer.is_valid(raise_exception=True)
         instance = serializer.save(created_by_user=request.user)
-        from notification.services import notify_document_created
-
         notify_document_created(
             instance,
             company_id=company_id,
@@ -206,8 +205,6 @@ class FactureAvoirFromFactureView(APIView):
             FactureClient.objects.select_related("client", "mode_paiement", "company"),
             pk=pk,
         )
-        from account.models import Membership
-
         if not Membership.objects.filter(
             user=request.user, company_id=facture.company_id
         ).exists():
@@ -294,7 +291,10 @@ class FactureAvoirPDFGenerator(BasePDFGenerator):
         else:
             extra_lines.append(
                 Paragraph(
-                    self._label("Avoir libre sans facture d'origine", "Free credit note without original invoice"),
+                    self._label(
+                        "Avoir libre sans facture d'origine",
+                        "Free credit note without original invoice",
+                    ),
                     self.styles["CustomSmall"],
                 )
             )
@@ -347,7 +347,9 @@ class FactureAvoirPDFGenerator(BasePDFGenerator):
         return f"facture_avoir_{self.document.numero_avoir.replace('/', '_')}.pdf"
 
     def _get_pdf_title(self) -> str:
-        client_name = self.document.client.raison_sociale or self._label("Client", "Client")
+        client_name = self.document.client.raison_sociale or self._label(
+            "Client", "Client"
+        )
         return f"{self._label('Facture d avoir', 'Credit note')} {self.document.numero_avoir} - {client_name}"
 
 

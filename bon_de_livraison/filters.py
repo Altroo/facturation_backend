@@ -1,7 +1,6 @@
 from django.utils.translation import gettext_lazy as _
 
 from core.filters import BaseDocumentFilter, CommaSeparatedIDsFilter
-
 from .models import BonDeLivraison
 
 

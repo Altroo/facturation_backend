@@ -8,7 +8,16 @@ from rest_framework.views import APIView
 from account.models import Membership
 from core.permissions import can_create, can_delete, can_update
 from core.views import CompanyAccessMixin, BaseBulkDeleteView, BaseBulkArchiveView
+from devi.models import Devi
+from devi.serializers import DeviListSerializer
 from facturation_backend.utils import CustomPagination
+from facture_avoir.models import FactureAvoir
+from facture_avoir.serializers import FactureAvoirListSerializer
+from facture_client.models import FactureClient
+from facture_client.serializers import FactureClientListSerializer
+from facture_client.views import annotate_payment_and_avoir_totals
+from reglement.models import Reglement
+from reglement.serializers import ReglementListSerializer
 from .filters import ClientFilter
 from .models import Client
 from .serializers import (
@@ -155,24 +164,13 @@ class ClientHistoryView(CompanyAccessMixin, APIView):
         client = self.get_object(pk)
         if not self._has_membership(request.user, client.company_id):
             raise PermissionDenied(_("Vous n'êtes pas autorisé à consulter ce client."))
-
-        from devi.models import Devi
-        from devi.serializers import DeviListSerializer
-        from facture_avoir.models import FactureAvoir
-        from facture_avoir.serializers import FactureAvoirListSerializer
-        from facture_client.models import FactureClient
-        from facture_client.serializers import FactureClientListSerializer
-        from facture_client.views import _annotate_payment_and_avoir_totals
-        from reglement.models import Reglement
-        from reglement.serializers import ReglementListSerializer
-
         devis = (
             Devi.objects.filter(client=client)
             .select_related("client", "mode_paiement", "created_by_user")
             .prefetch_related("lignes")
             .order_by("-date_devis", "-id")
         )
-        factures = _annotate_payment_and_avoir_totals(
+        factures = annotate_payment_and_avoir_totals(
             FactureClient.objects.filter(client=client)
             .select_related("client", "mode_paiement", "created_by_user")
             .prefetch_related("lignes")

@@ -14,7 +14,6 @@ from facture_client.models import FactureClient, FactureClientLine
 from parameter.models import ModePaiement, Ville
 from .models import FactureAvoir, FactureAvoirLine
 
-
 pytestmark = pytest.mark.django_db
 
 
@@ -110,7 +109,9 @@ def test_create_avoir_from_facture_assigns_legal_number_and_origin_data(avoir_co
     )
 
     assert response.status_code == status.HTTP_201_CREATED
-    assert response.data["numero_avoir"].endswith(f"/{timezone.localdate().year % 100:02d}")
+    assert response.data["numero_avoir"].endswith(
+        f"/{timezone.localdate().year % 100:02d}"
+    )
     assert response.data["client"] == avoir_context["client"].id
     assert response.data["facture_origine"] == avoir_context["facture"].id
 

@@ -4,8 +4,8 @@ from django.db.models import Q, Value, F, FloatField
 from django.db.utils import DatabaseError
 from django.utils.translation import gettext_lazy as _
 
-from .models import Article
 from core.filters import IsEmptyAutoMixin, CommaSeparatedIDsFilter
+from .models import Article
 
 
 class ArticleFilter(IsEmptyAutoMixin, django_filters.FilterSet):

@@ -24,7 +24,8 @@ class FactureProformaListSerializer(BaseListSerializer):
         source="source_devis.numero_devis", read_only=True
     )
 
-    def _get_converted_facture(self, obj):
+    @staticmethod
+    def _get_converted_facture(obj):
         prefetched = getattr(obj, "_prefetched_objects_cache", {}).get(
             "converted_factures"
         )
@@ -102,10 +103,10 @@ class FactureProFormaLineSerializer(serializers.ModelSerializer):
     designation = serializers.CharField(source="article.designation", read_only=True)
     reference = serializers.CharField(source="article.reference", read_only=True)
 
-    def validate(self, data):
+    def validate(self, attrs):
         """Validate that line currency matches parent document currency."""
-        validate_line_currency(data, self.instance, "facture_pro_forma")
-        return data
+        validate_line_currency(attrs, self.instance, "facture_pro_forma")
+        return attrs
 
     def create(self, validated_data):
         """Create line and set document devise if it's the first line."""
@@ -166,7 +167,8 @@ class FactureProformaSerializer(BaseCreateSerializer):
     def get_numero_field_name(self):
         return "numero_facture"
 
-    def validate_numero_facture(self, value):
+    @staticmethod
+    def validate_numero_facture(value):
         if not match(r"^(?:P\d{3,}|\d{4,})/\d{2}$", value):
             raise serializers.ValidationError(
                 _("Format de numero facture invalide. Format attendu: P001/25")
@@ -248,7 +250,8 @@ class FactureProformaDetailSerializer(BaseDetailUpdateSerializer):
         source="source_devis.numero_devis", read_only=True
     )
 
-    def _get_converted_facture(self, obj):
+    @staticmethod
+    def _get_converted_facture(obj):
         prefetched = getattr(obj, "_prefetched_objects_cache", {}).get(
             "converted_factures"
         )
@@ -273,7 +276,8 @@ class FactureProformaDetailSerializer(BaseDetailUpdateSerializer):
     def get_line_serializer_class(self):
         return FactureProFormaLineSerializer
 
-    def validate_numero_facture(self, value):
+    @staticmethod
+    def validate_numero_facture(value):
         if not match(r"^(?:P\d{3,}|\d{4,})/\d{2}$", value):
             raise serializers.ValidationError(
                 _("Format de numero facture invalide. Format attendu: P001/25")

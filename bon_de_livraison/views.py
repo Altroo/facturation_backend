@@ -6,13 +6,14 @@ from reportlab.lib.units import cm
 from reportlab.platypus import Spacer, Paragraph, Table, TableStyle, KeepTogether
 from rest_framework import permissions
 from rest_framework import status
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError, PermissionDenied
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from company.models import Company
 from core.authentication import JWTQueryParamAuthentication
 from core.pdf_utils import BasePDFGenerator, format_number_for_pdf
+from core.permissions import can_print
 from core.views import (
     BaseDocumentListCreateView,
     BaseDocumentDetailEditDeleteView,
@@ -279,10 +280,6 @@ class BonDeLivraisonPDFView(APIView):
     @staticmethod
     def get(request, pk: int, language: str = "fr"):
         """Generate and return PDF for the bon de livraison."""
-        from core.permissions import can_print
-        from rest_framework.exceptions import PermissionDenied
-        from django.utils.translation import gettext_lazy as _
-
         company_id = request.query_params.get("company_id")
         pdf_type = request.query_params.get("type", "normal")
 

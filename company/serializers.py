@@ -326,9 +326,7 @@ class ManagedByItemSerializer(serializers.Serializer):
     pk = serializers.IntegerField()
     role = serializers.CharField()
     can_validate_factures = serializers.BooleanField(required=False, default=False)
-    can_change_document_status = serializers.BooleanField(
-        required=False, default=False
-    )
+    can_change_document_status = serializers.BooleanField(required=False, default=False)
 
     class Meta:
         fields = [

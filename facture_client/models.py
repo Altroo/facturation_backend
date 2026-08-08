@@ -13,6 +13,7 @@ from core.models import (
     create_line_signal_receiver,
 )
 from parameter.models import ModePaiement
+from bon_de_livraison.models import BonDeLivraison, BonDeLivraisonLine
 
 
 class FactureClient(BaseDeviFactureDocument):
@@ -102,8 +103,6 @@ class FactureClient(BaseDeviFactureDocument):
         This method is wrapped in a transaction to ensure atomicity.
         If any part of the conversion fails, all changes will be rolled back.
         """
-        from bon_de_livraison.models import BonDeLivraison, BonDeLivraisonLine
-
         # Validate document has lines
         if not self.get_lines().exists():
             raise ValueError(_("Impossible de convertir un document sans lignes"))

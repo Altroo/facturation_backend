@@ -438,7 +438,8 @@ class TestOperationalIndicatorEndpoints:
         date_from = (today - timedelta(days=365)).isoformat()
 
         response = authenticated_client.get(
-            f"/api/dashboard/operational/document-volume/?company_id={company.id}&date_from={date_from}&date_to={today.isoformat()}"
+            f"/api/dashboard/operational/document-volume/?company_id={company.id}"
+            f"&date_from={date_from}&date_to={today.isoformat()}"
         )
         assert response.status_code == status.HTTP_200_OK
 
@@ -568,7 +569,7 @@ class TestKPIEndpoints:
     def test_monthly_objectives_authenticated(
         self, authenticated_client, facture_client, devi, company
     ):
-        """Test monthly objectives endpoint."""
+        """Test monthly objectives' endpoint."""
         response = authenticated_client.get(
             f"/api/dashboard/kpi/monthly-objectives/?company_id={company.id}"
         )
@@ -665,7 +666,7 @@ class TestSyntheticDashboardEndpoints:
     def test_section_micro_trends_authenticated(
         self, authenticated_client, facture_client, devi, company
     ):
-        """Test section micro trends endpoint."""
+        """Test section micro trends' endpoint."""
         response = authenticated_client.get(
             f"/api/dashboard/synthetic/section-micro-trends/?company_id={company.id}"
         )
@@ -1328,7 +1329,8 @@ class TestMonthlyPerformanceWithDateRange:
         date_to = today.isoformat()
 
         response = authenticated_client.get(
-            f"/api/dashboard/synthetic/monthly-performance/?company_id={company.id}&date_from={date_from}&date_to={date_to}"
+            f"/api/dashboard/synthetic/monthly-performance/?company_id={company.id}"
+            f"&date_from={date_from}&date_to={date_to}"
         )
         assert response.status_code == status.HTTP_200_OK
         assert "current" in response.data

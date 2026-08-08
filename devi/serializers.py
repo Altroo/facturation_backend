@@ -69,10 +69,10 @@ class DeviLineSerializer(serializers.ModelSerializer):
     designation = serializers.CharField(source="article.designation", read_only=True)
     reference = serializers.CharField(source="article.reference", read_only=True)
 
-    def validate(self, data):
+    def validate(self, attrs):
         """Validate that line currency matches parent document currency."""
-        validate_line_currency(data, self.instance, "devis")
-        return data
+        validate_line_currency(attrs, self.instance, "devis")
+        return attrs
 
     def create(self, validated_data):
         """Create line and set document devise if it's the first line."""

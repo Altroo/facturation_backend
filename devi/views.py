@@ -1,15 +1,18 @@
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _
 from reportlab.lib.units import cm
 from reportlab.platypus import Spacer, Paragraph, KeepTogether
 from rest_framework import permissions
 from rest_framework import status
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from company.models import Company
 from core.authentication import JWTQueryParamAuthentication
 from core.pdf_utils import BasePDFGenerator
+from core.permissions import can_print
 from core.views import (
     BaseDocumentListCreateView,
     BaseDocumentDetailEditDeleteView,
@@ -143,10 +146,6 @@ class DeviPDFView(APIView):
     @staticmethod
     def get(request, pk: int, language: str = "fr"):
         """Generate and return PDF for the devis."""
-        from core.permissions import can_print
-        from rest_framework.exceptions import PermissionDenied
-        from django.utils.translation import gettext_lazy as _
-
         company_id = request.query_params.get("company_id")
         pdf_type = request.query_params.get("type", "avec_remise")
 

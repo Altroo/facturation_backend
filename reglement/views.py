@@ -5,7 +5,9 @@ from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.units import cm
+from reportlab.platypus import PageBreak
 from reportlab.platypus import Spacer, Paragraph, Table, TableStyle
+from reportlab.platypus.flowables import HRFlowable
 from rest_framework import permissions, status
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.response import Response
@@ -13,7 +15,6 @@ from rest_framework.views import APIView
 
 from account.models import Membership
 from company.models import Company
-from core.views import CompanyAccessMixin, BaseBulkDeleteView
 from core.authentication import JWTQueryParamAuthentication
 from core.pdf_utils import (
     BasePDFGenerator,
@@ -26,10 +27,13 @@ from core.permissions import (
     can_create,
     can_update,
     can_delete,
+    can_print,
 )
+from core.views import CompanyAccessMixin, BaseBulkDeleteView
 from facturation_backend.utils import CustomPagination
 from facture_client.models import FactureClient
 from facture_client.stats import get_stats_by_currency
+from notification.services import notify_document_created
 from .filters import ReglementFilter
 from .models import Reglement
 from .serializers import (
@@ -137,8 +141,6 @@ class ReglementListCreateView(CompanyAccessMixin, APIView):
         )
         serializer.is_valid(raise_exception=True)
         instance = serializer.save()
-        from notification.services import notify_document_created
-
         notify_document_created(
             instance,
             company_id=facture_client.client.company_id,
@@ -571,9 +573,6 @@ class ReglementPDFGenerator(BasePDFGenerator):
 
     def _build_content(self) -> list:
         """Build PDF content with two copies of the receipt - each on its own page."""
-        from reportlab.platypus import PageBreak
-        from reportlab.platypus.flowables import HRFlowable
-
         elements = []
 
         # First copy
@@ -619,8 +618,6 @@ class ReglementPDFView(APIView):
     @staticmethod
     def get(request, pk: int, language: str = "fr", *args, **kwargs):
         """Generate and return PDF receipt for the reglement."""
-        from core.permissions import can_print
-
         company_id = request.query_params.get("company_id")
 
         if not company_id:

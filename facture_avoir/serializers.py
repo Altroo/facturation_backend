@@ -84,9 +84,9 @@ class FactureAvoirLineSerializer(serializers.ModelSerializer):
     designation = serializers.CharField(source="article.designation", read_only=True)
     reference = serializers.CharField(source="article.reference", read_only=True)
 
-    def validate(self, data):
-        validate_line_currency(data, self.instance, "facture_avoir")
-        return data
+    def validate(self, attrs):
+        validate_line_currency(attrs, self.instance, "facture_avoir")
+        return attrs
 
     def create(self, validated_data):
         facture_avoir = validated_data.get("facture_avoir")
@@ -150,14 +150,12 @@ class FactureAvoirSerializer(BaseCreateSerializer):
         if facture_origine:
             if client and client.id != facture_origine.client_id:
                 raise serializers.ValidationError(
-                    {
-                        "client": _(
-                            "Le client doit correspondre à la facture d'origine."
-                        )
-                    }
+                    {"client": _("Le client doit correspondre à la facture d'origine.")}
                 )
             data["client"] = facture_origine.client
-            data["mode_paiement"] = data.get("mode_paiement") or facture_origine.mode_paiement
+            data["mode_paiement"] = (
+                data.get("mode_paiement") or facture_origine.mode_paiement
+            )
             data["devise"] = data.get("devise") or facture_origine.devise
         elif not self.instance:
             raise serializers.ValidationError(
@@ -216,7 +214,11 @@ class FactureAvoirSerializer(BaseCreateSerializer):
             used = credited_quantities.get(article_id, Decimal("0"))
             if allowed <= 0:
                 raise serializers.ValidationError(
-                    {"lignes": _("Une ligne d'avoir n'existe pas dans la facture d'origine.")}
+                    {
+                        "lignes": _(
+                            "Une ligne d'avoir n'existe pas dans la facture d'origine."
+                        )
+                    }
                 )
             if used + incoming_quantity > allowed:
                 raise serializers.ValidationError(

@@ -1,14 +1,13 @@
-from datetime import timedelta, datetime, timezone as dt_timezone
-
-from django.utils import timezone as dj_timezone
 import hmac
 import logging
-from os import remove
 import secrets
+from datetime import timedelta, datetime, timezone as dt_timezone
+from os import remove
 from string import digits, ascii_letters
 from sys import platform
 
 from celery import current_app
+from dj_rest_auth.jwt_auth import CookieTokenRefreshSerializer, set_jwt_cookies
 from dj_rest_auth.views import LoginView as Dj_rest_login
 from dj_rest_auth.views import LogoutView as Dj_rest_logout
 from django.conf import settings
@@ -20,12 +19,16 @@ from django.core.validators import validate_email
 from django.db import transaction
 from django.http import Http404
 from django.template.loader import render_to_string
+from django.utils import timezone as dj_timezone
 from django.utils.translation import gettext_lazy as _
 from rest_framework import permissions, status
 from rest_framework.exceptions import ValidationError, PermissionDenied
 from rest_framework.response import Response
 from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
+from rest_framework_simplejwt.settings import (
+    api_settings as jwt_settings,
+)
 
 from account.models import Membership, Role
 from core.constants import ROLES_RESTRICTED
@@ -118,12 +121,8 @@ class TokenRefreshView(APIView):
 
     permission_classes = (permissions.AllowAny,)
 
-    def post(self, request, *args, **kwargs):
-        from dj_rest_auth.jwt_auth import CookieTokenRefreshSerializer, set_jwt_cookies
-        from rest_framework_simplejwt.settings import (
-            api_settings as jwt_settings,
-        )
-
+    @staticmethod
+    def post(request, *args, **kwargs):
         serializer = CookieTokenRefreshSerializer(
             data=request.data, context={"request": request}
         )

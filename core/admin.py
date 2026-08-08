@@ -1,11 +1,10 @@
 from django.contrib import admin
+from django.contrib.auth.models import Group
+from django.contrib.sites.models import Site
 from django.db import transaction
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 from simple_history.admin import SimpleHistoryAdmin
-from django.contrib.auth.models import Group
-from django.contrib.sites.models import Site
-from django.contrib.admin.sites import NotRegistered
 
 
 class BaseDocumentLineInline(admin.TabularInline):
@@ -161,8 +160,5 @@ class BaseDocumentAdmin(SimpleHistoryAdmin):
         abstract = True
 
 
-for model in (Group, Site):
-    try:
-        admin.site.unregister(model)
-    except NotRegistered:
-        pass
+admin.site.unregister(Group)
+admin.site.unregister(Site)

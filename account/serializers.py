@@ -2,6 +2,7 @@ from base64 import b64decode
 from io import BytesIO
 from os import remove
 from pathlib import Path
+
 from django.conf import settings
 from django.contrib.auth.password_validation import validate_password
 from django.utils.translation import gettext_lazy as _
@@ -26,9 +27,7 @@ class MembershipSerializer(serializers.ModelSerializer):
     # Role is sent as a string (e.g. "Caissier")
     role = serializers.CharField(write_only=True)
     can_validate_factures = serializers.BooleanField(required=False, default=False)
-    can_change_document_status = serializers.BooleanField(
-        required=False, default=False
-    )
+    can_change_document_status = serializers.BooleanField(required=False, default=False)
 
     # Returned for read‑only purposes
     raison_sociale = serializers.CharField(source="company.name", read_only=True)
@@ -232,7 +231,8 @@ class CreateAccountSerializer(serializers.ModelSerializer):
                 if len(imgstr) > max_base64_length:
                     raise serializers.ValidationError(
                         _(
-                            "Image trop grande pour %(field_name)s: %(size)s octets (max %(max_size)s). Veuillez télécharger une image plus petite."
+                            "Image trop grande pour %(field_name)s: %(size)s octets (max %(max_size)s). "
+                            "Veuillez télécharger une image plus petite."
                         )
                         % {
                             "field_name": field_name,
@@ -269,37 +269,29 @@ class CreateAccountSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         # Extract the companies/memberships payload
         memberships_data = validated_data.pop("memberships", None)
-
         # Extract and hash the password
         password = validated_data.pop("password", None)
-
         # Process avatar fields
         avatar = self._process_image_field("avatar", validated_data)
         avatar_cropped = self._process_image_field("avatar_cropped", validated_data)
         validated_data.pop("avatar", None)
         validated_data.pop("avatar_cropped", None)
-
         # Create the user instance without saving yet
         instance = CustomUser(**validated_data)
-
         # Set the hashed password
         if password:
             instance.set_password(password)
-
         if avatar:
             instance.avatar.save(avatar.name, avatar, save=False)
         if avatar_cropped:
             instance.avatar_cropped.save(
                 avatar_cropped.name, avatar_cropped, save=False
             )
-
         # Save once - creates only one history entry as "created"
         instance.save()
-
         # Create memberships (companies) if any were sent
         if memberships_data:
             self._create_memberships(instance, memberships_data)
-
         return instance
 
     class Meta:
@@ -505,7 +497,8 @@ class ProfilePutSerializer(serializers.ModelSerializer):
                 if len(imgstr) > max_base64_length:
                     raise serializers.ValidationError(
                         _(
-                            "Image trop grande pour %(field_name)s: %(size)s octets (max %(max_size)s). Veuillez télécharger une image plus petite."
+                            "Image trop grande pour %(field_name)s: %(size)s octets (max %(max_size)s). "
+                            "Veuillez télécharger une image plus petite."
                         )
                         % {
                             "field_name": field_name,

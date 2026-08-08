@@ -250,7 +250,9 @@ class MonthlyRevenueEvolutionView(APIView):
 
     @staticmethod
     def get(request):
-        date_from, date_to, company_id, devise, client_id, project_ref = parse_date_filters(request)
+        date_from, date_to, company_id, devise, client_id, project_ref = (
+            parse_date_filters(request)
+        )
 
         # Default to last 12 months if no date_from
         if not date_from:
@@ -280,7 +282,9 @@ class MonthlyRevenueEvolutionView(APIView):
             .order_by("month")
         )
         avoir_data = (
-            _avoir_queryset(date_from, date_to, company_id, devise, client_id, project_ref)
+            _avoir_queryset(
+                date_from, date_to, company_id, devise, client_id, project_ref
+            )
             .annotate(month=TruncMonth("date_avoir"))
             .values("month")
             .annotate(amount=Sum("total_ttc_apres_remise"))
@@ -310,7 +314,9 @@ class RevenueByDocumentTypeView(APIView):
 
     @staticmethod
     def get(request):
-        date_from, date_to, company_id, devise, client_id, project_ref = parse_date_filters(request)
+        date_from, date_to, company_id, devise, client_id, project_ref = (
+            parse_date_filters(request)
+        )
 
         # Build filters
         devi_filter = {"date_devis__lte": date_to}
@@ -410,7 +416,9 @@ class PaymentStatusOverviewView(APIView):
 
     @staticmethod
     def get(request):
-        date_from, date_to, company_id, devise, client_id, project_ref = parse_date_filters(request)
+        date_from, date_to, company_id, devise, client_id, project_ref = (
+            parse_date_filters(request)
+        )
 
         facture_filter = {"date_facture__lte": date_to}
         if date_from:
@@ -441,9 +449,7 @@ class PaymentStatusOverviewView(APIView):
         counts = factures.aggregate(
             fully_paid=Count(
                 Case(
-                    When(
-                        total_reglements__gte=F("net_total"), then=Value(1)
-                    ),
+                    When(total_reglements__gte=F("net_total"), then=Value(1)),
                     output_field=IntegerField(),
                 )
             ),
@@ -485,7 +491,9 @@ class CollectionRateView(APIView):
 
     @staticmethod
     def get(request):
-        date_from, date_to, company_id, devise, client_id, project_ref = parse_date_filters(request)
+        date_from, date_to, company_id, devise, client_id, project_ref = (
+            parse_date_filters(request)
+        )
 
         facture_filter = {"date_facture__lte": date_to}
         reglement_filter = {"date_reglement__lte": date_to, "statut": "Valide"}
@@ -548,7 +556,9 @@ class TopClientsByRevenueView(APIView):
 
     @staticmethod
     def get(request):
-        date_from, date_to, company_id, devise, client_id, project_ref = parse_date_filters(request)
+        date_from, date_to, company_id, devise, client_id, project_ref = (
+            parse_date_filters(request)
+        )
 
         facture_filter = {"date_facture__lte": date_to}
         if date_from:
@@ -574,7 +584,9 @@ class TopClientsByRevenueView(APIView):
             )
         )
         credit_data = (
-            _avoir_queryset(date_from, date_to, company_id, devise, client_id, project_ref)
+            _avoir_queryset(
+                date_from, date_to, company_id, devise, client_id, project_ref
+            )
             .values("client__id", "client__code_client", "client__raison_sociale")
             .annotate(amount=Sum("total_ttc_apres_remise"))
         )
@@ -601,7 +613,7 @@ class TopClientsByRevenueView(APIView):
             clients[client_id]["revenue"] -= item["amount"] or Decimal("0")
 
         top_clients = sorted(
-            clients.values(), key=lambda item: item["revenue"], reverse=True
+            clients.values(), key=lambda _item: _item["revenue"], reverse=True
         )[:10]
 
         result = [
@@ -624,7 +636,9 @@ class TopProductsByQuantityView(APIView):
 
     @staticmethod
     def get(request):
-        date_from, date_to, company_id, devise, client_id, project_ref = parse_date_filters(request)
+        date_from, date_to, company_id, devise, client_id, project_ref = (
+            parse_date_filters(request)
+        )
 
         # Build date filters for each document type
         devi_filter = {"devis__date_devis__lte": date_to}
@@ -760,7 +774,9 @@ class QuoteConversionRateView(APIView):
 
     @staticmethod
     def get(request):
-        date_from, date_to, company_id, devise, client_id, project_ref = parse_date_filters(request)
+        date_from, date_to, company_id, devise, client_id, project_ref = (
+            parse_date_filters(request)
+        )
 
         devi_filter = {"date_devis__lte": date_to}
         if date_from:
@@ -793,7 +809,9 @@ class ProductPriceVolumeAnalysisView(APIView):
 
     @staticmethod
     def get(request):
-        date_from, date_to, company_id, devise, client_id, project_ref = parse_date_filters(request)
+        date_from, date_to, company_id, devise, client_id, project_ref = (
+            parse_date_filters(request)
+        )
 
         facture_filter = {"facture_client__date_facture__lte": date_to}
         if date_from:
@@ -852,7 +870,9 @@ class InvoiceStatusDistributionView(APIView):
 
     @staticmethod
     def get(request):
-        date_from, date_to, company_id, devise, client_id, project_ref = parse_date_filters(request)
+        date_from, date_to, company_id, devise, client_id, project_ref = (
+            parse_date_filters(request)
+        )
 
         facture_filter = {"date_facture__lte": date_to}
         if date_from:
@@ -887,7 +907,9 @@ class MonthlyDocumentVolumeView(APIView):
 
     @staticmethod
     def get(request):
-        date_from, date_to, company_id, devise, client_id, project_ref = parse_date_filters(request)
+        date_from, date_to, company_id, devise, client_id, project_ref = (
+            parse_date_filters(request)
+        )
 
         # Default to last 12 months if no date_from
         if not date_from:
@@ -999,7 +1021,9 @@ class PaymentTimelineView(APIView):
 
     @staticmethod
     def get(request):
-        date_from, date_to, company_id, devise, client_id, project_ref = parse_date_filters(request)
+        date_from, date_to, company_id, devise, client_id, project_ref = (
+            parse_date_filters(request)
+        )
 
         # Default to last 30 days if no date_from
         if not date_from:
@@ -1097,7 +1121,9 @@ class OverdueReceivablesView(APIView):
 
     @staticmethod
     def get(request):
-        date_from, date_to, company_id, devise, client_id, project_ref = parse_date_filters(request)
+        date_from, date_to, company_id, devise, client_id, project_ref = (
+            parse_date_filters(request)
+        )
 
         facture_filter = {"date_facture__lte": date_to}
         if date_from:
@@ -1169,7 +1195,9 @@ class PaymentDelayByClientView(APIView):
 
     @staticmethod
     def get(request):
-        date_from, date_to, company_id, devise, client_id, project_ref = parse_date_filters(request)
+        date_from, date_to, company_id, devise, client_id, project_ref = (
+            parse_date_filters(request)
+        )
 
         reglement_filter = {"statut": "Valide", "date_reglement__lte": date_to}
         if date_from:
@@ -1230,13 +1258,15 @@ class PaymentDelayByClientView(APIView):
 
 
 class ClientMultidimensionalProfileView(APIView):
-    """Multi-dimensional profile of top 5 clients."""
+    """Multidimensional profile of top 5 clients."""
 
     permission_classes = [IsAuthenticated]
 
     @staticmethod
     def get(request):
-        date_from, date_to, company_id, devise, client_id, project_ref = parse_date_filters(request)
+        date_from, date_to, company_id, devise, client_id, project_ref = (
+            parse_date_filters(request)
+        )
 
         facture_filter = {"date_facture__lte": date_to}
         if date_from:
@@ -1268,13 +1298,14 @@ class ClientMultidimensionalProfileView(APIView):
             return Response([])
 
         credit_data = (
-            _avoir_queryset(date_from, date_to, company_id, devise, client_id, project_ref)
+            _avoir_queryset(
+                date_from, date_to, company_id, devise, client_id, project_ref
+            )
             .values("client__id")
             .annotate(amount=Sum("total_ttc_apres_remise"))
         )
         credit_by_client = {
-            item["client__id"]: item["amount"] or Decimal("0")
-            for item in credit_data
+            item["client__id"]: item["amount"] or Decimal("0") for item in credit_data
         }
         for client_data in top_clients:
             client_data["revenue"] = (client_data["revenue"] or Decimal("0")) - (
@@ -1489,9 +1520,7 @@ class KPICardsWithTrendsView(APIView):
             daily_amounts[item["date"]] = daily_amounts.get(
                 item["date"], Decimal("0")
             ) - (item["amount"] or Decimal("0"))
-        revenue_trend = [
-            float(amount) for _, amount in sorted(daily_amounts.items())
-        ]
+        revenue_trend = [float(amount) for _, amount in sorted(daily_amounts.items())]
 
         # Créances en cours
         facture_filter = {"date_facture__lte": date_to, "devise": devise}
@@ -1511,9 +1540,7 @@ class KPICardsWithTrendsView(APIView):
             FactureClient.objects.filter(**facture_filter)
         )
         outstanding_current = (
-            factures.annotate(
-                outstanding=F("net_total") - F("total_reglements")
-            )
+            factures.annotate(outstanding=F("net_total") - F("total_reglements"))
             .filter(outstanding__gt=0)
             .aggregate(total=Coalesce(Sum("outstanding"), Decimal("0")))["total"]
         )
@@ -1525,8 +1552,9 @@ class KPICardsWithTrendsView(APIView):
 
         # Montant moyen des factures
         avg_amount_current = (
-            _annotate_total_reglements(FactureClient.objects.filter(**facture_filter))
-            .aggregate(avg=Avg("net_total"))["avg"]
+            _annotate_total_reglements(
+                FactureClient.objects.filter(**facture_filter)
+            ).aggregate(avg=Avg("net_total"))["avg"]
             or 0
         )
 
@@ -1553,7 +1581,9 @@ class KPICardsWithTrendsView(APIView):
 
     @staticmethod
     def get(request):
-        date_from, date_to, company_id, devise, client_id, project_ref = parse_date_filters(request)
+        date_from, date_to, company_id, devise, client_id, project_ref = (
+            parse_date_filters(request)
+        )
 
         today = timezone.now()
         seven_days_before_date_to = date_to - timedelta(days=7)
@@ -1613,7 +1643,9 @@ class MonthlyObjectivesView(APIView):
 
     @staticmethod
     def get(request):
-        date_from, date_to, company_id, devise, client_id, project_ref = parse_date_filters(request)
+        date_from, date_to, company_id, devise, client_id, project_ref = (
+            parse_date_filters(request)
+        )
 
         # Use date range or default to current month
         if date_from:
@@ -1780,7 +1812,9 @@ class DiscountImpactAnalysisView(APIView):
 
     @staticmethod
     def get(request):
-        date_from, date_to, company_id, devise, client_id, project_ref = parse_date_filters(request)
+        date_from, date_to, company_id, devise, client_id, project_ref = (
+            parse_date_filters(request)
+        )
 
         facture_filter = {"date_facture__lte": date_to}
         if date_from:
@@ -1814,7 +1848,9 @@ class ProductMarginVolumeView(APIView):
 
     @staticmethod
     def get(request):
-        date_from, date_to, company_id, devise, client_id, project_ref = parse_date_filters(request)
+        date_from, date_to, company_id, devise, client_id, project_ref = (
+            parse_date_filters(request)
+        )
 
         facture_filter = {"facture_client__date_facture__lte": date_to}
         if date_from:
@@ -1860,7 +1896,9 @@ class MonthlyGlobalPerformanceView(APIView):
 
     @staticmethod
     def get(request):
-        date_from, date_to, company_id, devise, client_id, project_ref = parse_date_filters(request)
+        date_from, date_to, company_id, devise, client_id, project_ref = (
+            parse_date_filters(request)
+        )
 
         today = timezone.now()
 
@@ -2066,7 +2104,9 @@ class SectionMicroTrendsView(APIView):
 
     @staticmethod
     def get(request):
-        date_from, date_to, company_id, devise, client_id, project_ref = parse_date_filters(request)
+        date_from, date_to, company_id, devise, client_id, project_ref = (
+            parse_date_filters(request)
+        )
 
         # Default to last 30 days if no date_from
         if not date_from:

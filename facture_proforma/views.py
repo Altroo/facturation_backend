@@ -1,15 +1,17 @@
 from django.shortcuts import get_object_or_404
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _
 from reportlab.lib.units import cm
 from reportlab.platypus import Spacer, Paragraph, KeepTogether
 from rest_framework import permissions
 from rest_framework import status
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from company.models import Company
 from core.authentication import JWTQueryParamAuthentication
 from core.pdf_utils import BasePDFGenerator
+from core.permissions import can_print
 from core.views import (
     BaseDocumentListCreateView,
     BaseDocumentDetailEditDeleteView,
@@ -79,14 +81,13 @@ class FactureProFormaPDFGenerator(BasePDFGenerator):
     """PDF generator for FactureProForma documents."""
 
     def _build_content(self) -> list:
-        """Build PDF content for facture pro-forma."""
+        """Build PDF content for facture pro forma."""
         if self._uses_nectar_layout():
             return self._build_nectar_document_content(
                 "Facture Pro-Forma",
                 self.document.numero_facture,
                 self.document.date_facture,
             )
-
         elements = []
         elements.append(
             self._build_doc_header(
@@ -124,7 +125,7 @@ class FactureProFormaPDFGenerator(BasePDFGenerator):
         return elements
 
     def _get_filename(self) -> str:
-        """Get PDF filename for facture pro-forma."""
+        """Get PDF filename for facture pro forma."""
         return f"facture_proforma_{self.document.numero_facture.replace('/', '_')}.pdf"
 
     def _get_pdf_title(self) -> str:
@@ -146,10 +147,6 @@ class FactureProFormaPDFView(APIView):
     @staticmethod
     def get(request, pk: int, language: str = "fr"):
         """Generate and return PDF for the facture pro forma."""
-        from core.permissions import can_print
-        from rest_framework.exceptions import PermissionDenied
-        from django.utils.translation import gettext_lazy as _
-
         company_id = request.query_params.get("company_id")
         pdf_type = request.query_params.get("type", "avec_remise")
 

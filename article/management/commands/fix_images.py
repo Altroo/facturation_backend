@@ -135,7 +135,8 @@ class Command(BaseCommand):
             if reference is None:
                 self.stdout.write(
                     self.style.WARNING(
-                        f'  [X] {base_name}: Article not found in company {company_id} (tried: {", ".join(possible_references)})'
+                        f'  [X] {base_name}: Article not found in company {company_id} '
+                        f'(tried: {", ".join(possible_references)})'
                     )
                 )
                 not_found_count += 1

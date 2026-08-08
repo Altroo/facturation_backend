@@ -11,6 +11,8 @@ from django.utils.translation import gettext as _
 
 from notification.models import Notification, NotificationPreference
 from notification.services import _dashboard_url, resolve_notification_target_url
+from company.models import Company
+from account.models import Membership
 
 logger = logging.getLogger(__name__)
 
@@ -159,9 +161,6 @@ def check_facturation_notifications():
 
 def _get_user_companies(user):
     """Return companies accessible to the user."""
-    from company.models import Company
-    from account.models import Membership
-
     if user.is_staff:
         return Company.objects.all()
     company_ids = Membership.objects.filter(user=user).values_list(

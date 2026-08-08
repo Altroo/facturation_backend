@@ -49,7 +49,7 @@ class NotificationListView(APIView):
 
 
 class NotificationMarkReadView(APIView):
-    """POST mark one or all notifications as read."""
+    """postmark one or all notifications as read."""
 
     permission_classes = (permissions.IsAuthenticated,)
 

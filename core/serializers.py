@@ -51,7 +51,8 @@ def validate_line_currency(data, instance, parent_field_name):
                 raise serializers.ValidationError(
                     {
                         "devise_prix_vente": _(
-                            "La devise doit correspondre à celle du document (%(devise)s). Impossible de mélanger les devises."
+                            "La devise doit correspondre à celle du document (%(devise)s). "
+                            "Impossible de mélanger les devises."
                         )
                         % {"devise": parent.devise}
                     }

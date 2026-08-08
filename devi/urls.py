@@ -32,7 +32,7 @@ urlpatterns = [
         DeviStatusUpdateView.as_view(),
         name="devi-statut-update",
     ),
-    # POST : convert devi to facture pro-forma
+    # POST : convert devi to facture pro forma
     path(
         "convert_to_facture_proforma/<int:pk>/",
         DeviConvertToFactureProformaView.as_view(),
