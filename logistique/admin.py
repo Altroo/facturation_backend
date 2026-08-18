@@ -6,6 +6,7 @@ from .models import (
     LogisticsOrderEvent,
     LogisticsOrderLine,
     LogisticsOrderProforma,
+    LogisticsPaymentInstallment,
 )
 
 
@@ -43,22 +44,135 @@ class LogisticsOrderEventInline(admin.TabularInline):
     )
 
 
+class LogisticsPaymentInstallmentInline(admin.TabularInline):
+    model = LogisticsPaymentInstallment
+    extra = 0
+    can_delete = False
+    readonly_fields = (
+        "date_echeance",
+        "montant_prevu",
+        "devise",
+        "statut_traitement",
+        "date_paiement",
+        "montant_paye",
+        "banque",
+        "reference_bancaire",
+        "methode_paiement",
+        "commentaire",
+        "justificatif_file",
+        "execution_enregistree_le",
+        "execution_enregistree_par",
+        "paiement_valide_le",
+        "paiement_valide_par",
+        "preuve_email_statut",
+        "preuve_email_destinataire",
+        "preuve_email_erreur",
+        "preuve_email_tentatives",
+        "preuve_email_task_id",
+        "preuve_email_prise_en_charge_le",
+        "preuve_email_file_token",
+        "preuve_email_mise_en_file_le",
+        "preuve_email_demandee_par",
+        "preuve_envoyee_fournisseur_le",
+        "reception_confirmee_le",
+        "reception_confirmee_par",
+        "date_created",
+        "date_updated",
+    )
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+
 @admin.register(LogisticsOrder)
 class LogisticsOrderAdmin(SimpleHistoryAdmin):
+    readonly_fields = (
+        "fournisseur",
+        "fournisseur_email",
+        "statut_global",
+        "statut_commande_lancement",
+        "proforma_demandee_le",
+        "proforma_demandee_par",
+        "statut_proforma_conformite",
+        "proforma_controlee_le",
+        "proforma_controlee_par",
+        "proforma_validee_le",
+        "proforma_validee_par",
+        "date_validation_titre_importation",
+        "statut_titre_importation",
+        "statut_paiement",
+        "statut_banque_paiement",
+        "statut_traitement_paiement",
+        "paiement_assigne_a",
+        "demande_paiement_envoyee_le",
+        "demande_paiement_envoyee_par",
+        "demande_paiement_email_statut",
+        "demande_paiement_email_destinataires",
+        "demande_paiement_email_erreur",
+        "demande_paiement_email_tentatives",
+        "demande_paiement_email_task_id",
+        "demande_paiement_email_prise_en_charge_le",
+        "demande_paiement_email_file_token",
+        "demande_paiement_email_mis_en_file_le",
+        "paiement_valide_le",
+        "paiement_valide_par",
+        "date_paiement",
+        "montant_paiement",
+        "devise_paiement",
+        "banque_paiement",
+        "reference_paiement",
+        "commentaire_paiement",
+        "date_upload_swift",
+        "swift_file",
+        "swift_envoye_fournisseur_le",
+        "paiement_confirme_reception_le",
+        "paiement_confirme_reception_par",
+    )
+
+    def get_readonly_fields(self, request, obj=None):
+        fields = list(super().get_readonly_fields(request, obj))
+        if obj and obj.statut_paiement != "Non demandé":
+            fields.extend(
+                [
+                    "numero_domiciliation",
+                    "banque",
+                    "montant_titre_importation",
+                    "devise_titre_importation",
+                    "date_titre_importation",
+                    "titre_importation_file",
+                    "methode_paiement",
+                ]
+            )
+        return tuple(dict.fromkeys(fields))
     list_display = (
         "numero_commande",
         "company",
-        "marque",
+        "fournisseur",
+        "statut_global",
+        "statut_commande_lancement",
+        "statut_proforma_conformite",
         "statut",
         "statut_paiement",
+        "statut_banque_paiement",
+        "statut_traitement_paiement",
         "cout_total",
         "date_created",
     )
-    list_filter = ("company", "statut", "statut_paiement", "marque")
-    search_fields = ("numero_commande", "marque__nom")
+    list_filter = (
+        "company",
+        "statut_global",
+        "statut_commande_lancement",
+        "statut_proforma_conformite",
+        "statut_paiement",
+        "statut_banque_paiement",
+        "statut_traitement_paiement",
+        "fournisseur",
+    )
+    search_fields = ("numero_commande", "fournisseur")
     inlines = [
         LogisticsOrderProformaInline,
         LogisticsOrderLineInline,
+        LogisticsPaymentInstallmentInline,
         LogisticsOrderEventInline,
     ]
 
@@ -72,7 +186,7 @@ class HistoricalLogisticsOrderAdmin(admin.ModelAdmin):
         "id",
         "numero_commande",
         "company",
-        "marque",
+        "fournisseur",
         "statut",
         "statut_paiement",
         "history_type",
@@ -86,7 +200,7 @@ class HistoricalLogisticsOrderAdmin(admin.ModelAdmin):
         "statut",
         "statut_paiement",
     )
-    search_fields = ("numero_commande", "marque__nom")
+    search_fields = ("numero_commande", "fournisseur")
     readonly_fields = [
         field.name
         for field in LogisticsOrder._meta.get_fields()

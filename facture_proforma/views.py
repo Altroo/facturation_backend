@@ -1,10 +1,11 @@
+from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
 from reportlab.lib.units import cm
 from reportlab.platypus import Spacer, Paragraph, KeepTogether
 from rest_framework import permissions
 from rest_framework import status
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -44,7 +45,7 @@ class FactureProFormaListCreateView(BaseDocumentListCreateView):
         "created_by_user",
         "source_devis",
     )
-    list_prefetch_related = ("lignes", "converted_factures")
+    list_prefetch_related = ("lignes", "converted_factures", "logistique_links")
 
 
 class FactureProFormaDetailEditDeleteView(BaseDocumentDetailEditDeleteView):
@@ -58,6 +59,13 @@ class FactureProFormaDetailEditDeleteView(BaseDocumentDetailEditDeleteView):
         "source_devis",
     )
 
+    @transaction.atomic
+    def put(self, request, pk, *args, **kwargs):
+        # Supplier and status form one logistics-source invariant. Keep the
+        # source locked so acceptance cannot race a supplier edit.
+        get_object_or_404(self.model.objects.select_for_update(), pk=pk)
+        return super().put(request, pk, *args, **kwargs)
+
 
 class GenerateNumeroFactureView(BaseGenerateNumeroView):
     numero_generator = get_next_numero_facture_pro_forma
@@ -67,6 +75,24 @@ class GenerateNumeroFactureView(BaseGenerateNumeroView):
 class FactureProFormaStatusUpdateView(BaseStatusUpdateView):
     model = FactureProForma
     document_name = "facture proforma"
+
+    @transaction.atomic
+    def patch(self, request, pk, *args, **kwargs):
+        get_object_or_404(self.model.objects.select_for_update(), pk=pk)
+        return super().patch(request, pk, *args, **kwargs)
+
+    def validate_new_status(self, facture_proforma, new_status):
+        if (
+            new_status == "Accepté"
+            and not (facture_proforma.fournisseur or "").strip()
+        ):
+            raise ValidationError(
+                {
+                    "fournisseur": _(
+                        "Renseignez le fournisseur avant de valider la commande client."
+                    )
+                }
+            )
 
 
 class FactureProFormaConvertToFactureClientView(BaseConversionView):

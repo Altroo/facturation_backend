@@ -17,6 +17,12 @@ class FactureProFormaAdmin(BaseDocumentAdmin):
 
     inlines = [FactureProFormaLineInline]
 
+    def get_readonly_fields(self, request, obj=None):
+        readonly = list(super().get_readonly_fields(request, obj))
+        if obj and obj.logistique_links.exists():
+            readonly.append("fournisseur")
+        return tuple(dict.fromkeys(readonly))
+
     def get_numero_field_name(self):
         return "numero_facture"
 
@@ -27,6 +33,8 @@ class FactureProFormaAdmin(BaseDocumentAdmin):
         "numero_facture",
         "company",
         "client",
+        "fournisseur",
+        "fournisseur_email",
         "source_devis",
         "date_facture",
         "statut_badge",
@@ -44,6 +52,8 @@ class FactureProFormaAdmin(BaseDocumentAdmin):
         "numero_facture",
         "client__raison_sociale",
         "client__code_client",
+        "fournisseur",
+        "fournisseur_email",
         "numero_bon_commande_client",
         "termes_paiement",
         "remarque",
@@ -56,6 +66,8 @@ class FactureProFormaAdmin(BaseDocumentAdmin):
                     "numero_facture",
                     "company",
                     "client",
+                    "fournisseur",
+                    "fournisseur_email",
                     "date_facture",
                     "statut",
                 )

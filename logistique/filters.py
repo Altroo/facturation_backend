@@ -9,7 +9,8 @@ from .models import LogisticsOrder
 
 class LogisticsOrderFilter(IsEmptyAutoMixin, django_filters.FilterSet):
     search = django_filters.CharFilter(method="global_search", label=_("Search"))
-    statut = django_filters.CharFilter(method="filter_statut")
+    statut = django_filters.CharFilter(method="filter_legacy_statut")
+    statut_global = django_filters.CharFilter(method="filter_statut_global")
     statut_paiement = django_filters.CharFilter(method="filter_statut_paiement")
     statut_titre_importation = django_filters.CharFilter(
         method="filter_statut_titre_importation"
@@ -44,7 +45,9 @@ class LogisticsOrderFilter(IsEmptyAutoMixin, django_filters.FilterSet):
         field_name="marque__nom", lookup_expr="icontains"
     )
 
-    cout_total = django_filters.NumberFilter(field_name="cout_total", lookup_expr="exact")
+    cout_total = django_filters.NumberFilter(
+        field_name="cout_total", lookup_expr="exact"
+    )
     cout_total__gt = django_filters.NumberFilter(
         field_name="cout_total", lookup_expr="gt"
     )
@@ -57,14 +60,13 @@ class LogisticsOrderFilter(IsEmptyAutoMixin, django_filters.FilterSet):
     cout_total__lte = django_filters.NumberFilter(
         field_name="cout_total", lookup_expr="lte"
     )
-    cout_total__ne = django_filters.NumberFilter(
-        field_name="cout_total", exclude=True
-    )
+    cout_total__ne = django_filters.NumberFilter(field_name="cout_total", exclude=True)
 
     class Meta:
         model = LogisticsOrder
         fields = [
             "statut",
+            "statut_global",
             "statut_paiement",
             "statut_titre_importation",
             "marque_id",
@@ -86,7 +88,7 @@ class LogisticsOrderFilter(IsEmptyAutoMixin, django_filters.FilterSet):
         ]
 
     @staticmethod
-    def filter_statut(queryset, _name, value):
+    def filter_legacy_statut(queryset, _name, value):
         if not value:
             return queryset
         values = [item.strip() for item in value.split(",") if item.strip()]
@@ -95,6 +97,21 @@ class LogisticsOrderFilter(IsEmptyAutoMixin, django_filters.FilterSet):
         if len(values) == 1:
             return queryset.filter(statut__iexact=values[0])
         return queryset.filter(statut__in=values)
+
+    @staticmethod
+    def filter_statut_global(queryset, _name, value):
+        if not value:
+            return queryset
+        values = [item.strip() for item in value.split(",") if item.strip()]
+        if not values:
+            return queryset
+        expected_statuses = set(values)
+        matching_ids = [
+            order.pk
+            for order in queryset.prefetch_related(None).iterator()
+            if order.calculate_global_status() in expected_statuses
+        ]
+        return queryset.filter(pk__in=matching_ids)
 
     @staticmethod
     def filter_statut_paiement(queryset, _name, value):
@@ -149,7 +166,7 @@ class LogisticsOrderFilter(IsEmptyAutoMixin, django_filters.FilterSet):
             Q(numero_commande__icontains=value)
             | Q(fournisseur__icontains=value)
             | Q(marque__nom__icontains=value)
-            | Q(statut__icontains=value)
+            | Q(statut_global__icontains=value)
             | Q(statut_paiement__icontains=value)
             | Q(lignes__client__raison_sociale__icontains=value)
             | Q(lignes__client__nom__icontains=value)

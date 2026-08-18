@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
@@ -56,6 +57,19 @@ class FactureProForma(BaseDeviFactureDocument):
         null=True,
         help_text=_("Conditions ou termes de paiement de la facture pro forma"),
     )
+    fournisseur = models.CharField(
+        max_length=255,
+        verbose_name=_("Fournisseur"),
+        blank=True,
+        default="",
+        help_text=_("Fournisseur repris par le dossier logistique"),
+    )
+    fournisseur_email = models.EmailField(
+        verbose_name=_("E-mail fournisseur"),
+        blank=True,
+        default="",
+        help_text=_("Adresse utilisée pour envoyer les justificatifs de paiement"),
+    )
     source_devis = models.ForeignKey(
         "devi.Devi",
         on_delete=models.SET_NULL,
@@ -82,6 +96,35 @@ class FactureProForma(BaseDeviFactureDocument):
 
     def __str__(self):
         return self.numero_facture
+
+    def clean(self):
+        super().clean()
+        self.fournisseur = (self.fournisseur or "").strip()
+        self.fournisseur_email = (self.fournisseur_email or "").strip()
+        errors = {}
+        if self.statut == "Accepté" and not self.fournisseur:
+            errors["fournisseur"] = _(
+                "Renseignez le fournisseur de la commande client validée."
+            )
+
+        if self.pk:
+            previous_supplier = (
+                type(self).objects.filter(pk=self.pk)
+                .values_list("fournisseur", flat=True)
+                .first()
+                or ""
+            ).strip()
+            if (
+                previous_supplier
+                and self.fournisseur != previous_supplier
+                and self.logistique_links.exists()
+            ):
+                errors["fournisseur"] = _(
+                    "Le fournisseur ne peut plus être modifié après la création du dossier logistique."
+                )
+
+        if errors:
+            raise ValidationError(errors)
 
     def save(self, *args, **kwargs):
         """Autopopulate company from client before saving."""

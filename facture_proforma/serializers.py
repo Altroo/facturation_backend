@@ -1,5 +1,6 @@
 from re import match
 
+from django.db import transaction
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
@@ -23,6 +24,16 @@ class FactureProformaListSerializer(BaseListSerializer):
     source_devis_numero = serializers.CharField(
         source="source_devis.numero_devis", read_only=True
     )
+    has_logistics_dossier = serializers.SerializerMethodField()
+
+    @staticmethod
+    def get_has_logistics_dossier(obj):
+        prefetched = getattr(obj, "_prefetched_objects_cache", {}).get(
+            "logistique_links"
+        )
+        if prefetched is not None:
+            return bool(prefetched)
+        return obj.logistique_links.exists()
 
     @staticmethod
     def _get_converted_facture(obj):
@@ -55,6 +66,9 @@ class FactureProformaListSerializer(BaseListSerializer):
             "mode_paiement_name",
             "numero_bon_commande_client",
             "termes_paiement",
+            "fournisseur",
+            "fournisseur_email",
+            "has_logistics_dossier",
             "source_devis",
             "source_devis_numero",
             "converted_facture_client",
@@ -196,6 +210,8 @@ class FactureProformaSerializer(BaseCreateSerializer):
             "date_echeance",
             "numero_bon_commande_client",
             "termes_paiement",
+            "fournisseur",
+            "fournisseur_email",
             "source_devis",
             "source_devis_numero",
             "converted_facture_client",
@@ -275,6 +291,93 @@ class FactureProformaDetailSerializer(BaseDetailUpdateSerializer):
 
     def get_line_serializer_class(self):
         return FactureProFormaLineSerializer
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        supplier = str(attrs.get("fournisseur", self.instance.fournisseur) or "").strip()
+        supplier_email = str(
+            attrs.get("fournisseur_email", self.instance.fournisseur_email) or ""
+        ).strip()
+        effective_status = attrs.get("statut", self.instance.statut)
+        if effective_status == "Accepté" and not supplier:
+            raise serializers.ValidationError(
+                {
+                    "fournisseur": _(
+                        "Renseignez le fournisseur de la commande client validée."
+                    )
+                }
+            )
+        if (
+            self.instance.logistique_links.exists()
+            and "fournisseur" in attrs
+            and (self.instance.fournisseur or "").strip()
+            and supplier != (self.instance.fournisseur or "").strip()
+        ):
+            raise serializers.ValidationError(
+                {
+                    "fournisseur": _(
+                        "Le fournisseur ne peut plus être modifié après la création du dossier logistique."
+                    )
+                }
+            )
+        attrs["fournisseur"] = supplier
+        attrs["fournisseur_email"] = supplier_email
+        return attrs
+
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        previous_supplier = (instance.fournisseur or "").strip()
+        previous_supplier_email = (instance.fournisseur_email or "").strip()
+        supplier = str(validated_data.get("fournisseur", previous_supplier) or "").strip()
+        supplier_email = str(
+            validated_data.get("fournisseur_email", previous_supplier_email) or ""
+        ).strip()
+        linked_order_ids = []
+        if (not previous_supplier and supplier) or supplier_email != previous_supplier_email:
+            linked_order_ids = list(
+                instance.logistique_links.values_list("commande_id", flat=True)
+            )
+
+        instance = super().update(instance, validated_data)
+
+        if linked_order_ids:
+            from logistique.models import LogisticsOrder
+
+            request = self.context.get("request")
+            for order in LogisticsOrder.objects.filter(id__in=linked_order_ids):
+                old_supplier = order.fournisseur
+                old_supplier_email = order.fournisseur_email
+                updated_fields = []
+                if old_supplier != supplier:
+                    order.fournisseur = supplier
+                    updated_fields.append("fournisseur")
+                if old_supplier_email != supplier_email:
+                    order.fournisseur_email = supplier_email
+                    updated_fields.append("fournisseur_email")
+                if updated_fields:
+                    order.save(update_fields=[*updated_fields, "date_updated"])
+                if old_supplier != supplier:
+                    order.add_event(
+                        user=getattr(request, "user", None),
+                        action="Correction fournisseur source",
+                        old_value=old_supplier,
+                        new_value=supplier,
+                        note=_(
+                            "Fournisseur repris depuis la commande client source régularisée."
+                        ),
+                    )
+                if old_supplier_email != supplier_email:
+                    order.add_event(
+                        user=getattr(request, "user", None),
+                        action="Correction e-mail fournisseur source",
+                        old_value=old_supplier_email,
+                        new_value=supplier_email,
+                        note=_(
+                            "Adresse de livraison des justificatifs reprise depuis la commande client source."
+                        ),
+                    )
+
+        return instance
 
     @staticmethod
     def validate_numero_facture(value):

@@ -282,6 +282,10 @@ class BaseStatusUpdateView(CompanyAccessMixin, APIView):
                 % {"name": self.document_name}
             )
 
+    def validate_new_status(self, object_, new_status):
+        """Allow document-specific checks after access and status validation."""
+        return None
+
     def patch(self, request, pk, *args, **kwargs):
         object_ = self.get_object(pk)
         if not self._has_membership(request.user, object_.client.company_id):
@@ -306,6 +310,8 @@ class BaseStatusUpdateView(CompanyAccessMixin, APIView):
         valid_statuses = [choice[0] for choice in self.model.STATUT_CHOICES]
         if new_status not in valid_statuses:
             raise ValidationError({"statut": _("Statut invalide.")})
+
+        self.validate_new_status(object_, new_status)
 
         object_.statut = new_status
         object_.save(update_fields=["statut"])

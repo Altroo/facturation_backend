@@ -3,6 +3,8 @@ from decimal import Decimal
 from re import match
 
 import pytest
+from django.contrib.admin.sites import AdminSite
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
@@ -20,6 +22,7 @@ from core.tests import (
 )
 from facture_proforma.admin import FactureProFormaAdmin, FactureProFormaLineAdmin
 from facture_proforma.utils import get_next_numero_facture_pro_forma
+from logistique.models import LogisticsOrder, LogisticsOrderProforma
 from parameter.models import ModePaiement, Ville
 from .filters import FactureProFormaFilter
 from .models import FactureProForma, FactureProFormaLine
@@ -176,6 +179,27 @@ class TestFactureProFormaAPI(SharedDocumentAPITestsMixin):
     def test_list_proforma_with_pagination(self):
         self.shared_test_list_with_pagination()
 
+    def test_list_marks_sources_already_linked_to_logistics(self):
+        order = LogisticsOrder.objects.create(
+            company=self.company,
+            numero_commande="LOG-SOURCE-AVAILABILITY",
+            fournisseur="Supplier One",
+        )
+        LogisticsOrderProforma.objects.create(commande=order, proforma=self.doc)
+
+        response = self.client_api.get(
+            self._list_create_url(), {"company_id": self.company.id}
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        items = (
+            response.data
+            if isinstance(response.data, list)
+            else response.data["results"]
+        )
+        item = next(value for value in items if value["id"] == self.doc.id)
+        assert item["has_logistics_dossier"] is True
+
     def test_create_proforma_basic(self):
         self.shared_test_create_basic()
 
@@ -225,6 +249,155 @@ class TestFactureProFormaAPI(SharedDocumentAPITestsMixin):
 
     def test_update_proforma_status_invalid(self):
         self.shared_test_update_status_invalid()
+
+    def test_accepting_proforma_requires_supplier(self):
+        response = self.client_api.patch(
+            self._status_url(self.doc.id), {"statut": "Accepté"}, format="json"
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "fournisseur" in response.data["details"]
+        self.doc.refresh_from_db()
+        assert self.doc.statut == "Envoyé"
+
+    def test_model_validation_blocks_accepted_proforma_without_supplier(self):
+        self.doc.statut = "Accepté"
+
+        with pytest.raises(DjangoValidationError) as exc_info:
+            self.doc.full_clean()
+
+        assert "fournisseur" in exc_info.value.message_dict
+
+    def test_accepting_proforma_with_supplier_succeeds(self):
+        self.doc.fournisseur = "Supplier One"
+        self.doc.save(update_fields=["fournisseur"])
+
+        response = self.client_api.patch(
+            self._status_url(self.doc.id), {"statut": "Accepté"}, format="json"
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        self.doc.refresh_from_db()
+        assert self.doc.statut == "Accepté"
+
+    def test_full_update_cannot_bypass_supplier_requirement_on_acceptance(self):
+        payload = self._base_payload(
+            numero="0002/25", date_str="2024-06-03", req="REQ-001"
+        )
+        payload["statut"] = "Accepté"
+
+        response = self.client_api.put(
+            self._detail_url(self.doc.id), payload, format="json"
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "fournisseur" in response.data["details"]
+        self.doc.refresh_from_db()
+        assert self.doc.statut == "Envoyé"
+
+    def test_supplier_is_locked_after_logistics_dossier_creation(self):
+        self.doc.fournisseur = "Supplier One"
+        self.doc.save(update_fields=["fournisseur"])
+        order = LogisticsOrder.objects.create(
+            company=self.company,
+            numero_commande="LOG-SUPPLIER-LOCK",
+            fournisseur="Supplier One",
+        )
+        LogisticsOrderProforma.objects.create(commande=order, proforma=self.doc)
+        payload = self._base_payload(
+            numero="0002/25", date_str="2024-06-03", req="REQ-001"
+        )
+        payload["fournisseur"] = "Supplier Two"
+
+        response = self.client_api.put(
+            self._detail_url(self.doc.id), payload, format="json"
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "fournisseur" in response.data["details"]
+        self.doc.refresh_from_db()
+        assert self.doc.fournisseur == "Supplier One"
+
+    def test_model_validation_locks_linked_supplier(self):
+        self.doc.fournisseur = "Supplier One"
+        self.doc.save(update_fields=["fournisseur"])
+        order = LogisticsOrder.objects.create(
+            company=self.company,
+            numero_commande="LOG-SUPPLIER-MODEL-LOCK",
+            fournisseur="Supplier One",
+        )
+        LogisticsOrderProforma.objects.create(commande=order, proforma=self.doc)
+        self.doc.fournisseur = "Supplier Two"
+
+        with pytest.raises(DjangoValidationError) as exc_info:
+            self.doc.full_clean()
+
+        assert "fournisseur" in exc_info.value.message_dict
+
+    def test_blank_legacy_supplier_can_be_filled_once_and_propagated(self):
+        order = LogisticsOrder.objects.create(
+            company=self.company,
+            numero_commande="LOG-SUPPLIER-REMEDIATION",
+            fournisseur="Legacy Brand Value",
+        )
+        LogisticsOrderProforma.objects.create(commande=order, proforma=self.doc)
+        payload = self._base_payload(
+            numero="0002/25", date_str="2024-06-03", req="REQ-001"
+        )
+        payload["fournisseur"] = "Supplier One"
+
+        response = self.client_api.put(
+            self._detail_url(self.doc.id), payload, format="json"
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        self.doc.refresh_from_db()
+        order.refresh_from_db()
+        assert self.doc.fournisseur == "Supplier One"
+        assert order.fournisseur == "Supplier One"
+        assert order.events.filter(action="Correction fournisseur source").exists()
+
+    def test_supplier_email_can_be_added_after_logistics_creation_and_propagates(self):
+        self.doc.fournisseur = "Supplier One"
+        self.doc.save(update_fields=["fournisseur"])
+        order = LogisticsOrder.objects.create(
+            company=self.company,
+            numero_commande="LOG-SUP-EMAIL-FIX",
+            fournisseur="Supplier One",
+        )
+        LogisticsOrderProforma.objects.create(commande=order, proforma=self.doc)
+        payload = self._base_payload(
+            numero="0002/25", date_str="2024-06-03", req="REQ-001"
+        )
+        payload["fournisseur"] = "Supplier One"
+        payload["fournisseur_email"] = "supplier@example.com"
+
+        response = self.client_api.put(
+            self._detail_url(self.doc.id), payload, format="json"
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        self.doc.refresh_from_db()
+        order.refresh_from_db()
+        assert self.doc.fournisseur_email == "supplier@example.com"
+        assert order.fournisseur_email == "supplier@example.com"
+        assert order.events.filter(
+            action="Correction e-mail fournisseur source"
+        ).exists()
+
+    def test_supplier_email_rejects_invalid_address(self):
+        payload = self._base_payload(
+            numero="0002/25", date_str="2024-06-03", req="REQ-001"
+        )
+        payload["fournisseur"] = "Supplier One"
+        payload["fournisseur_email"] = "not-an-email"
+
+        response = self.client_api.put(
+            self._detail_url(self.doc.id), payload, format="json"
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "fournisseur_email" in response.data["details"]
 
     def test_convert_to_facture_client(self, monkeypatch):
         self.shared_test_convert_to_facture_client(monkeypatch)
@@ -552,6 +725,23 @@ class TestFactureProFormaAdminExtra(SharedDocumentAdminTestsMixin):
 
     def test_admin_get_date_field_name(self):
         self.shared_test_admin_get_date_field_name()
+
+    def test_admin_makes_supplier_readonly_after_logistics_link(
+        self, pf_conv_with_lines
+    ):
+        order = LogisticsOrder.objects.create(
+            company=pf_conv_with_lines.company,
+            numero_commande="LOG-SUPPLIER-ADMIN-LOCK",
+            fournisseur="Supplier One",
+        )
+        LogisticsOrderProforma.objects.create(
+            commande=order, proforma=pf_conv_with_lines
+        )
+        model_admin = FactureProFormaAdmin(FactureProForma, AdminSite())
+
+        readonly = model_admin.get_readonly_fields(None, pf_conv_with_lines)
+
+        assert "fournisseur" in readonly
 
     def test_line_admin_numero_facture(self, pf_conv_with_lines):
         self.shared_test_line_admin_numero(pf_conv_with_lines)

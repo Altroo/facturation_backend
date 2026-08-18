@@ -20,6 +20,7 @@ app.conf.accept_content = ["json"]
 app.autodiscover_tasks(
     packages=[
         "account.tasks",
+        "logistique.tasks",
         "notification.tasks",
     ]
 )

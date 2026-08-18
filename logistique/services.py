@@ -1,7 +1,6 @@
-from collections import defaultdict
 from decimal import Decimal
+from uuid import uuid4
 
-from django.core.mail import EmailMessage
 from django.db import transaction
 from django.utils import timezone
 from django.utils.translation import gettext as _
@@ -15,22 +14,18 @@ from .models import LogisticsOrder, LogisticsOrderLine, LogisticsOrderProforma
 from .utils import get_next_numero_logistique
 
 
-def _get_line_brand(line):
-    article = line.article
-    return article.marque_id, article.marque
-
-
-def _line_purchase_currency(line):
-    return line.devise_prix_achat or "MAD"
-
-
-def _brand_name(brand):
-    return str(brand) if brand else _("Sans marque")
-
-
-def _load_proforma_lines(*, company_id, proforma_ids):
+def _load_proforma_lines(*, company_id, proforma_ids, for_update=False):
     if not proforma_ids:
         raise ValidationError({"proformas": _("Sélectionnez au moins une proforma.")})
+    proforma_ids = list(dict.fromkeys(proforma_ids))
+    if len(proforma_ids) != 1:
+        raise ValidationError(
+            {
+                "proformas": _(
+                    "Sélectionnez une seule commande client validée par dossier logistique."
+                )
+            }
+        )
 
     proformas = list(
         FactureProForma.objects.filter(
@@ -47,8 +42,43 @@ def _load_proforma_lines(*, company_id, proforma_ids):
             {"proformas": _("Certaines proformas sont introuvables ou inaccessibles.")}
         )
 
+    invalid_sources = [
+        proforma.numero_facture
+        for proforma in proformas
+        if proforma.statut != "Accepté"
+    ]
+    if invalid_sources:
+        raise ValidationError(
+            {
+                "proformas": _(
+                    "Seules les commandes client validées (proformas au statut Accepté) peuvent lancer un dossier import. Sources concernées: %(sources)s."
+                )
+                % {"sources": ", ".join(invalid_sources[:5])}
+            }
+        )
+
+    missing_suppliers = [
+        proforma.numero_facture
+        for proforma in proformas
+        if not (proforma.fournisseur or "").strip()
+    ]
+    if missing_suppliers:
+        raise ValidationError(
+            {
+                "proformas": _(
+                    "Renseignez le fournisseur sur la commande client avant de créer le dossier logistique. Sources concernées: %(sources)s."
+                )
+                % {"sources": ", ".join(missing_suppliers[:5])}
+            }
+        )
+
+    lines_queryset = FactureProFormaLine.objects.filter(
+        facture_pro_forma_id__in=found_ids
+    )
+    if for_update:
+        lines_queryset = lines_queryset.select_for_update(of=("self",))
     lines = list(
-        FactureProFormaLine.objects.filter(facture_pro_forma_id__in=found_ids)
+        lines_queryset
         .select_related(
             "facture_pro_forma",
             "facture_pro_forma__client",
@@ -63,49 +93,23 @@ def _load_proforma_lines(*, company_id, proforma_ids):
             {"proformas": _("Impossible de créer une commande sans lignes proforma.")}
         )
 
-    missing_brand_refs = [
-        line.article.reference or line.article.designation or str(line.article_id)
-        for line in lines
-        if not line.article.marque_id
-    ]
-    if missing_brand_refs:
+    purchase_currencies = sorted(
+        {
+            (line.devise_prix_achat or "").strip()
+            for line in lines
+            if (line.devise_prix_achat or "").strip()
+        }
+    )
+    if len(purchase_currencies) != 1:
         raise ValidationError(
             {
                 "proformas": _(
-                    "Tous les articles sélectionnés doivent avoir une marque avant la création logistique. Articles concernés: %(articles)s."
+                    "La commande client contient plusieurs devises d'achat. Harmonisez les lignes avant de créer le dossier logistique."
                 )
-                % {"articles": ", ".join(missing_brand_refs[:5])}
             }
         )
 
     return proformas, lines
-
-
-def _group_lines_by_brand(lines):
-    grouped_lines = defaultdict(list)
-    brand_by_key = {}
-    for line in lines:
-        brand_id, brand = _get_line_brand(line)
-        grouped_lines[brand_id].append(line)
-        brand_by_key[brand_id] = brand
-    return grouped_lines, brand_by_key
-
-
-def _validate_brand_currencies(grouped_lines, brand_by_key):
-    for key, brand_lines in grouped_lines.items():
-        currencies = sorted({_line_purchase_currency(line) for line in brand_lines})
-        if len(currencies) > 1:
-            raise ValidationError(
-                {
-                    "proformas": _(
-                        "La marque %(marque)s contient plusieurs devises d'achat (%(devises)s). Séparez la sélection par devise avant de créer la commande logistique."
-                    )
-                    % {
-                        "marque": _brand_name(brand_by_key.get(key)),
-                        "devises": ", ".join(currencies),
-                    }
-                }
-            )
 
 
 def _unique_non_empty(values):
@@ -128,6 +132,8 @@ def _proforma_summary(proforma):
             proforma.source_devis.numero_devis if proforma.source_devis else ""
         ),
         "client_name": str(proforma.client) if proforma.client else "",
+        "fournisseur": proforma.fournisseur,
+        "fournisseur_email": proforma.fournisseur_email,
         "project_reference": proforma.numero_bon_commande_client or "",
         "date_facture": proforma.date_facture,
         "total_ttc_apres_remise": proforma.total_ttc_apres_remise,
@@ -136,228 +142,189 @@ def _proforma_summary(proforma):
 
 
 def build_proforma_source_preview(*, company_id, proforma_ids):
-    """Return selected proformas grouped by brand for the logistics add form."""
+    """Return the accepted customer order and its inherited logistics data."""
     proformas, lines = _load_proforma_lines(
         company_id=company_id, proforma_ids=proforma_ids
     )
-    grouped_lines, brand_by_key = _group_lines_by_brand(lines)
-    _validate_brand_currencies(grouped_lines, brand_by_key)
-
-    brands = []
-    for key, brand_lines in grouped_lines.items():
-        brand = brand_by_key.get(key)
-        proforma_by_id = {
-            line.facture_pro_forma_id: line.facture_pro_forma for line in brand_lines
+    summary = _proforma_summary(proformas[0])
+    summary.update(
+        {
+            "devise": lines[0].devise_prix_achat,
+            "articles_count": len(lines),
+            "total_quantity": sum(
+                (line.quantity for line in lines), Decimal("0")
+            ),
+            "total_achat": sum(
+                (
+                    (line.prix_achat or Decimal("0"))
+                    * (line.quantity or Decimal("0"))
+                    for line in lines
+                ),
+                Decimal("0"),
+            ),
         }
-        source_devis_numbers = _unique_non_empty(
-            proforma.source_devis.numero_devis if proforma.source_devis else ""
-            for proforma in proforma_by_id.values()
-        )
-        brands.append(
-            {
-                "marque": key,
-                "marque_name": _brand_name(brand),
-                "devise": _line_purchase_currency(brand_lines[0]),
-                "proforma_ids": list(proforma_by_id.keys()),
-                "proforma_numbers": _unique_non_empty(
-                    proforma.numero_facture for proforma in proforma_by_id.values()
-                ),
-                "source_devis_numbers": source_devis_numbers,
-                "client_names": _unique_non_empty(
-                    line.facture_pro_forma.client for line in brand_lines
-                ),
-                "project_references": _unique_non_empty(
-                    line.facture_pro_forma.numero_bon_commande_client
-                    for line in brand_lines
-                ),
-                "articles_count": len(brand_lines),
-                "total_quantity": sum(
-                    (line.quantity for line in brand_lines), Decimal("0")
-                ),
-                "total_achat": sum(
-                    (
-                        (line.prix_achat or Decimal("0"))
-                        * (line.quantity or Decimal("0"))
-                        for line in brand_lines
-                    ),
-                    Decimal("0"),
-                ),
-            }
-        )
-
-    brands.sort(key=lambda item: item["marque_name"])
-    return {
-        "proformas": [_proforma_summary(proforma) for proforma in proformas],
-        "brands": brands,
-    }
-
-
-def _detail_value(detail, defaults, field):
-    if detail and detail.get(field) not in (None, ""):
-        return detail.get(field)
-    return defaults.get(field)
-
-
-def _get_brand_creation_defaults(*, brand_key, brand, grouped_count, defaults):
-    details = {
-        item.get("marque"): item for item in defaults.get("brand_details", []) or []
-    }
-    detail = details.get(brand_key)
-    if not detail and grouped_count > 1:
-        raise ValidationError(
-            {
-                "brand_details": _(
-                    "Renseignez les informations logistiques pour la marque %(marque)s."
-                )
-                % {"marque": _brand_name(brand)}
-            }
-        )
-
-    required_fields = ("date_prevue", "origine_marchandise", "nature_marchandise")
-    missing_fields = [
-        field
-        for field in required_fields
-        if _detail_value(detail, defaults, field) in (None, "")
-    ]
-    if missing_fields:
-        raise ValidationError(
-            {
-                "brand_details": _(
-                    "Champs obligatoires manquants pour la marque %(marque)s: %(fields)s."
-                )
-                % {
-                    "marque": _brand_name(brand),
-                    "fields": ", ".join(missing_fields),
-                }
-            }
-        )
-
-    return {
-        "date_prevue": _detail_value(detail, defaults, "date_prevue"),
-        "date_reelle": _detail_value(detail, defaults, "date_reelle"),
-        "origine_marchandise": _detail_value(
-            detail, defaults, "origine_marchandise"
-        ),
-        "nature_marchandise": _detail_value(detail, defaults, "nature_marchandise"),
-    }
+    )
+    return {"proformas": [summary]}
 
 
 def _get_comptable_emails(company_id):
     return list(
-        Membership.objects.filter(company_id=company_id, role__name=ROLE_COMPTABLE)
+        Membership.objects.filter(
+            company_id=company_id,
+            role__name=ROLE_COMPTABLE,
+            user__is_active=True,
+        )
+        .exclude(user__email="")
         .select_related("user")
+        .order_by("user__email")
         .values_list("user__email", flat=True)
+        .distinct()
     )
 
 
 @transaction.atomic
 def create_orders_from_proformas(*, company_id, proforma_ids, user, defaults):
-    """Create one logistics order per detected article brand."""
+    """Create one logistics dossier from one accepted customer order."""
     proformas, lines = _load_proforma_lines(
-        company_id=company_id, proforma_ids=proforma_ids
+        company_id=company_id, proforma_ids=proforma_ids, for_update=True
     )
-    grouped_lines, brand_by_key = _group_lines_by_brand(lines)
-    _validate_brand_currencies(grouped_lines, brand_by_key)
-
-    orders = []
-    for key, brand_lines in grouped_lines.items():
-        brand = brand_by_key.get(key)
-        first_line = brand_lines[0]
-        brand_defaults = _get_brand_creation_defaults(
-            brand_key=key,
-            brand=brand,
-            grouped_count=len(grouped_lines),
-            defaults=defaults,
+    proforma = proformas[0]
+    linked_orders = list(
+        LogisticsOrderProforma.objects.filter(proforma=proforma).values_list(
+            "commande__numero_commande", flat=True
         )
-        order = LogisticsOrder.objects.create(
-            company_id=company_id,
-            numero_commande=get_next_numero_logistique(company_id),
-            marque=brand,
-            devise=_line_purchase_currency(first_line),
-            date_prevue=brand_defaults["date_prevue"],
-            date_reelle=brand_defaults["date_reelle"],
-            origine_marchandise=brand_defaults["origine_marchandise"],
-            nature_marchandise=brand_defaults["nature_marchandise"],
-            created_by_user=user,
+    )
+    if linked_orders:
+        raise ValidationError(
+            {
+                "proformas": _(
+                    "Cette commande client est déjà liée à un dossier logistique (%(orders)s)."
+                )
+                % {"orders": ", ".join(_unique_non_empty(linked_orders)[:5])}
+            }
         )
-        linked_proformas = {
-            line.facture_pro_forma_id: line.facture_pro_forma for line in brand_lines
-        }
-        for proforma in linked_proformas.values():
-            LogisticsOrderProforma.objects.create(commande=order, proforma=proforma)
 
-        for line in brand_lines:
-            article = line.article
-            LogisticsOrderLine.objects.create(
-                commande=order,
-                proforma=line.facture_pro_forma,
-                source_line=line,
-                client=line.facture_pro_forma.client,
-                article=article,
-                article_reference=article.reference or "",
-                designation=article.designation or "",
-                marque_name=str(article.marque) if article.marque else "",
-                project_reference=line.facture_pro_forma.numero_bon_commande_client
-                or "",
-                quantity=line.quantity,
-                prix_achat=line.prix_achat,
-                devise_prix_achat=line.devise_prix_achat,
-                prix_vente=line.prix_vente,
-                devise_prix_vente=line.devise_prix_vente,
-            )
-        order.recalc_costs()
-        order.save(update_fields=["cout_achat", "cout_total", "date_updated"])
-        order.add_event(
-            user=user,
-            action="Création",
-            new_value=order.numero_commande,
-            note=_("Commande générée depuis les proformas sélectionnées."),
+    linked_source_lines = list(
+        LogisticsOrderLine.objects.filter(
+            source_line_id__in=[line.id for line in lines]
         )
-        orders.append(order)
+        .select_related("commande", "source_line")
+        .values_list("source_line_id", "commande__numero_commande")
+    )
+    if linked_source_lines:
+        order_numbers = _unique_non_empty(
+            order_number for _, order_number in linked_source_lines
+        )
+        raise ValidationError(
+            {
+                "proformas": _(
+                    "Certaines lignes sont déjà liées à un dossier logistique (%(orders)s)."
+                )
+                % {"orders": ", ".join(order_numbers[:5])}
+            }
+        )
 
-    return orders
+    order = LogisticsOrder.objects.create(
+        company_id=company_id,
+        numero_commande=get_next_numero_logistique(company_id),
+        marque=None,
+        fournisseur=proforma.fournisseur.strip(),
+        fournisseur_email=(proforma.fournisseur_email or "").strip(),
+        devise=lines[0].devise_prix_achat,
+        conditions_paiement=proforma.termes_paiement or "",
+        date_prevue=defaults["date_prevue"],
+        date_reelle=defaults.get("date_reelle"),
+        origine_marchandise=defaults.get("origine_marchandise") or "",
+        nature_marchandise=defaults.get("nature_marchandise") or "",
+        responsable_id=defaults.get("responsable"),
+        statut="Réception commande",
+        statut_global="À lancer",
+        statut_commande_lancement="À lancer",
+        created_by_user=user,
+    )
+    LogisticsOrderProforma.objects.create(commande=order, proforma=proforma)
+
+    for line in lines:
+        article = line.article
+        LogisticsOrderLine.objects.create(
+            commande=order,
+            proforma=proforma,
+            source_line=line,
+            client=proforma.client,
+            article=article,
+            article_reference=article.reference or "",
+            designation=article.designation or "",
+            marque_name=str(article.marque) if article.marque else "",
+            project_reference=proforma.numero_bon_commande_client or "",
+            quantity=line.quantity,
+            prix_achat=line.prix_achat,
+            devise_prix_achat=line.devise_prix_achat,
+            prix_vente=line.prix_vente,
+            devise_prix_vente=line.devise_prix_vente,
+        )
+    order.recalc_costs()
+    order.save(update_fields=["cout_achat", "cout_total", "date_updated"])
+    order.add_event(
+        user=user,
+        action="Création",
+        new_value=order.numero_commande,
+        note=_("Dossier import généré depuis la commande client validée."),
+    )
+    return [order]
 
 
 def send_payment_request_email(order, *, request_user):
-    """Email accounting users and record payment request traceability."""
+    """Persist and queue the accounting handoff after the transaction commits."""
     emails = _get_comptable_emails(order.company_id)
-    if emails:
-        attachments = []
-        for field_name in ("proforma_fournisseur_file", "titre_importation_file"):
-            file_obj = getattr(order, field_name)
-            if file_obj:
-                attachments.append(file_obj)
-
-        message = EmailMessage(
-            subject=_("Demande de paiement logistique %(numero)s")
-            % {"numero": order.numero_commande},
-            body=_(
-                "Une demande de paiement est en attente de traitement pour la "
-                "commande logistique %(numero)s."
-            )
-            % {"numero": order.numero_commande},
-            to=emails,
+    if not emails:
+        raise ValidationError(
+            {
+                "paiement": _(
+                    "Aucune adresse e-mail active du Service Comptable n'est disponible."
+                )
+            }
         )
-        for file_obj in attachments:
-            message.attach_file(file_obj.path)
-        message.send(fail_silently=True)
 
-    order.demande_paiement_envoyee_le = timezone.now()
+    delivery_token = uuid4().hex
+    order.demande_paiement_envoyee_le = None
     order.demande_paiement_envoyee_par = request_user
+    order.demande_paiement_email_statut = "En attente"
+    order.demande_paiement_email_destinataires = emails
+    order.demande_paiement_email_erreur = ""
+    order.demande_paiement_email_file_token = delivery_token
+    order.demande_paiement_email_mis_en_file_le = timezone.now()
+    order.demande_paiement_email_task_id = ""
+    order.demande_paiement_email_prise_en_charge_le = None
     order.statut_paiement = "En attente"
     order.statut = "Paiement demandé"
+    order.sync_global_status(preserve_manual=False, commit=False)
     order.save(
         update_fields=[
             "demande_paiement_envoyee_le",
             "demande_paiement_envoyee_par",
+            "demande_paiement_email_statut",
+            "demande_paiement_email_destinataires",
+            "demande_paiement_email_erreur",
+            "demande_paiement_email_file_token",
+            "demande_paiement_email_mis_en_file_le",
+            "demande_paiement_email_task_id",
+            "demande_paiement_email_prise_en_charge_le",
             "statut_paiement",
             "statut",
+            "statut_global",
             "date_updated",
         ]
     )
     order.add_event(
         user=request_user,
         action="Demande de paiement",
-        new_value="En attente",
+        new_value="E-mail en attente d'envoi",
+    )
+    from .tasks import queue_accounting_payment_email
+
+    transaction.on_commit(
+        lambda order_id=order.id, token=delivery_token: queue_accounting_payment_email(
+            order_id, token
+        )
     )
     return order

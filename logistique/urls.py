@@ -9,9 +9,17 @@ from .views import (
     LogisticsOrderSourcePreviewView,
     LogisticsResponsibleOptionsView,
     LogisticsOrderStatusUpdateView,
+    LogisticsOrderGlobalStatusUpdateView,
     LogisticsPaymentRejectView,
+    LogisticsPaymentEmailRetryView,
     LogisticsPaymentRequestView,
+    LogisticsPaymentStartView,
+    LogisticsPaymentExecutionView,
+    LogisticsPaymentReceiptConfirmView,
     LogisticsPaymentValidateView,
+    LogisticsLaunchStatusUpdateView,
+    LogisticsProformaRequestView,
+    LogisticsSupplierProformaReviewView,
     LogisticsSwiftSentView,
 )
 
@@ -51,9 +59,44 @@ urlpatterns = [
         name="logistique-statut-update",
     ),
     path(
+        "switch_global_status/<int:pk>/",
+        LogisticsOrderGlobalStatusUpdateView.as_view(),
+        name="logistique-global-status-update",
+    ),
+    path(
+        "<int:pk>/record_proforma_request/",
+        LogisticsProformaRequestView.as_view(),
+        name="logistique-record-proforma-request",
+    ),
+    path(
+        "<int:pk>/launch_status/",
+        LogisticsLaunchStatusUpdateView.as_view(),
+        name="logistique-launch-status-update",
+    ),
+    path(
+        "<int:pk>/review_supplier_proforma/",
+        LogisticsSupplierProformaReviewView.as_view(),
+        name="logistique-review-supplier-proforma",
+    ),
+    path(
         "<int:pk>/request_payment/",
         LogisticsPaymentRequestView.as_view(),
         name="logistique-request-payment",
+    ),
+    path(
+        "<int:pk>/retry_payment_email/",
+        LogisticsPaymentEmailRetryView.as_view(),
+        name="logistique-retry-payment-email",
+    ),
+    path(
+        "<int:pk>/start_payment/",
+        LogisticsPaymentStartView.as_view(),
+        name="logistique-start-payment",
+    ),
+    path(
+        "<int:pk>/record_payment_execution/",
+        LogisticsPaymentExecutionView.as_view(),
+        name="logistique-record-payment-execution",
     ),
     path(
         "<int:pk>/validate_payment/",
@@ -69,5 +112,10 @@ urlpatterns = [
         "<int:pk>/send_swift/",
         LogisticsSwiftSentView.as_view(),
         name="logistique-send-swift",
+    ),
+    path(
+        "<int:pk>/confirm_payment_receipt/",
+        LogisticsPaymentReceiptConfirmView.as_view(),
+        name="logistique-confirm-payment-receipt",
     ),
 ]

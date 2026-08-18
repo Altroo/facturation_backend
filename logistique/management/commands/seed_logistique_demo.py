@@ -8,7 +8,7 @@ from django.utils import timezone
 
 from account.models import CustomUser
 from company.models import Company
-from logistique.models import LogisticsOrder
+from logistique.models import LogisticsOrder, LogisticsPaymentInstallment
 
 
 DEMO_PREFIX = "DEMO-LOG-"
@@ -148,13 +148,21 @@ class Command(BaseCommand):
             is_payment_requested = statuses.index(status) >= statuses.index("Paiement demandé")
 
             if index % 11 == 0:
-                payment_status = "Rejeté"
+                payment_status = "Non demandé"
+                bank_payment_status = "Bloqué"
+                accounting_payment_status = "Paiement à traiter"
             elif is_payment_validated:
                 payment_status = "Validé"
+                bank_payment_status = "Exécuté"
+                accounting_payment_status = "Paiement validé"
             elif is_payment_requested:
                 payment_status = "En attente"
+                bank_payment_status = "En validation"
+                accounting_payment_status = "Paiement à traiter"
             else:
                 payment_status = "Non demandé"
+                bank_payment_status = "À préparer"
+                accounting_payment_status = "Paiement à traiter"
 
             planned_date = created_date + timedelta(days=35 + (index % 5) * 4)
             if not is_done and index % 4 == 0:
@@ -204,13 +212,15 @@ class Command(BaseCommand):
                 date_validation_titre_importation=created_date + timedelta(days=10)
                 if statuses.index(status) >= statuses.index("Validation")
                 else None,
-                statut_titre_importation="Validé"
-                if statuses.index(status) >= statuses.index("Validation")
-                else "En attente",
-                methode_paiement=payment_methods[index % len(payment_methods)]
-                if is_payment_requested
-                else "",
+                statut_titre_importation=(
+                    "Titre d'import validé – En attente de paiement"
+                    if is_payment_requested
+                    else "À préparer"
+                ),
+                methode_paiement=payment_methods[index % len(payment_methods)],
                 statut_paiement=payment_status,
+                statut_banque_paiement=bank_payment_status,
+                statut_traitement_paiement=accounting_payment_status,
                 demande_paiement_envoyee_le=created_at + timedelta(days=12)
                 if is_payment_requested
                 else None,
@@ -258,6 +268,36 @@ class Command(BaseCommand):
                 date_created=created_at,
                 date_updated=created_at,
             )
+            if is_payment_requested:
+                LogisticsPaymentInstallment.objects.create(
+                    commande=order,
+                    date_echeance=created_date + timedelta(days=18),
+                    montant_prevu=total,
+                    devise="MAD",
+                    statut_traitement=accounting_payment_status,
+                    date_paiement=(
+                        created_date + timedelta(days=18)
+                        if payment_status == "Validé"
+                        else None
+                    ),
+                    montant_paye=total if payment_status == "Validé" else Decimal("0.00"),
+                    reference_bancaire=(
+                        f"PAY-DEMO-{index + 1:03d}"
+                        if payment_status == "Validé"
+                        else ""
+                    ),
+                    methode_paiement=order.methode_paiement,
+                    justificatif_file=swift_file or None,
+                    paiement_valide_le=(
+                        created_at + timedelta(days=18)
+                        if payment_status == "Validé"
+                        else None
+                    ),
+                    paiement_valide_par=(
+                        responsible if payment_status == "Validé" else None
+                    ),
+                    preuve_envoyee_fournisseur_le=order.swift_envoye_fournisseur_le,
+                )
             created_orders.append(order.numero_commande)
 
         self.stdout.write(
