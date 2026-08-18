@@ -9,6 +9,7 @@ from rest_framework.test import APIClient
 from account.models import CustomUser, Membership, Role
 from article.models import Article
 from bon_de_livraison.models import BonDeLivraison
+from bon_de_livraison.serializers import BonDeLivraisonDetailSerializer
 from client.models import Client
 from company.models import Company
 from core.nectar import NECTAR_RAISON_SOCIALE
@@ -713,6 +714,12 @@ class TestFactureClientConversionExtra:
     def test_convert_to_bon_de_livraison(self, fc_conv_with_lines, fc_conv_user):
         """Test converting FactureClient to BonDeLivraison."""
 
+        fc_conv_with_lines.fournisseur = "Supplier One"
+        fc_conv_with_lines.fournisseur_email = "supplier@example.com"
+        fc_conv_with_lines.save(
+            update_fields=["fournisseur", "fournisseur_email"]
+        )
+
         bon_livraison = fc_conv_with_lines.convert_to_bon_de_livraison(
             "BL-001", fc_conv_user
         )
@@ -722,6 +729,9 @@ class TestFactureClientConversionExtra:
         assert bon_livraison.client == fc_conv_with_lines.client
         assert bon_livraison.mode_paiement == fc_conv_with_lines.mode_paiement
         assert bon_livraison.created_by_user == fc_conv_user
+        assert bon_livraison.source_facture_client == fc_conv_with_lines
+        assert bon_livraison.fournisseur == "Supplier One"
+        assert bon_livraison.fournisseur_email == "supplier@example.com"
         assert bon_livraison.lignes.count() == fc_conv_with_lines.lignes.count()
         assert bon_livraison.numero_bon_livraison == "BL-001"
         assert bon_livraison.date_bon_livraison == fc_conv_with_lines.date_facture
@@ -729,6 +739,14 @@ class TestFactureClientConversionExtra:
             bon_livraison.numero_bon_commande_client
             == fc_conv_with_lines.numero_bon_commande_client
         )
+
+        serializer = BonDeLivraisonDetailSerializer(
+            bon_livraison,
+            data={"fournisseur_email": "other@example.com"},
+            partial=True,
+        )
+        assert not serializer.is_valid()
+        assert "fournisseur_email" in serializer.errors
 
     def test_conversion_copies_remise(self, fc_conv_with_lines, fc_conv_user):
         """Test that conversion copies remise fields."""

@@ -106,6 +106,13 @@ class FactureClientListCreateView(BaseDocumentListCreateView):
     create_serializer_class = FactureClientSerializer
     detail_serializer_class = FactureClientDetailSerializer
     document_name = "la facture client"
+    list_select_related = (
+        "client",
+        "mode_paiement",
+        "created_by_user",
+        "source_proforma",
+        "source_devis",
+    )
 
     def get(self, request, *args, **kwargs):
         """
@@ -163,6 +170,13 @@ class FactureClientDetailEditDeleteView(BaseDocumentDetailEditDeleteView):
     model = FactureClient
     detail_serializer_class = FactureClientDetailSerializer
     document_name = "facture client"
+    detail_select_related = (
+        "client",
+        "mode_paiement",
+        "created_by_user",
+        "source_proforma",
+        "source_devis",
+    )
 
     def get_object(self, pk):
         try:

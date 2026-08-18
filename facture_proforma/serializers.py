@@ -15,6 +15,44 @@ from core.serializers import (
 from .models import FactureProForma, FactureProFormaLine
 
 
+def _fill_blank_supplier_snapshot(document, supplier, supplier_email):
+    """Fill only missing snapshot values on an already converted document."""
+    updated_fields = []
+    if supplier and not (document.fournisseur or "").strip():
+        document.fournisseur = supplier
+        updated_fields.append("fournisseur")
+    if supplier_email and not (document.fournisseur_email or "").strip():
+        document.fournisseur_email = supplier_email
+        updated_fields.append("fournisseur_email")
+    if updated_fields:
+        document.save(update_fields=[*updated_fields, "date_updated"])
+
+
+def _backfill_blank_descendant_supplier_snapshots(
+    proforma, supplier, supplier_email
+):
+    """Remediate legacy conversions made before supplier data was entered."""
+    from bon_de_livraison.models import BonDeLivraison
+    from facture_avoir.models import FactureAvoir
+    from facture_client.models import FactureClient
+
+    factures = FactureClient.objects.select_for_update().filter(
+        source_proforma=proforma
+    )
+    for facture in factures:
+        _fill_blank_supplier_snapshot(facture, supplier, supplier_email)
+        for bon_livraison in BonDeLivraison.objects.select_for_update().filter(
+            source_facture_client=facture
+        ):
+            _fill_blank_supplier_snapshot(
+                bon_livraison, supplier, supplier_email
+            )
+        for avoir in FactureAvoir.objects.select_for_update().filter(
+            facture_origine=facture
+        ):
+            _fill_blank_supplier_snapshot(avoir, supplier, supplier_email)
+
+
 class FactureProformaListSerializer(BaseListSerializer):
     """List serializer for FactureProForma with totals as decimals."""
 
@@ -339,6 +377,13 @@ class FactureProformaDetailSerializer(BaseDetailUpdateSerializer):
             )
 
         instance = super().update(instance, validated_data)
+
+        if (not previous_supplier and supplier) or (
+            not previous_supplier_email and supplier_email
+        ):
+            _backfill_blank_descendant_supplier_snapshots(
+                instance, supplier, supplier_email
+            )
 
         if linked_order_ids:
             from logistique.models import LogisticsOrder

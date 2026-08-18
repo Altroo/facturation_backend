@@ -70,6 +70,16 @@ class FactureClient(BaseDeviFactureDocument):
         help_text=_("Facture pro forma ayant généré cette facture client"),
     )
 
+    source_devis = models.ForeignKey(
+        "devi.Devi",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="converted_factures_client",
+        verbose_name=_("Devis d'origine"),
+        help_text=_("Devis ayant généré directement cette facture client"),
+    )
+
     history = HistoricalRecords(
         verbose_name=_("Historique Facture Client"),
         verbose_name_plural=_("Historiques Factures Client"),
@@ -118,6 +128,9 @@ class FactureClient(BaseDeviFactureDocument):
             numero_bon_livraison=numero_bon_livraison,
             company=self.company,
             client=self.client,
+            source_facture_client=self,
+            fournisseur=self.fournisseur,
+            fournisseur_email=self.fournisseur_email,
             date_bon_livraison=self.date_facture,
             date_echeance=self.date_echeance,
             numero_bon_commande_client=self.numero_bon_commande_client,

@@ -22,6 +22,16 @@ class BonDeLivraison(BaseDeviFactureDocument):
         help_text=_("Société propriétaire du bon de livraison"),
     )
 
+    source_facture_client = models.ForeignKey(
+        "facture_client.FactureClient",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="converted_bons_livraison",
+        verbose_name=_("Facture client d'origine"),
+        help_text=_("Facture client ayant généré ce bon de livraison"),
+    )
+
     STATUT_CHOICES = [
         ("Brouillon", _("Brouillon")),
         ("Envoyé", _("Envoyé")),

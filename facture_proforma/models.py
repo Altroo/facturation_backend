@@ -57,19 +57,6 @@ class FactureProForma(BaseDeviFactureDocument):
         null=True,
         help_text=_("Conditions ou termes de paiement de la facture pro forma"),
     )
-    fournisseur = models.CharField(
-        max_length=255,
-        verbose_name=_("Fournisseur"),
-        blank=True,
-        default="",
-        help_text=_("Fournisseur repris par le dossier logistique"),
-    )
-    fournisseur_email = models.EmailField(
-        verbose_name=_("E-mail fournisseur"),
-        blank=True,
-        default="",
-        help_text=_("Adresse utilisée pour envoyer les justificatifs de paiement"),
-    )
     source_devis = models.ForeignKey(
         "devi.Devi",
         on_delete=models.SET_NULL,
@@ -160,6 +147,8 @@ class FactureProForma(BaseDeviFactureDocument):
             company=self.company,
             client=self.client,
             source_proforma=self,
+            fournisseur=self.fournisseur,
+            fournisseur_email=self.fournisseur_email,
             date_facture=self.date_facture,
             date_echeance=self.date_echeance,
             numero_bon_commande_client=self.numero_bon_commande_client,

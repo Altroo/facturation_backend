@@ -45,6 +45,8 @@ class FactureAvoirListSerializer(BaseListSerializer):
             "mode_paiement",
             "mode_paiement_name",
             "numero_bon_commande_client",
+            "fournisseur",
+            "fournisseur_email",
             "statut",
             "remarque",
             "created_by_user",
@@ -157,6 +159,9 @@ class FactureAvoirSerializer(BaseCreateSerializer):
                 data.get("mode_paiement") or facture_origine.mode_paiement
             )
             data["devise"] = data.get("devise") or facture_origine.devise
+            if not self.instance:
+                data["fournisseur"] = facture_origine.fournisseur
+                data["fournisseur_email"] = facture_origine.fournisseur_email
         elif not self.instance:
             raise serializers.ValidationError(
                 {"facture_origine": _("Une facture d'origine est requise.")}
@@ -244,6 +249,8 @@ class FactureAvoirSerializer(BaseCreateSerializer):
             "motif_avoir",
             "motif_avoir_label",
             "numero_bon_commande_client",
+            "fournisseur",
+            "fournisseur_email",
             "mode_paiement",
             "mode_paiement_name",
             "statut",
@@ -293,6 +300,19 @@ class FactureAvoirDetailSerializer(BaseDetailUpdateSerializer, FactureAvoirSeria
                 raise serializers.ValidationError(
                     {"facture_origine": _("La facture d'origine n'est pas modifiable.")}
                 )
+        if self.instance and self.instance.facture_origine_id:
+            errors = {}
+            for field in ("fournisseur", "fournisseur_email"):
+                if field not in data:
+                    continue
+                incoming = str(data.get(field) or "").strip()
+                current = str(getattr(self.instance, field) or "").strip()
+                if incoming != current:
+                    errors[field] = _(
+                        "Cette information est héritée de la facture d'origine et n'est pas modifiable."
+                    )
+            if errors:
+                raise serializers.ValidationError(errors)
         return super().validate(data)
 
     class Meta(FactureAvoirSerializer.Meta):

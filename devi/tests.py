@@ -383,6 +383,9 @@ class TestDeviConversionExtra:
 
     def test_convert_to_facture_proforma(self, devi_conv_with_lines, devi_conv_user):
         """Test converting Devi to FactureProForma."""
+        devi_conv_with_lines.fournisseur = "Supplier One"
+        devi_conv_with_lines.fournisseur_email = "supplier@example.com"
+        devi_conv_with_lines.save(update_fields=["fournisseur", "fournisseur_email"])
         proforma = devi_conv_with_lines.convert_to_facture_proforma(
             "FP-001", devi_conv_user
         )
@@ -391,10 +394,16 @@ class TestDeviConversionExtra:
         assert proforma.client == devi_conv_with_lines.client
         assert proforma.mode_paiement == devi_conv_with_lines.mode_paiement
         assert proforma.created_by_user == devi_conv_user
+        assert proforma.source_devis == devi_conv_with_lines
+        assert proforma.fournisseur == "Supplier One"
+        assert proforma.fournisseur_email == "supplier@example.com"
         assert proforma.lignes.count() == devi_conv_with_lines.lignes.count()
 
     def test_convert_to_facture_client(self, devi_conv_with_lines, devi_conv_user):
         """Test converting Devi to FactureClient."""
+        devi_conv_with_lines.fournisseur = "Supplier One"
+        devi_conv_with_lines.fournisseur_email = "supplier@example.com"
+        devi_conv_with_lines.save(update_fields=["fournisseur", "fournisseur_email"])
         facture = devi_conv_with_lines.convert_to_facture_client(
             "FC-001", devi_conv_user
         )
@@ -403,6 +412,9 @@ class TestDeviConversionExtra:
         assert facture.client == devi_conv_with_lines.client
         assert facture.mode_paiement == devi_conv_with_lines.mode_paiement
         assert facture.created_by_user == devi_conv_user
+        assert facture.source_devis == devi_conv_with_lines
+        assert facture.fournisseur == "Supplier One"
+        assert facture.fournisseur_email == "supplier@example.com"
         assert facture.lignes.count() == devi_conv_with_lines.lignes.count()
 
     def test_conversion_copies_remise(self, devi_conv_with_lines, devi_conv_user):

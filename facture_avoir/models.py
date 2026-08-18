@@ -93,6 +93,9 @@ class FactureAvoir(BaseDeviFactureDocument):
         if self.facture_origine_id:
             self.client = self.facture_origine.client
             self.company = self.facture_origine.company
+            if self._state.adding:
+                self.fournisseur = self.facture_origine.fournisseur
+                self.fournisseur_email = self.facture_origine.fournisseur_email
             if not self.mode_paiement_id:
                 self.mode_paiement = self.facture_origine.mode_paiement
             if not self.devise:

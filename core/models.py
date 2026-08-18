@@ -45,6 +45,21 @@ class BaseDeviFactureDocument(models.Model):
         null=True,
     )
 
+    fournisseur = models.CharField(
+        max_length=255,
+        verbose_name=_("Fournisseur"),
+        blank=True,
+        default="",
+        help_text=_("Fournisseur interne repris lors des conversions"),
+    )
+
+    fournisseur_email = models.EmailField(
+        verbose_name=_("E-mail fournisseur"),
+        blank=True,
+        default="",
+        help_text=_("Adresse interne reprise lors des conversions"),
+    )
+
     statut = models.CharField(
         max_length=10,
         choices=STATUT_CHOICES,

@@ -1,3 +1,4 @@
+from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 from core.serializers import (
@@ -11,6 +12,23 @@ from core.serializers import (
 from .models import FactureClient, FactureClientLine
 from facture_avoir.models import FactureAvoir
 from reglement.models import Reglement
+
+
+def _validate_inherited_supplier_snapshot(instance, data):
+    if not instance or not (instance.source_proforma_id or instance.source_devis_id):
+        return
+    errors = {}
+    for field in ("fournisseur", "fournisseur_email"):
+        if field not in data:
+            continue
+        incoming = str(data.get(field) or "").strip()
+        current = str(getattr(instance, field) or "").strip()
+        if incoming != current:
+            errors[field] = _(
+                "Cette information est héritée du document source et n'est pas modifiable."
+            )
+    if errors:
+        raise serializers.ValidationError(errors)
 
 
 class FactureClientPaymentFieldsMixin:
@@ -69,6 +87,12 @@ class FactureClientListSerializer(FactureClientPaymentFieldsMixin, BaseListSeria
     total_paye = serializers.SerializerMethodField()
     reste_a_payer = serializers.SerializerMethodField()
     statut_paiement = serializers.SerializerMethodField()
+    source_proforma_numero = serializers.CharField(
+        source="source_proforma.numero_facture", read_only=True
+    )
+    source_devis_numero = serializers.CharField(
+        source="source_devis.numero_devis", read_only=True
+    )
 
     class Meta:
         model = FactureClient
@@ -84,6 +108,12 @@ class FactureClientListSerializer(FactureClientPaymentFieldsMixin, BaseListSeria
             "mode_paiement_name",
             "numero_bon_commande_client",
             "termes_paiement",
+            "fournisseur",
+            "fournisseur_email",
+            "source_proforma",
+            "source_proforma_numero",
+            "source_devis",
+            "source_devis_numero",
             "statut",
             "remarque",
             "created_by_user",
@@ -174,6 +204,17 @@ class FactureClientSerializer(FactureClientPaymentFieldsMixin, BaseCreateSeriali
     lignes = FactureClientLineWriteSerializer(
         many=True, write_only=True, required=False
     )
+    source_proforma_numero = serializers.CharField(
+        source="source_proforma.numero_facture", read_only=True
+    )
+    source_devis_numero = serializers.CharField(
+        source="source_devis.numero_devis", read_only=True
+    )
+
+    def validate(self, data):
+        data = super().validate(data)
+        _validate_inherited_supplier_snapshot(self.instance, data)
+        return data
 
     def get_numero_field_name(self):
         return "numero_facture"
@@ -202,6 +243,12 @@ class FactureClientSerializer(FactureClientPaymentFieldsMixin, BaseCreateSeriali
             "date_echeance",
             "numero_bon_commande_client",
             "termes_paiement",
+            "fournisseur",
+            "fournisseur_email",
+            "source_proforma",
+            "source_proforma_numero",
+            "source_devis",
+            "source_devis_numero",
             "mode_paiement",
             "mode_paiement_name",
             "statut",
@@ -229,6 +276,10 @@ class FactureClientSerializer(FactureClientPaymentFieldsMixin, BaseCreateSeriali
             "id",
             "company",
             "created_by_user",
+            "source_proforma",
+            "source_proforma_numero",
+            "source_devis",
+            "source_devis_numero",
             "statut",
             "nombre_paiements",
             "total_paye",
@@ -255,6 +306,17 @@ class FactureClientDetailSerializer(
     lignes = FactureClientLineWriteSerializer(
         many=True, write_only=True, required=False
     )
+    source_proforma_numero = serializers.CharField(
+        source="source_proforma.numero_facture", read_only=True
+    )
+    source_devis_numero = serializers.CharField(
+        source="source_devis.numero_devis", read_only=True
+    )
+
+    def validate(self, data):
+        data = super().validate(data)
+        _validate_inherited_supplier_snapshot(self.instance, data)
+        return data
 
     def get_line_model_class(self):
         return FactureClientLine
@@ -270,6 +332,10 @@ class FactureClientDetailSerializer(
             "id",
             "company",
             "created_by_user",
+            "source_proforma",
+            "source_proforma_numero",
+            "source_devis",
+            "source_devis_numero",
             "date_created",
             "date_updated",
         ]

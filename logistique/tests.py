@@ -4,6 +4,7 @@ import importlib
 from unittest.mock import ANY, patch
 
 import pytest
+from django.apps import apps
 from django.contrib.admin.sites import AdminSite
 from django.core import mail
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -303,6 +304,27 @@ def test_create_logistics_order_inherits_supplier_and_all_source_lines(
     }
     assert order.lignes.first().project_reference == "PROJET-LOG-001"
     assert LogisticsOrderEvent.objects.filter(action="Création").count() == 1
+
+
+def test_supplier_snapshot_data_migration_backfills_single_source_only(
+    api_client, logistics_company, logistics_user, logistics_proformas
+):
+    create_logistics_order(
+        api_client, logistics_company, logistics_user, logistics_proformas
+    )
+    order = LogisticsOrder.objects.get()
+    LogisticsOrder.objects.filter(pk=order.pk).update(
+        fournisseur="Manual snapshot", fournisseur_email=""
+    )
+    migration = importlib.import_module(
+        "logistique.migrations.0010_backfill_supplier_snapshots"
+    )
+
+    migration.backfill_supplier_snapshots(apps, None)
+    order.refresh_from_db()
+
+    assert order.fournisseur == "Manual snapshot"
+    assert order.fournisseur_email == "supplier@example.com"
 
 
 def test_create_logistics_order_rejects_already_linked_source_lines(

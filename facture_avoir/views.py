@@ -249,6 +249,8 @@ class FactureAvoirFromFactureView(APIView):
                 "mode_paiement": facture.mode_paiement_id,
                 "date_avoir": timezone.localdate(),
                 "numero_bon_commande_client": facture.numero_bon_commande_client,
+                "fournisseur": facture.fournisseur,
+                "fournisseur_email": facture.fournisseur_email,
                 "devise": facture.devise,
                 "remise_type": facture.remise_type,
                 "remise": str(facture.remise),

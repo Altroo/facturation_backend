@@ -1,6 +1,8 @@
 from decimal import Decimal
+import importlib
 
 import pytest
+from django.apps import apps
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
@@ -13,6 +15,7 @@ from company.models import Company
 from facture_client.models import FactureClient, FactureClientLine
 from parameter.models import ModePaiement, Ville
 from .models import FactureAvoir, FactureAvoirLine
+from .serializers import FactureAvoirDetailSerializer
 
 pytestmark = pytest.mark.django_db
 
@@ -56,6 +59,8 @@ def avoir_context():
         date_facture=timezone.localdate(),
         mode_paiement=mode_paiement,
         statut="Envoyé",
+        fournisseur="Supplier One",
+        fournisseur_email="supplier@example.com",
         created_by_user=user,
     )
     FactureClientLine.objects.create(
@@ -114,6 +119,21 @@ def test_create_avoir_from_facture_assigns_legal_number_and_origin_data(avoir_co
     )
     assert response.data["client"] == avoir_context["client"].id
     assert response.data["facture_origine"] == avoir_context["facture"].id
+    assert response.data["fournisseur"] == "Supplier One"
+    assert response.data["fournisseur_email"] == "supplier@example.com"
+
+
+def test_avoir_prefill_includes_supplier_snapshot(avoir_context):
+    response = avoir_context["api_client"].get(
+        reverse(
+            "facture_avoir:facture-avoir-from-facture",
+            kwargs={"pk": avoir_context["facture"].pk},
+        )
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data["fournisseur"] == "Supplier One"
+    assert response.data["fournisseur_email"] == "supplier@example.com"
 
 
 def test_create_avoir_requires_origin_facture(avoir_context):
@@ -132,6 +152,51 @@ def test_create_avoir_requires_origin_facture(avoir_context):
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert "facture_origine" in response.data["details"]
+
+
+def test_linked_avoir_supplier_snapshot_is_read_only(avoir_context):
+    avoir = FactureAvoir.objects.create(
+        facture_origine=avoir_context["facture"],
+        client=avoir_context["client"],
+        company=avoir_context["company"],
+        date_avoir=timezone.localdate(),
+        motif_avoir="autre",
+        created_by_user=avoir_context["user"],
+    )
+
+    assert avoir.fournisseur == "Supplier One"
+    assert avoir.fournisseur_email == "supplier@example.com"
+    serializer = FactureAvoirDetailSerializer(
+        avoir,
+        data={"fournisseur": "Other supplier"},
+        partial=True,
+    )
+
+    assert not serializer.is_valid()
+    assert "fournisseur" in serializer.errors
+
+
+def test_avoir_supplier_data_migration_backfills_origin_link(avoir_context):
+    avoir = FactureAvoir.objects.create(
+        facture_origine=avoir_context["facture"],
+        client=avoir_context["client"],
+        company=avoir_context["company"],
+        date_avoir=timezone.localdate(),
+        motif_avoir="autre",
+        created_by_user=avoir_context["user"],
+    )
+    FactureAvoir.objects.filter(pk=avoir.pk).update(
+        fournisseur="", fournisseur_email=""
+    )
+    migration = importlib.import_module(
+        "facture_avoir.migrations.0005_factureavoir_fournisseur_and_more"
+    )
+
+    migration.backfill_supplier_from_origin(apps, None)
+    avoir.refresh_from_db()
+
+    assert avoir.fournisseur == "Supplier One"
+    assert avoir.fournisseur_email == "supplier@example.com"
 
 
 def test_active_origin_avoir_cannot_credit_more_than_original_quantity(avoir_context):

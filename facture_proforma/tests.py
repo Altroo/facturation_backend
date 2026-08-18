@@ -1,9 +1,11 @@
 from datetime import datetime
 from decimal import Decimal
+import importlib
 from re import match
 
 import pytest
 from django.contrib.admin.sites import AdminSite
+from django.apps import apps
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.urls import reverse
 from rest_framework import status
@@ -21,7 +23,10 @@ from core.tests import (
     SharedDocumentAdminTestsMixin,
 )
 from facture_proforma.admin import FactureProFormaAdmin, FactureProFormaLineAdmin
+from facture_proforma.serializers import FactureProformaDetailSerializer
 from facture_proforma.utils import get_next_numero_facture_pro_forma
+from facture_avoir.models import FactureAvoir
+from facture_client.serializers import FactureClientDetailSerializer
 from logistique.models import LogisticsOrder, LogisticsOrderProforma
 from parameter.models import ModePaiement, Ville
 from .filters import FactureProFormaFilter
@@ -664,6 +669,11 @@ class TestFactureProFormaModelExtra(SharedDocumentModelTestsMixin):
 
     def test_convert_to_facture_client(self, pf_conv_with_lines, pf_conv_user):
         """Test converting FactureProForma to FactureClient."""
+        pf_conv_with_lines.fournisseur = "Supplier One"
+        pf_conv_with_lines.fournisseur_email = "supplier@example.com"
+        pf_conv_with_lines.save(
+            update_fields=["fournisseur", "fournisseur_email"]
+        )
         facture = pf_conv_with_lines.convert_to_facture_client("FC-PF001", pf_conv_user)
 
         assert facture is not None
@@ -671,7 +681,17 @@ class TestFactureProFormaModelExtra(SharedDocumentModelTestsMixin):
         assert facture.mode_paiement == pf_conv_with_lines.mode_paiement
         assert facture.created_by_user == pf_conv_user
         assert facture.source_proforma == pf_conv_with_lines
+        assert facture.fournisseur == "Supplier One"
+        assert facture.fournisseur_email == "supplier@example.com"
         assert facture.lignes.count() == pf_conv_with_lines.lignes.count()
+
+        serializer = FactureClientDetailSerializer(
+            facture,
+            data={"fournisseur": "Other supplier"},
+            partial=True,
+        )
+        assert not serializer.is_valid()
+        assert "fournisseur" in serializer.errors
 
     def test_convert_to_facture_client_only_once_until_facture_deleted(
         self, pf_conv_with_lines, pf_conv_user
@@ -688,6 +708,93 @@ class TestFactureProFormaModelExtra(SharedDocumentModelTestsMixin):
         )
 
         assert next_facture.source_proforma == pf_conv_with_lines
+
+    def test_supplier_snapshot_data_migration_backfills_source_link(
+        self, pf_conv_with_lines, pf_conv_user
+    ):
+        pf_conv_with_lines.fournisseur = "Supplier One"
+        pf_conv_with_lines.fournisseur_email = "supplier@example.com"
+        pf_conv_with_lines.save(
+            update_fields=["fournisseur", "fournisseur_email"]
+        )
+        facture = pf_conv_with_lines.convert_to_facture_client(
+            "FC-PF-MIG", pf_conv_user
+        )
+        facture.fournisseur = "Manual snapshot"
+        facture.fournisseur_email = ""
+        facture.save(update_fields=["fournisseur", "fournisseur_email"])
+        migration = importlib.import_module(
+            "facture_client.migrations.0022_factureclient_fournisseur_and_more"
+        )
+
+        migration.backfill_supplier_from_source(apps, None)
+        facture.refresh_from_db()
+
+        assert facture.fournisseur == "Manual snapshot"
+        assert facture.fournisseur_email == "supplier@example.com"
+
+    def test_late_supplier_entry_fills_blank_converted_document_snapshots(
+        self, pf_conv_with_lines, pf_conv_user
+    ):
+        facture = pf_conv_with_lines.convert_to_facture_client(
+            "FC-PF-LATE", pf_conv_user
+        )
+        facture.statut = "Envoyé"
+        facture.save(update_fields=["statut"])
+        bon_livraison = facture.convert_to_bon_de_livraison(
+            "BL-PF-LATE", pf_conv_user
+        )
+        avoir = FactureAvoir.objects.create(
+            numero_avoir="AV-PF-LATE",
+            facture_origine=facture,
+            date_avoir="2025-01-02",
+            motif_avoir="erreur_facturation",
+            mode_paiement=facture.mode_paiement,
+            created_by_user=pf_conv_user,
+        )
+        serializer = FactureProformaDetailSerializer(
+            pf_conv_with_lines,
+            data={
+                "fournisseur": "Late Supplier",
+                "fournisseur_email": "late@example.com",
+            },
+            partial=True,
+        )
+
+        assert serializer.is_valid(), serializer.errors
+        serializer.save()
+
+        facture.refresh_from_db()
+        bon_livraison.refresh_from_db()
+        avoir.refresh_from_db()
+        for document in (facture, bon_livraison, avoir):
+            assert document.fournisseur == "Late Supplier"
+            assert document.fournisseur_email == "late@example.com"
+
+    def test_late_supplier_entry_never_overwrites_existing_snapshot(
+        self, pf_conv_with_lines, pf_conv_user
+    ):
+        facture = pf_conv_with_lines.convert_to_facture_client(
+            "FC-PF-MANUAL", pf_conv_user
+        )
+        facture.fournisseur = "Existing Supplier"
+        facture.fournisseur_email = "existing@example.com"
+        facture.save(update_fields=["fournisseur", "fournisseur_email"])
+        serializer = FactureProformaDetailSerializer(
+            pf_conv_with_lines,
+            data={
+                "fournisseur": "Late Supplier",
+                "fournisseur_email": "late@example.com",
+            },
+            partial=True,
+        )
+
+        assert serializer.is_valid(), serializer.errors
+        serializer.save()
+
+        facture.refresh_from_db()
+        assert facture.fournisseur == "Existing Supplier"
+        assert facture.fournisseur_email == "existing@example.com"
 
     def test_conversion_copies_remise(self, pf_conv_with_lines, pf_conv_user):
         """Test that conversion copies remise fields."""

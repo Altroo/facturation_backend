@@ -39,13 +39,26 @@ class BonDeLivraisonListCreateView(BaseDocumentListCreateView):
     create_serializer_class = BonDeLivraisonSerializer
     detail_serializer_class = BonDeLivraisonDetailSerializer
     document_name = "le bon de livraison"
-    list_select_related = ("client", "mode_paiement", "created_by_user", "livre_par")
+    list_select_related = (
+        "client",
+        "mode_paiement",
+        "created_by_user",
+        "livre_par",
+        "source_facture_client",
+    )
 
 
 class BonDeLivraisonDetailEditDeleteView(BaseDocumentDetailEditDeleteView):
     model = BonDeLivraison
     detail_serializer_class = BonDeLivraisonDetailSerializer
     document_name = "bon de livraison"
+    detail_select_related = (
+        "client",
+        "mode_paiement",
+        "created_by_user",
+        "livre_par",
+        "source_facture_client",
+    )
 
 
 class GenerateNumeroBonDeLivraisonView(BaseGenerateNumeroView):
@@ -68,7 +81,13 @@ class BonDeLivraisonUninvoicedListView(BaseDocumentListCreateView):
     filter_class = BonDeLivraisonFilter
     list_serializer_class = BonDeLivraisonListSerializer
     document_name = "le bon de livraison"
-    list_select_related = ("client", "mode_paiement", "created_by_user", "livre_par")
+    list_select_related = (
+        "client",
+        "mode_paiement",
+        "created_by_user",
+        "livre_par",
+        "source_facture_client",
+    )
 
     def get(self, request, *args, **kwargs):
         """Get list of uninvoiced bons de livraison."""

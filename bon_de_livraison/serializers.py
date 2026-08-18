@@ -11,6 +11,23 @@ from core.serializers import (
 from .models import BonDeLivraison, BonDeLivraisonLine
 
 
+def _validate_inherited_supplier_snapshot(instance, data):
+    if not instance or not instance.source_facture_client_id:
+        return
+    errors = {}
+    for field in ("fournisseur", "fournisseur_email"):
+        if field not in data:
+            continue
+        incoming = str(data.get(field) or "").strip()
+        current = str(getattr(instance, field) or "").strip()
+        if incoming != current:
+            errors[field] = (
+                "Cette information est héritée de la facture client et n'est pas modifiable."
+            )
+    if errors:
+        raise serializers.ValidationError(errors)
+
+
 class BonDeLivraisonListSerializer(BaseListSerializer):
     """List serializer for BonDeLivraison with totals as decimals."""
 
@@ -27,6 +44,10 @@ class BonDeLivraisonListSerializer(BaseListSerializer):
             "mode_paiement",
             "mode_paiement_name",
             "numero_bon_commande_client",
+            "fournisseur",
+            "fournisseur_email",
+            "source_facture_client",
+            "source_facture_client_numero",
             "livre_par",
             "livre_par_name",
             "statut",
@@ -46,6 +67,9 @@ class BonDeLivraisonListSerializer(BaseListSerializer):
         read_only_fields = fields
 
     livre_par_name = serializers.CharField(source="livre_par.nom", read_only=True)
+    source_facture_client_numero = serializers.CharField(
+        source="source_facture_client.numero_facture", read_only=True
+    )
 
 
 class BonDeLivraisonLineWriteSerializer(BaseLineWriteSerializer):
@@ -113,6 +137,14 @@ class BonDeLivraisonSerializer(BaseCreateSerializer):
     lignes = BonDeLivraisonLineWriteSerializer(
         many=True, write_only=True, required=False
     )
+    source_facture_client_numero = serializers.CharField(
+        source="source_facture_client.numero_facture", read_only=True
+    )
+
+    def validate(self, data):
+        data = super().validate(data)
+        _validate_inherited_supplier_snapshot(self.instance, data)
+        return data
 
     def get_numero_field_name(self):
         return "numero_bon_livraison"
@@ -140,6 +172,10 @@ class BonDeLivraisonSerializer(BaseCreateSerializer):
             "date_bon_livraison",
             "date_echeance",
             "numero_bon_commande_client",
+            "fournisseur",
+            "fournisseur_email",
+            "source_facture_client",
+            "source_facture_client_numero",
             "livre_par",
             "livre_par_name",
             "mode_paiement",
@@ -165,6 +201,8 @@ class BonDeLivraisonSerializer(BaseCreateSerializer):
             "id",
             "company",
             "created_by_user",
+            "source_facture_client",
+            "source_facture_client_numero",
             "statut",
             "total_ht",
             "total_tva",
@@ -183,6 +221,14 @@ class BonDeLivraisonDetailSerializer(BaseDetailUpdateSerializer):
     lignes = BonDeLivraisonLineWriteSerializer(
         many=True, write_only=True, required=False
     )
+    source_facture_client_numero = serializers.CharField(
+        source="source_facture_client.numero_facture", read_only=True
+    )
+
+    def validate(self, data):
+        data = super().validate(data)
+        _validate_inherited_supplier_snapshot(self.instance, data)
+        return data
 
     def get_line_model_class(self):
         return BonDeLivraisonLine
@@ -198,6 +244,8 @@ class BonDeLivraisonDetailSerializer(BaseDetailUpdateSerializer):
             "id",
             "company",
             "created_by_user",
+            "source_facture_client",
+            "source_facture_client_numero",
             "date_created",
             "date_updated",
         ]
