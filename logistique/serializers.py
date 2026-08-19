@@ -13,7 +13,6 @@ from .models import (
     LogisticsPaymentInstallment,
 )
 
-
 ALLOWED_DOCUMENT_EXTENSIONS = {
     ".pdf",
     ".doc",
@@ -649,7 +648,7 @@ class LogisticsOrderUpdateSerializer(serializers.ModelSerializer):
             and not self.instance.is_proforma_step_complete
         ):
             raise serializers.ValidationError(
-                _("Validez d'abord la proforma fournisseur.")
+                _("Validez d'abord la pro forma fournisseur.")
             )
         if (
             value in LogisticsOrder.PAYMENT_COMPLETE_REQUIRED_STATUSES
@@ -763,7 +762,9 @@ class LogisticsPaymentScheduleItemSerializer(serializers.Serializer):
         max_digits=12, decimal_places=2, min_value=Decimal("0.01")
     )
     devise = serializers.ChoiceField(
-        choices=[choice[0] for choice in LogisticsOrder._meta.get_field("devise").choices]
+        choices=[
+            choice[0] for choice in LogisticsOrder._meta.get_field("devise").choices
+        ]
     )
 
 
@@ -778,12 +779,16 @@ class LogisticsPaymentRequestSerializer(serializers.Serializer):
         }
         if invalid_currencies:
             raise serializers.ValidationError(
-                _("Toutes les échéances doivent utiliser la devise du titre d'importation.")
+                _(
+                    "Toutes les échéances doivent utiliser la devise du titre d'importation."
+                )
             )
         total = sum((item["montant_prevu"] for item in value), Decimal("0"))
         if total != order.montant_titre_importation:
             raise serializers.ValidationError(
-                _("Le total de l'échéancier doit correspondre au montant du titre d'importation.")
+                _(
+                    "Le total de l'échéancier doit correspondre au montant du titre d'importation."
+                )
             )
         return value
 
@@ -912,17 +917,23 @@ class LogisticsSupplierProformaReviewSerializer(serializers.Serializer):
             return attrs[field] if field in attrs else getattr(order, field)
 
         required_fields = {
-            "numero_proforma_fournisseur": _("Le numéro de proforma est obligatoire."),
-            "date_proforma_fournisseur": _("La date de proforma est obligatoire."),
-            "montant_proforma_fournisseur": _(
-                "Le montant de proforma est obligatoire."
+            "numero_proforma_fournisseur": _(
+                "Le numéro de la pro forma fournisseur est obligatoire."
             ),
-            "devise_proforma_fournisseur": _("La devise de proforma est obligatoire."),
+            "date_proforma_fournisseur": _(
+                "La date de la pro forma fournisseur est obligatoire."
+            ),
+            "montant_proforma_fournisseur": _(
+                "Le montant de la pro forma fournisseur est obligatoire."
+            ),
+            "devise_proforma_fournisseur": _(
+                "La devise de la pro forma fournisseur est obligatoire."
+            ),
             "incoterm": _("L'Incoterm est obligatoire."),
             "conditions_paiement": _("Les conditions de paiement sont obligatoires."),
             "delai_proforma_jours": _("Le délai fournisseur est obligatoire."),
             "proforma_fournisseur_file": _(
-                "Le fichier de proforma fournisseur est obligatoire."
+                "Le fichier de la pro forma fournisseur est obligatoire."
             ),
         }
         errors = {}
@@ -952,11 +963,11 @@ class LogisticsSupplierProformaReviewSerializer(serializers.Serializer):
                 )
         elif action == "validate" and (has_price_variance or has_quantity_variance):
             errors["variances"] = _(
-                "Une proforma comportant des écarts ne peut pas être validée."
+                "Une pro forma fournisseur comportant des écarts ne peut pas être validée."
             )
         elif action == "reject" and not notes:
             errors["notes_ecarts_proforma"] = _(
-                "Indiquez le motif du refus de la proforma."
+                "Indiquez le motif du refus de la pro forma fournisseur."
             )
 
         if errors:

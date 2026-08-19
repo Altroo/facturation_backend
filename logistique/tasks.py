@@ -13,7 +13,6 @@ from facturation_backend.celery_conf import app
 
 from .models import LogisticsOrder, LogisticsPaymentInstallment
 
-
 logger = get_task_logger(__name__)
 
 
@@ -53,7 +52,7 @@ def _accounting_message(order):
             f"Référence titre d'importation : {order.numero_domiciliation}",
             f"Lien direct vers le dossier : {_dossier_url(order)}",
             "",
-            "Le titre d'importation et la proforma fournisseur sont joints à ce message.",
+            "Le titre d'importation et la pro forma fournisseur sont joints à ce message.",
         ]
     )
     return subject, body
@@ -68,10 +67,7 @@ def _supplier_message(order, installment):
             "Veuillez trouver en pièce jointe le justificatif de notre paiement.",
             "",
             f"Référence dossier : {order.numero_commande}",
-            (
-                "Montant payé : "
-                f"{installment.montant_paye:.2f} {installment.devise}"
-            ),
+            ("Montant payé : " f"{installment.montant_paye:.2f} {installment.devise}"),
             f"Référence bancaire : {installment.reference_bancaire}",
             "",
             "Merci de bien vouloir confirmer sa réception.",
@@ -104,7 +100,9 @@ def queue_accounting_payment_email(order_id, delivery_token):
     try:
         deliver_accounting_payment_email.delay(order_id, delivery_token)
     except Exception as exc:  # broker failures must remain visible and retryable
-        logger.exception("Unable to queue accounting payment email for order %s", order_id)
+        logger.exception(
+            "Unable to queue accounting payment email for order %s", order_id
+        )
         LogisticsOrder.objects.filter(
             pk=order_id,
             demande_paiement_email_statut="En attente",
@@ -291,9 +289,7 @@ def deliver_accounting_payment_email(self, order_id, delivery_token):
     except Exception as exc:
         delivery_error = exc
 
-    finalized = _finalize_accounting_delivery(
-        order_id, task_id, error=delivery_error
-    )
+    finalized = _finalize_accounting_delivery(order_id, task_id, error=delivery_error)
     if delivery_error and finalized:
         logger.error(
             "Accounting payment email failed for order %s: %s",

@@ -327,6 +327,43 @@ def test_supplier_snapshot_data_migration_backfills_single_source_only(
     assert order.fournisseur_email == "supplier@example.com"
 
 
+def test_logistics_label_data_migration_updates_existing_history(
+    logistics_company, logistics_user
+):
+    order = LogisticsOrder.objects.create(
+        company=logistics_company,
+        numero_commande="LOG-LABEL-MIGRATION",
+        responsable=logistics_user,
+    )
+    old_actions = {
+        "Demande de proforma": "Demande de pro forma fournisseur",
+        "Contrôle proforma fournisseur": "Contrôle pro forma fournisseur",
+        "Correction proforma demandée": (
+            "Correction de la pro forma fournisseur demandée"
+        ),
+        "Validation proforma fournisseur": "Validation de la pro forma fournisseur",
+        "Refus proforma fournisseur": "Refus de la pro forma fournisseur",
+        "Confirmation réception fournisseur": (
+            "Confirmation de la réception de la preuve par le fournisseur"
+        ),
+    }
+    for action in old_actions:
+        LogisticsOrderEvent.objects.create(
+            commande=order,
+            user=logistics_user,
+            action=action,
+        )
+    migration = importlib.import_module(
+        "logistique.migrations.0011_rename_logistics_user_facing_labels"
+    )
+
+    migration.rename_event_actions(apps, None)
+
+    assert set(order.events.values_list("action", flat=True)) == set(
+        old_actions.values()
+    )
+
+
 def test_create_logistics_order_rejects_already_linked_source_lines(
     api_client, logistics_company, logistics_user, logistics_proformas
 ):
@@ -508,9 +545,7 @@ def test_logistics_list_returns_dashboard_stats(
     assert response.data["stats"]["statuts_paiement"] == [
         {"statut_paiement": "Non demandé", "total": 1}
     ]
-    assert response.data["stats"]["fournisseurs"] == [
-        {"fournisseur": "Supplier One"}
-    ]
+    assert response.data["stats"]["fournisseurs"] == [{"fournisseur": "Supplier One"}]
     assert response.data["stats"]["kpi_fournisseurs"] == [
         {
             "fournisseur": "Supplier One",
@@ -609,7 +644,7 @@ def test_manager_records_proforma_request_and_completes_launch_step(
     assert order.proforma_demandee_le is not None
     assert order.proforma_demandee_par == logistics_user
     assert order.prochaine_relance_proforma == follow_up
-    assert order.events.filter(action="Demande de proforma").exists()
+    assert order.events.filter(action="Demande de pro forma fournisseur").exists()
 
 
 @pytest.mark.parametrize(
@@ -676,17 +711,11 @@ def test_launch_step_can_only_finish_through_recorded_proforma_request(
     )
     url = reverse("logistique:logistique-launch-status-update", args=[order.id])
 
-    premature_response = api_client.patch(
-        url, {"statut": "Terminée"}, format="json"
-    )
+    premature_response = api_client.patch(url, {"statut": "Terminée"}, format="json")
     order.proforma_demandee_le = timezone.now()
     order.save(update_fields=["proforma_demandee_le"])
-    completed_response = api_client.patch(
-        url, {"statut": "Terminée"}, format="json"
-    )
-    regression_response = api_client.patch(
-        url, {"statut": "En cours"}, format="json"
-    )
+    completed_response = api_client.patch(url, {"statut": "Terminée"}, format="json")
+    regression_response = api_client.patch(url, {"statut": "En cours"}, format="json")
 
     assert premature_response.status_code == status.HTTP_400_BAD_REQUEST
     assert completed_response.status_code == status.HTTP_200_OK
@@ -829,7 +858,9 @@ def test_supplier_proforma_correction_sets_external_waiting_status(
     assert order.statut_global == "En attente externe"
     assert order.ecart_prix_proforma is True
     assert order.proforma_controlee_par == logistics_user
-    assert order.events.filter(action="Correction proforma demandée").exists()
+    assert order.events.filter(
+        action="Correction de la pro forma fournisseur demandée"
+    ).exists()
 
 
 def test_supplier_proforma_validation_completes_second_step(
@@ -858,7 +889,7 @@ def test_supplier_proforma_validation_completes_second_step(
     assert order.proforma_validee_par == logistics_user
     assert order.is_proforma_step_complete is True
     assert response.data["is_proforma_step_complete"] is True
-    assert order.events.filter(action="Validation proforma fournisseur").exists()
+    assert order.events.filter(action="Validation de la pro forma fournisseur").exists()
 
 
 @pytest.mark.parametrize(
@@ -1019,7 +1050,9 @@ def test_only_cancelled_order_can_be_reopened(api_client, logistics_company):
     assert order.statut_global == "En cours"
 
 
-def test_legacy_status_transition_requires_completed_payment(api_client, logistics_company):
+def test_legacy_status_transition_requires_completed_payment(
+    api_client, logistics_company
+):
     order = LogisticsOrder.objects.create(
         company=logistics_company,
         numero_commande="LOG-LEGACY-STAGE",
@@ -1145,7 +1178,10 @@ def test_part_three_full_payment_flow_matches_docx(
     assert request_response.status_code == status.HTTP_200_OK, request_response.data
     order.refresh_from_db()
     assert order.statut_paiement == "En attente"
-    assert order.statut_titre_importation == "Titre d'import validé – En attente de paiement"
+    assert (
+        order.statut_titre_importation
+        == "Titre d'import validé – En attente de paiement"
+    )
     assert order.statut_banque_paiement == "En validation"
     assert order.statut_traitement_paiement == "Paiement à traiter"
     assert order.paiement_assigne_a == comptable_user
@@ -1161,7 +1197,10 @@ def test_part_three_full_payment_flow_matches_docx(
     assert "Fournisseur : Supplier One" in accounting_email.body
     assert "Montant : 400.00 EUR" in accounting_email.body
     assert "Référence titre d'importation : TI-2026-001" in accounting_email.body
-    assert f"/dashboard/logistique/{order.id}?company_id={order.company_id}" in accounting_email.body
+    assert (
+        f"/dashboard/logistique/{order.id}?company_id={order.company_id}"
+        in accounting_email.body
+    )
     assert len(accounting_email.attachments) == 2
     assert comptable_user.notifications.filter(
         title="Effectuer le paiement fournisseur", object_id=order.id
@@ -1478,20 +1517,26 @@ def test_partial_payment_keeps_remaining_installment_and_balance(
     order = LogisticsOrder.objects.first()
     assert complete_supplier_proforma_step(api_client, order).status_code == 200
     prepare_valid_import_title(order)
-    assert api_client.post(
-        reverse("logistique:logistique-request-payment", args=[order.id]),
-        payment_schedule_payload(order),
-        format="json",
-    ).status_code == 200
+    assert (
+        api_client.post(
+            reverse("logistique:logistique-request-payment", args=[order.id]),
+            payment_schedule_payload(order),
+            format="json",
+        ).status_code
+        == 200
+    )
     installment = order.echeances_paiement.get()
     comptable_client = APIClient()
     comptable_client.force_authenticate(user=comptable_user)
 
-    assert comptable_client.post(
-        reverse("logistique:logistique-start-payment", args=[order.id]),
-        {"echeance_id": installment.id},
-        format="json",
-    ).status_code == status.HTTP_200_OK
+    assert (
+        comptable_client.post(
+            reverse("logistique:logistique-start-payment", args=[order.id]),
+            {"echeance_id": installment.id},
+            format="json",
+        ).status_code
+        == status.HTTP_200_OK
+    )
 
     execution_response = comptable_client.post(
         reverse("logistique:logistique-record-payment-execution", args=[order.id]),
@@ -1540,9 +1585,12 @@ def test_accounting_can_block_for_correction_and_owner_can_resubmit(
     assert complete_supplier_proforma_step(api_client, order).status_code == 200
     prepare_valid_import_title(order)
     request_url = reverse("logistique:logistique-request-payment", args=[order.id])
-    assert api_client.post(
-        request_url, payment_schedule_payload(order), format="json"
-    ).status_code == 200
+    assert (
+        api_client.post(
+            request_url, payment_schedule_payload(order), format="json"
+        ).status_code
+        == 200
+    )
     comptable_client = APIClient()
     comptable_client.force_authenticate(user=comptable_user)
 
@@ -1880,7 +1928,9 @@ def test_stale_accounting_email_claim_can_be_requeued(
         demande_paiement_email_statut="Envoi en cours",
         demande_paiement_email_task_id="lost-worker",
         demande_paiement_email_prise_en_charge_le=(
-            timezone.now() - LogisticsOrder.EMAIL_DELIVERY_CLAIM_TIMEOUT - timedelta(seconds=1)
+            timezone.now()
+            - LogisticsOrder.EMAIL_DELIVERY_CLAIM_TIMEOUT
+            - timedelta(seconds=1)
         ),
     )
     from .tasks import deliver_accounting_payment_email
@@ -1921,7 +1971,9 @@ def test_accounting_delivery_storage_failure_is_retryable_and_refreshes_recipien
         ),
     )
 
-    with patch("logistique.tasks._attach_file", side_effect=OSError("storage unavailable")):
+    with patch(
+        "logistique.tasks._attach_file", side_effect=OSError("storage unavailable")
+    ):
         with pytest.raises(OSError, match="storage unavailable"):
             deliver_accounting_payment_email.run(order.id, "accounting-token")
 
@@ -1961,7 +2013,9 @@ def test_supplier_delivery_storage_failure_is_retryable(
         ),
     )
 
-    with patch("logistique.tasks._attach_file", side_effect=OSError("storage unavailable")):
+    with patch(
+        "logistique.tasks._attach_file", side_effect=OSError("storage unavailable")
+    ):
         with pytest.raises(OSError, match="storage unavailable"):
             deliver_supplier_payment_proof_email.run(installment.id, "supplier-token")
 
@@ -2047,11 +2101,11 @@ def test_delivery_claim_revalidates_current_business_state(
     assert order.demande_paiement_email_file_token == ""
 
 
-def test_orphaned_queued_deliveries_become_retryable(
-    logistics_company, logistics_user
-):
+def test_orphaned_queued_deliveries_become_retryable(logistics_company, logistics_user):
     queued_at = (
-        timezone.now() - LogisticsOrder.EMAIL_DELIVERY_CLAIM_TIMEOUT - timedelta(seconds=1)
+        timezone.now()
+        - LogisticsOrder.EMAIL_DELIVERY_CLAIM_TIMEOUT
+        - timedelta(seconds=1)
     )
     order = LogisticsOrder.objects.create(
         company=logistics_company,

@@ -163,7 +163,7 @@ class LogisticsOrder(models.Model):
     )
     numero_commande = models.CharField(
         max_length=24,
-        verbose_name=_("Numéro commande logistique"),
+        verbose_name=_("Référence dossier logistique"),
     )
     fournisseur = models.CharField(
         max_length=255,
@@ -422,13 +422,13 @@ class LogisticsOrder(models.Model):
     date_updated = models.DateTimeField(auto_now=True)
 
     history = HistoricalRecords(
-        verbose_name=_("Historique Commande Logistique"),
-        verbose_name_plural=_("Historiques Commandes Logistiques"),
+        verbose_name=_("Historique dossier logistique"),
+        verbose_name_plural=_("Historiques dossiers logistiques"),
     )
 
     class Meta:
-        verbose_name = _("Commande logistique")
-        verbose_name_plural = _("Commandes logistiques")
+        verbose_name = _("Dossier logistique")
+        verbose_name_plural = _("Dossiers logistiques")
         ordering = ("-date_created",)
         constraints = [
             models.UniqueConstraint(
@@ -821,8 +821,8 @@ class LogisticsOrderLine(models.Model):
     total_achat = models.DecimalField(max_digits=12, decimal_places=2, default=0)
 
     class Meta:
-        verbose_name = _("Ligne commande logistique")
-        verbose_name_plural = _("Lignes commandes logistiques")
+        verbose_name = _("Ligne de dossier logistique")
+        verbose_name_plural = _("Lignes de dossiers logistiques")
         indexes = [
             models.Index(fields=["commande", "proforma"]),
             models.Index(fields=["article"]),

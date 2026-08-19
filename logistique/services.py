@@ -16,7 +16,9 @@ from .utils import get_next_numero_logistique
 
 def _load_proforma_lines(*, company_id, proforma_ids, for_update=False):
     if not proforma_ids:
-        raise ValidationError({"proformas": _("Sélectionnez au moins une proforma.")})
+        raise ValidationError(
+            {"proformas": _("Sélectionnez une facture pro forma acceptée.")}
+        )
     proforma_ids = list(dict.fromkeys(proforma_ids))
     if len(proforma_ids) != 1:
         raise ValidationError(
@@ -39,7 +41,11 @@ def _load_proforma_lines(*, company_id, proforma_ids, for_update=False):
     missing_ids = set(proforma_ids) - found_ids
     if missing_ids:
         raise ValidationError(
-            {"proformas": _("Certaines proformas sont introuvables ou inaccessibles.")}
+            {
+                "proformas": _(
+                    "La facture pro forma sélectionnée est introuvable ou inaccessible."
+                )
+            }
         )
 
     invalid_sources = [
@@ -51,7 +57,7 @@ def _load_proforma_lines(*, company_id, proforma_ids, for_update=False):
         raise ValidationError(
             {
                 "proformas": _(
-                    "Seules les commandes client validées (proformas au statut Accepté) peuvent lancer un dossier import. Sources concernées: %(sources)s."
+                    "Seules les commandes client validées (factures pro forma au statut Accepté) peuvent lancer un dossier import. Sources concernées: %(sources)s."
                 )
                 % {"sources": ", ".join(invalid_sources[:5])}
             }
@@ -66,7 +72,7 @@ def _load_proforma_lines(*, company_id, proforma_ids, for_update=False):
         raise ValidationError(
             {
                 "proformas": _(
-                    "Renseignez le fournisseur sur la commande client avant de créer le dossier logistique. Sources concernées: %(sources)s."
+                    "Renseignez le fournisseur sur la facture pro forma acceptée avant de créer le dossier logistique. Sources concernées: %(sources)s."
                 )
                 % {"sources": ", ".join(missing_suppliers[:5])}
             }
@@ -78,19 +84,21 @@ def _load_proforma_lines(*, company_id, proforma_ids, for_update=False):
     if for_update:
         lines_queryset = lines_queryset.select_for_update(of=("self",))
     lines = list(
-        lines_queryset
-        .select_related(
+        lines_queryset.select_related(
             "facture_pro_forma",
             "facture_pro_forma__client",
             "facture_pro_forma__source_devis",
             "article",
             "article__marque",
-        )
-        .order_by("facture_pro_forma_id", "id")
+        ).order_by("facture_pro_forma_id", "id")
     )
     if not lines:
         raise ValidationError(
-            {"proformas": _("Impossible de créer une commande sans lignes proforma.")}
+            {
+                "proformas": _(
+                    "Impossible de créer un dossier logistique sans lignes de facture pro forma."
+                )
+            }
         )
 
     purchase_currencies = sorted(
@@ -151,13 +159,10 @@ def build_proforma_source_preview(*, company_id, proforma_ids):
         {
             "devise": lines[0].devise_prix_achat,
             "articles_count": len(lines),
-            "total_quantity": sum(
-                (line.quantity for line in lines), Decimal("0")
-            ),
+            "total_quantity": sum((line.quantity for line in lines), Decimal("0")),
             "total_achat": sum(
                 (
-                    (line.prix_achat or Decimal("0"))
-                    * (line.quantity or Decimal("0"))
+                    (line.prix_achat or Decimal("0")) * (line.quantity or Decimal("0"))
                     for line in lines
                 ),
                 Decimal("0"),
