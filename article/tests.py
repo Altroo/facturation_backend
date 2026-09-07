@@ -1,6 +1,7 @@
 import os
 import shutil
 import tempfile
+from io import BytesIO
 from pathlib import Path
 from unittest.mock import MagicMock, PropertyMock, patch
 
@@ -10,6 +11,7 @@ from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db.utils import DatabaseError
 from django.urls import reverse
+from PIL import Image
 from rest_framework import serializers, status
 from rest_framework.serializers import ValidationError as DRFValidationError
 from rest_framework.test import APIClient, APIRequestFactory
@@ -27,6 +29,15 @@ BASE64_PNG = (
     "data:image/png;base64,"
     "iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAADklEQVR4nGNgGAWDEwAAAZoAAR2CVqgAAAAASUVORK5CYII="
 )
+
+
+@pytest.fixture
+def png_image_bytes():
+    """Generate a valid PNG without fragile hand-written binary data."""
+    with BytesIO() as buffer:
+        with Image.new("RGBA", (10, 10), (0, 0, 0, 0)) as image:
+            image.save(buffer, format="PNG")
+        return buffer.getvalue()
 
 
 # Use a temporary media root for file operations - use project-local temp dir
@@ -976,18 +987,11 @@ class TestArticleSerializerExtra:
         )
         assert result is None
 
-    def test_process_image_field_multipart_file(self):
+    def test_process_image_field_multipart_file(self, png_image_bytes):
         """Test _process_image_field with multipart file upload."""
 
-        # Create a minimal valid 10x10 PNG image (complete, not just header)
-        minimal_png = (
-            b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\n\x00\x00\x00\n"
-            b"\x08\x06\x00\x00\x00\x8d2\xcf\xbd\x00\x00\x00\x0eIDATx\x9cc`\x18\x05\
-            x83\x13\x00\x00\x01\x9a\x00\x01\x1d\x82V\xa8"
-            b"\x00\x00\x00\x00IEND\xaeB`\x82"
-        )
         uploaded_file = SimpleUploadedFile(
-            "test.png", minimal_png, content_type="image/png"
+            "test.png", png_image_bytes, content_type="image/png"
         )
         result = ArticleBaseSerializer._process_image_field(
             "photo", {"photo": uploaded_file}, None
@@ -996,18 +1000,11 @@ class TestArticleSerializerExtra:
         # Now all images are converted to WebP
         assert result.name.endswith(".webp")
 
-    def test_process_image_field_multipart_file_no_extension(self):
+    def test_process_image_field_multipart_file_no_extension(self, png_image_bytes):
         """Test _process_image_field with multipart file without extension."""
 
-        # Create a minimal valid 10x10 PNG image (complete, not just header)
-        minimal_png = (
-            b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\n\x00\x00\x00\n"
-            b"\x08\x06\x00\x00\x00\x8d2\xcf\xbd\x00\x00\x00\x0eIDATx\x9cc`\x18\x05\x83\x13\x00\
-            x00\x01\x9a\x00\x01\x1d\x82V\xa8"
-            b"\x00\x00\x00\x00IEND\xaeB`\x82"
-        )
         uploaded_file = SimpleUploadedFile(
-            "testfile", minimal_png, content_type="image/png"
+            "testfile", png_image_bytes, content_type="image/png"
         )
         result = ArticleBaseSerializer._process_image_field(
             "photo", {"photo": uploaded_file}, None

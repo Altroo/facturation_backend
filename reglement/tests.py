@@ -298,7 +298,10 @@ class TestReglementAPI:
             name="Caissier",
         )
         Membership.objects.create(
-            user=self.user, company=self.company, role=self.caissier_role
+            user=self.user,
+            company=self.company,
+            role=self.caissier_role,
+            can_change_document_status=True,
         )
 
         self.client_obj = Client.objects.create(
@@ -772,6 +775,19 @@ class TestReglementAPI:
         url = self._status_url(self.reglement.id)
         response = outsider_client.patch(url, {"statut": "Annulé"}, format="json")
         assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_status_update_forbidden_without_status_permission(self):
+        """A Caissier still needs explicit permission to change document statuses."""
+        Membership.objects.filter(user=self.user, company=self.company).update(
+            can_change_document_status=False
+        )
+
+        url = self._status_url(self.reglement.id)
+        response = self.client_api.patch(url, {"statut": "Annulé"}, format="json")
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        self.reglement.refresh_from_db()
+        assert self.reglement.statut == "Valide"
 
 
 # -----------------------------------------------------------------------------
@@ -1454,7 +1470,10 @@ class TestReglementFactureStatusValidation:
             name="Caissier",
         )
         Membership.objects.create(
-            user=self.user, company=self.company, role=self.caissier_role
+            user=self.user,
+            company=self.company,
+            role=self.caissier_role,
+            can_change_document_status=True,
         )
 
         self.client_obj = Client.objects.create(

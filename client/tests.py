@@ -117,7 +117,7 @@ class TestClientAPI:
             "delai_de_paiement": None,
         }
 
-        response = self.client.post(url, payload)
+        response = self.client.post(url, payload, format="json")
 
         assert response.status_code == status.HTTP_201_CREATED
         client = Client.objects.get(code_client="CLT-DIV-001")
@@ -135,7 +135,7 @@ class TestClientAPI:
         response = self.client.post(url, payload)
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert "client_type" in response.data
+        assert "client_type" in response.data["details"]
 
     def test_create_client_pp(self):
         url = reverse("client:client-list-create")

@@ -3375,21 +3375,21 @@ class TestAdditionalCoverageEdgeCases:
 
         FactureProForma.objects.create(
             client=client,
-            numero_facture=f"0001/{year_suffix}",
+            numero_facture=f"P001/{year_suffix}",
             date_facture="2026-01-01",
             mode_paiement=mode,
             created_by_user=user,
         )
         FactureProForma.objects.create(
             client=client,
-            numero_facture=f"0003/{year_suffix}",
+            numero_facture=f"P003/{year_suffix}",
             date_facture="2026-01-01",
             mode_paiement=mode,
             created_by_user=user,
         )
 
         result = get_next_numero_facture_pro_forma(company.id)
-        assert result == f"0002/{year_suffix}"
+        assert result == f"P002/{year_suffix}"
 
     def test_bon_de_livraison_utils_finds_gap(self):
         """Test get_next_numero_bon_livraison finds gaps."""
@@ -4000,16 +4000,16 @@ class TestBasePDFGeneratorDraftWatermark:
         def __init__(self):
             self.calls = []
 
-        def save_state(self):
+        def saveState(self):
             self.calls.append(("saveState",))
 
-        def set_fill_alpha(self, alpha):
+        def setFillAlpha(self, alpha):
             self.calls.append(("setFillAlpha", alpha))
 
-        def set_fill_color(self, color):
+        def setFillColor(self, color):
             self.calls.append(("setFillColor", color))
 
-        def set_font(self, font, size):
+        def setFont(self, font, size):
             self.calls.append(("setFont", font, size))
 
         def translate(self, x, y):
@@ -4018,10 +4018,10 @@ class TestBasePDFGeneratorDraftWatermark:
         def rotate(self, angle):
             self.calls.append(("rotate", angle))
 
-        def draw_centred_string(self, x, y, text):
+        def drawCentredString(self, x, y, text):
             self.calls.append(("drawCentredString", x, y, text))
 
-        def restore_state(self):
+        def restoreState(self):
             self.calls.append(("restoreState",))
 
     def test_draft_watermark_uses_french_label_and_descending_angle(self):
