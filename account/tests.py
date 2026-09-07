@@ -538,7 +538,10 @@ class TestAccountAPIExtras:
 # Testing tasks.py
 def test_send_email_task_updates_user_and_sends_mail():
     # Sanity check: email backend must be locmem in tests
-    assert app_settings.EMAIL_BACKEND == "django.core.mail.backends.locmem.EmailBackend"
+    assert (
+        app_settings.MAILERS["default"]["BACKEND"]
+        == "django.core.mail.backends.locmem.EmailBackend"
+    )
 
     user = CustomUser.objects.create(email="test@example.com", password="1234")
 
@@ -1183,7 +1186,7 @@ class TestTasksExtra:
             mail_subject="Test",
             message="Msg",
         )
-        mock_email.send.assert_called_once_with(fail_silently=False)
+        mock_email.send.assert_called_once_with()
 
     @patch("account.tasks.EmailMessage")
     def test_send_email_with_password_reset_code(self, mock_email_class, user_extra):

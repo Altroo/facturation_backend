@@ -25,7 +25,7 @@ def send_email(self, user_pk, email_, mail_subject, message, code=None, type_=No
         user = CustomUser.objects.get(pk=user_pk)
         email = EmailMessage(mail_subject, message, to=(email_,))
         email.content_subtype = "html"
-        email.send(fail_silently=False)
+        email.send()
         if type_ == "password_reset_code" and code is not None:
             user.password_reset_code = code
             user.save(update_fields=["password_reset_code"])
@@ -124,7 +124,7 @@ def send_csv_example_email(self, user_pk, email_):
         )
 
         # Send email
-        email.send(fail_silently=False)
+        email.send()
 
     except ObjectDoesNotExist:
         logger.error(

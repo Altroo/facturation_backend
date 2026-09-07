@@ -284,7 +284,7 @@ def deliver_accounting_payment_email(self, order_id, delivery_token):
         )
         _attach_file(message, order.proforma_fournisseur_file)
         _attach_file(message, order.titre_importation_file)
-        if message.send(fail_silently=False) != 1:
+        if message.send() != 1:
             raise RuntimeError("Le serveur e-mail n'a confirmé aucun envoi.")
     except Exception as exc:
         delivery_error = exc
@@ -473,7 +473,7 @@ def deliver_supplier_payment_proof_email(self, installment_id, delivery_token):
             to=[installment.preuve_email_destinataire],
         )
         _attach_file(message, installment.justificatif_file)
-        if message.send(fail_silently=False) != 1:
+        if message.send() != 1:
             raise RuntimeError("Le serveur e-mail n'a confirmé aucun envoi.")
     except Exception as exc:
         delivery_error = exc

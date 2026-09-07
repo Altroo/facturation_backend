@@ -283,15 +283,23 @@ EBH_SSO_SHARED_SECRET = config(
 )
 
 # Email settings
-EMAIL_BACKEND = config(
-    "EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend"
-)
-EMAIL_HOST = config("EMAIL_HOST", default="smtp.gmail.com")
-EMAIL_USE_TLS = config("EMAIL_USE_TLS", default=True, cast=bool)
-EMAIL_PORT = config("EMAIL_PORT", default=587, cast=int)
-EMAIL_HOST_USER = config("EMAIL_HOST_USER", default="")
-EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="")
-EMAIL_TIMEOUT = config("EMAIL_TIMEOUT", default=30, cast=int)
+MAILERS = {
+    "default": {
+        "BACKEND": config(
+            "EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend"
+        ),
+    },
+}
+# Keep existing environment variables; only SMTP accepts these options.
+if MAILERS["default"]["BACKEND"] == "django.core.mail.backends.smtp.EmailBackend":
+    MAILERS["default"]["OPTIONS"] = {
+        "host": config("EMAIL_HOST", default="smtp.gmail.com"),
+        "use_tls": config("EMAIL_USE_TLS", default=True, cast=bool),
+        "port": config("EMAIL_PORT", default=587, cast=int),
+        "username": config("EMAIL_HOST_USER", default=""),
+        "password": config("EMAIL_HOST_PASSWORD", default=""),
+        "timeout": config("EMAIL_TIMEOUT", default=30, cast=int),
+    }
 DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="")
 SERVER_EMAIL = config("SERVER_EMAIL", default="")
 

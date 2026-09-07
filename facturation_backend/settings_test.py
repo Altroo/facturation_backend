@@ -22,7 +22,11 @@ MIDDLEWARE = [
 ]
 
 # Use in-memory email backend
-EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
+MAILERS = {
+    "default": {
+        "BACKEND": "django.core.mail.backends.locmem.EmailBackend",
+    },
+}
 
 # Celery eager mode so tasks run synchronously in tests
 CELERY_TASK_ALWAYS_EAGER = True
