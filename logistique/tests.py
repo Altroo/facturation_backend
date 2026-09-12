@@ -435,7 +435,7 @@ def test_create_logistics_order_requires_validated_client_order(
     assert LogisticsOrder.objects.count() == 0
 
 
-def test_create_logistics_order_requires_source_supplier(
+def test_create_logistics_order_allows_missing_source_supplier(
     api_client, logistics_company, logistics_user, logistics_proformas
 ):
     proforma, _, _ = logistics_proformas
@@ -448,9 +448,9 @@ def test_create_logistics_order_requires_source_supplier(
         format="json",
     )
 
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert "fournisseur" in str(response.data["details"]["proformas"])
-    assert LogisticsOrder.objects.count() == 0
+    assert response.status_code == status.HTTP_201_CREATED
+    order = LogisticsOrder.objects.get()
+    assert order.fournisseur == ""
 
 
 def test_create_logistics_order_rejects_multiple_sources(

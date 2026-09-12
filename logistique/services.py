@@ -63,21 +63,6 @@ def _load_proforma_lines(*, company_id, proforma_ids, for_update=False):
             }
         )
 
-    missing_suppliers = [
-        proforma.numero_facture
-        for proforma in proformas
-        if not (proforma.fournisseur or "").strip()
-    ]
-    if missing_suppliers:
-        raise ValidationError(
-            {
-                "proformas": _(
-                    "Renseignez le fournisseur sur la facture pro forma acceptée avant de créer le dossier logistique. Sources concernées: %(sources)s."
-                )
-                % {"sources": ", ".join(missing_suppliers[:5])}
-            }
-        )
-
     lines_queryset = FactureProFormaLine.objects.filter(
         facture_pro_forma_id__in=found_ids
     )
@@ -233,7 +218,7 @@ def create_orders_from_proformas(*, company_id, proforma_ids, user, defaults):
         company_id=company_id,
         numero_commande=get_next_numero_logistique(company_id),
         marque=None,
-        fournisseur=proforma.fournisseur.strip(),
+        fournisseur=(proforma.fournisseur or "").strip(),
         fournisseur_email=(proforma.fournisseur_email or "").strip(),
         devise=lines[0].devise_prix_achat,
         conditions_paiement=proforma.termes_paiement or "",
