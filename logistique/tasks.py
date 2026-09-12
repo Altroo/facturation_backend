@@ -12,6 +12,7 @@ from core.constants import ROLE_COMPTABLE
 from facturation_backend.celery_conf import app
 
 from .models import LogisticsOrder, LogisticsPaymentInstallment
+from .pdf import build_accounting_payment_pdf
 
 logger = get_task_logger(__name__)
 
@@ -52,10 +53,22 @@ def _accounting_message(order):
             f"Référence titre d'importation : {order.numero_domiciliation}",
             f"Lien direct vers le dossier : {_dossier_url(order)}",
             "",
-            "Le titre d'importation et la pro forma fournisseur sont joints à ce message.",
+            (
+                "La fiche de demande de paiement générée par Facturation est jointe "
+                "à ce message. Elle reprend les informations de la pro forma "
+                "fournisseur et du titre d'importation."
+            ),
         ]
     )
     return subject, body
+
+
+def _build_accounting_email(order, recipients):
+    subject, body = _accounting_message(order)
+    message = EmailMessage(subject=subject, body=body, to=recipients)
+    filename, content, mimetype = build_accounting_payment_pdf(order)
+    message.attach(filename, content, mimetype)
+    return message
 
 
 def _supplier_message(order, installment):
@@ -276,14 +289,9 @@ def deliver_accounting_payment_email(self, order_id, delivery_token):
 
     delivery_error = None
     try:
-        subject, body = _accounting_message(order)
-        message = EmailMessage(
-            subject=subject,
-            body=body,
-            to=order.demande_paiement_email_destinataires,
+        message = _build_accounting_email(
+            order, order.demande_paiement_email_destinataires
         )
-        _attach_file(message, order.proforma_fournisseur_file)
-        _attach_file(message, order.titre_importation_file)
         if message.send() != 1:
             raise RuntimeError("Le serveur e-mail n'a confirmé aucun envoi.")
     except Exception as exc:

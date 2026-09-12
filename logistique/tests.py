@@ -1201,7 +1201,17 @@ def test_part_three_full_payment_flow_matches_docx(
         f"/dashboard/logistique/{order.id}?company_id={order.company_id}"
         in accounting_email.body
     )
-    assert len(accounting_email.attachments) == 2
+    assert len(accounting_email.attachments) == 1
+    attachment = accounting_email.attachments[0]
+    expected_filename = (
+        f"demande_paiement_{order.numero_commande.replace('/', '_')}.pdf"
+    )
+    assert attachment[0] == expected_filename
+    assert attachment[1].startswith(b"%PDF")
+    assert attachment[2] == "application/pdf"
+    assert (
+        "fiche de demande de paiement générée par Facturation" in accounting_email.body
+    )
     assert comptable_user.notifications.filter(
         title="Effectuer le paiement fournisseur", object_id=order.id
     ).exists()
@@ -1972,7 +1982,8 @@ def test_accounting_delivery_storage_failure_is_retryable_and_refreshes_recipien
     )
 
     with patch(
-        "logistique.tasks._attach_file", side_effect=OSError("storage unavailable")
+        "logistique.tasks.build_accounting_payment_pdf",
+        side_effect=OSError("storage unavailable"),
     ):
         with pytest.raises(OSError, match="storage unavailable"):
             deliver_accounting_payment_email.run(order.id, "accounting-token")
