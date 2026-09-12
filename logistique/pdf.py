@@ -150,10 +150,7 @@ class LogisticsPaymentRequestPDFGenerator(BasePDFGenerator):
 
     def _build_content(self):
         order = self.document
-        responsible = order.responsable.get_full_name() if order.responsable else "-"
-        responsible = responsible or (
-            order.responsable.email if order.responsable else "-"
-        )
+        responsible = str(order.responsable) if order.responsable else "-"
         source_references = (
             ", ".join(proforma.numero_facture for proforma in order.proformas.all())
             or "-"
