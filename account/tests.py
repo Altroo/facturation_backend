@@ -583,7 +583,7 @@ def test_start_deleting_expired_codes_unknown_type():
     )
 
     # Call with unknown type - should do nothing
-    start_deleting_expired_codes(user.pk, "unknown_type")
+    start_deleting_expired_codes.delay(user.pk, "unknown_type")
 
     user.refresh_from_db()
     # Code should still be there since type was not "password_reset"
@@ -650,6 +650,8 @@ def test_resize_avatar_saves_and_sends_event(monkeypatch):
     assert event["message"]["type"] == "USER_AVATAR"
 
 
+# Celery exposes task control methods dynamically.
+# noinspection PyUnresolvedReferences,PyMockPatchArgumentCount
 @patch("account.tasks.start_deleting_expired_codes.apply_async")
 @patch("account.views.current_app.control.revoke")
 def test_view_schedules_and_revokes(
@@ -997,6 +999,8 @@ class TestSerializers:
             called["called"] = True
             called["items"] = items
 
+        # This hook is supplied dynamically in deployments that manage memberships.
+        # noinspection PyUnresolvedReferences
         monkeypatch.setattr(
             ProfilePutSerializer,
             "_create_memberships",
@@ -1046,7 +1050,8 @@ class TestSerializers:
 
         # check if old files were removed from disk
         removed_on_disk = any(
-            p and not os.path.exists(p) for p in (old_avatar_path, old_cropped_path)
+            p and not os.path.exists(str(p))
+            for p in (old_avatar_path, old_cropped_path)
         )
 
         # check if model file fields changed from the seeded values
@@ -1175,12 +1180,13 @@ class TestSerializersExtra:
 class TestTasksExtra:
     """Extra tests for account tasks."""
 
+    # noinspection PyMockPatchArgumentCount
     @patch("account.tasks.EmailMessage")
     def test_send_email_basic(self, mock_email_class, user_extra):
         """Test sending basic email."""
         mock_email = MagicMock()
         mock_email_class.return_value = mock_email
-        send_email(
+        send_email.delay(
             user_pk=user_extra.pk,
             email_=user_extra.email,
             mail_subject="Test",
@@ -1188,11 +1194,12 @@ class TestTasksExtra:
         )
         mock_email.send.assert_called_once_with()
 
+    # noinspection PyMockPatchArgumentCount
     @patch("account.tasks.EmailMessage")
     def test_send_email_with_password_reset_code(self, mock_email_class, user_extra):
         """Test sending email with password reset code."""
         mock_email_class.return_value = MagicMock()
-        send_email(
+        send_email.delay(
             user_pk=user_extra.pk,
             email_=user_extra.email,
             mail_subject="Reset",
@@ -1207,7 +1214,9 @@ class TestTasksExtra:
         """Test deleting password reset code."""
         user_extra.password_reset_code = "1234"
         user_extra.save()
-        start_deleting_expired_codes(user_pk=user_extra.pk, type_="password_reset")
+        start_deleting_expired_codes.delay(
+            user_pk=user_extra.pk, type_="password_reset"
+        )
         user_extra.refresh_from_db()
         assert user_extra.password_reset_code is None
 
@@ -1249,22 +1258,25 @@ class TestTasksExtra:
     def test_generate_images_v2(self, user_extra):
         """Test generate_images_v2 saves avatar."""
         avatar = BytesIO(b"fake")
+        # noinspection PyUnresolvedReferences
         with patch.object(user_extra, "save_image") as mock_save:
             generate_images_v2(user_extra, avatar)
             mock_save.assert_called_once_with("avatar", avatar)
 
     def test_resize_avatar_with_none(self, user_extra):
         """Test resize_avatar with None returns early."""
+        # noinspection PyUnresolvedReferences
         with patch("account.tasks.CustomUser.objects.get", return_value=user_extra):
             with patch("account.tasks.resize_images_v2") as mock_resize:
-                resize_avatar(object_pk=user_extra.pk, avatar=None)
+                resize_avatar.delay(object_pk=user_extra.pk, avatar=None)
                 mock_resize.assert_not_called()
 
     def test_resize_avatar_with_non_bytesio(self, user_extra):
         """Test resize_avatar with non-BytesIO returns early."""
+        # noinspection PyUnresolvedReferences
         with patch("account.tasks.CustomUser.objects.get", return_value=user_extra):
             with patch("account.tasks.resize_images_v2") as mock_resize:
-                resize_avatar(object_pk=user_extra.pk, avatar="string")
+                resize_avatar.delay(object_pk=user_extra.pk, avatar="string")
                 mock_resize.assert_not_called()
 
 
@@ -2463,6 +2475,7 @@ class TestAccountAdditionalCoverage:
         mock_request.user.pk = 99999  # Non-existent user ID
 
         # Mock CustomUser.objects.get to raise DoesNotExist
+        # noinspection PyUnresolvedReferences
         with patch.object(
             CustomUser.objects, "get", side_effect=CustomUser.DoesNotExist
         ):
@@ -2494,7 +2507,7 @@ class TestAccountAdditionalCoverage:
         with patch("account.views.ChangePasswordSerializer") as mock_serializer_class:
             mock_serializer = MagicMock()
             mock_serializer.is_valid.return_value = True
-            mock_serializer.data = {
+            mock_serializer.validated_data = {
                 "old_password": "testpass123",
                 "new_password": "short",  # Less than 8 chars
                 "new_password2": "short",
@@ -2502,6 +2515,7 @@ class TestAccountAdditionalCoverage:
             mock_serializer_class.return_value = mock_serializer
 
             # Mock check_password on user to return True
+            # noinspection PyUnresolvedReferences
             with patch.object(self.user, "check_password", return_value=True):
                 # Should raise ValidationError because of the view's manual length check (lines 87-92)
                 with pytest.raises(DRFValidationError) as exc_info:
@@ -2623,6 +2637,7 @@ class TestAccountAdditionalCoverage:
         url = reverse("account:send_password_reset")
 
         # Mock the CustomUser.objects.get to return user with email=None
+        # noinspection PyUnresolvedReferences
         with patch("account.views.CustomUser.objects.get") as mock_get:
             mock_user = MagicMock()
             mock_user.pk = 99999  # Avoid MagicMock repr in cache key

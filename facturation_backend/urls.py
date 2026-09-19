@@ -17,19 +17,22 @@ Including another URLconf
 
 from django.conf import settings
 from django.contrib import admin
+from django.http import JsonResponse
 from django.urls import path, include, re_path
 from django.views.static import serve
-from django.http import JsonResponse
+
 from ws.views import GetMaintenanceView
 
 
 def health_check(request):
     """Simple health check endpoint for Docker/load balancer health checks."""
+    del request
     return JsonResponse({"status": "healthy"})
 
 
 def custom_404(request, exception=None):
     """Custom 404 handler returning JSON."""
+    del request, exception
     return JsonResponse(
         {"status_code": 404, "message": "Page introuvable", "details": {}},
         status=404,
@@ -38,6 +41,7 @@ def custom_404(request, exception=None):
 
 def custom_500(request):
     """Custom 500 handler returning JSON."""
+    del request
     return JsonResponse(
         {"status_code": 500, "message": "Erreur interne du serveur", "details": {}},
         status=500,
@@ -62,7 +66,7 @@ urlpatterns = [
     path("api/article/", include("article.urls")),
     # Devi
     path("api/devi/", include("devi.urls")),
-    # Facture Proforma
+    # Facture Pro forma
     path("api/facture_proforma/", include("facture_proforma.urls")),
     # Facture Client
     path("api/facture_client/", include("facture_client.urls")),
@@ -80,6 +84,8 @@ urlpatterns = [
     path("api/dashboard/", include("dashboard.urls")),
     # Notifications
     path("api/notifications/", include("notification.urls")),
+    # Stock
+    path("api/stock/", include("stock.urls")),
     # WS maintenance bootstrap
     path("api/ws/maintenance/", GetMaintenanceView.as_view()),
     # Admin panel (obscured path for security)

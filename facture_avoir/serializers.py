@@ -144,24 +144,24 @@ class FactureAvoirSerializer(BaseCreateSerializer):
     def get_line_serializer_class(self):
         return FactureAvoirLineSerializer
 
-    def validate(self, data):
-        data = super().validate(data)
-        facture_origine = data.get("facture_origine")
-        client = data.get("client")
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        facture_origine: FactureClient | None = attrs.get("facture_origine")
+        client: Client | None = attrs.get("client")
 
         if facture_origine:
             if client and client.id != facture_origine.client_id:
                 raise serializers.ValidationError(
                     {"client": _("Le client doit correspondre à la facture d'origine.")}
                 )
-            data["client"] = facture_origine.client
-            data["mode_paiement"] = (
-                data.get("mode_paiement") or facture_origine.mode_paiement
+            attrs["client"] = facture_origine.client
+            attrs["mode_paiement"] = (
+                attrs.get("mode_paiement") or facture_origine.mode_paiement
             )
-            data["devise"] = data.get("devise") or facture_origine.devise
+            attrs["devise"] = attrs.get("devise") or facture_origine.devise
             if not self.instance:
-                data["fournisseur"] = facture_origine.fournisseur
-                data["fournisseur_email"] = facture_origine.fournisseur_email
+                attrs["fournisseur"] = facture_origine.fournisseur
+                attrs["fournisseur_email"] = facture_origine.fournisseur_email
         elif not self.instance:
             raise serializers.ValidationError(
                 {"facture_origine": _("Une facture d'origine est requise.")}
@@ -171,11 +171,11 @@ class FactureAvoirSerializer(BaseCreateSerializer):
                 {"client": _("Un client est requis pour un avoir libre.")}
             )
 
-        self._validate_origin_quantities(data)
-        return data
+        self._validate_origin_quantities(attrs)
+        return attrs
 
     def _validate_origin_quantities(self, data):
-        facture_origine = data.get("facture_origine") or getattr(
+        facture_origine: FactureClient | None = data.get("facture_origine") or getattr(
             self.instance, "facture_origine", None
         )
         if not facture_origine:
@@ -287,33 +287,34 @@ class FactureAvoirSerializer(BaseCreateSerializer):
 class FactureAvoirDetailSerializer(BaseDetailUpdateSerializer, FactureAvoirSerializer):
     lignes = FactureAvoirLineWriteSerializer(many=True, write_only=True, required=False)
 
-    def validate(self, data):
-        if self.instance and self.instance.statut != "Brouillon":
+    def validate(self, attrs):
+        instance: FactureAvoir | None = self.instance
+        if instance and instance.statut != "Brouillon":
             raise serializers.ValidationError(
                 _("Seuls les avoirs en brouillon peuvent être modifiés.")
             )
-        if self.instance and "facture_origine" in data:
-            new_origin = data.get("facture_origine")
-            current_origin_id = self.instance.facture_origine_id
+        if instance and "facture_origine" in attrs:
+            new_origin = attrs.get("facture_origine")
+            current_origin_id = instance.facture_origine_id
             new_origin_id = getattr(new_origin, "id", None)
             if new_origin_id != current_origin_id:
                 raise serializers.ValidationError(
                     {"facture_origine": _("La facture d'origine n'est pas modifiable.")}
                 )
-        if self.instance and self.instance.facture_origine_id:
+        if instance and instance.facture_origine_id:
             errors = {}
             for field in ("fournisseur", "fournisseur_email"):
-                if field not in data:
+                if field not in attrs:
                     continue
-                incoming = str(data.get(field) or "").strip()
-                current = str(getattr(self.instance, field) or "").strip()
+                incoming = str(attrs.get(field) or "").strip()
+                current = str(getattr(instance, field) or "").strip()
                 if incoming != current:
                     errors[field] = _(
                         "Cette information est héritée de la facture d'origine et n'est pas modifiable."
                     )
             if errors:
                 raise serializers.ValidationError(errors)
-        return super().validate(data)
+        return super().validate(attrs)
 
     class Meta(FactureAvoirSerializer.Meta):
         read_only_fields = FactureAvoirSerializer.Meta.read_only_fields + [

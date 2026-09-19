@@ -7,6 +7,7 @@ import pytest
 from django.contrib.admin.sites import AdminSite
 from django.apps import apps
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.test import RequestFactory
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
@@ -671,9 +672,7 @@ class TestFactureProFormaModelExtra(SharedDocumentModelTestsMixin):
         """Test converting FactureProForma to FactureClient."""
         pf_conv_with_lines.fournisseur = "Supplier One"
         pf_conv_with_lines.fournisseur_email = "supplier@example.com"
-        pf_conv_with_lines.save(
-            update_fields=["fournisseur", "fournisseur_email"]
-        )
+        pf_conv_with_lines.save(update_fields=["fournisseur", "fournisseur_email"])
         facture = pf_conv_with_lines.convert_to_facture_client("FC-PF001", pf_conv_user)
 
         assert facture is not None
@@ -714,9 +713,7 @@ class TestFactureProFormaModelExtra(SharedDocumentModelTestsMixin):
     ):
         pf_conv_with_lines.fournisseur = "Supplier One"
         pf_conv_with_lines.fournisseur_email = "supplier@example.com"
-        pf_conv_with_lines.save(
-            update_fields=["fournisseur", "fournisseur_email"]
-        )
+        pf_conv_with_lines.save(update_fields=["fournisseur", "fournisseur_email"])
         facture = pf_conv_with_lines.convert_to_facture_client(
             "FC-PF-MIG", pf_conv_user
         )
@@ -741,9 +738,7 @@ class TestFactureProFormaModelExtra(SharedDocumentModelTestsMixin):
         )
         facture.statut = "Envoyé"
         facture.save(update_fields=["statut"])
-        bon_livraison = facture.convert_to_bon_de_livraison(
-            "BL-PF-LATE", pf_conv_user
-        )
+        bon_livraison = facture.convert_to_bon_de_livraison("BL-PF-LATE", pf_conv_user)
         avoir = FactureAvoir.objects.create(
             numero_avoir="AV-PF-LATE",
             facture_origine=facture,
@@ -845,8 +840,9 @@ class TestFactureProFormaAdminExtra(SharedDocumentAdminTestsMixin):
             commande=order, proforma=pf_conv_with_lines
         )
         model_admin = FactureProFormaAdmin(FactureProForma, AdminSite())
+        request = RequestFactory().get("/")
 
-        readonly = model_admin.get_readonly_fields(None, pf_conv_with_lines)
+        readonly = model_admin.get_readonly_fields(request, pf_conv_with_lines)
 
         assert "fournisseur" in readonly
 

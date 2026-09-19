@@ -986,7 +986,8 @@ class TestReglementFilters:
 
             raise DatabaseError("forced for test")
 
-        monkeypatch.setattr(reg_filters, "SearchQuery", _raise_db_error)
+        # noinspection PyUnresolvedReferences
+        monkeypatch.setattr(reg_filters, "SearchQuery", _raise_db_error, raising=False)
 
         base_qs = Reglement.objects.all()
         filt = ReglementFilter({"search": "Alpha"}, queryset=base_qs)

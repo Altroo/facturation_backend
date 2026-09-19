@@ -2,6 +2,9 @@ from io import BytesIO
 from random import shuffle
 
 import openpyxl
+from openpyxl.styles import Font, PatternFill
+from openpyxl.utils import get_column_letter
+from openpyxl.worksheet.worksheet import Worksheet
 from PIL import Image, ImageDraw, ImageFont
 from asgiref.sync import async_to_sync, sync_to_async
 from celery.utils.log import get_task_logger
@@ -53,6 +56,8 @@ def send_csv_example_email(self, user_pk, email_):
         # Create Excel template
         wb = openpyxl.Workbook()
         ws = wb.active
+        if not isinstance(ws, Worksheet):
+            raise RuntimeError("Le classeur Excel ne contient aucune feuille active")
         ws.title = "Articles"
 
         # Headers for Excel
@@ -74,8 +79,6 @@ def send_csv_example_email(self, user_pk, email_):
         ws.append(headers)
 
         # Style headers
-        from openpyxl.styles import Font, PatternFill
-
         header_font = Font(bold=True)
         header_fill = PatternFill(
             start_color="CCE5FF", end_color="CCE5FF", fill_type="solid"
@@ -86,14 +89,17 @@ def send_csv_example_email(self, user_pk, email_):
             cell.fill = header_fill
 
         # Adjust column widths
-        for col in ws.columns:
-            max_length = 0
-            column = col[0].column_letter
-            for cell in col:
-                if cell.value:
-                    max_length = max(max_length, len(str(cell.value)))
+        for column_index, column_cells in enumerate(ws.iter_cols(), start=1):
+            # OpenPyXL's cell value union includes formula wrappers with dynamic
+            # string representations, which are safe for display-width sizing.
+            # noinspection PyStringConversionWithoutDunderMethod
+            max_length = max(
+                (len(str(cell.value)) for cell in column_cells if cell.value),
+                default=0,
+            )
             adjusted_width = min(max_length + 2, 50)
-            ws.column_dimensions[column].width = adjusted_width
+            column_letter = get_column_letter(column_index)
+            ws.column_dimensions[column_letter].width = adjusted_width
 
         # Save Excel to bytes
         excel_buffer = BytesIO()
@@ -284,6 +290,11 @@ def resize_avatar(self, object_pk: int, avatar: BytesIO | None):
             },
         }
         channel_layer = get_channel_layer()
+        if channel_layer is None:
+            logger.warning(
+                "Aucun channel layer configuré pour l'utilisateur %s", user.pk
+            )
+            return
         async_send = sync_to_async(channel_layer.group_send)
         async_to_sync(async_send)(str(user.pk), event)
     except ObjectDoesNotExist:

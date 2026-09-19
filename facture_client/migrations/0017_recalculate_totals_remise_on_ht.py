@@ -66,6 +66,7 @@ def recalculate_totals(apps, schema_editor):
         FactureClientLine.objects.values_list("facture_client_id", flat=True).distinct()
     )
     for i in range(0, len(doc_ids), BATCH_SIZE):
+        # noinspection PyPep8
         batch_ids = doc_ids[i : i + BATCH_SIZE]
         docs = list(FactureClient.objects.filter(pk__in=batch_ids))
         for doc in docs:

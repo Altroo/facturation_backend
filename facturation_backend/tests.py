@@ -233,6 +233,8 @@ class TestImageProcessor:
 
 @pytest.mark.django_db
 class TestBase64ImageField:
+    # Base64ImageField intentionally extends ImageField to accept strings.
+    # noinspection PyTypeChecker
     def test_to_internal_value_with_base64_data_url(self):
         field = Base64ImageField()
 
@@ -250,6 +252,7 @@ class TestBase64ImageField:
         assert hasattr(result, "name")
         assert result.name.endswith(".png")
 
+    # noinspection PyTypeChecker
     def test_to_internal_value_with_base64_no_header(self):
         field = Base64ImageField()
 
@@ -266,6 +269,7 @@ class TestBase64ImageField:
         assert hasattr(result, "name")
         assert result.name.endswith(".jpg")
 
+    # noinspection PyTypeChecker
     def test_to_internal_value_with_invalid_base64(self):
         field = Base64ImageField()
 
@@ -285,6 +289,7 @@ class TestBase64ImageField:
         content_file = ContentFile(bytes_io.read(), name="test.png")
 
         # This should be handled by the parent ImageField
+        # noinspection PyUnresolvedReferences
         with patch.object(
             serializers.ImageField, "to_internal_value", return_value=content_file
         ):
@@ -325,6 +330,8 @@ class TestApiExceptionHandler:
     def test_api_exception_handler_wraps_response(self):
         factory = APIRequestFactory()
         req = factory.get("/")
+        # DRF Request accepts an HttpRequest; its dynamic signature confuses PyCharm.
+        # noinspection PyArgumentList
         context = {"request": Request(req)}
         exc = ValidationError({"field": "error"})
         resp = api_exception_handler(exc, context)
@@ -349,6 +356,7 @@ class TestApiExceptionHandler:
     def test_api_exception_handler_404(self):
         factory = APIRequestFactory()
         req = factory.get("/")
+        # noinspection PyArgumentList
         context = {"request": Request(req)}
 
         exc = NotFound()
@@ -362,6 +370,7 @@ class TestApiExceptionHandler:
     def test_api_exception_handler_401(self):
         factory = APIRequestFactory()
         req = factory.get("/")
+        # noinspection PyArgumentList
         context = {"request": Request(req)}
 
         exc = AuthenticationFailed()
@@ -374,6 +383,7 @@ class TestApiExceptionHandler:
     def test_api_exception_handler_403(self):
         factory = APIRequestFactory()
         req = factory.get("/")
+        # noinspection PyArgumentList
         context = {"request": Request(req)}
 
         exc = PermissionDenied()
@@ -386,6 +396,7 @@ class TestApiExceptionHandler:
     def test_api_exception_handler_500(self):
         factory = APIRequestFactory()
         req = factory.get("/")
+        # noinspection PyArgumentList
         context = {"request": Request(req)}
 
         exc = APIException()

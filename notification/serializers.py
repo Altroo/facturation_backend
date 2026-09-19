@@ -13,6 +13,8 @@ class NotificationPreferenceSerializer(serializers.ModelSerializer):
             "notify_expiring_quote",
             "notify_uninvoiced_bdl",
             "notify_document_created",
+            "notify_low_stock",
+            "low_stock_repeat_hours",
             "quote_expiry_days",
             "date_created",
             "date_updated",

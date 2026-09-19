@@ -46,7 +46,7 @@ def get_next_numero_facture_client(company_id: int) -> str:
             return f"{formatted_number}/{year_suffix}"
 
         # Find first gap
-        next_number = None
+        next_number = 1
         for i in range(1, (max(used_numbers) if used_numbers else 0) + 2):
             if i not in used_numbers:
                 next_number = i

@@ -1,11 +1,14 @@
+from collections.abc import Iterable, Sized
 from decimal import Decimal
 from pathlib import Path
+from typing import Any, cast
 
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 from account.models import Membership
+from core.constants import CURRENCY_CHOICES
 from .models import (
     LogisticsOrder,
     LogisticsOrderEvent,
@@ -87,6 +90,11 @@ class LogisticsOrderLineSerializer(serializers.ModelSerializer):
             "marque_name",
             "project_reference",
             "quantity",
+            "received_quantity",
+            "remaining_quantity",
+            "expected_emplacement",
+            "expected_emplacement_name",
+            "incoming_active",
             "prix_achat",
             "devise_prix_achat",
             "prix_vente",
@@ -94,6 +102,26 @@ class LogisticsOrderLineSerializer(serializers.ModelSerializer):
             "total_achat",
         ]
         read_only_fields = fields
+
+    remaining_quantity = serializers.SerializerMethodField()
+    expected_emplacement_name = serializers.CharField(
+        source="expected_emplacement.nom", read_only=True
+    )
+    incoming_active = serializers.SerializerMethodField()
+
+    @staticmethod
+    def get_remaining_quantity(obj):
+        return max(Decimal("0"), obj.quantity - obj.received_quantity)
+
+    @staticmethod
+    def get_incoming_active(obj):
+        return (
+            obj.commande.statut_commande_lancement == "Terminée"
+            and obj.commande.statut_global != "Annulé"
+            and obj.commande.statut
+            not in LogisticsOrder.STOCK_INCOMING_EXCLUDED_STATUSES
+            and obj.received_quantity < obj.quantity
+        )
 
     @staticmethod
     def get_client_name(obj):
@@ -402,14 +430,14 @@ class LogisticsOrderBaseSerializer(serializers.ModelSerializer):
     @staticmethod
     def get_proformas_count(obj):
         prefetched = getattr(obj, "_prefetched_objects_cache", {}).get("proformas")
-        if prefetched is not None:
+        if isinstance(prefetched, Sized):
             return len(prefetched)
         return obj.proformas.count()
 
     @staticmethod
     def get_lignes_count(obj):
         prefetched = getattr(obj, "_prefetched_objects_cache", {}).get("lignes")
-        if prefetched is not None:
+        if isinstance(prefetched, Sized):
             return len(prefetched)
         return obj.lignes.count()
 
@@ -420,7 +448,7 @@ class LogisticsOrderBaseSerializer(serializers.ModelSerializer):
             lines = obj.lignes.select_related("client").all()
         names = []
         seen = set()
-        for line in lines:
+        for line in cast(Iterable[LogisticsOrderLine], lines):
             name = str(line.client)
             if name not in seen:
                 names.append(name)
@@ -434,7 +462,7 @@ class LogisticsOrderBaseSerializer(serializers.ModelSerializer):
             lines = obj.lignes.all()
         refs = []
         seen = set()
-        for line in lines:
+        for line in cast(Iterable[LogisticsOrderLine], lines):
             ref = (line.project_reference or "").strip()
             if ref and ref not in seen:
                 refs.append(ref)
@@ -615,12 +643,16 @@ class LogisticsOrderUpdateSerializer(serializers.ModelSerializer):
             "documents_originaux_file",
         ]
 
+    @property
+    def order(self) -> LogisticsOrder:
+        return cast(LogisticsOrder, self.instance)
+
     def validate_responsable(self, value):
         if (
             value
             and not Membership.objects.filter(
                 user=value,
-                company_id=self.instance.company_id,
+                company_id=self.order.company_id,
                 user__is_active=True,
             ).exists()
         ):
@@ -629,13 +661,16 @@ class LogisticsOrderUpdateSerializer(serializers.ModelSerializer):
             )
         return value
 
-    def validate_titre_importation_file(self, value):
+    @staticmethod
+    def validate_titre_importation_file(value):
         return validate_logistics_document(value)
 
-    def validate_justificatifs_file(self, value):
+    @staticmethod
+    def validate_justificatifs_file(value):
         return validate_logistics_document(value)
 
-    def validate_documents_originaux_file(self, value):
+    @staticmethod
+    def validate_documents_originaux_file(value):
         return validate_logistics_document(value)
 
     def validate_statut(self, value):
@@ -645,14 +680,14 @@ class LogisticsOrderUpdateSerializer(serializers.ModelSerializer):
             )
         if (
             value in LogisticsOrder.LEGACY_PROFORMA_COMPLETE_STATUSES
-            and not self.instance.is_proforma_step_complete
+            and not self.order.is_proforma_step_complete
         ):
             raise serializers.ValidationError(
                 _("Validez d'abord la pro forma fournisseur.")
             )
         if (
             value in LogisticsOrder.PAYMENT_COMPLETE_REQUIRED_STATUSES
-            and not self.instance.is_payment_step_complete
+            and not self.order.is_payment_step_complete
         ):
             raise serializers.ValidationError(
                 _("Validez d'abord la totalité du paiement requis.")
@@ -686,7 +721,7 @@ class LogisticsOrderUpdateSerializer(serializers.ModelSerializer):
             "commentaire_paiement",
             "swift_file",
         }
-        if self.instance.statut_paiement != "Non demandé":
+        if self.order.statut_paiement != "Non demandé":
             restricted_fields.update(
                 {
                     field: _(
@@ -712,7 +747,7 @@ class LogisticsOrderUpdateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(errors)
         return attrs
 
-    def update(self, instance, validated_data):
+    def update(self, instance: LogisticsOrder, validated_data) -> LogisticsOrder:
         old_status = instance.statut
         old_swift = bool(instance.swift_file)
         instance = super().update(instance, validated_data)
@@ -761,11 +796,7 @@ class LogisticsPaymentScheduleItemSerializer(serializers.Serializer):
     montant_prevu = serializers.DecimalField(
         max_digits=12, decimal_places=2, min_value=Decimal("0.01")
     )
-    devise = serializers.ChoiceField(
-        choices=[
-            choice[0] for choice in LogisticsOrder._meta.get_field("devise").choices
-        ]
-    )
+    devise = serializers.ChoiceField(choices=[choice[0] for choice in CURRENCY_CHOICES])
 
 
 class LogisticsPaymentRequestSerializer(serializers.Serializer):
@@ -806,10 +837,7 @@ class LogisticsPaymentExecutionSerializer(LogisticsPaymentInstallmentActionSeria
         min_value=Decimal("0.01"),
     )
     devise_paiement = serializers.ChoiceField(
-        choices=[
-            choice[0]
-            for choice in LogisticsOrder._meta.get_field("devise_paiement").choices
-        ]
+        choices=[choice[0] for choice in CURRENCY_CHOICES]
     )
     banque_paiement = serializers.CharField(required=True, allow_blank=False)
     reference_paiement = serializers.CharField(required=True, allow_blank=False)
@@ -825,7 +853,8 @@ class LogisticsPaymentExecutionSerializer(LogisticsPaymentInstallmentActionSeria
 class LogisticsPaymentValidationSerializer(LogisticsPaymentInstallmentActionSerializer):
     swift_file = serializers.FileField(required=True, allow_null=False)
 
-    def validate_swift_file(self, value):
+    @staticmethod
+    def validate_swift_file(value):
         return validate_logistics_document(value)
 
 
@@ -836,7 +865,8 @@ class LogisticsPaymentRejectSerializer(serializers.Serializer):
 class LogisticsProformaRequestSerializer(serializers.Serializer):
     prochaine_relance_proforma = serializers.DateField()
 
-    def validate_prochaine_relance_proforma(self, value):
+    @staticmethod
+    def validate_prochaine_relance_proforma(value):
         if value < timezone.localdate():
             raise serializers.ValidationError(
                 _("La prochaine relance ne peut pas être antérieure à aujourd'hui.")
@@ -880,9 +910,7 @@ class LogisticsSupplierProformaReviewSerializer(serializers.Serializer):
         min_value=Decimal("0.01"),
     )
     devise_proforma_fournisseur = serializers.ChoiceField(
-        choices=[
-            choice[0] for choice in LogisticsOrder._meta.get_field("devise").choices
-        ],
+        choices=[choice[0] for choice in CURRENCY_CHOICES],
         required=False,
     )
     incoterm = serializers.CharField(required=False, allow_blank=True, max_length=50)
@@ -913,8 +941,10 @@ class LogisticsSupplierProformaReviewSerializer(serializers.Serializer):
     def validate(self, attrs):
         order = self.context["order"]
 
-        def effective(field):
-            return attrs[field] if field in attrs else getattr(order, field)
+        def effective(field_name: str) -> Any:
+            return (
+                attrs[field_name] if field_name in attrs else getattr(order, field_name)
+            )
 
         required_fields = {
             "numero_proforma_fournisseur": _(
@@ -943,7 +973,7 @@ class LogisticsSupplierProformaReviewSerializer(serializers.Serializer):
             if field == "proforma_fournisseur_file":
                 is_missing = not bool(value)
             elif field == "montant_proforma_fournisseur":
-                is_missing = value is None or value <= 0
+                is_missing = value is None or Decimal(value) <= Decimal("0")
             if is_missing:
                 errors[field] = message
 

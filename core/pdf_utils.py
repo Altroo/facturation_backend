@@ -23,6 +23,7 @@ from reportlab.platypus import (
     Spacer,
     Image,
     KeepTogether,
+    HRFlowable,
 )
 
 from core.nectar import is_nectar_company
@@ -257,7 +258,7 @@ def number_to_english_words(number: Decimal, currency: str = "MAD") -> str:
     return result
 
 
-def format_number_for_pdf(value: Decimal, decimals: int = 2) -> str:
+def format_number_for_pdf(value: Decimal | None, decimals: int = 2) -> str:
     """
     Format a number with spaces as thousands separator for better readability in PDFs.
 
@@ -314,7 +315,7 @@ class BasePDFGenerator:
         Args:
             document: The document model instance (Devi, FactureClient, etc.)
             company: The Company model instance
-            PDF_type: Type of PDF to generate (avec_remise, sans_remise, avec_unite, etc.)
+            pdf_type: Type of PDF to generate (avec_remise, sans_remise, avec_unite, etc.)
             language: Language for PDF generation ('fr' or 'en')
         """
         self.total_pages = 1
@@ -764,10 +765,11 @@ class BasePDFGenerator:
         def watermark_callback(canvas, pdf_doc):
             self._add_draft_watermark(canvas, pdf_doc)
 
+        # noinspection PyProtectedMember,PyUnresolvedReferences
         doc._calc()
         frame = Frame(
-            doc.leftMargin,
-            doc.bottomMargin,
+            self.MARGIN,
+            self._get_bottom_margin(),
             doc.width,
             doc.height,
             id="normal",
@@ -779,14 +781,14 @@ class BasePDFGenerator:
                     frames=frame,
                     onPage=footer_callback,
                     onPageEnd=watermark_callback,
-                    pagesize=doc.pagesize,
+                    pagesize=A4,
                 ),
                 PageTemplate(
                     id="Later",
                     frames=frame,
                     onPage=footer_callback,
                     onPageEnd=watermark_callback,
-                    pagesize=doc.pagesize,
+                    pagesize=A4,
                 ),
             ]
         )
@@ -906,12 +908,16 @@ class BasePDFGenerator:
             children = getattr(elem, "_content", [])
             total = 0.0
             for child in children:
+                # noinspection PyBroadException
                 try:
                     _w, h = child.wrap(available_width, available_height)
                     total += h
+                # ReportLab flowables can raise implementation-specific errors
+                # while measuring; the zero-height fallback is intentional.
                 except Exception:
                     pass
             return total
+        # noinspection PyBroadException
         try:
             _w, h = elem.wrap(available_width, available_height)
             return h
@@ -976,6 +982,7 @@ class BasePDFGenerator:
         if art_idx is None:
             return elements
 
+        # noinspection PyPep8
         post_height = sum(heights[art_idx + 1 :])
 
         # ---- get per-row heights (rough guide only) ----
@@ -989,7 +996,7 @@ class BasePDFGenerator:
 
         row_h = getattr(measure_table, "_rowHeights", None)
         if (
-            row_h
+            isinstance(row_h, (list, tuple))
             and len(row_h) == num_total_rows
             and all(isinstance(h, (int, float)) and h > 0 for h in row_h)
         ):
@@ -1013,6 +1020,7 @@ class BasePDFGenerator:
 
         max_last_estimate = 0
         for k in range(num_data, 0, -1):
+            # noinspection PyPep8
             last_k_h = sum(data_rh[num_data - k :])
             if last_k_h <= last_budget:
                 max_last_estimate = k
@@ -1052,6 +1060,7 @@ class BasePDFGenerator:
                 if len(parts) != 2:
                     continue
 
+            # noinspection PyPep8
             post_elements = list(fresh_elements[art_idx + 1 :])
             keep_block = KeepTogether([parts[1]] + post_elements)
 
@@ -1093,6 +1102,7 @@ class BasePDFGenerator:
             if len(parts) != 2:
                 return elements
 
+        # noinspection PyPep8
         post_elements = list(final_elements[art_idx + 1 :])
         keep_block = KeepTogether([parts[1]] + post_elements)
 
@@ -1148,7 +1158,7 @@ class BasePDFGenerator:
         header_table.setStyle(TableStyle(style_cmds))
         return header_table
 
-    def _build_company_lines(self, extra_lines: list = None) -> list:
+    def _build_company_lines(self, extra_lines: list | None = None) -> list:
         """Build list of company info Paragraphs."""
         lines = []
         raison = self.company.raison_sociale if self.company.raison_sociale else "-"
@@ -1221,11 +1231,9 @@ class BasePDFGenerator:
         return lines
 
     def _build_parties_grid(
-        self, left_header: Paragraph, extra_company_lines: list = None
+        self, left_header: Paragraph, extra_company_lines: list | None = None
     ) -> Table:
         """Build the two-column company / client info grid."""
-        from reportlab.platypus.flowables import HRFlowable
-
         col_style = TableStyle(
             [
                 ("VALIGN", (0, 0), (-1, -1), "TOP"),
@@ -1262,8 +1270,6 @@ class BasePDFGenerator:
         self, show_remise: bool = True, show_unite: bool = False
     ) -> Table:
         """Build the light-styled articles table used by standard documents."""
-        from decimal import Decimal as _Decimal
-
         cw = self.CONTENT_WIDTH
         if show_remise and show_unite:
             headers = [
@@ -1345,7 +1351,7 @@ class BasePDFGenerator:
                     self.styles["CustomSmallCenter"],
                 )
             )
-            tva_pct = line.article.tva if line.article.tva else _Decimal("0")
+            tva_pct = line.article.tva if line.article.tva else Decimal("0")
             row.append(Paragraph(f"{tva_pct:.0f}%", self.styles["CustomSmallCenter"]))
             devise = self.document.devise or "MAD"
             row.append(
@@ -1367,7 +1373,7 @@ class BasePDFGenerator:
                 row.append(Paragraph(remise_text, self.styles["CustomSmallCenter"]))
             total_ht = line.prix_vente * line.quantity
             if line.remise_type == "Pourcentage" and line.remise:
-                total_ht -= total_ht * line.remise / _Decimal("100")
+                total_ht -= total_ht * line.remise / Decimal("100")
             elif line.remise_type == "Fixe" and line.remise:
                 total_ht -= line.remise
             row.append(
@@ -1412,12 +1418,10 @@ class BasePDFGenerator:
     def _build_tail(
         self,
         amount_words_label: str,
-        default_remarks_key: str = None,
+        default_remarks_key: str | None = None,
         show_remise: bool = True,
     ) -> list:
         """Build tail block: totals + price-in-words + optional remarks."""
-        from reportlab.platypus.flowables import HRFlowable
-
         tail = [
             self._create_totals_table(show_remise=show_remise),
             Spacer(1, 0.3 * cm),
@@ -1530,8 +1534,6 @@ class BasePDFGenerator:
         return table
 
     def _build_nectar_articles_table(self) -> Table:
-        from decimal import Decimal as _Decimal
-
         headers = ["DESCRIPTION", "QUANTITÉ", "PRIX UNITAIRE", "TAXES", "MONTANT"]
         col_widths = [
             self.CONTENT_WIDTH * 0.34,
@@ -1552,7 +1554,7 @@ class BasePDFGenerator:
             designation = line.article.designation or "-"
             if line.article.reference:
                 designation = f"{line.article.reference} {designation}"
-            tva_pct = line.article.tva if line.article.tva else _Decimal("0")
+            tva_pct = line.article.tva if line.article.tva else Decimal("0")
             total_ht = line.prix_vente * line.quantity
             table_data.append(
                 [
@@ -1761,8 +1763,6 @@ class BasePDFGenerator:
 
     def _create_info_grid(self, left_data: list, right_data: list) -> Table:
         """Create a two-column info grid."""
-        from reportlab.platypus.flowables import HRFlowable
-
         # Build left column
         left_content = [
             [Paragraph("<b>ÉMIS PAR</b>", self.styles["SectionHeader"])],
@@ -1876,8 +1876,7 @@ class BasePDFGenerator:
         self, show_remise: bool = True, show_unite: bool = False
     ) -> Table:
         """Create articles table with lines from document."""
-        from decimal import Decimal
-
+        del show_remise
         # Define columns
         cw = self.CONTENT_WIDTH
         if show_unite:
@@ -2097,8 +2096,6 @@ class BasePDFGenerator:
         self, price_label: str = "ARRÊTÉ À LA SOMME DE"
     ) -> list:
         """Create price in words section."""
-        from reportlab.platypus.flowables import HRFlowable
-
         elements = [
             Paragraph(f"<b>{price_label}</b>", self.styles["SectionHeader"]),
             HRFlowable(width="100%", thickness=1, color=colors.HexColor("#333333")),

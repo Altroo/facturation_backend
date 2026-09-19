@@ -1,9 +1,13 @@
+from decimal import Decimal
+from typing import cast
+
 from django import forms
 from django.contrib import admin
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 from simple_history.admin import SimpleHistoryAdmin
 
+from facture_client.models import FactureClient
 from .models import Reglement
 
 # Facture statuses that allow règlement creation
@@ -19,9 +23,9 @@ class ReglementAdminForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        facture_client = cleaned_data.get("facture_client")
-        montant = cleaned_data.get("montant")
-        statut = cleaned_data.get("statut")
+        facture_client = cast(FactureClient | None, cleaned_data.get("facture_client"))
+        montant = cast(Decimal | None, cleaned_data.get("montant"))
+        statut = cast(str | None, cleaned_data.get("statut"))
 
         if facture_client:
             # Validate facture status

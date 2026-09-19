@@ -6,18 +6,30 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('facture_proforma', '0019_alter_factureproforma_total_ttc_and_more'),
+        ("facture_proforma", "0019_alter_factureproforma_total_ttc_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='factureproforma',
-            name='date_echeance',
-            field=models.DateField(blank=True, db_index=True, help_text='Date limite de paiement de la facture pro forma', null=True, verbose_name="Date d'échéance"),
+            model_name="factureproforma",
+            name="date_echeance",
+            field=models.DateField(
+                blank=True,
+                db_index=True,
+                help_text="Date limite de paiement de la facture pro forma",
+                null=True,
+                verbose_name="Date d'échéance",
+            ),
         ),
         migrations.AddField(
-            model_name='historicalfactureproforma',
-            name='date_echeance',
-            field=models.DateField(blank=True, db_index=True, help_text='Date limite de paiement de la facture pro forma', null=True, verbose_name="Date d'échéance"),
+            model_name="historicalfactureproforma",
+            name="date_echeance",
+            field=models.DateField(
+                blank=True,
+                db_index=True,
+                help_text="Date limite de paiement de la facture pro forma",
+                null=True,
+                verbose_name="Date d'échéance",
+            ),
         ),
     ]

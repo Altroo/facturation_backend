@@ -1,3 +1,5 @@
+from typing import Any, Mapping
+
 from rest_framework import serializers
 
 from core.serializers import (
@@ -11,7 +13,9 @@ from core.serializers import (
 from .models import BonDeLivraison, BonDeLivraisonLine
 
 
-def _validate_inherited_supplier_snapshot(instance, data):
+def _validate_inherited_supplier_snapshot(
+    instance: BonDeLivraison | None, data: Mapping[str, Any]
+) -> None:
     if not instance or not instance.source_facture_client_id:
         return
     errors = {}
@@ -141,10 +145,10 @@ class BonDeLivraisonSerializer(BaseCreateSerializer):
         source="source_facture_client.numero_facture", read_only=True
     )
 
-    def validate(self, data):
-        data = super().validate(data)
-        _validate_inherited_supplier_snapshot(self.instance, data)
-        return data
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        _validate_inherited_supplier_snapshot(self.instance, attrs)
+        return attrs
 
     def get_numero_field_name(self):
         return "numero_bon_livraison"
@@ -225,10 +229,10 @@ class BonDeLivraisonDetailSerializer(BaseDetailUpdateSerializer):
         source="source_facture_client.numero_facture", read_only=True
     )
 
-    def validate(self, data):
-        data = super().validate(data)
-        _validate_inherited_supplier_snapshot(self.instance, data)
-        return data
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        _validate_inherited_supplier_snapshot(self.instance, attrs)
+        return attrs
 
     def get_line_model_class(self):
         return BonDeLivraisonLine

@@ -1,9 +1,11 @@
 from base64 import b64decode
 from os import remove
 from pathlib import Path
+from typing import BinaryIO, cast
 
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
+from rest_framework.request import Request
 
 from account.models import Membership, Role
 from facturation_backend.utils import ImageProcessor
@@ -56,14 +58,14 @@ class CompanyListSerializer(serializers.ModelSerializer):
     cachet = serializers.SerializerMethodField()
 
     def get_logo(self, obj):
-        request = self.context.get("request")
+        request: Request | None = self.context.get("request")
         if not obj.logo:
             return None
         url = obj.logo.url
         return request.build_absolute_uri(url) if request else url
 
     def get_cachet(self, obj):
-        request = self.context.get("request")
+        request: Request | None = self.context.get("request")
         if not obj.cachet:
             return None
         url = obj.cachet.url
@@ -87,6 +89,7 @@ class CompanyBasicListSerializer(serializers.ModelSerializer):
             "raison_sociale",
             "role",
             "uses_foreign_currency",
+            "stock_management_enabled",
             "can_validate_factures",
             "can_change_document_status",
         ]
@@ -99,7 +102,9 @@ class CompanyBasicListSerializer(serializers.ModelSerializer):
         ``CompaniesByUserView``) to avoid one query per company (N+1).
         """
         # Fast path: use prefetched membership attached by the view
-        user_memberships = getattr(obj, "_user_memberships", None)
+        user_memberships: list[Membership] | None = getattr(
+            obj, "_user_memberships", None
+        )
         if user_memberships is not None:
             if user_memberships:
                 m = user_memberships[0]
@@ -107,7 +112,7 @@ class CompanyBasicListSerializer(serializers.ModelSerializer):
             return None
 
         # Fallback (e.g. when serializer is used outside CompaniesByUserView)
-        request = self.context.get("request")
+        request: Request | None = self.context.get("request")
         if not request:
             return None
         membership = (
@@ -118,26 +123,30 @@ class CompanyBasicListSerializer(serializers.ModelSerializer):
         return membership.role.name if membership and membership.role else None
 
     def get_can_validate_factures(self, obj):
-        user_memberships = getattr(obj, "_user_memberships", None)
+        user_memberships: list[Membership] | None = getattr(
+            obj, "_user_memberships", None
+        )
         if user_memberships is not None:
             if user_memberships:
                 return user_memberships[0].can_validate_factures
             return False
 
-        request = self.context.get("request")
+        request: Request | None = self.context.get("request")
         if not request:
             return False
         membership = Membership.objects.filter(user=request.user, company=obj).first()
         return bool(membership and membership.can_validate_factures)
 
     def get_can_change_document_status(self, obj):
-        user_memberships = getattr(obj, "_user_memberships", None)
+        user_memberships: list[Membership] | None = getattr(
+            obj, "_user_memberships", None
+        )
         if user_memberships is not None:
             if user_memberships:
                 return user_memberships[0].can_change_document_status
             return False
 
-        request = self.context.get("request")
+        request: Request | None = self.context.get("request")
         if not request:
             return False
         membership = Membership.objects.filter(user=request.user, company=obj).first()
@@ -179,8 +188,9 @@ class CompanySerializer(serializers.ModelSerializer):
         if hasattr(field_value, "read"):
             try:
                 # Read the file content
-                field_value.seek(0)  # Reset pointer to start
-                data = field_value.read()
+                uploaded_file = cast(BinaryIO, field_value)
+                uploaded_file.seek(0)  # Reset pointer to start
+                data = uploaded_file.read()
                 # Convert to WebP (pass as bytes)
                 return ImageProcessor.convert_to_webp(data)
             except Exception as e:
@@ -295,7 +305,10 @@ class CompanySerializer(serializers.ModelSerializer):
                     except (ValueError, FileNotFoundError, OSError):
                         pass
                 # Save new file
-                getattr(instance, field_name).save(new_file.name, new_file, save=False)
+                new_file_name = getattr(new_file, "name", None)
+                if not new_file_name:
+                    continue
+                getattr(instance, field_name).save(new_file_name, new_file, save=False)
 
         instance.save()
         return instance
@@ -305,7 +318,7 @@ class CompanySerializer(serializers.ModelSerializer):
         Convert image fields to URLs for output
         """
         representation = super().to_representation(instance)
-        request = self.context.get("request")
+        request: Request | None = self.context.get("request")
 
         # Convert image fields to full URLs
         for field in ["logo", "logo_cropped", "cachet", "cachet_cropped"]:

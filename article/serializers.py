@@ -1,13 +1,25 @@
 from base64 import b64decode
+from decimal import Decimal
+from functools import cached_property
 from os import remove
 from pathlib import Path
+from typing import cast
 
+from django.core.files import File
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
+from rest_framework.request import Request
 
 from company.models import Company
 from facturation_backend.utils import ImageProcessor
 from parameter.models import Marque, Categorie, Unite, Emplacement
+from stock.models import StockBalance
+from stock.services import (
+    ZERO,
+    ArticleStockSnapshot,
+    article_stock_snapshot,
+    evaluate_low_stock,
+)
 from .models import Article
 
 
@@ -16,6 +28,13 @@ class ArticleBaseSerializer(serializers.ModelSerializer):
 
     # Handle photo as a string field (for base64 or URLs)
     photo = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    stock_management_enabled = serializers.SerializerMethodField()
+    physical_quantity = serializers.SerializerMethodField()
+    reserved_quantity = serializers.SerializerMethodField()
+    available_quantity = serializers.SerializerMethodField()
+    incoming_quantity = serializers.SerializerMethodField()
+    projected_quantity = serializers.SerializerMethodField()
+    stock_state = serializers.SerializerMethodField()
 
     class Meta:
         model = Article
@@ -34,13 +53,68 @@ class ArticleBaseSerializer(serializers.ModelSerializer):
             "prix_vente",
             "devise_prix_vente",
             "tva",
+            "stock_minimum",
             "remarque",
             "photo",
             "archived",
             "date_created",
             "date_updated",
+            "stock_management_enabled",
+            "physical_quantity",
+            "reserved_quantity",
+            "available_quantity",
+            "incoming_quantity",
+            "projected_quantity",
+            "stock_state",
         ]
-        read_only_fields = ["id", "date_created", "date_updated"]
+        read_only_fields = [
+            "id",
+            "date_created",
+            "date_updated",
+            "stock_management_enabled",
+            "physical_quantity",
+            "reserved_quantity",
+            "available_quantity",
+            "incoming_quantity",
+            "projected_quantity",
+            "stock_state",
+        ]
+
+    @cached_property
+    def stock_snapshots(self) -> dict[int, ArticleStockSnapshot]:
+        configured = self.context.get("stock_snapshots")
+        if isinstance(configured, dict):
+            return configured.copy()
+        return {}
+
+    def _stock_value(self, instance: Article, key: str):
+        snapshot = self.stock_snapshots.get(instance.pk)
+        if snapshot is None:
+            snapshot = article_stock_snapshot(instance)
+            self.stock_snapshots[instance.pk] = snapshot
+        values = cast(dict[str, Decimal | bool | str], snapshot)
+        return values[key]
+
+    def get_stock_management_enabled(self, instance):
+        return self._stock_value(instance, "stock_management_enabled")
+
+    def get_physical_quantity(self, instance):
+        return self._stock_value(instance, "physical_quantity")
+
+    def get_reserved_quantity(self, instance):
+        return self._stock_value(instance, "reserved_quantity")
+
+    def get_available_quantity(self, instance):
+        return self._stock_value(instance, "available_quantity")
+
+    def get_incoming_quantity(self, instance):
+        return self._stock_value(instance, "incoming_quantity")
+
+    def get_projected_quantity(self, instance):
+        return self._stock_value(instance, "projected_quantity")
+
+    def get_stock_state(self, instance):
+        return self._stock_value(instance, "stock_state")
 
     def validate(self, attrs):
         errors = {}
@@ -54,12 +128,45 @@ class ArticleBaseSerializer(serializers.ModelSerializer):
                 self.instance and getattr(self.instance, field)
             ):
                 errors[field] = _("%(label)s est obligatoire.") % {"label": label}
+        stock_minimum = attrs.get(
+            "stock_minimum", getattr(self.instance, "stock_minimum", 0)
+        )
+        if stock_minimum is not None and stock_minimum < 0:
+            errors["stock_minimum"] = _("Le stock minimum ne peut pas être négatif.")
+        company: Company | None = attrs.get("company") or getattr(
+            self.instance, "company", None
+        )
+        emplacement: Emplacement | None = attrs.get(
+            "emplacement", getattr(self.instance, "emplacement", None)
+        )
+        type_article = attrs.get(
+            "type_article", getattr(self.instance, "type_article", "")
+        )
+        if (
+            emplacement is not None
+            and company is not None
+            and emplacement.company_id != company.id
+        ):
+            errors["emplacement"] = _(
+                "L'emplacement doit appartenir à la société de l'article."
+            )
+        if (
+            company is not None
+            and company.stock_management_enabled
+            and (type_article or "").lower() == "produit"
+            and not emplacement
+        ):
+            errors["emplacement"] = _(
+                "Un emplacement est requis pour un produit géré en stock."
+            )
         if errors:
             raise serializers.ValidationError(errors)
         return attrs
 
     @staticmethod
-    def _process_image_field(field_name, validated_data, instance):
+    def _process_image_field(
+        field_name: str, validated_data, instance: Article | None
+    ) -> File | None:
         """
         Process image field - handle base64, multipart files, and existing URLs, convert to WebP
         """
@@ -73,10 +180,11 @@ class ArticleBaseSerializer(serializers.ModelSerializer):
             return getattr(instance, field_name) if instance else None
         # If it's a multipart file upload (InMemoryUploadedFile or TemporaryUploadedFile)
         if hasattr(field_value, "read"):
+            uploaded_file = cast(File, field_value)
             try:
                 # Read the file content
-                field_value.seek(0)  # Reset pointer to start
-                data = field_value.read()
+                uploaded_file.seek(0)  # Reset pointer to start
+                data = uploaded_file.read()
                 # Convert to WebP (pass as bytes)
                 return ImageProcessor.convert_to_webp(data)
             except Exception as e:
@@ -108,11 +216,11 @@ class ArticleBaseSerializer(serializers.ModelSerializer):
         Convert photo field to URL for output
         """
         representation = super().to_representation(instance)
-        request = self.context.get("request")
+        request: Request | None = self.context.get("request")
 
         # Convert photo field to full URL
         if instance.photo:
-            if request:
+            if request is not None:
                 representation["photo"] = request.build_absolute_uri(instance.photo.url)
             else:
                 representation["photo"] = instance.photo.url
@@ -141,7 +249,7 @@ class ArticleSerializer(ArticleBaseSerializer):
         queryset=Unite.objects.all(), required=False, allow_null=True
     )
 
-    def create(self, validated_data):
+    def create(self, validated_data) -> Article:
         # Process photo field
         photo = self._process_image_field("photo", validated_data, None)
 
@@ -152,14 +260,15 @@ class ArticleSerializer(ArticleBaseSerializer):
         instance = Article(**validated_data)
 
         # Set photo field
-        if photo:
-            instance.photo.save(photo.name, photo, save=False)
+        if photo is not None:
+            self._save_photo(instance, photo)
 
         # Save once - creates only one history entry as "created"
         instance.save()
+        self._ensure_stock_balance(instance)
         return instance
 
-    def update(self, instance, validated_data):
+    def update(self, instance: Article, validated_data) -> Article:
         # Process photo field
         photo = self._process_image_field("photo", validated_data, instance)
 
@@ -186,20 +295,41 @@ class ArticleSerializer(ArticleBaseSerializer):
             setattr(instance, attr, value)
 
         # Update photo field - also delete old file when replacing
-        if photo and photo != getattr(instance, "photo"):
-            old_field = getattr(instance, "photo")
-            # Delete old file before saving new one
-            if old_field:
-                try:
-                    if old_field.path and Path(old_field.path).exists():
-                        remove(old_field.path)
-                except (ValueError, FileNotFoundError, OSError):
-                    pass
-            # Save new file
-            getattr(instance, "photo").save(photo.name, photo, save=False)
+        if photo is not None:
+            old_field = instance.photo
+            if photo != old_field:
+                # Delete old file before saving new one
+                if old_field:
+                    try:
+                        if old_field.path and Path(old_field.path).exists():
+                            remove(old_field.path)
+                    except (ValueError, FileNotFoundError, OSError):
+                        pass
+                # Save new file
+                self._save_photo(instance, cast(File, photo))
 
         instance.save()
+        self._ensure_stock_balance(instance)
         return instance
+
+    @staticmethod
+    def _save_photo(instance: Article, photo: File) -> None:
+        instance.photo.save(photo.name or "article.webp", photo, save=False)
+
+    @staticmethod
+    def _ensure_stock_balance(instance):
+        if (
+            instance.company.stock_management_enabled
+            and (instance.type_article or "").lower() == "produit"
+            and instance.emplacement_id
+        ):
+            balance = StockBalance.objects.get_or_create(
+                company=instance.company,
+                article=instance,
+                emplacement=instance.emplacement,
+                defaults={"physical_quantity": ZERO, "reserved_quantity": ZERO},
+            )[0]
+            evaluate_low_stock(balance.pk)
 
 
 class ArticleDetailSerializer(ArticleSerializer):
@@ -238,6 +368,13 @@ class ArticleListSerializer(serializers.ModelSerializer):
     categorie_name = serializers.ReadOnlyField(source="categorie.nom")
     emplacement_name = serializers.ReadOnlyField(source="emplacement.nom")
     unite_name = serializers.ReadOnlyField(source="unite.nom")
+    stock_management_enabled = serializers.SerializerMethodField()
+    physical_quantity = serializers.SerializerMethodField()
+    reserved_quantity = serializers.SerializerMethodField()
+    available_quantity = serializers.SerializerMethodField()
+    incoming_quantity = serializers.SerializerMethodField()
+    projected_quantity = serializers.SerializerMethodField()
+    stock_state = serializers.SerializerMethodField()
 
     @staticmethod
     def get_type_article(instance):
@@ -266,9 +403,17 @@ class ArticleListSerializer(serializers.ModelSerializer):
             "devise_prix_vente",
             "photo",
             "tva",
+            "stock_minimum",
             "remarque",
             "archived",
             "date_created",
+            "stock_management_enabled",
+            "physical_quantity",
+            "reserved_quantity",
+            "available_quantity",
+            "incoming_quantity",
+            "projected_quantity",
+            "stock_state",
         ]
         read_only_fields = [
             "company_name",
@@ -276,18 +421,61 @@ class ArticleListSerializer(serializers.ModelSerializer):
             "categorie_name",
             "emplacement_name",
             "unite_name",
+            "stock_management_enabled",
+            "physical_quantity",
+            "reserved_quantity",
+            "available_quantity",
+            "incoming_quantity",
+            "projected_quantity",
+            "stock_state",
         ]
+
+    @cached_property
+    def stock_snapshots(self) -> dict[int, ArticleStockSnapshot]:
+        configured = self.context.get("stock_snapshots")
+        if isinstance(configured, dict):
+            return configured.copy()
+        return {}
+
+    def _stock_value(self, instance: Article, key: str):
+        snapshot = self.stock_snapshots.get(instance.pk)
+        if snapshot is None:
+            snapshot = article_stock_snapshot(instance)
+            self.stock_snapshots[instance.pk] = snapshot
+        values = cast(dict[str, Decimal | bool | str], snapshot)
+        return values[key]
+
+    def get_stock_management_enabled(self, instance):
+        return self._stock_value(instance, "stock_management_enabled")
+
+    def get_physical_quantity(self, instance):
+        return self._stock_value(instance, "physical_quantity")
+
+    def get_reserved_quantity(self, instance):
+        return self._stock_value(instance, "reserved_quantity")
+
+    def get_available_quantity(self, instance):
+        return self._stock_value(instance, "available_quantity")
+
+    def get_incoming_quantity(self, instance):
+        return self._stock_value(instance, "incoming_quantity")
+
+    def get_projected_quantity(self, instance):
+        return self._stock_value(instance, "projected_quantity")
+
+    def get_stock_state(self, instance):
+        return self._stock_value(instance, "stock_state")
 
     def to_representation(self, instance):
         """
         Convert photo field to URL for output
         """
         representation = super().to_representation(instance)
-        request = self.context.get("request")
+        request: Request | None = self.context.get("request")
 
         # Convert photo field to full URL
         if instance.photo:
-            if request:
+            if request is not None:
                 representation["photo"] = request.build_absolute_uri(instance.photo.url)
             else:
                 representation["photo"] = instance.photo.url

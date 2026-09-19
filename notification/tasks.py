@@ -1,20 +1,19 @@
 """Celery tasks for facturation notification checks."""
 
-import logging
 from datetime import timedelta
 
-from asgiref.sync import async_to_sync
 from celery import shared_task
 from channels.layers import get_channel_layer
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
-from notification.models import Notification, NotificationPreference
-from notification.services import _dashboard_url, resolve_notification_target_url
-from company.models import Company
 from account.models import Membership
-
-logger = logging.getLogger(__name__)
+from bon_de_livraison.models import BonDeLivraison
+from company.models import Company
+from devi.models import Devi
+from facture_client.models import FactureClient
+from notification.models import Notification, NotificationPreference
+from notification.services import _dashboard_url, broadcast_notification
 
 # Quote considered "expiring" if issued more than QUOTE_EXPIRY_DAYS ago and still Envoyé
 QUOTE_EXPIRY_DAYS = 30
@@ -34,10 +33,6 @@ def check_facturation_notifications():
     - Expiring quotes (Envoyé status, older than QUOTE_EXPIRY_DAYS)
     - Uninvoiced delivery notes (Accepté status, older than BDL_STALE_DAYS)
     """
-    from facture_client.models import FactureClient
-    from devi.models import Devi
-    from bon_de_livraison.models import BonDeLivraison
-
     now = timezone.now()
     today = now.date()
     channel_layer = get_channel_layer()
@@ -84,7 +79,7 @@ def check_facturation_notifications():
                                 "facture-client", facture.id, facture.company_id
                             ),
                         )
-                        _broadcast(channel_layer, user.id, notif)
+                        broadcast_notification(channel_layer, user.id, notif)
 
         # ── Expiring quotes ───────────────────────────────────────────────
         if pref.notify_expiring_quote:
@@ -118,7 +113,7 @@ def check_facturation_notifications():
                         object_id=devis.id,
                         target_url=_dashboard_url("devis", devis.id, devis.company_id),
                     )
-                    _broadcast(channel_layer, user.id, notif)
+                    broadcast_notification(channel_layer, user.id, notif)
 
         # ── Uninvoiced delivery notes ─────────────────────────────────────
         if pref.notify_uninvoiced_bdl:
@@ -156,7 +151,7 @@ def check_facturation_notifications():
                             "bon-de-livraison", bdl.id, bdl.company_id
                         ),
                     )
-                    _broadcast(channel_layer, user.id, notif)
+                    broadcast_notification(channel_layer, user.id, notif)
 
 
 def _get_user_companies(user):
@@ -167,29 +162,3 @@ def _get_user_companies(user):
         "company_id", flat=True
     )
     return Company.objects.filter(id__in=company_ids)
-
-
-def _broadcast(channel_layer, user_id, notification):
-    """Send a notification event to the user's personal WS group."""
-    try:
-        async_to_sync(channel_layer.group_send)(
-            str(user_id),
-            {
-                "type": "receive_group_message",
-                "message": {
-                    "type": "NOTIFICATION",
-                    "id": notification.id,
-                    "title": notification.title,
-                    "message": notification.message,
-                    "notification_type": notification.notification_type,
-                    "object_id": notification.object_id,
-                    "target_url": resolve_notification_target_url(notification),
-                    "is_read": notification.is_read,
-                    "date_created": notification.date_created.isoformat(),
-                },
-            },
-        )
-    except Exception:
-        logger.exception(
-            "Failed to broadcast notification %s to user %s", notification.id, user_id
-        )

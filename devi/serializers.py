@@ -8,6 +8,7 @@ from core.serializers import (
     validate_line_currency,
     update_document_devise_on_first_line,
 )
+from stock.services import coverage_for_article
 from .models import Devi, DeviLine
 
 
@@ -70,6 +71,11 @@ class DeviLineSerializer(serializers.ModelSerializer):
     devis = serializers.PrimaryKeyRelatedField(queryset=Devi.objects.all())
     designation = serializers.CharField(source="article.designation", read_only=True)
     reference = serializers.CharField(source="article.reference", read_only=True)
+    stock_coverage = serializers.SerializerMethodField()
+
+    @staticmethod
+    def get_stock_coverage(obj):
+        return coverage_for_article(obj.article, obj.quantity)
 
     def validate(self, attrs):
         """Validate that line currency matches parent document currency."""
@@ -100,6 +106,7 @@ class DeviLineSerializer(serializers.ModelSerializer):
             "quantity",
             "remise_type",
             "remise",
+            "stock_coverage",
         ]
 
 

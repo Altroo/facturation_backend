@@ -6,7 +6,15 @@ from typing import Any
 from uuid import uuid4
 
 import cv2
+from django.core.files.base import ContentFile
+from django.db.models import ProtectedError
+from numpy import uint8, frombuffer
 from PIL import Image, UnidentifiedImageError
+from rest_framework import serializers, status
+from rest_framework.exceptions import ErrorDetail, Throttled
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.response import Response
+from rest_framework.views import exception_handler
 
 imdecode: Any = cv2.imdecode
 resize: Any = cv2.resize
@@ -15,22 +23,16 @@ cvtColor: Any = cv2.cvtColor
 COLOR_BGR2RGB: Any = cv2.COLOR_BGR2RGB
 GaussianBlur: Any = cv2.GaussianBlur
 
-from django.core.files.base import ContentFile
-from django.db.models import ProtectedError
-from numpy import uint8, frombuffer
-from rest_framework import serializers, status
-from rest_framework.exceptions import Throttled
-from rest_framework.pagination import PageNumberPagination
-from rest_framework.response import Response
-from rest_framework.views import exception_handler
-
 
 class ImageProcessor:
     MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
 
     @staticmethod
     def load_image_from_io(bytes_: BytesIO):
-        return cvtColor(imdecode(frombuffer(bytes_.read(), uint8), 1), COLOR_BGR2RGB)
+        decoded_image = imdecode(frombuffer(bytes_.read(), uint8), 1)
+        if decoded_image is None:
+            raise ValueError("Unable to decode image")
+        return cvtColor(decoded_image, COLOR_BGR2RGB)
 
     @staticmethod
     def from_img_to_io(image, format_):
@@ -169,7 +171,7 @@ class ImageProcessor:
         """
         Resize image proportionally and place it on a blurred background.
         """
-        h, w = image.shape[:2]
+        h, w = (int(dimension) for dimension in image.shape[:2])
         scale = target_size / max(h, w)
         new_w, new_h = int(w * scale), int(h * scale)
 
@@ -183,6 +185,7 @@ class ImageProcessor:
         # Overlay resized image in the center
         x_offset = (target_size - new_w) // 2
         y_offset = (target_size - new_h) // 2
+        # noinspection PyPep8
         background[y_offset : y_offset + new_h, x_offset : x_offset + new_w] = resized
 
         return background
@@ -216,7 +219,7 @@ class Base64ImageField(serializers.ImageField):
     def get_file_extension(_, decoded_file):
         try:
             image = Image.open(BytesIO(decoded_file))
-            extension = image.format.lower()
+            extension = (image.format or "JPEG").lower()
             return "jpg" if extension == "jpeg" else extension
         except UnidentifiedImageError:
             return "jpg"
@@ -239,8 +242,13 @@ def api_exception_handler(exc, context):
 
     # Translate DRF throttle message to French before handling
     if isinstance(exc, Throttled):
-        wait = int(exc.wait) if exc.wait else 0
-        exc.detail = f"Requête ralentie. Réessayez dans {wait} seconde{'s' if wait != 1 else ''}."
+        raw_wait = getattr(exc, "wait", None)
+        wait = int(str(raw_wait)) if raw_wait else 0
+        message = (
+            f"Requête ralentie. Réessayez dans {wait} "
+            f"seconde{'s' if wait != 1 else ''}."
+        )
+        exc.detail = ErrorDetail(message, code="throttled")
 
     response = exception_handler(exc, context)
 

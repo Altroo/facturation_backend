@@ -414,6 +414,8 @@ class FactureClientPDFGenerator(BasePDFGenerator):
                 self.document.date_facture,
             )
 
+        # Built incrementally to keep the PDF sections readable.
+        # noinspection PyListCreation
         elements = []
         elements.append(
             self._build_doc_header(

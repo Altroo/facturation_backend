@@ -1,4 +1,5 @@
 from decimal import Decimal
+from typing import cast
 import importlib
 
 import pytest
@@ -108,7 +109,7 @@ def test_create_avoir_from_facture_assigns_legal_number_and_origin_data(avoir_co
             "facture_origine": avoir_context["facture"].id,
             "date_avoir": str(timezone.localdate()),
             "motif_avoir": "retour_marchandise",
-            "lignes": [_line_payload(avoir_context["article"])],
+            "lignes": [_line_payload(cast(Article, avoir_context["article"]))],
         },
         format="json",
     )
@@ -145,7 +146,7 @@ def test_create_avoir_requires_origin_facture(avoir_context):
             "date_avoir": str(timezone.localdate()),
             "motif_avoir": "autre",
             "mode_paiement": avoir_context["mode_paiement"].id,
-            "lignes": [_line_payload(avoir_context["article"])],
+            "lignes": [_line_payload(cast(Article, avoir_context["article"]))],
         },
         format="json",
     )
@@ -225,7 +226,7 @@ def test_active_origin_avoir_cannot_credit_more_than_original_quantity(avoir_con
             "facture_origine": avoir_context["facture"].id,
             "date_avoir": str(timezone.localdate()),
             "motif_avoir": "retour_marchandise",
-            "lignes": [_line_payload(avoir_context["article"], "1.00")],
+            "lignes": [_line_payload(cast(Article, avoir_context["article"]), "1.00")],
         },
         format="json",
     )

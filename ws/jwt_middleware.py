@@ -40,7 +40,10 @@ class _AwaitableUser:
             return _ret().__await__()
 
         async def _wrap():
-            self._user = await self._coro
+            coro = self._coro
+            if coro is None:
+                raise RuntimeError("Awaitable user has no coroutine")
+            self._user = await coro
             return self._user
 
         return _wrap().__await__()

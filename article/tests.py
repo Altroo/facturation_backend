@@ -1397,6 +1397,7 @@ class TestArticleSerializerExtra:
         # Mock old_field.path to be None
         original_photo = article.photo
 
+        # noinspection PyUnresolvedReferences
         with patch.object(
             type(original_photo), "path", new_callable=PropertyMock
         ) as mock_path:
@@ -1551,6 +1552,7 @@ class TestArticleViewsCoverage:
         """Test generate reference with invalid number that raises ValueError (lines 165-166)."""
 
         # Mock Article.objects.filter to return a reference with invalid number format
+        # noinspection PyUnresolvedReferences
         with patch("article.utils.Article.objects.filter") as mock_filter:
             mock_queryset = MagicMock()
             mock_filter.return_value = mock_queryset

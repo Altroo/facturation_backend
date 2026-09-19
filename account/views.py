@@ -156,9 +156,9 @@ class PasswordChangeView(APIView):
         serializer = ChangePasswordSerializer(data=request.data)
         if serializer.is_valid():
             # check old password
-            old_password = serializer.data.get("old_password")
-            new_password = serializer.data.get("new_password")
-            new_password2 = serializer.data.get("new_password2")
+            old_password = serializer.validated_data["old_password"]
+            new_password = serializer.validated_data["new_password"]
+            new_password2 = serializer.validated_data["new_password2"]
             user = request.user
             if not user.check_password(old_password):
                 errors = {"old_password": [_("Votre mot de passe est invalide.")]}
@@ -175,7 +175,7 @@ class PasswordChangeView(APIView):
                     ]
                 }
                 raise ValidationError(errors)
-            user.set_password(serializer.data.get("new_password"))
+            user.set_password(new_password)
             user.default_password_set = False
             user.save()
             return Response(status=status.HTTP_204_NO_CONTENT)

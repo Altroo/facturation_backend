@@ -6,18 +6,30 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('facture_client', '0018_alter_factureclient_total_ttc_and_more'),
+        ("facture_client", "0018_alter_factureclient_total_ttc_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='factureclient',
-            name='date_echeance',
-            field=models.DateField(blank=True, db_index=True, help_text='Date limite de paiement de la facture', null=True, verbose_name="Date d'échéance"),
+            model_name="factureclient",
+            name="date_echeance",
+            field=models.DateField(
+                blank=True,
+                db_index=True,
+                help_text="Date limite de paiement de la facture",
+                null=True,
+                verbose_name="Date d'échéance",
+            ),
         ),
         migrations.AddField(
-            model_name='historicalfactureclient',
-            name='date_echeance',
-            field=models.DateField(blank=True, db_index=True, help_text='Date limite de paiement de la facture', null=True, verbose_name="Date d'échéance"),
+            model_name="historicalfactureclient",
+            name="date_echeance",
+            field=models.DateField(
+                blank=True,
+                db_index=True,
+                help_text="Date limite de paiement de la facture",
+                null=True,
+                verbose_name="Date d'échéance",
+            ),
         ),
     ]

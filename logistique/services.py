@@ -11,6 +11,7 @@ from core.constants import ROLE_COMPTABLE
 from facture_proforma.models import FactureProForma, FactureProFormaLine
 
 from .models import LogisticsOrder, LogisticsOrderLine, LogisticsOrderProforma
+from .tasks import queue_accounting_payment_email
 from .utils import get_next_numero_logistique
 
 
@@ -57,7 +58,9 @@ def _load_proforma_lines(*, company_id, proforma_ids, for_update=False):
         raise ValidationError(
             {
                 "proformas": _(
-                    "Seules les commandes client validées (factures pro forma au statut Accepté) peuvent lancer un dossier import. Sources concernées: %(sources)s."
+                    "Seules les commandes client validées (factures pro forma au "
+                    "statut Accepté) peuvent lancer un dossier import. Sources "
+                    "concernées: %(sources)s."
                 )
                 % {"sources": ", ".join(invalid_sources[:5])}
             }
@@ -97,7 +100,8 @@ def _load_proforma_lines(*, company_id, proforma_ids, for_update=False):
         raise ValidationError(
             {
                 "proformas": _(
-                    "La commande client contient plusieurs devises d'achat. Harmonisez les lignes avant de créer le dossier logistique."
+                    "La commande client contient plusieurs devises d'achat. "
+                    "Harmonisez les lignes avant de créer le dossier logistique."
                 )
             }
         )
@@ -203,7 +207,7 @@ def create_orders_from_proformas(*, company_id, proforma_ids, user, defaults):
     )
     if linked_source_lines:
         order_numbers = _unique_non_empty(
-            order_number for _, order_number in linked_source_lines
+            order_number for _source_line_id, order_number in linked_source_lines
         )
         raise ValidationError(
             {
@@ -310,8 +314,6 @@ def send_payment_request_email(order, *, request_user):
         action="Demande de paiement",
         new_value="E-mail en attente d'envoi",
     )
-    from .tasks import queue_accounting_payment_email
-
     transaction.on_commit(
         lambda order_id=order.id, token=delivery_token: queue_accounting_payment_email(
             order_id, token

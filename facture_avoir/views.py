@@ -253,9 +253,9 @@ class FactureAvoirFromFactureView(APIView):
                 "fournisseur_email": facture.fournisseur_email,
                 "devise": facture.devise,
                 "remise_type": facture.remise_type,
-                "remise": str(facture.remise),
-                "facture_total": str(facture.total_ttc_apres_remise),
-                "already_credited_total": str(credited or Decimal("0.00")),
+                "remise": format(facture.remise, "f"),
+                "facture_total": format(facture.total_ttc_apres_remise, "f"),
+                "already_credited_total": format(credited or Decimal("0.00"), "f"),
                 "lignes": lignes,
             }
         )

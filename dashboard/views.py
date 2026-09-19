@@ -1,5 +1,6 @@
 from datetime import timedelta, datetime, time
 from decimal import Decimal
+from typing import Any
 
 from django.db.models import (
     Sum,
@@ -319,10 +320,10 @@ class RevenueByDocumentTypeView(APIView):
         )
 
         # Build filters
-        devi_filter = {"date_devis__lte": date_to}
-        proforma_filter = {"date_facture__lte": date_to}
-        facture_filter = {"date_facture__lte": date_to}
-        bdl_filter = {"date_bon_livraison__lte": date_to}
+        devi_filter: dict[str, Any] = {"date_devis__lte": date_to}
+        proforma_filter: dict[str, Any] = {"date_facture__lte": date_to}
+        facture_filter: dict[str, Any] = {"date_facture__lte": date_to}
+        bdl_filter: dict[str, Any] = {"date_bon_livraison__lte": date_to}
 
         if date_from:
             devi_filter["date_devis__gte"] = date_from
@@ -420,7 +421,7 @@ class PaymentStatusOverviewView(APIView):
             parse_date_filters(request)
         )
 
-        facture_filter = {"date_facture__lte": date_to}
+        facture_filter: dict[str, Any] = {"date_facture__lte": date_to}
         if date_from:
             facture_filter["date_facture__gte"] = date_from
         if company_id:
@@ -495,8 +496,11 @@ class CollectionRateView(APIView):
             parse_date_filters(request)
         )
 
-        facture_filter = {"date_facture__lte": date_to}
-        reglement_filter = {"date_reglement__lte": date_to, "statut": "Valide"}
+        facture_filter: dict[str, Any] = {"date_facture__lte": date_to}
+        reglement_filter: dict[str, Any] = {
+            "date_reglement__lte": date_to,
+            "statut": "Valide",
+        }
 
         if date_from:
             facture_filter["date_facture__gte"] = date_from
@@ -560,7 +564,7 @@ class TopClientsByRevenueView(APIView):
             parse_date_filters(request)
         )
 
-        facture_filter = {"date_facture__lte": date_to}
+        facture_filter: dict[str, Any] = {"date_facture__lte": date_to}
         if date_from:
             facture_filter["date_facture__gte"] = date_from
         if company_id:
@@ -641,10 +645,14 @@ class TopProductsByQuantityView(APIView):
         )
 
         # Build date filters for each document type
-        devi_filter = {"devis__date_devis__lte": date_to}
-        facture_filter = {"facture_client__date_facture__lte": date_to}
-        proforma_filter = {"facture_pro_forma__date_facture__lte": date_to}
-        bdl_filter = {"bon_de_livraison__date_bon_livraison__lte": date_to}
+        devi_filter: dict[str, Any] = {"devis__date_devis__lte": date_to}
+        facture_filter: dict[str, Any] = {"facture_client__date_facture__lte": date_to}
+        proforma_filter: dict[str, Any] = {
+            "facture_pro_forma__date_facture__lte": date_to
+        }
+        bdl_filter: dict[str, Any] = {
+            "bon_de_livraison__date_bon_livraison__lte": date_to
+        }
 
         if date_from:
             devi_filter["devis__date_devis__gte"] = date_from
@@ -710,7 +718,7 @@ class TopProductsByQuantityView(APIView):
         )
 
         # Combine all quantities
-        article_quantities = {}
+        article_quantities: dict[int, dict[str, Any]] = {}
 
         for line in devi_lines:
             article_id = line["article__id"]
@@ -749,8 +757,12 @@ class TopProductsByQuantityView(APIView):
             article_quantities[article_id]["quantity"] += line["qty"] or 0
 
         # Sort and get top 10
+        article_rows: list[dict[str, Any]] = [
+            {"article_id": article_id, **values}
+            for article_id, values in article_quantities.items()
+        ]
         sorted_articles = sorted(
-            [{"article_id": k, **v} for k, v in article_quantities.items()],
+            article_rows,
             key=lambda x: x["quantity"],
             reverse=True,
         )[:10]
@@ -778,7 +790,7 @@ class QuoteConversionRateView(APIView):
             parse_date_filters(request)
         )
 
-        devi_filter = {"date_devis__lte": date_to}
+        devi_filter: dict[str, Any] = {"date_devis__lte": date_to}
         if date_from:
             devi_filter["date_devis__gte"] = date_from
         if company_id:
@@ -813,7 +825,7 @@ class ProductPriceVolumeAnalysisView(APIView):
             parse_date_filters(request)
         )
 
-        facture_filter = {"facture_client__date_facture__lte": date_to}
+        facture_filter: dict[str, Any] = {"facture_client__date_facture__lte": date_to}
         if date_from:
             facture_filter["facture_client__date_facture__gte"] = date_from
         if company_id:
@@ -874,7 +886,7 @@ class InvoiceStatusDistributionView(APIView):
             parse_date_filters(request)
         )
 
-        facture_filter = {"date_facture__lte": date_to}
+        facture_filter: dict[str, Any] = {"date_facture__lte": date_to}
         if date_from:
             facture_filter["date_facture__gte"] = date_from
         if company_id:
@@ -1125,7 +1137,7 @@ class OverdueReceivablesView(APIView):
             parse_date_filters(request)
         )
 
-        facture_filter = {"date_facture__lte": date_to}
+        facture_filter: dict[str, Any] = {"date_facture__lte": date_to}
         if date_from:
             facture_filter["date_facture__gte"] = date_from
         if company_id:
@@ -1199,7 +1211,10 @@ class PaymentDelayByClientView(APIView):
             parse_date_filters(request)
         )
 
-        reglement_filter = {"statut": "Valide", "date_reglement__lte": date_to}
+        reglement_filter: dict[str, Any] = {
+            "statut": "Valide",
+            "date_reglement__lte": date_to,
+        }
         if date_from:
             reglement_filter["date_reglement__gte"] = date_from
         if company_id:
@@ -1268,7 +1283,7 @@ class ClientMultidimensionalProfileView(APIView):
             parse_date_filters(request)
         )
 
-        facture_filter = {"date_facture__lte": date_to}
+        facture_filter: dict[str, Any] = {"date_facture__lte": date_to}
         if date_from:
             facture_filter["date_facture__gte"] = date_from
         if company_id:
@@ -1523,7 +1538,10 @@ class KPICardsWithTrendsView(APIView):
         revenue_trend = [float(amount) for _, amount in sorted(daily_amounts.items())]
 
         # Créances en cours
-        facture_filter = {"date_facture__lte": date_to, "devise": devise}
+        facture_filter: dict[str, Any] = {
+            "date_facture__lte": date_to,
+            "devise": devise,
+        }
         if date_from:
             facture_filter["date_facture__gte"] = date_from
         if company_id:
@@ -1656,11 +1674,11 @@ class MonthlyObjectivesView(APIView):
                 day=1, hour=0, minute=0, second=0, microsecond=0
             ).date()
 
-        facture_filter = {
+        facture_filter: dict[str, Any] = {
             "date_facture__gte": current_period_start,
             "date_facture__lte": date_to,
         }
-        devi_filter = {
+        devi_filter: dict[str, Any] = {
             "date_devis__gte": current_period_start,
             "date_devis__lte": date_to,
         }
@@ -1816,7 +1834,7 @@ class DiscountImpactAnalysisView(APIView):
             parse_date_filters(request)
         )
 
-        facture_filter = {"date_facture__lte": date_to}
+        facture_filter: dict[str, Any] = {"date_facture__lte": date_to}
         if date_from:
             facture_filter["date_facture__gte"] = date_from
         if company_id:
@@ -1852,7 +1870,7 @@ class ProductMarginVolumeView(APIView):
             parse_date_filters(request)
         )
 
-        facture_filter = {"facture_client__date_facture__lte": date_to}
+        facture_filter: dict[str, Any] = {"facture_client__date_facture__lte": date_to}
         if date_from:
             facture_filter["facture_client__date_facture__gte"] = date_from
         if company_id:
@@ -2227,15 +2245,9 @@ class SectionMicroTrendsView(APIView):
 
 
 class MonthlyObjectivesListCreateView(APIView):
-    """List all monthly objectives or create a new one."""
+    """Create monthly objectives."""
 
     permission_classes = [IsAuthenticated]
-
-    @staticmethod
-    def get(request):
-        objectives = MonthlyObjectives.objects.all()
-        serializer = MonthlyObjectivesSerializer(objectives, many=True)
-        return Response(serializer.data)
 
     @staticmethod
     def post(request):
@@ -2246,7 +2258,7 @@ class MonthlyObjectivesListCreateView(APIView):
 
 
 class MonthlyObjectivesDetailView(APIView):
-    """Retrieve, update or delete a monthly objective."""
+    """Update a monthly objective."""
 
     permission_classes = [IsAuthenticated]
 
@@ -2256,16 +2268,6 @@ class MonthlyObjectivesDetailView(APIView):
             return MonthlyObjectives.objects.get(pk=pk)
         except MonthlyObjectives.DoesNotExist:
             return None
-
-    def get(self, request, pk):
-        objectives = self.get_object(pk)
-        if not objectives:
-            return Response(
-                {"detail": _("Objectifs non trouvés")},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-        serializer = MonthlyObjectivesSerializer(objectives)
-        return Response(serializer.data)
 
     def put(self, request, pk):
         objectives = self.get_object(pk)
@@ -2278,30 +2280,6 @@ class MonthlyObjectivesDetailView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
-
-    def patch(self, request, pk):
-        objectives = self.get_object(pk)
-        if not objectives:
-            return Response(
-                {"detail": _("Objectifs non trouvés")},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-        serializer = MonthlyObjectivesSerializer(
-            objectives, data=request.data, partial=True
-        )
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data)
-
-    def delete(self, request, pk):
-        objectives = self.get_object(pk)
-        if not objectives:
-            return Response(
-                {"detail": _("Objectifs non trouvés")},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-        objectives.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class MonthlyObjectivesByCompanyView(APIView):

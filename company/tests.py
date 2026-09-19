@@ -24,6 +24,7 @@ from company.serializers import (
     CompanySerializer,
 )
 from company.views import _is_admin_for_company
+from parameter.models import Emplacement
 from .filters import CompanyFilter
 
 # Minimal valid base64 PNG (1x1 transparent)
@@ -88,12 +89,17 @@ class TestCompanyAPI:
             "raison_sociale": "NewCorp",
             "ICE": "ICE654321",
             "nbr_employe": "5 à 10",
+            "stock_management_enabled": True,
         }
         response = self.client.post(url, payload)
         assert response.status_code == status.HTTP_201_CREATED
         assert Company.objects.filter(raison_sociale="NewCorp").exists()
         assert Membership.objects.filter(
             company__raison_sociale="NewCorp", user=self.user, role=self.admin_group
+        ).exists()
+        company = Company.objects.get(raison_sociale="NewCorp")
+        assert Emplacement.objects.filter(
+            company=company, nom="Emplacement principal"
         ).exists()
 
     def test_get_company_detail(self):
@@ -372,7 +378,7 @@ class TestCompanyImagesAndMemberships:
 
         for p in paths.values():
             if p:
-                assert not os.path.exists(p)
+                assert not os.path.exists(str(p))
 
         detail = self.client.get(update_url)
         assert detail.status_code == status.HTTP_200_OK

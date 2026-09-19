@@ -26,6 +26,8 @@ from core.permissions import (
 )
 from core.views import BaseBulkDeleteView, CompanyAccessMixin
 from facturation_backend.utils import CustomPagination
+from notification.models import Notification
+from stock.services import activate_incoming
 
 from .filters import LogisticsOrderFilter
 from .models import LogisticsOrder, LogisticsPaymentInstallment
@@ -51,6 +53,7 @@ from .services import (
     create_orders_from_proformas,
     send_payment_request_email,
 )
+from .tasks import queue_accounting_payment_email, queue_supplier_payment_proof_email
 from .utils import get_next_numero_logistique
 
 
@@ -173,8 +176,6 @@ def _invalidate_or_block_active_email_deliveries(order, *, reason):
 def _notify_logistics_responsible(order, message):
     if not order.responsable_id:
         return
-    from notification.models import Notification
-
     Notification.objects.create(
         user=order.responsable,
         title=_("Paiement logistique validé"),
@@ -205,8 +206,6 @@ def _assign_payment_task(order):
                 )
             }
         )
-    from notification.models import Notification
-
     order.paiement_assigne_a = membership.user
     Notification.objects.create(
         user=membership.user,
@@ -269,6 +268,7 @@ def get_logistics_stats(company_id):
             }
         )
 
+    # noinspection PyDictCreation
     stats = {
         "commandes_en_cours": active_count,
         "total_commandes": base.count(),
@@ -489,6 +489,7 @@ class LogisticsOrderDetailEditDeleteView(CompanyAccessMixin, APIView):
                     "lignes",
                     "lignes__client",
                     "lignes__article",
+                    "lignes__expected_emplacement",
                     "events",
                     "echeances_paiement",
                     "echeances_paiement__execution_enregistree_par",
@@ -660,7 +661,8 @@ class LogisticsOrderGlobalStatusUpdateView(CompanyAccessMixin, APIView):
             raise ValidationError(
                 {
                     "statut": _(
-                        "Le statut global est calculé automatiquement. Seuls Annulé et Rouvert peuvent être appliqués manuellement."
+                        "Le statut global est calculé automatiquement. Seuls Annulé "
+                        "et Rouvert peuvent être appliqués manuellement."
                     )
                 }
             )
@@ -734,6 +736,7 @@ class LogisticsProformaRequestView(CompanyAccessMixin, APIView):
                 "date_updated",
             ]
         )
+        activate_incoming(order)
         order.add_event(
             user=request.user,
             action="Demande de pro forma fournisseur",
@@ -791,6 +794,8 @@ class LogisticsLaunchStatusUpdateView(CompanyAccessMixin, APIView):
                     "date_updated",
                 ]
             )
+            if requested_status == "Terminée":
+                activate_incoming(order)
             order.add_event(
                 user=request.user,
                 action="Changement statut Commande & lancement",
@@ -1027,8 +1032,6 @@ class LogisticsPaymentEmailRetryView(CompanyAccessMixin, APIView):
                 "date_updated",
             ]
         )
-        from .tasks import queue_accounting_payment_email
-
         transaction.on_commit(
             lambda order_id=order.id, token=delivery_token: queue_accounting_payment_email(
                 order_id, token
@@ -1227,7 +1230,9 @@ class LogisticsPaymentValidateView(CompanyAccessMixin, APIView):
             _notify_logistics_responsible(
                 order,
                 _(
-                    "Le paiement du dossier %(reference)s a été validé par le Service Comptable. Le SWIFT / LC est disponible. Vous pouvez poursuivre le traitement de la commande."
+                    "Le paiement du dossier %(reference)s a été validé par le "
+                    "Service Comptable. Le SWIFT / LC est disponible. Vous pouvez "
+                    "poursuivre le traitement de la commande."
                 )
                 % {"reference": order.numero_commande},
             )
@@ -1263,7 +1268,8 @@ class LogisticsPaymentRejectView(CompanyAccessMixin, APIView):
             raise ValidationError(
                 {
                     "paiement": _(
-                        "Une échéance déjà commencée ne peut pas être supprimée. Poursuivez son traitement afin de conserver la traçabilité."
+                        "Une échéance déjà commencée ne peut pas être supprimée. "
+                        "Poursuivez son traitement afin de conserver la traçabilité."
                     )
                 }
             )
@@ -1375,8 +1381,6 @@ class LogisticsSwiftSentView(CompanyAccessMixin, APIView):
                 "date_updated",
             ]
         )
-        from .tasks import queue_supplier_payment_proof_email
-
         transaction.on_commit(
             lambda installment_id=installment.id, token=delivery_token: queue_supplier_payment_proof_email(
                 installment_id, token

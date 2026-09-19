@@ -10,7 +10,6 @@ from account.models import CustomUser
 from company.models import Company
 from logistique.models import LogisticsOrder, LogisticsPaymentInstallment
 
-
 DEMO_PREFIX = "DEMO-LOG-"
 
 
@@ -35,7 +34,11 @@ def build_demo_pdf(title):
             b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 420 144] "
             b"/Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>"
         ),
-        b"<< /Length " + str(len(stream)).encode() + b" >>\nstream\n" + stream + b"\nendstream",
+        b"<< /Length "
+        + str(len(stream)).encode()
+        + b" >>\nstream\n"
+        + stream
+        + b"\nendstream",
         b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
     ]
 
@@ -86,9 +89,15 @@ class Command(BaseCommand):
             raise CommandError("--orders must be at least 6 to exercise the charts.")
 
         company_qs = Company.objects.all().order_by("id")
-        company = company_qs.filter(id=company_id).first() if company_id else company_qs.first()
+        company = (
+            company_qs.filter(id=company_id).first()
+            if company_id
+            else company_qs.first()
+        )
         if not company:
-            raise CommandError("No company found. Create a company before seeding logistics data.")
+            raise CommandError(
+                "No company found. Create a company before seeding logistics data."
+            )
 
         if not options["keep_existing"]:
             deleted, _ = LogisticsOrder.objects.filter(
@@ -98,7 +107,9 @@ class Command(BaseCommand):
             self.stdout.write(f"Deleted {deleted} existing demo logistics rows.")
 
         responsible = (
-            CustomUser.objects.filter(memberships__company=company).order_by("id").first()
+            CustomUser.objects.filter(memberships__company=company)
+            .order_by("id")
+            .first()
             or CustomUser.objects.order_by("id").first()
         )
 
@@ -144,8 +155,12 @@ class Command(BaseCommand):
             status = statuses[index % len(statuses)]
             supplier = suppliers[index % len(suppliers)]
             is_done = status in {"Livraison client", "Clôture"}
-            is_payment_validated = statuses.index(status) >= statuses.index("Paiement effectué")
-            is_payment_requested = statuses.index(status) >= statuses.index("Paiement demandé")
+            is_payment_validated = statuses.index(status) >= statuses.index(
+                "Paiement effectué"
+            )
+            is_payment_requested = statuses.index(status) >= statuses.index(
+                "Paiement demandé"
+            )
 
             if index % 11 == 0:
                 payment_status = "Non demandé"
@@ -176,16 +191,26 @@ class Command(BaseCommand):
             vat = (purchase * Decimal("0.20")).quantize(Decimal("0.01"))
             local_delivery = Decimal("180.00") + Decimal((index % 3) * 90)
             other = Decimal("75.00") + Decimal((index % 7) * 35)
-            total = purchase + transport + transit + customs + vat + local_delivery + other
+            total = (
+                purchase + transport + transit + customs + vat + local_delivery + other
+            )
 
-            swift_file = ensure_demo_document(
-                f"logistique_documents/demo-swift-{index + 1:03d}.pdf",
-                f"{order_number} - SWIFT",
-            ) if payment_status == "Validé" and index % 3 != 0 else ""
-            original_docs = ensure_demo_document(
-                f"logistique_documents/demo-docs-{index + 1:03d}.pdf",
-                f"{order_number} - Documents originaux",
-            ) if status not in {"Documents originaux", "Transit"} or index % 2 == 0 else ""
+            swift_file = (
+                ensure_demo_document(
+                    f"logistique_documents/demo-swift-{index + 1:03d}.pdf",
+                    f"{order_number} - SWIFT",
+                )
+                if payment_status == "Validé" and index % 3 != 0
+                else ""
+            )
+            original_docs = (
+                ensure_demo_document(
+                    f"logistique_documents/demo-docs-{index + 1:03d}.pdf",
+                    f"{order_number} - Documents originaux",
+                )
+                if status not in {"Documents originaux", "Transit"} or index % 2 == 0
+                else ""
+            )
 
             order = LogisticsOrder.objects.create(
                 company=company,
@@ -209,9 +234,11 @@ class Command(BaseCommand):
                 montant_titre_importation=total,
                 devise_titre_importation="MAD",
                 date_titre_importation=created_date + timedelta(days=6),
-                date_validation_titre_importation=created_date + timedelta(days=10)
-                if statuses.index(status) >= statuses.index("Validation")
-                else None,
+                date_validation_titre_importation=(
+                    created_date + timedelta(days=10)
+                    if statuses.index(status) >= statuses.index("Validation")
+                    else None
+                ),
                 statut_titre_importation=(
                     "Titre d'import validé – En attente de paiement"
                     if is_payment_requested
@@ -221,25 +248,39 @@ class Command(BaseCommand):
                 statut_paiement=payment_status,
                 statut_banque_paiement=bank_payment_status,
                 statut_traitement_paiement=accounting_payment_status,
-                demande_paiement_envoyee_le=created_at + timedelta(days=12)
-                if is_payment_requested
-                else None,
-                demande_paiement_envoyee_par=responsible if is_payment_requested else None,
-                paiement_valide_le=created_at + timedelta(days=18)
-                if payment_status == "Validé"
-                else None,
+                demande_paiement_envoyee_le=(
+                    created_at + timedelta(days=12) if is_payment_requested else None
+                ),
+                demande_paiement_envoyee_par=(
+                    responsible if is_payment_requested else None
+                ),
+                paiement_valide_le=(
+                    created_at + timedelta(days=18)
+                    if payment_status == "Validé"
+                    else None
+                ),
                 paiement_valide_par=responsible if payment_status == "Validé" else None,
-                date_paiement=created_date + timedelta(days=18)
-                if payment_status == "Validé"
-                else None,
-                montant_paiement=total if payment_status == "Validé" else Decimal("0.00"),
-                reference_paiement=f"PAY-DEMO-{index + 1:03d}"
-                if payment_status == "Validé"
-                else "",
-                date_upload_swift=created_at + timedelta(days=20) if swift_file else None,
-                swift_envoye_fournisseur_le=created_at + timedelta(days=21)
-                if swift_file and statuses.index(status) >= statuses.index("Envoi SWIFT / Draft LC")
-                else None,
+                date_paiement=(
+                    created_date + timedelta(days=18)
+                    if payment_status == "Validé"
+                    else None
+                ),
+                montant_paiement=(
+                    total if payment_status == "Validé" else Decimal("0.00")
+                ),
+                reference_paiement=(
+                    f"PAY-DEMO-{index + 1:03d}" if payment_status == "Validé" else ""
+                ),
+                date_upload_swift=(
+                    created_at + timedelta(days=20) if swift_file else None
+                ),
+                swift_envoye_fournisseur_le=(
+                    created_at + timedelta(days=21)
+                    if swift_file
+                    and statuses.index(status)
+                    >= statuses.index("Envoi SWIFT / Draft LC")
+                    else None
+                ),
                 cout_achat=purchase,
                 cout_transport=transport,
                 frais_transit=transit,
@@ -280,7 +321,9 @@ class Command(BaseCommand):
                         if payment_status == "Validé"
                         else None
                     ),
-                    montant_paye=total if payment_status == "Validé" else Decimal("0.00"),
+                    montant_paye=(
+                        total if payment_status == "Validé" else Decimal("0.00")
+                    ),
                     reference_bancaire=(
                         f"PAY-DEMO-{index + 1:03d}"
                         if payment_status == "Validé"
@@ -302,6 +345,7 @@ class Command(BaseCommand):
 
         self.stdout.write(
             self.style.SUCCESS(
-                f"Seeded {len(created_orders)} demo logistics orders for company {company.id} ({company.raison_sociale})."
+                f"Seeded {len(created_orders)} demo logistics orders for "
+                f"company {company.id} ({company.raison_sociale})."
             )
         )

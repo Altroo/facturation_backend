@@ -8,6 +8,7 @@ from django.apps import apps
 from django.contrib.admin.sites import AdminSite
 from django.core import mail
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import RequestFactory
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
@@ -26,6 +27,12 @@ from .models import (
     LogisticsOrderEvent,
     LogisticsOrderProforma,
     LogisticsPaymentInstallment,
+)
+from .tasks import (
+    _claim_accounting_delivery,
+    deliver_accounting_payment_email,
+    deliver_supplier_payment_proof_email,
+    queue_accounting_payment_email,
 )
 
 pytestmark = pytest.mark.django_db
@@ -287,7 +294,7 @@ def test_create_logistics_order_inherits_supplier_and_all_source_lines(
     assert response.status_code == status.HTTP_201_CREATED
     assert response.data["created"] == 1
     order = LogisticsOrder.objects.get()
-    assert order.marque_id is None
+    assert getattr(order, "marque_id", None) is None
     assert order.lignes.count() == 2
     assert order.fournisseur == "Supplier One"
     assert order.fournisseur_email == "supplier@example.com"
@@ -628,7 +635,7 @@ def test_manager_records_proforma_request_and_completes_launch_step(
     create_logistics_order(
         api_client, logistics_company, logistics_user, logistics_proformas
     )
-    order = LogisticsOrder.objects.order_by("id").first()
+    order = LogisticsOrder.objects.order_by("id").get()
     follow_up = timezone.localdate() + timedelta(days=3)
 
     response = api_client.post(
@@ -742,7 +749,7 @@ def test_supplier_proforma_review_requires_completed_launch_step(
     create_logistics_order(
         api_client, logistics_company, logistics_user, logistics_proformas
     )
-    order = LogisticsOrder.objects.order_by("id").first()
+    order = LogisticsOrder.objects.order_by("id").get()
 
     response = api_client.post(
         reverse("logistique:logistique-review-supplier-proforma", args=[order.id]),
@@ -760,7 +767,7 @@ def test_supplier_proforma_correction_requires_a_documented_variance(
     create_logistics_order(
         api_client, logistics_company, logistics_user, logistics_proformas
     )
-    order = LogisticsOrder.objects.order_by("id").first()
+    order = LogisticsOrder.objects.order_by("id").get()
     order.statut_commande_lancement = "Terminée"
     order.proforma_demandee_le = timezone.now()
     order.save(update_fields=["statut_commande_lancement", "proforma_demandee_le"])
@@ -782,7 +789,7 @@ def test_supplier_proforma_review_requires_positive_amount_and_file(
     create_logistics_order(
         api_client, logistics_company, logistics_user, logistics_proformas
     )
-    order = LogisticsOrder.objects.order_by("id").first()
+    order = LogisticsOrder.objects.order_by("id").get()
     order.statut_commande_lancement = "Terminée"
     order.proforma_demandee_le = timezone.now()
     order.save(update_fields=["statut_commande_lancement", "proforma_demandee_le"])
@@ -812,7 +819,7 @@ def test_supplier_proforma_review_rejects_unsupported_file_type(
     create_logistics_order(
         api_client, logistics_company, logistics_user, logistics_proformas
     )
-    order = LogisticsOrder.objects.order_by("id").first()
+    order = LogisticsOrder.objects.order_by("id").get()
     order.statut_commande_lancement = "Terminée"
     order.proforma_demandee_le = timezone.now()
     order.save(update_fields=["statut_commande_lancement", "proforma_demandee_le"])
@@ -837,7 +844,7 @@ def test_supplier_proforma_correction_sets_external_waiting_status(
     create_logistics_order(
         api_client, logistics_company, logistics_user, logistics_proformas
     )
-    order = LogisticsOrder.objects.order_by("id").first()
+    order = LogisticsOrder.objects.order_by("id").get()
     order.statut_commande_lancement = "Terminée"
     order.proforma_demandee_le = timezone.now()
     order.save(update_fields=["statut_commande_lancement", "proforma_demandee_le"])
@@ -869,7 +876,7 @@ def test_supplier_proforma_validation_completes_second_step(
     create_logistics_order(
         api_client, logistics_company, logistics_user, logistics_proformas
     )
-    order = LogisticsOrder.objects.order_by("id").first()
+    order = LogisticsOrder.objects.order_by("id").get()
     order.statut_commande_lancement = "Terminée"
     order.proforma_demandee_le = timezone.now()
     order.save(update_fields=["statut_commande_lancement", "proforma_demandee_le"])
@@ -921,7 +928,7 @@ def test_validated_proforma_fields_cannot_be_changed_by_generic_update(
     create_logistics_order(
         api_client, logistics_company, logistics_user, logistics_proformas
     )
-    order = LogisticsOrder.objects.order_by("id").first()
+    order = LogisticsOrder.objects.order_by("id").get()
     validation_response = complete_supplier_proforma_step(api_client, order)
     assert validation_response.status_code == status.HTTP_200_OK
 
@@ -954,7 +961,7 @@ def test_cancelled_order_blocks_launch_and_proforma_workflows(
     create_logistics_order(
         api_client, logistics_company, logistics_user, logistics_proformas
     )
-    order = LogisticsOrder.objects.order_by("id").first()
+    order = LogisticsOrder.objects.order_by("id").get()
     order.statut_global = "Annulé"
     order.save(update_fields=["statut_global"])
 
@@ -993,7 +1000,7 @@ def test_global_status_changes_require_specific_permission(
     create_logistics_order(
         api_client, logistics_company, logistics_user, logistics_proformas
     )
-    order = LogisticsOrder.objects.order_by("id").first()
+    order = LogisticsOrder.objects.order_by("id").get()
     Membership.objects.filter(user=logistics_user, company=logistics_company).update(
         can_change_document_status=False
     )
@@ -1158,7 +1165,7 @@ def test_part_three_full_payment_flow_matches_docx(
     create_logistics_order(
         api_client, logistics_company, logistics_user, logistics_proformas
     )
-    order = LogisticsOrder.objects.first()
+    order = LogisticsOrder.objects.get()
 
     proforma_response = complete_supplier_proforma_step(api_client, order)
     assert proforma_response.status_code == status.HTTP_200_OK
@@ -1201,7 +1208,17 @@ def test_part_three_full_payment_flow_matches_docx(
         f"/dashboard/logistique/{order.id}?company_id={order.company_id}"
         in accounting_email.body
     )
-    assert len(accounting_email.attachments) == 2
+    assert len(accounting_email.attachments) == 1
+    attachment = accounting_email.attachments[0]
+    expected_filename = (
+        f"demande_paiement_{order.numero_commande.replace('/', '_')}.pdf"
+    )
+    assert attachment[0] == expected_filename
+    assert attachment[1].startswith(b"%PDF")
+    assert attachment[2] == "application/pdf"
+    assert (
+        "fiche de demande de paiement générée par Facturation" in accounting_email.body
+    )
     assert comptable_user.notifications.filter(
         title="Effectuer le paiement fournisseur", object_id=order.id
     ).exists()
@@ -1246,7 +1263,7 @@ def test_part_three_full_payment_flow_matches_docx(
     assert order.statut_banque_paiement == "Exécuté"
     assert order.statut_traitement_paiement == "Paiement validé"
     assert order.solde_restant == Decimal("0")
-    assert order.paiement_assigne_a is None
+    assert getattr(order, "paiement_assigne_a", None) is None
     assert order.paiement_valide_par == comptable_user
     assert order.reference_paiement == "SWIFT-001"
     assert order.devise_paiement == "EUR"
@@ -1308,7 +1325,7 @@ def test_payment_request_requires_a_complete_validated_import_title(
     create_logistics_order(
         api_client, logistics_company, logistics_user, logistics_proformas
     )
-    order = LogisticsOrder.objects.first()
+    order = LogisticsOrder.objects.get()
     assert (
         complete_supplier_proforma_step(api_client, order).status_code
         == status.HTTP_200_OK
@@ -1514,7 +1531,7 @@ def test_partial_payment_keeps_remaining_installment_and_balance(
     create_logistics_order(
         api_client, logistics_company, logistics_user, logistics_proformas
     )
-    order = LogisticsOrder.objects.first()
+    order = LogisticsOrder.objects.get()
     assert complete_supplier_proforma_step(api_client, order).status_code == 200
     prepare_valid_import_title(order)
     assert (
@@ -1581,7 +1598,7 @@ def test_accounting_can_block_for_correction_and_owner_can_resubmit(
     create_logistics_order(
         api_client, logistics_company, logistics_user, logistics_proformas
     )
-    order = LogisticsOrder.objects.first()
+    order = LogisticsOrder.objects.get()
     assert complete_supplier_proforma_step(api_client, order).status_code == 200
     prepare_valid_import_title(order)
     request_url = reverse("logistique:logistique-request-payment", args=[order.id])
@@ -1604,7 +1621,7 @@ def test_accounting_can_block_for_correction_and_owner_can_resubmit(
     assert order.statut_paiement == "Non demandé"
     assert order.statut_banque_paiement == "Bloqué"
     assert order.statut_titre_importation == "À préparer"
-    assert order.paiement_assigne_a is None
+    assert getattr(order, "paiement_assigne_a", None) is None
 
     edit_response = api_client.put(
         reverse("logistique:logistique-detail", args=[order.id]),
@@ -1628,14 +1645,15 @@ def test_logistics_admin_keeps_supplier_snapshot_readonly(logistics_company):
         fournisseur="Supplier One",
     )
     model_admin = LogisticsOrderAdmin(LogisticsOrder, AdminSite())
+    request = RequestFactory().get("/")
 
-    readonly_fields = model_admin.get_readonly_fields(None, order)
+    readonly_fields = model_admin.get_readonly_fields(request, order)
     assert "fournisseur" in readonly_fields
     assert "statut_paiement" in readonly_fields
     assert "paiement_assigne_a" in readonly_fields
 
     order.statut_paiement = "En attente"
-    assert "titre_importation_file" in model_admin.get_readonly_fields(None, order)
+    assert "titre_importation_file" in model_admin.get_readonly_fields(request, order)
 
 
 def test_legacy_payment_data_migration_preserves_currency_and_proof(
@@ -1672,8 +1690,6 @@ def test_legacy_payment_data_migration_preserves_currency_and_proof(
     migration = importlib.import_module(
         "logistique.migrations.0006_historicallogisticsorder_paiement_assigne_a_and_more"
     )
-
-    from django.apps import apps
 
     migration.migrate_legacy_payment_workflow(apps, None)
 
@@ -1717,8 +1733,6 @@ def test_email_delivery_data_migration_preserves_legacy_actions_and_known_addres
         "logistique.migrations.0007_historicallogisticsorder_demande_paiement_email_destinataires_and_more"
     )
 
-    from django.apps import apps
-
     migration.preserve_legacy_delivery_records(apps, None)
 
     order.refresh_from_db()
@@ -1754,8 +1768,6 @@ def test_queue_token_migration_makes_preexisting_pending_rows_retryable(
         "logistique.migrations.0009_historicallogisticsorder_demande_paiement_email_file_token_and_more"
     )
 
-    from django.apps import apps
-
     migration.make_pre_token_queued_deliveries_retryable(apps, None)
 
     order.refresh_from_db()
@@ -1774,7 +1786,7 @@ def test_payment_request_cannot_be_replayed_or_reopen_completed_state(
     create_logistics_order(
         api_client, logistics_company, logistics_user, logistics_proformas
     )
-    order = LogisticsOrder.objects.first()
+    order = LogisticsOrder.objects.get()
     assert (
         complete_supplier_proforma_step(api_client, order).status_code
         == status.HTTP_200_OK
@@ -1851,8 +1863,8 @@ def test_failed_accounting_email_can_be_requeued_by_order_responsible(
         demande_paiement_email_file_token="broker-token",
         demande_paiement_email_mis_en_file_le=timezone.now(),
     )
-    from .tasks import deliver_accounting_payment_email, queue_accounting_payment_email
-
+    # Celery adds ``delay`` to the task wrapper dynamically.
+    # noinspection PyUnresolvedReferences
     with patch.object(
         deliver_accounting_payment_email,
         "delay",
@@ -1863,6 +1875,7 @@ def test_failed_accounting_email_can_be_requeued_by_order_responsible(
     assert order.demande_paiement_email_statut == "Échec"
     assert "broker unavailable" in order.demande_paiement_email_erreur
 
+    # noinspection PyUnresolvedReferences
     with patch.object(deliver_accounting_payment_email, "delay") as delay_mock:
         with django_capture_on_commit_callbacks(execute=True):
             response = api_client.post(
@@ -1933,8 +1946,7 @@ def test_stale_accounting_email_claim_can_be_requeued(
             - timedelta(seconds=1)
         ),
     )
-    from .tasks import deliver_accounting_payment_email
-
+    # noinspection PyUnresolvedReferences
     with patch.object(deliver_accounting_payment_email, "delay") as delay_mock:
         with django_capture_on_commit_callbacks(execute=True):
             response = api_client.post(
@@ -1954,8 +1966,6 @@ def test_stale_accounting_email_claim_can_be_requeued(
 def test_accounting_delivery_storage_failure_is_retryable_and_refreshes_recipients(
     logistics_company, logistics_user, comptable_user
 ):
-    from .tasks import deliver_accounting_payment_email
-
     order = LogisticsOrder.objects.create(
         company=logistics_company,
         numero_commande="LOG-STORAGE-FAIL",
@@ -1972,7 +1982,8 @@ def test_accounting_delivery_storage_failure_is_retryable_and_refreshes_recipien
     )
 
     with patch(
-        "logistique.tasks._attach_file", side_effect=OSError("storage unavailable")
+        "logistique.tasks.build_accounting_payment_pdf",
+        side_effect=OSError("storage unavailable"),
     ):
         with pytest.raises(OSError, match="storage unavailable"):
             deliver_accounting_payment_email.run(order.id, "accounting-token")
@@ -1988,8 +1999,6 @@ def test_accounting_delivery_storage_failure_is_retryable_and_refreshes_recipien
 def test_supplier_delivery_storage_failure_is_retryable(
     logistics_company, logistics_user
 ):
-    from .tasks import deliver_supplier_payment_proof_email
-
     order = LogisticsOrder.objects.create(
         company=logistics_company,
         numero_commande="LOG-SUP-STORAGE-FAIL",
@@ -2030,8 +2039,6 @@ def test_supplier_delivery_storage_failure_is_retryable(
 def test_publish_failure_cannot_clobber_a_live_delivery_claim(
     logistics_company, logistics_user
 ):
-    from .tasks import deliver_accounting_payment_email, queue_accounting_payment_email
-
     order = LogisticsOrder.objects.create(
         company=logistics_company,
         numero_commande="LOG-PUBLISH-RACE",
@@ -2043,6 +2050,7 @@ def test_publish_failure_cannot_clobber_a_live_delivery_claim(
         demande_paiement_email_prise_en_charge_le=timezone.now(),
     )
 
+    # noinspection PyUnresolvedReferences
     with patch.object(
         deliver_accounting_payment_email,
         "delay",
@@ -2058,8 +2066,6 @@ def test_publish_failure_cannot_clobber_a_live_delivery_claim(
 def test_fresh_delivery_lease_is_never_reclaimed_from_same_task_id(
     logistics_company, logistics_user
 ):
-    from .tasks import _claim_accounting_delivery
-
     order = LogisticsOrder.objects.create(
         company=logistics_company,
         numero_commande="LOG-FRESH-LEASE",
@@ -2081,8 +2087,6 @@ def test_fresh_delivery_lease_is_never_reclaimed_from_same_task_id(
 def test_delivery_claim_revalidates_current_business_state(
     logistics_company, logistics_user
 ):
-    from .tasks import _claim_accounting_delivery
-
     order = LogisticsOrder.objects.create(
         company=logistics_company,
         numero_commande="LOG-INVALID-CLAIM",

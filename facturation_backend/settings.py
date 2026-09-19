@@ -72,6 +72,7 @@ INSTALLED_APPS = [
     "logistique.apps.LogistiqueConfig",
     "dashboard.apps.DashboardConfig",
     "notification.apps.NotificationConfig",
+    "stock.apps.StockConfig",
     "axes",
 ]
 

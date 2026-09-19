@@ -1,4 +1,5 @@
 from decimal import Decimal, ROUND_HALF_UP
+from typing import Iterable
 
 from django.db import models, transaction
 from django.db.models.query import QuerySet
@@ -162,9 +163,9 @@ class BaseDeviFactureDocument(models.Model):
         (e.g. ``recalc_totals``, conversions) never trigger N+1 queries
         when they access ``line.article``.
         """
-        related = getattr(self, "lignes", None)
+        related: models.Manager | None = getattr(self, "lignes", None)
         if related is not None:
-            return related.select_related("article").all()
+            return related.all().select_related("article")
         return type(self).objects.none()
 
     def recalc_totals(self):
@@ -237,7 +238,7 @@ class BaseDeviFactureDocument(models.Model):
 
         Skips recalc if update_fields is provided and doesn't touch financial fields.
         """
-        update_fields = kwargs.get("update_fields")
+        update_fields: Iterable[str] | None = kwargs.get("update_fields")
         # Fields that affect total calculations
         financial_fields = {"remise", "remise_type"}
 
@@ -245,7 +246,7 @@ class BaseDeviFactureDocument(models.Model):
         needs_recalc = True
         if update_fields is not None:
             # If update_fields is specified and doesn't include financial fields, skip recalc
-            needs_recalc = bool(financial_fields & set(update_fields))
+            needs_recalc = bool(financial_fields.intersection(update_fields))
 
         if self.pk is None:
             # First save to get PK (needed for lines relationship)
@@ -350,7 +351,10 @@ def create_line_signal_receiver(parent_field_name):
     """
 
     def handler(sender, instance, **kwargs):
-        parent = getattr(instance, parent_field_name, None)
+        del sender, kwargs
+        parent: BaseDeviFactureDocument | None = getattr(
+            instance, parent_field_name, None
+        )
         if parent is None or not getattr(parent, "pk", None):
             return
         # Allow callers to suppress per-line recalc during bulk operations

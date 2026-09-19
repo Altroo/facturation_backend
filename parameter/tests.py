@@ -67,11 +67,10 @@ class BaseAPITest:
         assert response.status_code == status.HTTP_201_CREATED
         assert self.model.objects.filter(**{self.field: payload[self.field]}).exists()
 
-    def test_get_detail(self):
+    def test_get_detail_is_not_available(self):
         url = reverse(f"parameter:{self.basename}-detail", args=[self.obj.id])
         response = self.client.get(url)
-        assert response.status_code == status.HTTP_200_OK
-        assert response.data[self.field] == getattr(self.obj, self.field)
+        assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
 
     def test_update(self):
         url = reverse(f"parameter:{self.basename}-detail", args=[self.obj.id])
@@ -101,7 +100,6 @@ class BaseAPITest:
             ).status_code
             == status.HTTP_401_UNAUTHORIZED
         )
-        assert unauth.get(detail_url).status_code == status.HTTP_401_UNAUTHORIZED
         assert (
             unauth.put(
                 detail_url, {self.field: "Y", "company": self.company.id}
@@ -112,7 +110,6 @@ class BaseAPITest:
 
     def test_detail_404(self):
         url = reverse(f"parameter:{self.basename}-detail", args=[999999])
-        assert self.client.get(url).status_code == status.HTTP_404_NOT_FOUND
         assert self.client.delete(url).status_code == status.HTTP_404_NOT_FOUND
 
     def test_duplicate_name(self):

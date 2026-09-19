@@ -11,6 +11,7 @@ from article.models import Article
 from bon_de_livraison.models import BonDeLivraison, BonDeLivraisonLine
 from client.models import Client
 from company.models import Company
+from dashboard.models import MonthlyObjectives
 from dashboard.views import make_aware_datetime_end, make_aware_datetime_start
 from devi.models import Devi, DeviLine
 from facture_client.models import FactureClient, FactureClientLine
@@ -199,6 +200,75 @@ def authenticated_client(api_client, user, membership):
     """Returns an authenticated API client with user membership."""
     api_client.force_authenticate(user=user)
     return api_client
+
+
+class TestMonthlyObjectivesSettingsEndpoints:
+    """Tests for the objective-setting methods used by the settings screen."""
+
+    def test_create_get_by_company_and_update(
+        self, authenticated_client, company
+    ):
+        create_response = authenticated_client.post(
+            "/api/dashboard/objectives/",
+            {
+                "company": company.id,
+                "objectif_ca": "10000.00",
+                "objectif_factures": 50,
+                "objectif_conversion": "25.00",
+            },
+        )
+        assert create_response.status_code == status.HTTP_201_CREATED
+
+        objective_id = create_response.data["id"]
+        company_response = authenticated_client.get(
+            f"/api/dashboard/objectives/by-company/{company.id}/"
+        )
+        assert company_response.status_code == status.HTTP_200_OK
+        assert company_response.data["id"] == objective_id
+
+        update_response = authenticated_client.put(
+            f"/api/dashboard/objectives/{objective_id}/",
+            {
+                "company": company.id,
+                "objectif_ca": "20000.00",
+                "objectif_factures": 75,
+                "objectif_conversion": "30.00",
+            },
+        )
+        assert update_response.status_code == status.HTTP_200_OK
+        objectives = MonthlyObjectives.objects.get(pk=objective_id)
+        assert objectives.objectif_ca == Decimal("20000.00")
+
+    def test_unused_objective_methods_are_not_available(
+        self, authenticated_client, company
+    ):
+        objectives = MonthlyObjectives.objects.create(company=company)
+
+        assert (
+            authenticated_client.get("/api/dashboard/objectives/").status_code
+            == status.HTTP_405_METHOD_NOT_ALLOWED
+        )
+        detail_url = f"/api/dashboard/objectives/{objectives.id}/"
+        assert (
+            authenticated_client.get(detail_url).status_code
+            == status.HTTP_405_METHOD_NOT_ALLOWED
+        )
+        assert (
+            authenticated_client.patch(detail_url, {}).status_code
+            == status.HTTP_405_METHOD_NOT_ALLOWED
+        )
+        assert (
+            authenticated_client.delete(detail_url).status_code
+            == status.HTTP_405_METHOD_NOT_ALLOWED
+        )
+
+    def test_get_by_company_returns_not_found_without_settings(
+        self, authenticated_client, company
+    ):
+        response = authenticated_client.get(
+            f"/api/dashboard/objectives/by-company/{company.id}/"
+        )
+        assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
 class TestFinancialOverviewEndpoints:

@@ -1,3 +1,6 @@
+from typing import Any, cast
+from unittest.mock import AsyncMock, MagicMock
+
 import pytest
 from channels.db import database_sync_to_async
 from channels.testing import WebsocketCommunicator
@@ -5,7 +8,6 @@ from django.core.cache import cache
 from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import AccessToken
-from unittest.mock import AsyncMock, MagicMock
 
 from facturation_backend.asgi import application
 from ws.models import WsMaintenanceState
@@ -34,6 +36,8 @@ class TestWebSocketConsumer:
         generate_token = database_sync_to_async(_generate_token_sync)
 
         self.user = await create_user()
+        # database_sync_to_async preserves this local callable's argument at runtime.
+        # noinspection PyTypeChecker
         self.token = await generate_token(self.user)
 
     async def test_echo_message(self):
@@ -69,11 +73,12 @@ class TestWebSocketConsumer:
 @pytest.mark.django_db
 def test_get_maintenance_view_is_public_and_not_throttled(settings):
     cache.clear()
+    rest_framework_config = cast(dict[str, Any], settings.REST_FRAMEWORK)
     settings.REST_FRAMEWORK = {
-        **settings.REST_FRAMEWORK,
+        **rest_framework_config,
         "DEFAULT_THROTTLE_CLASSES": ["rest_framework.throttling.AnonRateThrottle"],
         "DEFAULT_THROTTLE_RATES": {
-            **settings.REST_FRAMEWORK.get("DEFAULT_THROTTLE_RATES", {}),
+            **rest_framework_config.get("DEFAULT_THROTTLE_RATES", {}),
             "anon": "1/minute",
         },
     }
@@ -146,7 +151,7 @@ class TestSimpleJwtTokenAuthMiddlewareExtra:
         """Test handling of malformed query string."""
         inner = AsyncMock()
         middleware = SimpleJwtTokenAuthMiddleware(inner)
-        scope = {"type": "websocket", "query_string": b"\xff\xfe"}
+        scope = cast(Any, {"type": "websocket", "query_string": b"\xff\xfe"})
         send = AsyncMock()
 
         await middleware(scope, AsyncMock(), send)
@@ -160,7 +165,7 @@ class TestSimpleJwtTokenAuthMiddlewareExtra:
         """Test handling of missing token."""
         inner = AsyncMock()
         middleware = SimpleJwtTokenAuthMiddleware(inner)
-        scope = {"type": "websocket", "query_string": b""}
+        scope = cast(Any, {"type": "websocket", "query_string": b""})
         send = AsyncMock()
 
         await middleware(scope, AsyncMock(), send)
@@ -173,7 +178,10 @@ class TestSimpleJwtTokenAuthMiddlewareExtra:
         """Test handling of invalid token."""
         inner = AsyncMock()
         middleware = SimpleJwtTokenAuthMiddleware(inner)
-        scope = {"type": "websocket", "query_string": b"token=invalid_jwt_token"}
+        scope = cast(
+            Any,
+            {"type": "websocket", "query_string": b"token=invalid_jwt_token"},
+        )
         send = AsyncMock()
 
         await middleware(scope, AsyncMock(), send)

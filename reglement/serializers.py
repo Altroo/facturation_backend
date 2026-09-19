@@ -301,10 +301,11 @@ class ReglementUpdateSerializer(ReglementClientNameMixin, serializers.ModelSeria
         Also validate that facture_client has an allowed status.
         """
         # Get facture_client from data or instance
+        instance: Reglement | None = self.instance
         facture_client = attrs.get(
-            "facture_client", self.instance.facture_client if self.instance else None
+            "facture_client", instance.facture_client if instance else None
         )
-        montant = attrs.get("montant", self.instance.montant if self.instance else None)
+        montant = attrs.get("montant", instance.montant if instance else None)
 
         if facture_client:
             # Validate facture status
@@ -324,7 +325,7 @@ class ReglementUpdateSerializer(ReglementClientNameMixin, serializers.ModelSeria
 
             if montant:
                 # Exclude current reglement from calculation when updating
-                exclude_id = self.instance.id if self.instance else None
+                exclude_id = instance.id if instance else None
                 reste_a_payer = Reglement.get_reste_a_payer(facture_client, exclude_id)
 
                 if montant > reste_a_payer:

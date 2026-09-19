@@ -4,6 +4,7 @@ from django.db import transaction
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
+from bon_de_livraison.models import BonDeLivraison
 from core.serializers import (
     BaseCreateSerializer,
     BaseDetailUpdateSerializer,
@@ -12,6 +13,9 @@ from core.serializers import (
     validate_line_currency,
     update_document_devise_on_first_line,
 )
+from facture_avoir.models import FactureAvoir
+from facture_client.models import FactureClient
+from logistique.models import LogisticsOrder
 from .models import FactureProForma, FactureProFormaLine
 
 
@@ -28,14 +32,8 @@ def _fill_blank_supplier_snapshot(document, supplier, supplier_email):
         document.save(update_fields=[*updated_fields, "date_updated"])
 
 
-def _backfill_blank_descendant_supplier_snapshots(
-    proforma, supplier, supplier_email
-):
+def _backfill_blank_descendant_supplier_snapshots(proforma, supplier, supplier_email):
     """Remediate legacy conversions made before supplier data was entered."""
-    from bon_de_livraison.models import BonDeLivraison
-    from facture_avoir.models import FactureAvoir
-    from facture_client.models import FactureClient
-
     factures = FactureClient.objects.select_for_update().filter(
         source_proforma=proforma
     )
@@ -44,9 +42,7 @@ def _backfill_blank_descendant_supplier_snapshots(
         for bon_livraison in BonDeLivraison.objects.select_for_update().filter(
             source_facture_client=facture
         ):
-            _fill_blank_supplier_snapshot(
-                bon_livraison, supplier, supplier_email
-            )
+            _fill_blank_supplier_snapshot(bon_livraison, supplier, supplier_email)
         for avoir in FactureAvoir.objects.select_for_update().filter(
             facture_origine=facture
         ):
@@ -75,9 +71,9 @@ class FactureProformaListSerializer(BaseListSerializer):
 
     @staticmethod
     def _get_converted_facture(obj):
-        prefetched = getattr(obj, "_prefetched_objects_cache", {}).get(
-            "converted_factures"
-        )
+        prefetched: list[FactureClient] | None = getattr(
+            obj, "_prefetched_objects_cache", {}
+        ).get("converted_factures")
         if prefetched is not None:
             return prefetched[0] if prefetched else None
         return obj.converted_factures.only("id", "numero_facture").first()
@@ -200,10 +196,11 @@ class FactureProformaSerializer(BaseCreateSerializer):
         source="source_devis.numero_devis", read_only=True
     )
 
-    def _get_converted_facture(self, obj):
-        prefetched = getattr(obj, "_prefetched_objects_cache", {}).get(
-            "converted_factures"
-        )
+    @staticmethod
+    def _get_converted_facture(obj):
+        prefetched: list[FactureClient] | None = getattr(
+            obj, "_prefetched_objects_cache", {}
+        ).get("converted_factures")
         if prefetched is not None:
             return prefetched[0] if prefetched else None
         return obj.converted_factures.only("id", "numero_facture").first()
@@ -306,9 +303,9 @@ class FactureProformaDetailSerializer(BaseDetailUpdateSerializer):
 
     @staticmethod
     def _get_converted_facture(obj):
-        prefetched = getattr(obj, "_prefetched_objects_cache", {}).get(
-            "converted_factures"
-        )
+        prefetched: list[FactureClient] | None = getattr(
+            obj, "_prefetched_objects_cache", {}
+        ).get("converted_factures")
         if prefetched is not None:
             return prefetched[0] if prefetched else None
         return obj.converted_factures.only("id", "numero_facture").first()
@@ -332,11 +329,20 @@ class FactureProformaDetailSerializer(BaseDetailUpdateSerializer):
 
     def validate(self, attrs):
         attrs = super().validate(attrs)
-        supplier = str(attrs.get("fournisseur", self.instance.fournisseur) or "").strip()
-        supplier_email = str(
-            attrs.get("fournisseur_email", self.instance.fournisseur_email) or ""
+        instance: FactureProForma | None = self.instance
+        supplier = str(
+            attrs.get("fournisseur", instance.fournisseur if instance else "") or ""
         ).strip()
-        effective_status = attrs.get("statut", self.instance.statut)
+        supplier_email = str(
+            attrs.get(
+                "fournisseur_email",
+                instance.fournisseur_email if instance else "",
+            )
+            or ""
+        ).strip()
+        effective_status = attrs.get(
+            "statut", instance.statut if instance else "Brouillon"
+        )
         if effective_status == "Accepté" and not supplier:
             raise serializers.ValidationError(
                 {
@@ -346,10 +352,11 @@ class FactureProformaDetailSerializer(BaseDetailUpdateSerializer):
                 }
             )
         if (
-            self.instance.logistique_links.exists()
+            instance
+            and instance.logistique_links.exists()
             and "fournisseur" in attrs
-            and (self.instance.fournisseur or "").strip()
-            and supplier != (self.instance.fournisseur or "").strip()
+            and (instance.fournisseur or "").strip()
+            and supplier != (instance.fournisseur or "").strip()
         ):
             raise serializers.ValidationError(
                 {
@@ -363,15 +370,19 @@ class FactureProformaDetailSerializer(BaseDetailUpdateSerializer):
         return attrs
 
     @transaction.atomic
-    def update(self, instance, validated_data):
+    def update(self, instance: FactureProForma, validated_data):
         previous_supplier = (instance.fournisseur or "").strip()
         previous_supplier_email = (instance.fournisseur_email or "").strip()
-        supplier = str(validated_data.get("fournisseur", previous_supplier) or "").strip()
+        supplier = str(
+            validated_data.get("fournisseur", previous_supplier) or ""
+        ).strip()
         supplier_email = str(
             validated_data.get("fournisseur_email", previous_supplier_email) or ""
         ).strip()
         linked_order_ids = []
-        if (not previous_supplier and supplier) or supplier_email != previous_supplier_email:
+        if (
+            not previous_supplier and supplier
+        ) or supplier_email != previous_supplier_email:
             linked_order_ids = list(
                 instance.logistique_links.values_list("commande_id", flat=True)
             )
@@ -386,8 +397,6 @@ class FactureProformaDetailSerializer(BaseDetailUpdateSerializer):
             )
 
         if linked_order_ids:
-            from logistique.models import LogisticsOrder
-
             request = self.context.get("request")
             for order in LogisticsOrder.objects.filter(id__in=linked_order_ids):
                 old_supplier = order.fournisseur

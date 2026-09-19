@@ -117,6 +117,11 @@ class SSOExchangeView(APIView):
         refresh = RefreshToken.for_user(user)
         access = refresh.access_token
         now = timezone.now()
+        # Simple JWT's token classes implement __str__ dynamically.
+        # noinspection PyStringConversionWithoutDunderMethod
+        access_value = str(access)
+        # noinspection PyStringConversionWithoutDunderMethod
+        refresh_value = str(refresh)
         return Response(
             {
                 "user": {
@@ -125,8 +130,8 @@ class SSOExchangeView(APIView):
                     "first_name": user.first_name,
                     "last_name": user.last_name,
                 },
-                "access": str(access),
-                "refresh": str(refresh),
+                "access": access_value,
+                "refresh": refresh_value,
                 "access_expiration": (
                     now + jwt_settings.ACCESS_TOKEN_LIFETIME
                 ).isoformat(),

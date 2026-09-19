@@ -1,7 +1,7 @@
 from typing import cast
 
 from django.utils.translation import gettext_lazy as _
-from rest_framework import viewsets, permissions
+from rest_framework import mixins, permissions, viewsets
 from rest_framework.exceptions import PermissionDenied
 
 from account.models import Membership, CustomUser
@@ -27,10 +27,16 @@ from .serializers import (
 )
 
 
-class BaseModelViewSet(viewsets.ModelViewSet):
+class BaseModelViewSet(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet,
+):
     """
     Base ViewSet with common configuration.
-    Provides list, create, retrieve, update, and delete actions.
+    Provides list, create, update, and delete actions.
     Filters by company_id query parameter.
 
     Permissions:
@@ -44,7 +50,10 @@ class BaseModelViewSet(viewsets.ModelViewSet):
     pagination_class = None
 
     def get_queryset(self):
-        qs = self.queryset.order_by("-id")
+        queryset = self.queryset
+        if queryset is None:
+            raise AssertionError(f"{type(self).__name__} must define queryset")
+        qs = queryset.order_by("-id")
         company_id = self.request.query_params.get("company_id")
         if company_id:
             qs = qs.filter(company_id=company_id)

@@ -131,6 +131,7 @@ class LogisticsOrderAdmin(SimpleHistoryAdmin):
 
     def get_readonly_fields(self, request, obj=None):
         fields = list(super().get_readonly_fields(request, obj))
+        # noinspection PyUnresolvedReferences
         if obj and obj.statut_paiement != "Non demandé":
             fields.extend(
                 [
@@ -144,6 +145,7 @@ class LogisticsOrderAdmin(SimpleHistoryAdmin):
                 ]
             )
         return tuple(dict.fromkeys(fields))
+
     list_display = (
         "numero_commande",
         "company",

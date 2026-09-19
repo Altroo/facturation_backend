@@ -1,12 +1,25 @@
 import logging
 
 from asgiref.sync import async_to_sync
+from channels.exceptions import ChannelFull
 from channels.layers import get_channel_layer
+from django.db import DatabaseError
 from django.utils.translation import gettext as _
 
-from core.constants import ROLE_CAISSIER
-from notification.models import Notification, NotificationPreference
+# redis is pinned in requirements.txt; PyCharm does not map this submodule to it.
+# noinspection PyPackageRequirements
+from redis.exceptions import RedisError
+
 from account.models import Membership
+from bon_de_livraison.models import BonDeLivraison
+from core.constants import ROLE_CAISSIER
+from devi.models import Devi
+from facture_avoir.models import FactureAvoir
+from facture_client.models import FactureClient
+from facture_proforma.models import FactureProForma
+from logistique.models import LogisticsOrder
+from notification.models import Notification, NotificationPreference
+from reglement.models import Reglement
 
 logger = logging.getLogger(__name__)
 
@@ -14,6 +27,7 @@ NOTIFICATION_TARGET_ROUTES = {
     "overdue_invoice": "facture-client",
     "expiring_quote": "devis",
     "uninvoiced_bdl": "bon-de-livraison",
+    "low_stock": "stock",
 }
 
 DOCUMENT_TARGET_ROUTES = {
@@ -24,6 +38,16 @@ DOCUMENT_TARGET_ROUTES = {
     "FactureAvoir": "facture-avoir",
     "Reglement": "reglements",
     "LogisticsOrder": "logistique",
+}
+
+DOCUMENT_ROUTE_MODELS = {
+    "devis": Devi,
+    "facture-client": FactureClient,
+    "facture-pro-forma": FactureProForma,
+    "bon-de-livraison": BonDeLivraison,
+    "facture-avoir": FactureAvoir,
+    "reglements": Reglement,
+    "logistique": LogisticsOrder,
 }
 
 DOCUMENT_LABEL_TARGET_ROUTES = [
@@ -70,28 +94,7 @@ def _get_document_company_id(document):
 
 
 def _get_model_for_route(route: str):
-    if route == "devis":
-        from devi.models import Devi
-        return Devi
-    if route == "facture-client":
-        from facture_client.models import FactureClient
-        return FactureClient
-    if route == "facture-pro-forma":
-        from facture_proforma.models import FactureProForma
-        return FactureProForma
-    if route == "bon-de-livraison":
-        from bon_de_livraison.models import BonDeLivraison
-        return BonDeLivraison
-    if route == "facture-avoir":
-        from facture_avoir.models import FactureAvoir
-        return FactureAvoir
-    if route == "reglements":
-        from reglement.models import Reglement
-        return Reglement
-    if route == "logistique":
-        from logistique.models import LogisticsOrder
-        return LogisticsOrder
-    return None
+    return DOCUMENT_ROUTE_MODELS.get(route)
 
 
 def _resolve_document_company_id(route: str, object_id):
@@ -152,13 +155,16 @@ def resolve_notification_target_url(notification) -> str:
     if target_url and "company_id=" in target_url:
         return target_url
 
-    company_id = getattr(notification, "company_id", None) or _resolve_document_company_id(
-        route, object_id
-    )
+    company_id = getattr(
+        notification, "company_id", None
+    ) or _resolve_document_company_id(route, object_id)
     return _dashboard_url(route, object_id, company_id) or target_url
 
 
-def _broadcast_notification(channel_layer, user_id, notification):
+def broadcast_notification(channel_layer, user_id, notification):
+    if channel_layer is None:
+        logger.warning("Notification channel layer is unavailable for user %s", user_id)
+        return
     try:
         async_to_sync(channel_layer.group_send)(
             str(user_id),
@@ -177,7 +183,7 @@ def _broadcast_notification(channel_layer, user_id, notification):
                 },
             },
         )
-    except Exception:
+    except (ChannelFull, RedisError, OSError, RuntimeError):
         logger.exception(
             "Failed to broadcast notification %s to user %s",
             notification.id,
@@ -189,7 +195,8 @@ def _clean_document_label(document_label: str) -> str:
     label = (document_label or _("document")).strip()
     for prefix in ("la ", "le ", "l'"):
         if label.lower().startswith(prefix):
-            return label[len(prefix) :]
+            prefix_length = len(prefix)
+            return label[prefix_length:]
     return label
 
 
@@ -209,7 +216,7 @@ def _get_document_number(document) -> str:
 
 
 def _get_document_target_url(document) -> str:
-    route = DOCUMENT_TARGET_ROUTES.get(document.__class__.__name__)
+    route = DOCUMENT_TARGET_ROUTES.get(document.__class__.__name__, "")
     return _dashboard_url(
         route,
         getattr(document, "id", None),
@@ -255,9 +262,7 @@ def notify_document_created(document, *, company_id, document_label, creator=Non
             notif = Notification.objects.create(
                 user=membership.user,
                 title=_("Nouveau document — %(numero)s") % {"numero": numero},
-                message=_(
-                    "%(creator)s a créé %(document)s %(numero)s pour %(client)s."
-                )
+                message=_("%(creator)s a créé %(document)s %(numero)s pour %(client)s.")
                 % {
                     "creator": creator_name,
                     "document": label,
@@ -268,8 +273,8 @@ def notify_document_created(document, *, company_id, document_label, creator=Non
                 object_id=getattr(document, "id", None),
                 target_url=target_url,
             )
-            _broadcast_notification(channel_layer, membership.user_id, notif)
-    except Exception:
+            broadcast_notification(channel_layer, membership.user_id, notif)
+    except DatabaseError:
         logger.exception(
             "Failed to create document-created notifications for company %s",
             company_id,

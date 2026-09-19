@@ -1,3 +1,5 @@
+from typing import Any
+
 import django_filters
 from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
 from django.db.models import Q, Value, F, FloatField, Count, CharField
@@ -55,6 +57,8 @@ def add_is_empty_filters(filterset):
 class IsEmptyAutoMixin:
     """Mixin for FilterSet subclasses that auto-generates ``__isempty``
     filters for every base CharFilter / NumberFilter field."""
+
+    filters: dict[str, Any]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

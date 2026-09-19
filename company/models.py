@@ -233,6 +233,14 @@ class Company(models.Model):
         ),
     )
 
+    stock_management_enabled = models.BooleanField(
+        default=False,
+        verbose_name=_("Gestion de stock activée"),
+        help_text=_(
+            "Active les réservations, les entrées et les sorties de stock pour cette société"
+        ),
+    )
+
     history = HistoricalRecords(
         verbose_name=_("Historique Société"),
         verbose_name_plural=_("Historiques Sociétés"),

@@ -18,6 +18,7 @@ class WsMaintenanceState(models.Model):
 
 @receiver(post_save, sender=WsMaintenanceState)
 def broadcast_maintenance_state(sender, instance, **kwargs):
+    del sender, kwargs
     channel_layer = get_channel_layer()
     if channel_layer is None:
         return

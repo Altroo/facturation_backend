@@ -64,6 +64,7 @@ def recalculate_totals(apps, schema_editor):
 
     doc_ids = list(DeviLine.objects.values_list("devis_id", flat=True).distinct())
     for i in range(0, len(doc_ids), BATCH_SIZE):
+        # noinspection PyPep8
         batch_ids = doc_ids[i : i + BATCH_SIZE]
         docs = list(Devi.objects.filter(pk__in=batch_ids))
         for doc in docs:

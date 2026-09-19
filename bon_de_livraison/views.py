@@ -1,3 +1,4 @@
+from django.db import transaction
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
@@ -22,6 +23,7 @@ from core.views import (
     BaseBulkDeleteView,
 )
 from facturation_backend.utils import CustomPagination
+from stock.services import sync_delivery_stock
 from .filters import BonDeLivraisonFilter
 from .models import BonDeLivraison
 from .serializers import (
@@ -60,6 +62,22 @@ class BonDeLivraisonDetailEditDeleteView(BaseDocumentDetailEditDeleteView):
         "source_facture_client",
     )
 
+    @transaction.atomic
+    def put(self, request, pk, *args, **kwargs):
+        delivery = get_object_or_404(self.model.objects.select_for_update(), pk=pk)
+        if delivery.statut in {"Accepté", "Facturé"} and "lignes" in request.data:
+            raise ValidationError(
+                {
+                    "lignes": _(
+                        "Repassez le bon à un statut non comptabilisé avant de modifier ses lignes."
+                    )
+                }
+            )
+        return super().put(request, pk, *args, **kwargs)
+
+    def apply_status_change(self, request, object_, old_status, new_status):
+        sync_delivery_stock(object_, old_status, new_status, request.user)
+
 
 class GenerateNumeroBonDeLivraisonView(BaseGenerateNumeroView):
     numero_generator = get_next_numero_bon_livraison
@@ -69,6 +87,14 @@ class GenerateNumeroBonDeLivraisonView(BaseGenerateNumeroView):
 class BonDeLivraisonStatusUpdateView(BaseStatusUpdateView):
     model = BonDeLivraison
     document_name = "bon de livraison"
+
+    @transaction.atomic
+    def patch(self, request, pk, *args, **kwargs):
+        get_object_or_404(self.model.objects.select_for_update(), pk=pk)
+        return super().patch(request, pk, *args, **kwargs)
+
+    def apply_status_change(self, request, object_, old_status, new_status):
+        sync_delivery_stock(object_, old_status, new_status, request.user)
 
 
 class BonDeLivraisonUninvoicedListView(BaseDocumentListCreateView):
@@ -225,14 +251,6 @@ class BonDeLivraisonPDFGenerator(BasePDFGenerator):
                 self.document.date_bon_livraison,
             )
 
-        elements = []
-        elements.append(
-            self._build_doc_header(
-                f"{self._('Delivery_Number')} {self.document.numero_bon_livraison}",
-                f"{self._('Delivery_Date')} {self.document.date_bon_livraison.strftime('%d/%m/%Y')}",
-            )
-        )
-        elements.append(Spacer(1, 0.5 * cm))
         extra_company_lines = None
         if self.document.livre_par:
             extra_company_lines = [
@@ -241,16 +259,21 @@ class BonDeLivraisonPDFGenerator(BasePDFGenerator):
                     self.styles["CustomSmall"],
                 )
             ]
-        elements.append(
+        elements: list = [
+            self._build_doc_header(
+                f"{self._('Delivery_Number')} {self.document.numero_bon_livraison}",
+                f"{self._('Delivery_Date')} {self.document.date_bon_livraison.strftime('%d/%m/%Y')}",
+            ),
+            Spacer(1, 0.5 * cm),
             self._build_parties_grid(
                 Paragraph(
                     f"<b>{self._('Delivery_Issued_By')}</b>",
                     self.styles["SectionHeader"],
                 ),
                 extra_company_lines=extra_company_lines,
-            )
-        )
-        elements.append(Spacer(1, 0.7 * cm))
+            ),
+            Spacer(1, 0.7 * cm),
+        ]
         if self.pdf_type == "quantity_only":
             elements.append(self._create_articles_table_quantity_only())
             elements.append(Spacer(1, 0.5 * cm))

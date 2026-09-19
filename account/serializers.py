@@ -2,12 +2,14 @@ from base64 import b64decode
 from io import BytesIO
 from os import remove
 from pathlib import Path
+from typing import BinaryIO, cast
 
 from django.conf import settings
 from django.contrib.auth.password_validation import validate_password
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied
+from rest_framework.request import Request
 
 from company.models import Company
 from company.serializers import MembershipCompanySerializer
@@ -188,8 +190,9 @@ class CreateAccountSerializer(serializers.ModelSerializer):
         if hasattr(field_value, "read"):
             try:
                 # Read the file content
-                field_value.seek(0)  # Reset pointer to start
-                data = field_value.read()
+                uploaded_file = cast(BinaryIO, field_value)
+                uploaded_file.seek(0)  # Reset pointer to start
+                data = uploaded_file.read()
                 # Convert to WebP (pass as bytes)
                 return ImageProcessor.convert_to_webp(data)
             except Exception as e:
@@ -319,7 +322,7 @@ class CreateAccountSerializer(serializers.ModelSerializer):
         Convert image fields to URLs for output
         """
         representation = super().to_representation(instance)
-        request = self.context.get("request")
+        request: Request | None = self.context.get("request")
 
         # Convert image fields to full URLs
         for field in ["avatar", "avatar_cropped"]:
@@ -450,9 +453,10 @@ class ProfilePutSerializer(serializers.ModelSerializer):
         # Multipart upload
         if hasattr(field_value, "read"):
             try:
-                field_value.seek(0)
-                data = field_value.read()
-                field_value.seek(0)
+                uploaded_file = cast(BinaryIO, field_value)
+                uploaded_file.seek(0)
+                data = uploaded_file.read()
+                uploaded_file.seek(0)
                 # Convert to WebP
                 webp_file = ImageProcessor.convert_to_webp(data)
                 # Return WebP file and original bytes for Celery processing
@@ -622,7 +626,7 @@ class ProfilePutSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         """Convert avatar to URL for output"""
         representation = super().to_representation(instance)
-        request = self.context.get("request")
+        request: Request | None = self.context.get("request")
         # Convert avatar fields to full URLs
         for field in ["avatar", "avatar_cropped"]:
             if getattr(instance, field):
@@ -781,10 +785,12 @@ class UserPatchSerializer(ProfilePutSerializer):
         companies_data = validated_data.pop("companies", None)
 
         # Prevent users from modifying their own memberships (unless admin)
-        request = self.context.get("request")
+        request: Request | None = self.context.get("request")
         if request:
             request_user = request.user
-            if instance.pk != request_user.pk and not request_user.is_staff:
+            if instance.pk != request_user.pk and not getattr(
+                request_user, "is_staff", False
+            ):
                 raise PermissionDenied(
                     "Vous ne pouvez pas modifier les memberships d'autres utilisateurs."
                 )

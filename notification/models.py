@@ -39,6 +39,14 @@ class NotificationPreference(models.Model):
         default=True,
         verbose_name=_("Notifier la création de documents"),
     )
+    notify_low_stock = models.BooleanField(
+        default=True,
+        verbose_name=_("Notifier le stock minimum"),
+    )
+    low_stock_repeat_hours = models.PositiveIntegerField(
+        default=24,
+        verbose_name=_("Répéter l'alerte de stock après X heures"),
+    )
     quote_expiry_days = models.IntegerField(
         choices=REMINDER_CHOICES,
         default=7,
@@ -72,6 +80,7 @@ class Notification(models.Model):
         ("uninvoiced_bdl", _("BL non facturé")),
         ("status_change", _("Changement de statut")),
         ("document_created", _("Document créé")),
+        ("low_stock", _("Stock minimum")),
     ]
 
     user = models.ForeignKey(

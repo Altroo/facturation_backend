@@ -1074,7 +1074,7 @@ class TestBonDeLivraisonSerializerCoverage:
         serializer = BonDeLivraisonSerializer()
         result = serializer.get_line_serializer_class()
 
-        assert result == BonDeLivraisonLineSerializer
+        assert result is BonDeLivraisonLineSerializer
 
 
 class TestBonDeLivraisonUtilsCoverage:
@@ -1100,6 +1100,7 @@ class TestBonDeLivraisonUtilsCoverage:
                 return mock_match
             return match
 
+        # noinspection PyUnresolvedReferences
         with patch(
             "bon_de_livraison.utils.BonDeLivraison.objects.filter"
         ) as mock_filter:

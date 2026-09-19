@@ -19,7 +19,7 @@ def get_next_numero_logistique(company_id: int) -> str:
         .get("max_num")
     )
     next_number = 1
-    if latest:
+    if isinstance(latest, str):
         try:
             next_number = int(latest.split("/")[0].replace(prefix, "")) + 1
         except (ValueError, IndexError):

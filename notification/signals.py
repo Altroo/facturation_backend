@@ -8,5 +8,6 @@ from notification.models import NotificationPreference
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def create_notification_preference(sender, instance, created, **kwargs):
     """Auto-create a NotificationPreference when a new user is created."""
+    del sender, kwargs
     if created:
         NotificationPreference.objects.get_or_create(user=instance)

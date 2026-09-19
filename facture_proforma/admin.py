@@ -19,6 +19,7 @@ class FactureProFormaAdmin(BaseDocumentAdmin):
 
     def get_readonly_fields(self, request, obj=None):
         readonly = list(super().get_readonly_fields(request, obj))
+        # noinspection PyUnresolvedReferences
         if obj and obj.logistique_links.exists():
             readonly.append("fournisseur")
         return tuple(dict.fromkeys(readonly))

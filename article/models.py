@@ -116,6 +116,13 @@ class Article(models.Model):
         verbose_name=_("TVA (%)"),
         help_text=_("Taux de TVA appliqué (en pourcentage)"),
     )
+    stock_minimum = models.DecimalField(
+        max_digits=12,
+        decimal_places=3,
+        default=0,
+        verbose_name=_("Stock minimum"),
+        help_text=_("Seuil d'alerte. La valeur 0 désactive l'alerte."),
+    )
 
     # Type choice
     TYPE_CHOICES = [

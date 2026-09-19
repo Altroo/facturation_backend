@@ -1,7 +1,10 @@
 from json import dumps, loads
+from inspect import isawaitable
+from typing import cast
 
 from channels.generic.websocket import AsyncWebsocketConsumer
 
+from account.models import CustomUser
 from ws.models import MAINTENANCE_GROUP
 
 
@@ -17,19 +20,24 @@ class ChatConsumer(AsyncWebsocketConsumer):
         self.group_name = None
 
     async def connect(self):
-        user = await self.scope["user"]
+        scope_user = self.scope.get("user")
+        if not isawaitable(scope_user):
+            await self.close()
+            return
+        user = cast(CustomUser, await scope_user)
         self.group_name = f"{user.id}"
         # Join personal group and maintenance broadcast group
         await self.channel_layer.group_add(self.group_name, self.channel_name)
         await self.channel_layer.group_add(MAINTENANCE_GROUP, self.channel_name)
         await self.accept()
 
-    async def disconnect(self, close_code):
+    async def disconnect(self, code):
         """
         Method called every time a connection to websocket
         Is closed by the user or user is disconnected.
         """
-        await self.channel_layer.group_discard(self.group_name, self.channel_name)
+        if self.group_name is not None:
+            await self.channel_layer.group_discard(self.group_name, self.channel_name)
         await self.channel_layer.group_discard(MAINTENANCE_GROUP, self.channel_name)
 
     async def receive(self, text_data=None, bytes_data=None):
@@ -37,6 +45,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
         Method used to receive the message through
         websocket interface
         """
+        if text_data is None:
+            return
+        if self.group_name is None:
+            return
         text_data_json = loads(text_data)
         message = text_data_json["message"]
 

@@ -1,17 +1,20 @@
+from typing import cast
+
+from django.db import transaction
 from django.db.models import Count, Prefetch
 from django.http import Http404
 from django.utils.translation import gettext_lazy as _
 from rest_framework import permissions
 from rest_framework import status
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from account.models import Membership
-from account.models import Role
+from account.models import CustomUser, Membership, Role
 from core.constants import ROLE_CAISSIER, ROLES_RESTRICTED
 from core.permissions import can_delete, can_update, can_view
 from facturation_backend.utils import CustomPagination
+from stock.services import ensure_company_stock_ready
 from .filters import CompanyFilter
 from .models import Company
 from .serializers import (
@@ -61,6 +64,7 @@ class CompanyListCreateView(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
 
     @staticmethod
+    @transaction.atomic
     def post(request, *args, **kwargs):
         # Check if user is trying to create a company with a non-Caissier role
         # We need to verify if they already have memberships and what role
@@ -94,6 +98,9 @@ class CompanyListCreateView(APIView):
             can_change_document_status=True,
         )
 
+        if company.stock_management_enabled:
+            ensure_company_stock_ready(company)
+
         managed_by = request.data.get("managed_by")
         if managed_by:
             CompanyDetailSerializer.update_memberships(company, managed_by)
@@ -113,7 +120,7 @@ class CompanyDetailEditDeleteView(APIView):
         return [permissions.IsAdminUser()]
 
     def get_object(self, pk, require_admin=True):
-        user = self.request.user
+        user = cast(CustomUser, self.request.user)
         try:
             company = Company.objects.get(pk=pk)
         except Company.DoesNotExist:
@@ -147,8 +154,10 @@ class CompanyDetailEditDeleteView(APIView):
             )
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @transaction.atomic
     def put(self, request, pk, *args, **kwargs):
         company = self.get_object(pk, require_admin=True)
+        was_stock_enabled = company.stock_management_enabled
 
         # Check if user has update permission
         if not (
@@ -163,7 +172,19 @@ class CompanyDetailEditDeleteView(APIView):
             company, data=request.data, context={"request": request}
         )
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        if was_stock_enabled and not serializer.validated_data.get(
+            "stock_management_enabled", True
+        ):
+            raise ValidationError(
+                {
+                    "stock_management_enabled": _(
+                        "La gestion de stock ne peut plus être désactivée après son activation."
+                    )
+                }
+            )
+        company = serializer.save()
+        if company.stock_management_enabled and not was_stock_enabled:
+            ensure_company_stock_ready(company)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def delete(self, request, pk, *args, **kwargs):
@@ -189,8 +210,6 @@ class BulkSuspendCompaniesView(APIView):
 
     @staticmethod
     def post(request, *args, **kwargs):
-        from core.permissions import can_delete
-
         ids = request.data.get("ids", [])
         if not isinstance(ids, list) or len(ids) == 0:
             return Response(

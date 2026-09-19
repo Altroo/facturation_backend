@@ -36,9 +36,7 @@ def get_stats_by_currency(company_id: int) -> dict:
                 company_id=company_id,
                 devise=devise,
                 statut__in=AVOIR_ACTIVE_STATUSES,
-            ).aggregate(total=Sum("total_ttc_apres_remise"))["total"] or Decimal(
-                "0.00"
-            )
+            ).aggregate(total=Sum("total_ttc_apres_remise"))["total"] or Decimal("0.00")
 
             reglements = Reglement.objects.filter(
                 facture_client__client__company_id=company_id,
@@ -50,10 +48,10 @@ def get_stats_by_currency(company_id: int) -> dict:
             impayes = chiffre_affaire_net - reglements
 
             stats_by_currency[devise] = {
-                "chiffre_affaire_total": str(chiffre_affaire_net),
-                "total_reglements": str(reglements),
-                "total_impayes": str(impayes),
-                "total_avoirs": str(avoirs),
+                "chiffre_affaire_total": format(chiffre_affaire_net, "f"),
+                "total_reglements": format(reglements, "f"),
+                "total_impayes": format(impayes, "f"),
+                "total_avoirs": format(avoirs, "f"),
             }
     else:
         # Only send MAD stats if company doesn't use foreign currency
@@ -73,10 +71,10 @@ def get_stats_by_currency(company_id: int) -> dict:
         impayes = chiffre_affaire_net - reglements
 
         stats_by_currency["MAD"] = {
-            "chiffre_affaire_total": str(chiffre_affaire_net),
-            "total_reglements": str(reglements),
-            "total_impayes": str(impayes),
-            "total_avoirs": str(avoirs),
+            "chiffre_affaire_total": format(chiffre_affaire_net, "f"),
+            "total_reglements": format(reglements, "f"),
+            "total_impayes": format(impayes, "f"),
+            "total_avoirs": format(avoirs, "f"),
         }
         # Initialize EUR and USD to zeros for consistency
         stats_by_currency["EUR"] = {

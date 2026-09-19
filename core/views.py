@@ -1,4 +1,5 @@
 import logging
+from collections.abc import Callable
 
 from django.db import transaction
 from django.http import Http404
@@ -59,10 +60,10 @@ class BaseDocumentListCreateView(CompanyAccessMixin, APIView):
 
     permission_classes = (permissions.IsAuthenticated,)
     model = None
-    filter_class = None
-    list_serializer_class = None
-    create_serializer_class = None
-    detail_serializer_class = None
+    filter_class: type
+    list_serializer_class: type
+    create_serializer_class: type
+    detail_serializer_class: type
     document_name = "document"
     # FK fields to select_related on list queries (override in subclasses to extend)
     list_select_related = ("client", "mode_paiement", "created_by_user")
@@ -149,7 +150,7 @@ class BaseDocumentDetailEditDeleteView(CompanyAccessMixin, APIView):
 
     permission_classes = (permissions.IsAuthenticated,)
     model = None
-    detail_serializer_class = None
+    detail_serializer_class: type
     document_name = "document"
     # FK fields to eagerly load on detail queries (override to extend)
     detail_select_related = ("client", "mode_paiement", "created_by_user")
@@ -187,6 +188,10 @@ class BaseDocumentDetailEditDeleteView(CompanyAccessMixin, APIView):
         """Hook for document-specific status transition permissions."""
         return None
 
+    def apply_status_change(self, request, object_, old_status, new_status):
+        """Hook for transactional side effects after a document status changes."""
+        return None
+
     def put(self, request, pk, *args, **kwargs):
         object_ = self.get_object(pk)
         if not self._has_membership(request.user, object_.client.company_id):
@@ -217,7 +222,10 @@ class BaseDocumentDetailEditDeleteView(CompanyAccessMixin, APIView):
             object_, data=request.data, context={"request": request}
         )
         serializer.is_valid(raise_exception=True)
-        serializer.save(created_by_user=object_.created_by_user)
+        old_status = object_.statut
+        instance = serializer.save(created_by_user=object_.created_by_user)
+        if new_status is not None and new_status != old_status:
+            self.apply_status_change(request, instance, old_status, new_status)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def delete(self, request, pk, *args, **kwargs):
@@ -243,7 +251,7 @@ class BaseGenerateNumeroView(CompanyAccessMixin, APIView):
     """Base view for generating document numbers."""
 
     permission_classes = (permissions.IsAuthenticated,)
-    numero_generator = None
+    numero_generator: Callable[[int], str]
     response_key = "numero"
 
     def get(self, request, *args, **kwargs):
@@ -286,6 +294,10 @@ class BaseStatusUpdateView(CompanyAccessMixin, APIView):
         """Allow document-specific checks after access and status validation."""
         return None
 
+    def apply_status_change(self, request, object_, old_status, new_status):
+        """Hook for transactional stock or other status side effects."""
+        return None
+
     def patch(self, request, pk, *args, **kwargs):
         object_ = self.get_object(pk)
         if not self._has_membership(request.user, object_.client.company_id):
@@ -312,6 +324,8 @@ class BaseStatusUpdateView(CompanyAccessMixin, APIView):
             raise ValidationError({"statut": _("Statut invalide.")})
 
         self.validate_new_status(object_, new_status)
+        old_status = object_.statut
+        self.apply_status_change(request, object_, old_status, new_status)
 
         object_.statut = new_status
         object_.save(update_fields=["statut"])
@@ -324,8 +338,8 @@ class BaseConversionView(CompanyAccessMixin, APIView):
     permission_classes = (permissions.IsAuthenticated,)
     model = None
     document_name = "document"
-    numero_generator = None
-    conversion_method = None
+    numero_generator: Callable[[int], str]
+    conversion_method: str
     numero_param_name = "numero_facture"  # Default for most conversions
     converted_document_name = "document"
 
@@ -425,6 +439,10 @@ class BaseBulkDeleteView(CompanyAccessMixin, APIView):
     def get_company_id(self, obj):  # pragma: no cover
         raise NotImplementedError
 
+    def validate_bulk_delete(self, objects):
+        """Hook for model-specific deletion invariants."""
+        return None
+
     def delete(self, request, *args, **kwargs):
         ids = request.data.get("ids")
         if not ids or not isinstance(ids, list):
@@ -449,6 +467,7 @@ class BaseBulkDeleteView(CompanyAccessMixin, APIView):
                         _("Vous n'avez pas les droits pour supprimer ce %(name)s.")
                         % {"name": self.document_name}
                     )
+            self.validate_bulk_delete(objects)
             self.model.objects.filter(pk__in=ids).delete()
 
         return Response(status=status.HTTP_204_NO_CONTENT)

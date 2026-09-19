@@ -1489,6 +1489,8 @@ class TestCoreModelRecalcTotals:
 class TestCoreViewsPermissions:
     """Tests for permission checks in core views."""
 
+    # DRF accepts the request produced by APIRequestFactory at runtime.
+    # noinspection PyArgumentList
     def test_base_get_bool_param_true(self):
         """Test _get_bool_param with 'true' string."""
 
@@ -1498,6 +1500,7 @@ class TestCoreViewsPermissions:
         result = BaseDocumentListCreateView._get_bool_param(request, "pagination")
         assert result is True
 
+    # noinspection PyArgumentList
     def test_base_get_bool_param_false(self):
         """Test _get_bool_param with 'false' string."""
 
@@ -1507,6 +1510,7 @@ class TestCoreViewsPermissions:
         result = BaseDocumentListCreateView._get_bool_param(request, "pagination")
         assert result is False
 
+    # noinspection PyArgumentList
     def test_base_get_bool_param_default(self):
         """Test _get_bool_param with default value."""
 
@@ -2507,6 +2511,7 @@ class TestJWTQueryParamAuthentication:
         user, token = result
         assert user.id == auth_user.id
 
+    # noinspection PyArgumentList,PyTypeChecker
     def test_authenticate_with_query_param(self, auth_user):
         """Test authentication with query parameter."""
 
@@ -2523,6 +2528,7 @@ class TestJWTQueryParamAuthentication:
         user, token = result
         assert user.id == auth_user.id
 
+    # noinspection PyArgumentList,PyTypeChecker
     def test_authenticate_no_token(self):
         """Test authentication with no token."""
 
@@ -2534,6 +2540,7 @@ class TestJWTQueryParamAuthentication:
 
         assert result is None
 
+    # noinspection PyArgumentList,PyTypeChecker
     def test_authenticate_invalid_token(self):
         """Test authentication with invalid token."""
 
@@ -2545,6 +2552,7 @@ class TestJWTQueryParamAuthentication:
         with pytest.raises(InvalidToken):
             auth.authenticate(request)
 
+    # noinspection PyArgumentList,PyTypeChecker
     def test_authenticate_header_priority(self, auth_user):
         """Test that header authentication takes priority over query param."""
 
@@ -2871,7 +2879,11 @@ class TestCoreFilterAdditional:
         def mock_resolve_expression(*args, **kwargs):
             raise DatabaseError("Mock database error")
 
-        monkeypatch.setattr(SearchQuery, "resolve_expression", mock_resolve_expression)
+        # Django adds expression methods dynamically.
+        # noinspection PyUnresolvedReferences
+        monkeypatch.setattr(
+            SearchQuery, "resolve_expression", mock_resolve_expression, raising=False
+        )
 
         filter_data = {"search": "FILT011"}
         filterset = DeviFilter(data=filter_data, queryset=Devi.objects.all())
@@ -3464,7 +3476,10 @@ class TestFilterDatabaseErrorBranches:
         def mock_resolve(*args, **kwargs):
             raise DatabaseError("Mock error")
 
-        monkeypatch.setattr(SearchQuery, "resolve_expression", mock_resolve)
+        # noinspection PyUnresolvedReferences
+        monkeypatch.setattr(
+            SearchQuery, "resolve_expression", mock_resolve, raising=False
+        )
 
         filter_data = {"search": "FilterTest"}
         filterset = UsersFilter(
@@ -3481,7 +3496,10 @@ class TestFilterDatabaseErrorBranches:
         def mock_resolve(*args, **kwargs):
             raise DatabaseError("Mock error")
 
-        monkeypatch.setattr(SearchQuery, "resolve_expression", mock_resolve)
+        # noinspection PyUnresolvedReferences
+        monkeypatch.setattr(
+            SearchQuery, "resolve_expression", mock_resolve, raising=False
+        )
 
         filter_data = {"search": "FILTART001"}
         filterset = ArticleFilter(data=filter_data, queryset=Article.objects.all())
@@ -3495,7 +3513,10 @@ class TestFilterDatabaseErrorBranches:
         def mock_resolve(*args, **kwargs):
             raise DatabaseError("Mock error")
 
-        monkeypatch.setattr(SearchQuery, "resolve_expression", mock_resolve)
+        # noinspection PyUnresolvedReferences
+        monkeypatch.setattr(
+            SearchQuery, "resolve_expression", mock_resolve, raising=False
+        )
 
         filter_data = {"search": "Filter Err Client"}
         filterset = ClientFilter(data=filter_data, queryset=Client.objects.all())
@@ -3532,7 +3553,10 @@ class TestFilterDatabaseErrorBranches:
         def mock_resolve(*args, **kwargs):
             raise DatabaseError("Mock error")
 
-        monkeypatch.setattr(SearchQuery, "resolve_expression", mock_resolve)
+        # noinspection PyUnresolvedReferences
+        monkeypatch.setattr(
+            SearchQuery, "resolve_expression", mock_resolve, raising=False
+        )
 
         filter_data = {"search": "Test Libelle"}
         filterset = ReglementFilter(data=filter_data, queryset=Reglement.objects.all())
@@ -3715,7 +3739,11 @@ class TestPDFGeneratorEdgeCases:
         devi.save()
 
         generator = DeviPDFGenerator(devi, company, pdf_type="avec_remise")
-        monkeypatch.setattr(generator, "_count_pages", lambda _elements: 2)
+        # The instance method is replaced dynamically to control pagination.
+        # noinspection PyUnresolvedReferences
+        monkeypatch.setattr(
+            generator, "_count_pages", lambda _elements: 2, raising=False
+        )
 
         balanced = generator._balance_elements(generator._build_content())
 
@@ -3943,7 +3971,7 @@ class TestCoreModelsCoverage:
                 return None  # Force None to hit line 122
             return original_getattr(obj, name, default)
 
-        with patch("core.models.getattr", side_effect=mock_getattr):
+        with patch("core.models.getattr", side_effect=mock_getattr, create=True):
             # This won't work since getattr is a builtin
             pass
 

@@ -22,6 +22,7 @@ from core.views import (
     BaseBulkDeleteView,
 )
 from facture_client.utils import get_next_numero_facture_client
+from stock.services import sync_proforma_reservations
 from .filters import FactureProFormaFilter
 from .models import FactureProForma
 from .serializers import (
@@ -63,8 +64,19 @@ class FactureProFormaDetailEditDeleteView(BaseDocumentDetailEditDeleteView):
     def put(self, request, pk, *args, **kwargs):
         # Supplier and status form one logistics-source invariant. Keep the
         # source locked so acceptance cannot race a supplier edit.
-        get_object_or_404(self.model.objects.select_for_update(), pk=pk)
+        proforma = get_object_or_404(self.model.objects.select_for_update(), pk=pk)
+        if proforma.statut == "Accepté" and "lignes" in request.data:
+            raise ValidationError(
+                {
+                    "lignes": _(
+                        "Repassez la commande client à un statut non accepté avant de modifier ses lignes."
+                    )
+                }
+            )
         return super().put(request, pk, *args, **kwargs)
+
+    def apply_status_change(self, request, object_, old_status, new_status):
+        sync_proforma_reservations(object_, old_status, new_status)
 
 
 class GenerateNumeroFactureView(BaseGenerateNumeroView):
@@ -81,11 +93,8 @@ class FactureProFormaStatusUpdateView(BaseStatusUpdateView):
         get_object_or_404(self.model.objects.select_for_update(), pk=pk)
         return super().patch(request, pk, *args, **kwargs)
 
-    def validate_new_status(self, facture_proforma, new_status):
-        if (
-            new_status == "Accepté"
-            and not (facture_proforma.fournisseur or "").strip()
-        ):
+    def validate_new_status(self, object_, new_status):
+        if new_status == "Accepté" and not (object_.fournisseur or "").strip():
             raise ValidationError(
                 {
                     "fournisseur": _(
@@ -93,6 +102,9 @@ class FactureProFormaStatusUpdateView(BaseStatusUpdateView):
                     )
                 }
             )
+
+    def apply_status_change(self, request, object_, old_status, new_status):
+        sync_proforma_reservations(object_, old_status, new_status)
 
 
 class FactureProFormaConvertToFactureClientView(BaseConversionView):
@@ -114,41 +126,33 @@ class FactureProFormaPDFGenerator(BasePDFGenerator):
                 self.document.numero_facture,
                 self.document.date_facture,
             )
-        elements = []
-        elements.append(
+        show_remise = self._should_show_remise()
+        show_unite = self._should_show_unite()
+        return [
             self._build_doc_header(
                 f"{self._('Proforma_Number')} {self.document.numero_facture}",
                 f"{self._('Proforma_Date')} {self.document.date_facture.strftime('%d/%m/%Y')}",
-            )
-        )
-        elements.append(Spacer(1, 0.5 * cm))
-        elements.append(
+            ),
+            Spacer(1, 0.5 * cm),
             self._build_parties_grid(
                 Paragraph(
                     f"<b>{self._('Proforma_Issued_By')}</b>",
                     self.styles["SectionHeader"],
                 )
-            )
-        )
-        elements.append(Spacer(1, 0.7 * cm))
-        show_remise = self._should_show_remise()
-        show_unite = self._should_show_unite()
-        elements.append(
+            ),
+            Spacer(1, 0.7 * cm),
             self._build_standard_articles_table(
                 show_remise=show_remise, show_unite=show_unite
-            )
-        )
-        elements.append(Spacer(1, 0.3 * cm))
-        elements.append(
+            ),
+            Spacer(1, 0.3 * cm),
             KeepTogether(
                 self._build_tail(
                     self._("Proforma_Amount_Words"),
                     default_remarks_key="Proforma_Default_Remarks",
                     show_remise=show_remise,
                 )
-            )
-        )
-        return elements
+            ),
+        ]
 
     def _get_filename(self) -> str:
         """Get PDF filename for facture pro forma."""

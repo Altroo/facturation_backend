@@ -2,6 +2,7 @@ import csv
 import io
 from decimal import Decimal, InvalidOperation
 from re import search
+from typing import cast
 
 import openpyxl
 from django.db import IntegrityError
@@ -21,6 +22,8 @@ from core.utils import format_number_with_dynamic_digits
 from core.views import CompanyAccessMixin, BaseBulkDeleteView, BaseBulkArchiveView
 from facturation_backend.utils import CustomPagination
 from parameter.models import Marque, Categorie, Unite, Emplacement
+from stock.models import StockBalance
+from stock.services import prepare_article_stock_snapshots
 from .filters import ArticleFilter
 from .models import Article
 from .serializers import (
@@ -29,6 +32,10 @@ from .serializers import (
     ArticleListSerializer,
 )
 from .utils import get_next_article_reference
+
+
+def _stringify_cell_value(value: object) -> str:
+    return "{}".format(value)
 
 
 class ArticleListCreateView(CompanyAccessMixin, APIView):
@@ -57,13 +64,20 @@ class ArticleListCreateView(CompanyAccessMixin, APIView):
         ordered_qs = filterset.qs.order_by("-id")
         if pagination:
             paginator = CustomPagination()
-            page = paginator.paginate_queryset(ordered_qs, request)
+            page = cast(list[Article], paginator.paginate_queryset(ordered_qs, request))
+            stock_snapshots = prepare_article_stock_snapshots(page)
             serializer = ArticleListSerializer(
-                page, many=True, context={"request": request}
+                page,
+                many=True,
+                context={"request": request, "stock_snapshots": stock_snapshots},
             )
             return paginator.get_paginated_response(serializer.data)
+        articles = list(ordered_qs)
+        stock_snapshots = prepare_article_stock_snapshots(articles)
         serializer = ArticleListSerializer(
-            ordered_qs, many=True, context={"request": request}
+            articles,
+            many=True,
+            context={"request": request, "stock_snapshots": stock_snapshots},
         )
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -153,6 +167,19 @@ class ArticleDetailEditDeleteView(CompanyAccessMixin, APIView):
                 _("Vous n'avez pas les droits pour supprimer cet article.")
             )
 
+        balances = article.stock_balances.all()
+        if (
+            balances.filter(movements__isnull=False).exists()
+            or balances.filter(reservations__isnull=False).exists()
+        ):
+            raise ValidationError(
+                {
+                    "article": _(
+                        "Cet article possède un historique de stock. Archivez-le au lieu de le supprimer."
+                    )
+                }
+            )
+        balances.delete()
         article.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -295,7 +322,7 @@ class ImportArticlesView(CompanyAccessMixin, APIView):
         return max_num
 
     @staticmethod
-    def _resolve_fk(model_class, nom_value, company_id):
+    def _resolve_fk(model_class, nom_value: str | None, company_id: int):
         """Return a model instance looked up by *nom* and *company_id*.  Creates it when
         it does not exist.  Returns ``None`` for empty values."""
         if not nom_value or not nom_value.strip():
@@ -366,28 +393,37 @@ class ImportArticlesView(CompanyAccessMixin, APIView):
             try:
                 workbook = openpyxl.load_workbook(file, read_only=True, data_only=True)
                 sheet = workbook.active
+                if sheet is None:
+                    raise ValueError(_("Le fichier Excel ne contient aucune feuille."))
 
                 # Get headers from first row
                 rows_iter = sheet.iter_rows(values_only=True)
-                headers = next(rows_iter, None)
+                raw_headers = next(rows_iter, None)
 
-                if not headers:
+                if not raw_headers:
                     raise ValueError(_("Le fichier Excel est vide."))
+                headers = [
+                    _stringify_cell_value(header).strip() if header is not None else ""
+                    for header in cast(tuple[object, ...], raw_headers)
+                ]
 
                 # Convert to list of dicts
                 rows = []
                 for row_values in rows_iter:
                     # Skip empty rows
-                    if all(v is None or str(v).strip() == "" for v in row_values):
+                    if all(
+                        value is None or _stringify_cell_value(value).strip() == ""
+                        for value in row_values
+                    ):
                         continue
-                    row_dict = {}
+                    row_dict: dict[str, str] = {}
                     for header, value in zip(headers, row_values):
                         if header:
                             # Convert None and numeric values to string
                             if value is None:
                                 row_dict[header] = ""
                             else:
-                                row_dict[header] = str(value)
+                                row_dict[header] = _stringify_cell_value(value)
                     rows.append(row_dict)
 
                 workbook.close()
@@ -638,6 +674,22 @@ class BulkDeleteArticleView(BaseBulkDeleteView):
 
     def get_company_id(self, obj):
         return obj.company_id
+
+    def validate_bulk_delete(self, objects):
+        article_ids = [obj.pk for obj in objects]
+        balances = StockBalance.objects.filter(article_id__in=article_ids)
+        if (
+            balances.filter(movements__isnull=False).exists()
+            or balances.filter(reservations__isnull=False).exists()
+        ):
+            raise ValidationError(
+                {
+                    "articles": _(
+                        "Un ou plusieurs articles ont un historique de stock. Archivez-les au lieu de les supprimer."
+                    )
+                }
+            )
+        balances.delete()
 
 
 class BulkArchiveArticleView(BaseBulkArchiveView):

@@ -1,11 +1,16 @@
 from re import match
+from typing import Any, Mapping, MutableMapping, Sequence, cast
 
-from django.db import transaction
+from django.db import models, transaction
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
+from rest_framework.request import Request
 
+from account.models import CustomUser
+from article.models import Article
 from client.models import Client
 from core.constants import ROLE_COMMERCIAL
+from core.models import BaseDeviFactureDocument
 from core.nectar import is_nectar_company_id
 from core.permissions import get_user_role
 
@@ -39,14 +44,14 @@ def validate_line_currency(data, instance, parent_field_name):
     Raises:
         serializers.ValidationError if currency mismatch
     """
-    parent = data.get(parent_field_name) or (
+    parent: BaseDeviFactureDocument | None = data.get(parent_field_name) or (
         getattr(instance, parent_field_name) if instance else None
     )
     devise_prix_vente = data.get("devise_prix_vente")
 
     if parent and devise_prix_vente:
         # If document has lines and a non-default devise, validate currency match
-        if parent.lignes.exists() and parent.devise != "MAD":
+        if parent.get_lines().exists() and parent.devise != "MAD":
             if devise_prix_vente != parent.devise:
                 raise serializers.ValidationError(
                     {
@@ -59,7 +64,9 @@ def validate_line_currency(data, instance, parent_field_name):
                 )
 
 
-def update_document_devise_on_first_line(parent, devise_prix_vente):
+def update_document_devise_on_first_line(
+    parent: BaseDeviFactureDocument, devise_prix_vente
+):
     """
     Update document devise when creating the first line.
 
@@ -67,7 +74,7 @@ def update_document_devise_on_first_line(parent, devise_prix_vente):
         parent: Parent document instance
         devise_prix_vente: Currency from the line being created
     """
-    if parent and not parent.lignes.exists() and parent.devise == "MAD":
+    if parent and not parent.get_lines().exists() and parent.devise == "MAD":
         parent.devise = devise_prix_vente
         parent.save(update_fields=["devise"])
 
@@ -103,16 +110,16 @@ class BaseListSerializer(serializers.ModelSerializer):
         return None
 
     @staticmethod
-    def get_lignes_count(obj):
+    def get_lignes_count(obj: BaseDeviFactureDocument):
         # Use len() on the prefetch cache when available (avoids an extra
         # COUNT query per row).  Falls back to .count() when lignes is not
         # prefetched.
-        if (
-            hasattr(obj, "_prefetched_objects_cache")
-            and "lignes" in obj._prefetched_objects_cache
-        ):
-            return len(obj._prefetched_objects_cache["lignes"])
-        return obj.lignes.count()
+        prefetched: Mapping[str, Sequence[Any]] = getattr(
+            obj, "_prefetched_objects_cache", {}
+        )
+        if "lignes" in prefetched:
+            return len(prefetched["lignes"])
+        return obj.get_lines().count()
 
     def to_representation(self, instance):
         """Handle None related objects gracefully."""
@@ -174,14 +181,14 @@ class BaseDetailSerializer(serializers.ModelSerializer):
 
         return representation
 
-    def validate(self, data):
+    def validate(self, attrs: dict[str, Any]) -> dict[str, Any]:
         """
         Validate document-level remise fields:
         - remise must be >= 0
         - if remise_type == 'Pourcentage' then 0 <= remise <= 100
         """
-        remise = data.get("remise")
-        remise_type = data.get(
+        remise = attrs.get("remise")
+        remise_type = attrs.get(
             "remise_type",
             (
                 getattr(self.instance, "remise_type", "")
@@ -191,10 +198,10 @@ class BaseDetailSerializer(serializers.ModelSerializer):
         )
 
         if remise is None:
-            return data
+            return attrs
 
         try:
-            remise_val = float(remise)
+            remise_val = float(str(remise))
         except (TypeError, ValueError):
             raise serializers.ValidationError(
                 {"remise": _("Valeur de remise invalide.")}
@@ -206,7 +213,7 @@ class BaseDetailSerializer(serializers.ModelSerializer):
             )
 
         if remise_type == "":
-            return data
+            return attrs
 
         if remise_type == "Pourcentage":
             if not 0 <= remise_val <= 100:
@@ -220,9 +227,9 @@ class BaseDetailSerializer(serializers.ModelSerializer):
                 {"remise_type": _("Type de remise invalide.")}
             )
 
-        return data
+        return attrs
 
-    def get_numero_field_name(self):
+    def get_numero_field_name(self) -> str:
         """Return the numero field name (e.g., 'numero_devis', 'numero_facture'). Override in subclasses."""
         raise NotImplementedError("Subclasses must implement get_numero_field_name()")
 
@@ -245,19 +252,23 @@ class BaseLineWriteSerializer(serializers.ModelSerializer):
 
     id = serializers.IntegerField(required=False)
 
-    def validate(self, data):
+    def validate(self, attrs: dict[str, Any]) -> dict[str, Any]:
         # Check if Commercial user is trying to modify prix_vente
-        request = self.context.get("request")
+        request: Request | None = self.context.get("request")
         if request and request.user:
+            user = cast(CustomUser, request.user)
 
             # Try to get company_id from parent serializer context
             company_id = self.context.get("company_id")
             if company_id:
-                role = get_user_role(request.user, company_id)
-                if role == ROLE_COMMERCIAL and "prix_vente" in data:
+                role = get_user_role(user, int(str(company_id)))
+                if role == ROLE_COMMERCIAL and "prix_vente" in attrs:
                     # For updates, check if prix_vente is being changed
-                    if self.instance:
-                        if data.get("prix_vente") != self.instance.prix_vente:
+                    instance = self.instance
+                    if instance:
+                        if attrs.get("prix_vente") != getattr(
+                            instance, "prix_vente", None
+                        ):
                             raise serializers.ValidationError(
                                 _(
                                     "Les utilisateurs Commercial ne peuvent pas modifier le prix de vente."
@@ -265,9 +276,9 @@ class BaseLineWriteSerializer(serializers.ModelSerializer):
                             )
                     # For creates, Commercial cannot set custom prix_vente
                     # They must use the article's default prix_vente
-                    elif "article" in data:
-                        article = data["article"]
-                        if data.get("prix_vente") != article.prix_vente:
+                    elif "article" in attrs:
+                        article = cast(Article, attrs["article"])
+                        if attrs.get("prix_vente") != article.prix_vente:
                             raise serializers.ValidationError(
                                 _(
                                     "Les utilisateurs Commercial ne peuvent pas définir un prix de vente personnalisé."
@@ -276,17 +287,17 @@ class BaseLineWriteSerializer(serializers.ModelSerializer):
 
         # Validate currency consistency with document
         document_devise = self.context.get("document_devise")
-        article = data.get("article")
-        devise_prix_achat = data.get("devise_prix_achat")
-        devise_prix_vente = data.get("devise_prix_vente")
+        article: Article | None = attrs.get("article")
+        devise_prix_achat = attrs.get("devise_prix_achat")
+        devise_prix_vente = attrs.get("devise_prix_vente")
 
         # Auto-set devise_prix_achat from article if not provided
         if article and not devise_prix_achat:
-            data["devise_prix_achat"] = article.devise_prix_achat
+            attrs["devise_prix_achat"] = article.devise_prix_achat
 
         # Auto-set devise_prix_vente from document if not provided
         if document_devise and not devise_prix_vente:
-            data["devise_prix_vente"] = document_devise
+            attrs["devise_prix_vente"] = document_devise
             devise_prix_vente = document_devise
 
         # If document has no devise set yet (first line), we'll set it from this line
@@ -302,21 +313,21 @@ class BaseLineWriteSerializer(serializers.ModelSerializer):
                     }
                 )
 
-        if data["prix_vente"] < data["prix_achat"]:
+        if attrs["prix_vente"] < attrs["prix_achat"]:
             raise serializers.ValidationError(
                 _("Le prix de vente doit être supérieur ou égal au prix d'achat.")
             )
 
-        remise = data.get("remise", 0)
-        remise_type = data.get("remise_type") or "Pourcentage"
-        quantity = data.get("quantity", 1)
+        remise = attrs.get("remise", 0)
+        remise_type = attrs.get("remise_type") or "Pourcentage"
+        quantity = attrs.get("quantity", 1)
 
         if quantity <= 0:
             raise serializers.ValidationError(
                 _("La quantité doit être supérieure à 0.")
             )
 
-        line_total = data["prix_vente"] * quantity
+        line_total = attrs["prix_vente"] * quantity
 
         if remise < 0:
             raise serializers.ValidationError(
@@ -336,7 +347,7 @@ class BaseLineWriteSerializer(serializers.ModelSerializer):
         else:
             raise serializers.ValidationError(_("Type de remise invalide."))
 
-        return data
+        return attrs
 
     class Meta:
         abstract = True
@@ -345,23 +356,24 @@ class BaseLineWriteSerializer(serializers.ModelSerializer):
 class BaseCreateSerializer(BaseDetailSerializer):
     """Abstract create serializer with create and to_representation logic."""
 
-    def get_line_model_class(self):
+    def get_line_model_class(self) -> type[models.Model]:
         """Return the line model class. Override in subclasses."""
         raise NotImplementedError("Subclasses must implement get_line_model_class()")
 
-    def get_line_relation_field(self):
+    def get_line_relation_field(self) -> str:
         """Return the foreign key field name (e.g., 'devis', 'facture_client'). Override in subclasses."""
         raise NotImplementedError("Subclasses must implement get_line_relation_field()")
 
-    def get_line_serializer_class(self):
+    def get_line_serializer_class(self) -> type[serializers.Serializer]:
         """Return the line serializer class for representation. Override in subclasses."""
         raise NotImplementedError(
             "Subclasses must implement get_line_serializer_class()"
         )
 
     def _get_raw_company_id(self, data):
-        if getattr(self, "instance", None) is not None:
-            return self.instance.client.company_id
+        instance: BaseDeviFactureDocument | None = getattr(self, "instance", None)
+        if instance is not None:
+            return instance.client.company_id
         client_id = data.get("client") if hasattr(data, "get") else None
         if not client_id:
             return None
@@ -392,18 +404,20 @@ class BaseCreateSerializer(BaseDetailSerializer):
             )
         return super().to_internal_value(data)
 
-    def validate(self, data):
+    def validate(self, attrs: dict[str, Any]) -> dict[str, Any]:
         """Add company_id and document_devise to context for nested line serializers."""
-        data = super().validate(data)
+        attrs = super().validate(attrs)
+        context = cast(MutableMapping[str, Any], self.context)
         # Store company_id in context for line serializers to access
-        if "client" in data:
-            self.context["company_id"] = data["client"].company_id
-            sanitize_nectar_document_data(data, data["client"].company_id)
+        if "client" in attrs:
+            context["company_id"] = attrs["client"].company_id
+            sanitize_nectar_document_data(attrs, attrs["client"].company_id)
         # Store document_devise if it exists (for line validation)
-        if hasattr(self, "instance") and self.instance:
-            self.context["document_devise"] = self.instance.devise
-            sanitize_nectar_document_data(data, self.instance.client.company_id)
-        return data
+        instance: BaseDeviFactureDocument | None = getattr(self, "instance", None)
+        if instance:
+            context["document_devise"] = instance.devise
+            sanitize_nectar_document_data(attrs, instance.client.company_id)
+        return attrs
 
     def create(self, validated_data):
         lines_data = validated_data.pop("lignes", [])
@@ -462,15 +476,17 @@ class BaseCreateSerializer(BaseDetailSerializer):
 class BaseDetailUpdateSerializer(BaseCreateSerializer):
     """Abstract detail serializer with upsert update logic for nested lines."""
 
-    def validate(self, data):
+    def validate(self, attrs: dict[str, Any]) -> dict[str, Any]:
         """Add company_id and document_devise to context for nested line serializers."""
-        data = super().validate(data)
+        attrs = super().validate(attrs)
+        context = cast(MutableMapping[str, Any], self.context)
         # Store company_id in context for line serializers to access
-        if hasattr(self, "instance") and self.instance:
-            self.context["company_id"] = self.instance.client.company_id
+        instance: BaseDeviFactureDocument | None = getattr(self, "instance", None)
+        if instance:
+            context["company_id"] = instance.client.company_id
             # Store document_devise for line validation
-            self.context["document_devise"] = self.instance.devise
-        return data
+            context["document_devise"] = instance.devise
+        return attrs
 
     def update(self, instance, validated_data):
         lines_data = validated_data.pop("lignes", None)

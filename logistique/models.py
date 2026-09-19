@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 from datetime import timedelta
 from decimal import Decimal
 from os import path
@@ -19,6 +20,13 @@ def get_logistique_document_path(_, filename):
 
 class LogisticsOrder(models.Model):
     """Supplier-side logistics order created from one accepted client proforma."""
+
+    STOCK_INCOMING_EXCLUDED_STATUSES = (
+        "Réception locale",
+        "Livraison client",
+        "Clôture",
+        "Annulé",
+    )
 
     STATUT_CHOICES = [
         ("Réception commande", _("Réception commande")),
@@ -347,9 +355,7 @@ class LogisticsOrder(models.Model):
     demande_paiement_email_file_token = models.CharField(
         max_length=32, blank=True, default=""
     )
-    demande_paiement_email_mis_en_file_le = models.DateTimeField(
-        null=True, blank=True
-    )
+    demande_paiement_email_mis_en_file_le = models.DateTimeField(null=True, blank=True)
     demande_paiement_email_prise_en_charge_le = models.DateTimeField(
         null=True, blank=True
     )
@@ -606,7 +612,7 @@ class LogisticsOrder(models.Model):
             "livraison_locale",
             "autres_frais",
         }
-        update_fields = kwargs.get("update_fields")
+        update_fields: Iterable[str] | None = kwargs.get("update_fields")
         if self.pk and (update_fields is None or cost_fields & set(update_fields)):
             self.recalc_costs()
             if update_fields is not None:
@@ -810,6 +816,20 @@ class LogisticsOrderLine(models.Model):
     marque_name = models.CharField(max_length=255, blank=True, default="")
     project_reference = models.CharField(max_length=100, blank=True, default="")
     quantity = models.DecimalField(max_digits=10, decimal_places=3)
+    received_quantity = models.DecimalField(
+        max_digits=10,
+        decimal_places=3,
+        default=0,
+        verbose_name=_("Quantité reçue"),
+    )
+    expected_emplacement = models.ForeignKey(
+        "parameter.Emplacement",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="lignes_logistiques_attendues",
+        verbose_name=_("Emplacement de réception prévu"),
+    )
     prix_achat = models.DecimalField(max_digits=10, decimal_places=2)
     devise_prix_achat = models.CharField(
         max_length=3, choices=CURRENCY_CHOICES, default="MAD"

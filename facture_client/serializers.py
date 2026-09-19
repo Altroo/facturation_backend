@@ -1,3 +1,6 @@
+from decimal import Decimal
+from typing import Any, Mapping
+
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
@@ -14,7 +17,9 @@ from facture_avoir.models import FactureAvoir
 from reglement.models import Reglement
 
 
-def _validate_inherited_supplier_snapshot(instance, data):
+def _validate_inherited_supplier_snapshot(
+    instance: FactureClient | None, data: Mapping[str, Any]
+) -> None:
     if not instance or not (instance.source_proforma_id or instance.source_devis_id):
         return
     errors = {}
@@ -38,17 +43,17 @@ class FactureClientPaymentFieldsMixin:
     statut_paiement = serializers.SerializerMethodField()
 
     @staticmethod
-    def _get_total_paye(obj):
+    def _get_total_paye(obj) -> Decimal:
         annotated = getattr(obj, "total_paid", None)
         if annotated is not None:
-            return annotated
+            return Decimal(str(annotated))
         return Reglement.get_total_reglements_for_facture(obj.id)
 
     @staticmethod
-    def _get_total_avoirs(obj):
+    def _get_total_avoirs(obj) -> Decimal:
         annotated = getattr(obj, "total_avoirs", None)
         if annotated is not None:
-            return annotated
+            return Decimal(str(annotated))
         return FactureAvoir.get_total_avoirs_for_facture(obj.id)
 
     @staticmethod
@@ -211,10 +216,10 @@ class FactureClientSerializer(FactureClientPaymentFieldsMixin, BaseCreateSeriali
         source="source_devis.numero_devis", read_only=True
     )
 
-    def validate(self, data):
-        data = super().validate(data)
-        _validate_inherited_supplier_snapshot(self.instance, data)
-        return data
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        _validate_inherited_supplier_snapshot(self.instance, attrs)
+        return attrs
 
     def get_numero_field_name(self):
         return "numero_facture"
@@ -313,10 +318,10 @@ class FactureClientDetailSerializer(
         source="source_devis.numero_devis", read_only=True
     )
 
-    def validate(self, data):
-        data = super().validate(data)
-        _validate_inherited_supplier_snapshot(self.instance, data)
-        return data
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        _validate_inherited_supplier_snapshot(self.instance, attrs)
+        return attrs
 
     def get_line_model_class(self):
         return FactureClientLine

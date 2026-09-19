@@ -6,18 +6,30 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('bon_de_livraison', '0017_alter_bondelivraison_total_ttc_and_more'),
+        ("bon_de_livraison", "0017_alter_bondelivraison_total_ttc_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='bondelivraison',
-            name='date_echeance',
-            field=models.DateField(blank=True, db_index=True, help_text='Date limite de paiement du bon de livraison', null=True, verbose_name="Date d'échéance"),
+            model_name="bondelivraison",
+            name="date_echeance",
+            field=models.DateField(
+                blank=True,
+                db_index=True,
+                help_text="Date limite de paiement du bon de livraison",
+                null=True,
+                verbose_name="Date d'échéance",
+            ),
         ),
         migrations.AddField(
-            model_name='historicalbondelivraison',
-            name='date_echeance',
-            field=models.DateField(blank=True, db_index=True, help_text='Date limite de paiement du bon de livraison', null=True, verbose_name="Date d'échéance"),
+            model_name="historicalbondelivraison",
+            name="date_echeance",
+            field=models.DateField(
+                blank=True,
+                db_index=True,
+                help_text="Date limite de paiement du bon de livraison",
+                null=True,
+                verbose_name="Date d'échéance",
+            ),
         ),
     ]

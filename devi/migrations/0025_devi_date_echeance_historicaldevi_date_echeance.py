@@ -6,18 +6,30 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('devi', '0024_alter_devi_total_ttc_and_more'),
+        ("devi", "0024_alter_devi_total_ttc_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='devi',
-            name='date_echeance',
-            field=models.DateField(blank=True, db_index=True, help_text='Date limite de paiement du devis', null=True, verbose_name="Date d'échéance"),
+            model_name="devi",
+            name="date_echeance",
+            field=models.DateField(
+                blank=True,
+                db_index=True,
+                help_text="Date limite de paiement du devis",
+                null=True,
+                verbose_name="Date d'échéance",
+            ),
         ),
         migrations.AddField(
-            model_name='historicaldevi',
-            name='date_echeance',
-            field=models.DateField(blank=True, db_index=True, help_text='Date limite de paiement du devis', null=True, verbose_name="Date d'échéance"),
+            model_name="historicaldevi",
+            name="date_echeance",
+            field=models.DateField(
+                blank=True,
+                db_index=True,
+                help_text="Date limite de paiement du devis",
+                null=True,
+                verbose_name="Date d'échéance",
+            ),
         ),
     ]
