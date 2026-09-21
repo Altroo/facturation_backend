@@ -19,7 +19,7 @@ def get_logistique_document_path(_, filename):
 
 
 class LogisticsOrder(models.Model):
-    """Supplier-side logistics order created from one accepted client proforma."""
+    """Supplier-side logistics order created from accepted client proformas."""
 
     STOCK_INCOMING_EXCLUDED_STATUSES = (
         "Réception locale",
@@ -40,7 +40,6 @@ class LogisticsOrder(models.Model):
         ("Envoi SWIFT / Draft LC", _("Envoi SWIFT / Draft LC")),
         ("Production", _("Production")),
         ("Expédition", _("Expédition")),
-        ("Documents originaux", _("Documents originaux")),
         ("Transit", _("Transit")),
         ("Dédouanement", _("Dédouanement")),
         ("Réception locale", _("Réception locale")),
@@ -87,7 +86,6 @@ class LogisticsOrder(models.Model):
         "Envoi SWIFT / Draft LC",
         "Production",
         "Expédition",
-        "Documents originaux",
         "Transit",
         "Dédouanement",
         "Réception locale",
@@ -98,7 +96,6 @@ class LogisticsOrder(models.Model):
     PAYMENT_COMPLETE_REQUIRED_STATUSES = {
         "Production",
         "Expédition",
-        "Documents originaux",
         "Transit",
         "Dédouanement",
         "Réception locale",
@@ -153,6 +150,14 @@ class LogisticsOrder(models.Model):
         ("Validé", _("Validé")),
     ]
 
+    ORIGINAL_DOCUMENT_STATUS_CHOICES = [
+        ("", _("Non renseigné")),
+        ("Demandé", _("Demandé")),
+        ("Réceptionné", _("Réceptionné")),
+        ("Retourné pour correction", _("Retourné pour correction")),
+        ("Refusé", _("Refusé")),
+    ]
+
     EMAIL_DELIVERY_STATUS_CHOICES = [
         ("Non demandé", _("Non demandé")),
         ("Historique non vérifié", _("Historique non vérifié")),
@@ -192,6 +197,12 @@ class LogisticsOrder(models.Model):
         related_name="commandes_logistiques",
         verbose_name=_("Marque"),
     )
+    marques = models.ManyToManyField(
+        "parameter.Marque",
+        blank=True,
+        related_name="dossiers_logistiques",
+        verbose_name=_("Marques"),
+    )
     devise = models.CharField(
         max_length=3,
         choices=CURRENCY_CHOICES,
@@ -202,6 +213,7 @@ class LogisticsOrder(models.Model):
     incoterm = models.CharField(max_length=50, blank=True, default="")
     transport = models.CharField(max_length=100, blank=True, default="")
     conditions_paiement = models.TextField(blank=True, default="")
+    description = models.TextField(blank=True, default="")
     responsable = models.ForeignKey(
         CustomUser,
         on_delete=models.SET_NULL,
@@ -261,6 +273,7 @@ class LogisticsOrder(models.Model):
     delai_proforma_jours = models.PositiveIntegerField(null=True, blank=True)
     ecart_prix_proforma = models.BooleanField(default=False)
     ecart_quantite_proforma = models.BooleanField(default=False)
+    ecart_autre_proforma = models.BooleanField(default=False)
     notes_ecarts_proforma = models.TextField(blank=True, default="")
     proforma_controlee_le = models.DateTimeField(null=True, blank=True)
     proforma_controlee_par = models.ForeignKey(
@@ -306,6 +319,13 @@ class LogisticsOrder(models.Model):
         choices=PAYMENT_METHOD_CHOICES,
         blank=True,
         default="",
+    )
+    avance_pourcentage = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        verbose_name=_("Avance (%)"),
     )
     statut_paiement = models.CharField(
         max_length=16,
@@ -409,6 +429,14 @@ class LogisticsOrder(models.Model):
     )
     documents_originaux_file = models.FileField(
         upload_to=get_logistique_document_path, null=True, blank=True, max_length=1000
+    )
+    documents_originaux_requis = models.BooleanField(default=False)
+    statut_documents_originaux = models.CharField(
+        max_length=32,
+        choices=ORIGINAL_DOCUMENT_STATUS_CHOICES,
+        blank=True,
+        default="",
+        db_index=True,
     )
 
     proformas = models.ManyToManyField(
@@ -574,7 +602,7 @@ class LogisticsOrder(models.Model):
             return "En cours"
         if self.statut_paiement == "En attente":
             return "En attente externe"
-        if self.statut in {"Production", "Documents originaux"}:
+        if self.statut == "Production":
             return "En attente externe"
         return "En cours"
 
@@ -654,6 +682,7 @@ class LogisticsPaymentInstallment(models.Model):
     )
     date_echeance = models.DateField()
     montant_prevu = models.DecimalField(max_digits=12, decimal_places=2)
+    pourcentage = models.DecimalField(max_digits=5, decimal_places=2, default=0)
     devise = models.CharField(max_length=3, choices=CURRENCY_CHOICES)
     statut_traitement = models.CharField(
         max_length=64,
@@ -884,3 +913,35 @@ class LogisticsOrderEvent(models.Model):
 
     def __str__(self):
         return f"{self.commande} - {self.action}"
+
+
+class LogisticsProcessNote(models.Model):
+    commande = models.ForeignKey(
+        LogisticsOrder,
+        on_delete=models.CASCADE,
+        related_name="process_notes",
+    )
+    statut = models.CharField(max_length=64, db_index=True)
+    remarque = models.TextField()
+    fichier = models.FileField(
+        upload_to=get_logistique_document_path,
+        null=True,
+        blank=True,
+        max_length=1000,
+    )
+    user = models.ForeignKey(
+        CustomUser,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="remarques_processus_logistique",
+    )
+    date_created = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ("-date_created",)
+        verbose_name = _("Remarque processus logistique")
+        verbose_name_plural = _("Remarques processus logistique")
+
+    def __str__(self):
+        return f"{self.commande} - {self.statut}"

@@ -98,6 +98,7 @@ class LogisticsPaymentRequestPDFGenerator(BasePDFGenerator):
         rows = [
             [
                 Paragraph("Échéance", header_style),
+                Paragraph("Pourcentage", header_style),
                 Paragraph("Montant prévu", header_style),
                 Paragraph("Statut", header_style),
             ]
@@ -108,6 +109,7 @@ class LogisticsPaymentRequestPDFGenerator(BasePDFGenerator):
                 rows.append(
                     [
                         Paragraph(_date(installment.date_echeance), cell_style),
+                        Paragraph(f"{installment.pourcentage:.2f} %", cell_style),
                         Paragraph(
                             _amount(installment.montant_prevu, installment.devise),
                             cell_style,
@@ -119,13 +121,14 @@ class LogisticsPaymentRequestPDFGenerator(BasePDFGenerator):
             rows.append(
                 [
                     Paragraph("-", cell_style),
+                    Paragraph("-", cell_style),
                     Paragraph("Aucune échéance enregistrée", cell_style),
                     Paragraph("-", cell_style),
                 ]
             )
         table = Table(
             rows,
-            colWidths=[4.2 * cm, 5.5 * cm, self.CONTENT_WIDTH - 9.7 * cm],
+            colWidths=[3.4 * cm, 3.2 * cm, 4.6 * cm, self.CONTENT_WIDTH - 11.2 * cm],
             repeatRows=1,
         )
         table.setStyle(
@@ -249,6 +252,15 @@ class LogisticsPaymentRequestPDFGenerator(BasePDFGenerator):
                     ),
                     ("Date", _date(order.date_titre_importation)),
                     ("Méthode de paiement", order.methode_paiement),
+                    (
+                        "Avance",
+                        (
+                            f"{order.avance_pourcentage:.2f} %"
+                            if order.methode_paiement == "LC"
+                            and order.avance_pourcentage is not None
+                            else "-"
+                        ),
+                    ),
                 ],
             ),
             Spacer(1, 0.4 * cm),

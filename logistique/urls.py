@@ -8,6 +8,8 @@ from .views import (
     LogisticsOrderListCreateView,
     LogisticsOrderSourcePreviewView,
     LogisticsResponsibleOptionsView,
+    LogisticsSupplierListView,
+    LogisticsProcessNoteCreateView,
     LogisticsOrderStatusUpdateView,
     LogisticsOrderGlobalStatusUpdateView,
     LogisticsPaymentRejectView,
@@ -49,6 +51,11 @@ urlpatterns = [
         name="logistique-responsables",
     ),
     path(
+        "fournisseurs/",
+        LogisticsSupplierListView.as_view(),
+        name="logistique-fournisseurs",
+    ),
+    path(
         "<int:pk>/",
         LogisticsOrderDetailEditDeleteView.as_view(),
         name="logistique-detail",
@@ -77,6 +84,11 @@ urlpatterns = [
         "<int:pk>/review_supplier_proforma/",
         LogisticsSupplierProformaReviewView.as_view(),
         name="logistique-review-supplier-proforma",
+    ),
+    path(
+        "<int:pk>/process_notes/",
+        LogisticsProcessNoteCreateView.as_view(),
+        name="logistique-process-note-create",
     ),
     path(
         "<int:pk>/request_payment/",

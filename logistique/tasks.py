@@ -51,6 +51,13 @@ def _accounting_message(order):
                 f"{order.devise_titre_importation}"
             ),
             f"Référence titre d'importation : {order.numero_domiciliation}",
+            f"Méthode de paiement : {order.methode_paiement}",
+            *(
+                [f"Avance : {order.avance_pourcentage:.2f} %"]
+                if order.methode_paiement == "LC"
+                and order.avance_pourcentage is not None
+                else []
+            ),
             f"Lien direct vers le dossier : {_dossier_url(order)}",
             "",
             (
@@ -150,6 +157,45 @@ def queue_supplier_payment_proof_email(installment_id, delivery_token):
             preuve_email_file_token="",
             preuve_email_mise_en_file_le=None,
         )
+
+
+def queue_logistics_responsible_payment_email(order_id):
+    try:
+        deliver_logistics_responsible_payment_email.delay(order_id)
+    except Exception:
+        logger.exception(
+            "Unable to queue responsible payment notification for order %s",
+            order_id,
+        )
+
+
+@app.task(serializer="json")
+def deliver_logistics_responsible_payment_email(order_id):
+    order = (
+        LogisticsOrder.objects.select_related("responsable")
+        .filter(pk=order_id)
+        .first()
+    )
+    if not order or not order.responsable or not order.responsable.email:
+        return False
+    message = EmailMessage(
+        subject=f"Paiement validé – Dossier Import {order.numero_commande}",
+        body="\n".join(
+            [
+                "Bonjour,",
+                "",
+                (
+                    "Le Service Comptable a validé le paiement du dossier "
+                    f"{order.numero_commande}."
+                ),
+                f"Fournisseur : {order.fournisseur}",
+                f"Méthode de paiement : {order.methode_paiement or '-'}",
+                f"Lien direct vers le dossier : {_dossier_url(order)}",
+            ]
+        ),
+        to=[order.responsable.email],
+    )
+    return message.send() == 1
 
 
 def _claim_accounting_delivery(order_id, delivery_token, task_id):

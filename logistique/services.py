@@ -21,15 +21,6 @@ def _load_proforma_lines(*, company_id, proforma_ids, for_update=False):
             {"proformas": _("Sélectionnez une facture pro forma acceptée.")}
         )
     proforma_ids = list(dict.fromkeys(proforma_ids))
-    if len(proforma_ids) != 1:
-        raise ValidationError(
-            {
-                "proformas": _(
-                    "Sélectionnez une seule commande client validée par dossier logistique."
-                )
-            }
-        )
-
     proformas = list(
         FactureProForma.objects.filter(
             id__in=proforma_ids,
@@ -63,6 +54,18 @@ def _load_proforma_lines(*, company_id, proforma_ids, for_update=False):
                     "concernées: %(sources)s."
                 )
                 % {"sources": ", ".join(invalid_sources[:5])}
+            }
+        )
+
+    suppliers = {
+        (proforma.fournisseur or "").strip().casefold() for proforma in proformas
+    }
+    if len(suppliers) != 1:
+        raise ValidationError(
+            {
+                "proformas": _(
+                    "Toutes les factures pro forma sélectionnées doivent concerner le même fournisseur."
+                )
             }
         )
 
@@ -131,11 +134,23 @@ def _proforma_summary(proforma):
         "client_name": str(proforma.client) if proforma.client else "",
         "fournisseur": proforma.fournisseur,
         "fournisseur_email": proforma.fournisseur_email,
-        "project_reference": proforma.numero_bon_commande_client or "",
+        "project_reference": _project_reference(proforma),
         "date_facture": proforma.date_facture,
         "total_ttc_apres_remise": proforma.total_ttc_apres_remise,
         "devise": proforma.devise,
     }
+
+
+def _project_reference(proforma):
+    return (
+        (proforma.numero_bon_commande_client or "").strip()
+        or (
+            (proforma.source_devis.numero_demande_prix_client or "").strip()
+            if proforma.source_devis
+            else ""
+        )
+        or proforma.numero_facture
+    )
 
 
 def build_proforma_source_preview(*, company_id, proforma_ids):
@@ -143,22 +158,21 @@ def build_proforma_source_preview(*, company_id, proforma_ids):
     proformas, lines = _load_proforma_lines(
         company_id=company_id, proforma_ids=proforma_ids
     )
-    summary = _proforma_summary(proformas[0])
-    summary.update(
-        {
-            "devise": lines[0].devise_prix_achat,
-            "articles_count": len(lines),
-            "total_quantity": sum((line.quantity for line in lines), Decimal("0")),
-            "total_achat": sum(
-                (
-                    (line.prix_achat or Decimal("0")) * (line.quantity or Decimal("0"))
-                    for line in lines
-                ),
-                Decimal("0"),
+    return {
+        "proformas": [_proforma_summary(proforma) for proforma in proformas],
+        "fournisseur": proformas[0].fournisseur,
+        "fournisseur_email": proformas[0].fournisseur_email,
+        "devise": lines[0].devise_prix_achat,
+        "articles_count": len(lines),
+        "total_quantity": sum((line.quantity for line in lines), Decimal("0")),
+        "total_achat": sum(
+            (
+                (line.prix_achat or Decimal("0")) * (line.quantity or Decimal("0"))
+                for line in lines
             ),
-        }
-    )
-    return {"proformas": [summary]}
+            Decimal("0"),
+        ),
+    }
 
 
 def _get_comptable_emails(company_id):
@@ -178,13 +192,13 @@ def _get_comptable_emails(company_id):
 
 @transaction.atomic
 def create_orders_from_proformas(*, company_id, proforma_ids, user, defaults):
-    """Create one logistics dossier from one accepted customer order."""
+    """Create one logistics dossier from accepted customer orders."""
     proformas, lines = _load_proforma_lines(
         company_id=company_id, proforma_ids=proforma_ids, for_update=True
     )
     proforma = proformas[0]
     linked_orders = list(
-        LogisticsOrderProforma.objects.filter(proforma=proforma).values_list(
+        LogisticsOrderProforma.objects.filter(proforma__in=proformas).values_list(
             "commande__numero_commande", flat=True
         )
     )
@@ -192,7 +206,7 @@ def create_orders_from_proformas(*, company_id, proforma_ids, user, defaults):
         raise ValidationError(
             {
                 "proformas": _(
-                    "Cette commande client est déjà liée à un dossier logistique (%(orders)s)."
+                    "Une commande client sélectionnée est déjà liée à un dossier logistique (%(orders)s)."
                 )
                 % {"orders": ", ".join(_unique_non_empty(linked_orders)[:5])}
             }
@@ -230,34 +244,46 @@ def create_orders_from_proformas(*, company_id, proforma_ids, user, defaults):
         date_reelle=defaults.get("date_reelle"),
         origine_marchandise=defaults.get("origine_marchandise") or "",
         nature_marchandise=defaults.get("nature_marchandise") or "",
-        responsable_id=defaults.get("responsable"),
+        responsable_id=defaults.get("responsable") or user.id,
         statut="Réception commande",
         statut_global="À lancer",
         statut_commande_lancement="À lancer",
         created_by_user=user,
     )
-    LogisticsOrderProforma.objects.create(commande=order, proforma=proforma)
+    LogisticsOrderProforma.objects.bulk_create(
+        [
+            LogisticsOrderProforma(commande=order, proforma=selected_proforma)
+            for selected_proforma in proformas
+        ]
+    )
 
     for line in lines:
         article = line.article
+        line_proforma = line.facture_pro_forma
         LogisticsOrderLine.objects.create(
             commande=order,
-            proforma=proforma,
+            proforma=line_proforma,
             source_line=line,
-            client=proforma.client,
+            client=line_proforma.client,
             article=article,
             article_reference=article.reference or "",
             designation=article.designation or "",
             marque_name=str(article.marque) if article.marque else "",
-            project_reference=proforma.numero_bon_commande_client or "",
+            project_reference=_project_reference(line_proforma),
             quantity=line.quantity,
             prix_achat=line.prix_achat,
             devise_prix_achat=line.devise_prix_achat,
             prix_vente=line.prix_vente,
             devise_prix_vente=line.devise_prix_vente,
         )
+    brand_ids = {
+        line.article.marque_id for line in lines if line.article.marque_id is not None
+    }
+    if brand_ids:
+        order.marques.set(brand_ids)
+        order.marque_id = min(brand_ids)
     order.recalc_costs()
-    order.save(update_fields=["cout_achat", "cout_total", "date_updated"])
+    order.save(update_fields=["marque", "cout_achat", "cout_total", "date_updated"])
     order.add_event(
         user=user,
         action="Création",

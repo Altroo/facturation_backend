@@ -4,7 +4,7 @@ from decimal import Decimal
 from uuid import uuid4
 
 from django.db import transaction
-from django.db.models import Count, Sum, Q, DecimalField
+from django.db.models import Count, Sum, Q, DecimalField, Max
 from django.db.models.functions import Coalesce
 from django.http import Http404
 from django.utils import timezone
@@ -42,10 +42,12 @@ from .serializers import (
     LogisticsPaymentRejectSerializer,
     LogisticsPaymentExecutionSerializer,
     LogisticsPaymentInstallmentActionSerializer,
+    LogisticsPaymentProofEmailStatusSerializer,
     LogisticsPaymentRequestSerializer,
     LogisticsPaymentValidationSerializer,
     LogisticsProformaRequestSerializer,
     LogisticsSupplierProformaReviewSerializer,
+    LogisticsProcessNoteSerializer,
     LogisticsStatusSerializer,
 )
 from .services import (
@@ -53,7 +55,10 @@ from .services import (
     create_orders_from_proformas,
     send_payment_request_email,
 )
-from .tasks import queue_accounting_payment_email, queue_supplier_payment_proof_email
+from .tasks import (
+    queue_accounting_payment_email,
+    queue_logistics_responsible_payment_email,
+)
 from .utils import get_next_numero_logistique
 
 
@@ -183,6 +188,9 @@ def _notify_logistics_responsible(order, message):
         notification_type="status_change",
         object_id=order.id,
         target_url=f"/dashboard/logistique/{order.id}?company_id={order.company_id}",
+    )
+    transaction.on_commit(
+        lambda order_id=order.id: queue_logistics_responsible_payment_email(order_id)
     )
 
 
@@ -381,7 +389,11 @@ class LogisticsOrderListCreateView(CompanyAccessMixin, APIView):
             LogisticsOrder.objects.filter(company_id=company_id)
             .select_related("company", "marque", "responsable", "created_by_user")
             .prefetch_related(
-                "proformas", "lignes", "lignes__client", "echeances_paiement"
+                "marques",
+                "proformas",
+                "lignes",
+                "lignes__client",
+                "echeances_paiement",
             )
         )
         filterset = LogisticsOrderFilter(request.GET, queryset=queryset)
@@ -485,12 +497,16 @@ class LogisticsOrderDetailEditDeleteView(CompanyAccessMixin, APIView):
                     "paiement_assigne_a",
                 )
                 .prefetch_related(
+                    "marques",
                     "proformas",
+                    "proformas__source_devis",
                     "lignes",
                     "lignes__client",
                     "lignes__article",
                     "lignes__expected_emplacement",
                     "events",
+                    "process_notes",
+                    "process_notes__user",
                     "echeances_paiement",
                     "echeances_paiement__execution_enregistree_par",
                     "echeances_paiement__paiement_valide_par",
@@ -852,6 +868,7 @@ class LogisticsSupplierProformaReviewView(CompanyAccessMixin, APIView):
             "delai_proforma_jours",
             "ecart_prix_proforma",
             "ecart_quantite_proforma",
+            "ecart_autre_proforma",
             "notes_ecarts_proforma",
             "proforma_fournisseur_file",
         }
@@ -1120,13 +1137,20 @@ class LogisticsPaymentExecutionView(CompanyAccessMixin, APIView):
 
         remaining_installment_amount = installment.montant_prevu - data["montant_paye"]
         if remaining_installment_amount > 0:
+            paid_percentage = (
+                installment.pourcentage
+                * data["montant_paye"]
+                / installment.montant_prevu
+            ).quantize(Decimal("0.01"))
             LogisticsPaymentInstallment.objects.create(
                 commande=order,
                 date_echeance=installment.date_echeance,
                 montant_prevu=remaining_installment_amount,
+                pourcentage=installment.pourcentage - paid_percentage,
                 devise=installment.devise,
             )
             installment.montant_prevu = data["montant_paye"]
+            installment.pourcentage = paid_percentage
 
         installment.date_paiement = data["date_paiement"]
         installment.montant_paye = data["montant_paye"]
@@ -1319,10 +1343,10 @@ class LogisticsSwiftSentView(CompanyAccessMixin, APIView):
         self._check_company_access(request, order.company_id)
         if not _is_order_responsible(request.user, order):
             raise PermissionDenied(
-                _("Seul le Responsable Commande peut envoyer la preuve au fournisseur.")
+                _("Seul le Responsable Commande peut indiquer si l'e-mail a été envoyé.")
             )
         _ensure_order_active(order)
-        action_serializer = LogisticsPaymentInstallmentActionSerializer(
+        action_serializer = LogisticsPaymentProofEmailStatusSerializer(
             data=request.data
         )
         action_serializer.is_valid(raise_exception=True)
@@ -1337,36 +1361,18 @@ class LogisticsSwiftSentView(CompanyAccessMixin, APIView):
                     )
                 }
             )
-        if installment.preuve_email_statut == "Envoyé":
-            raise ValidationError(
-                {"swift": _("La preuve a déjà été envoyée au fournisseur.")}
-            )
-        supplier_email = (order.fournisseur_email or "").strip()
-        if not supplier_email:
-            raise ValidationError(
-                {
-                    "fournisseur_email": _(
-                        "Renseignez l'e-mail du fournisseur sur la commande client source avant l'envoi."
-                    )
-                }
-            )
-        if installment.preuve_email_statut == "En attente" or (
-            installment.preuve_email_statut == "Envoi en cours"
-            and not installment.preuve_email_relance_disponible
-        ):
-            raise ValidationError(
-                {"swift": _("L'envoi de la preuve au fournisseur est déjà en cours.")}
-            )
-        delivery_token = uuid4().hex
-        installment.preuve_email_statut = "En attente"
-        installment.preuve_email_destinataire = supplier_email
+        email_sent = action_serializer.validated_data["email_envoye"]
+        installment.preuve_email_statut = "Envoyé" if email_sent else "Non demandé"
+        installment.preuve_email_destinataire = ""
         installment.preuve_email_erreur = ""
         installment.preuve_email_demandee_par = request.user
         installment.preuve_email_task_id = ""
         installment.preuve_email_prise_en_charge_le = None
-        installment.preuve_email_file_token = delivery_token
-        installment.preuve_email_mise_en_file_le = timezone.now()
-        installment.preuve_envoyee_fournisseur_le = None
+        installment.preuve_email_file_token = ""
+        installment.preuve_email_mise_en_file_le = None
+        installment.preuve_envoyee_fournisseur_le = (
+            timezone.now() if email_sent else None
+        )
         installment.save(
             update_fields=[
                 "preuve_email_statut",
@@ -1381,14 +1387,69 @@ class LogisticsSwiftSentView(CompanyAccessMixin, APIView):
                 "date_updated",
             ]
         )
-        transaction.on_commit(
-            lambda installment_id=installment.id, token=delivery_token: queue_supplier_payment_proof_email(
-                installment_id, token
-            )
+        order.add_event(
+            user=request.user,
+            action="Suivi manuel e-mail fournisseur",
+            new_value="E-mail envoyé" if email_sent else "E-mail non envoyé",
         )
         _clear_payment_installment_cache(order)
         serializer = LogisticsOrderDetailSerializer(order, context={"request": request})
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class LogisticsProcessNoteCreateView(CompanyAccessMixin, APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+    parser_classes = (JSONParser, MultiPartParser, FormParser)
+
+    @transaction.atomic
+    def post(self, request, pk, *args, **kwargs):
+        order = LogisticsOrderDetailEditDeleteView.get_object(pk, for_update=True)
+        self._check_company_access(request, order.company_id)
+        if not (
+            _can_manage_logistics(request.user, order.company_id)
+            or _is_order_responsible(request.user, order)
+            or _can_process_assigned_payment(request.user, order)
+        ):
+            raise PermissionDenied(
+                _("Vous n'avez pas les droits pour ajouter une remarque à ce dossier.")
+            )
+        _ensure_order_active(order)
+        serializer = LogisticsProcessNoteSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        note = serializer.save(
+            commande=order,
+            statut=order.statut,
+            user=request.user,
+        )
+        order.add_event(
+            user=request.user,
+            action="Remarque processus",
+            new_value=order.statut,
+            note=note.remarque,
+        )
+        return Response(
+            LogisticsProcessNoteSerializer(note).data,
+            status=status.HTTP_201_CREATED,
+        )
+
+
+class LogisticsSupplierListView(CompanyAccessMixin, APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get(self, request, *args, **kwargs):
+        company_id = self._parse_company_id(
+            request.query_params.get("company_id"),
+            error_message="company_id est requis.",
+        )
+        self._check_company_access(request, company_id)
+        suppliers = (
+            LogisticsOrder.objects.filter(company_id=company_id)
+            .exclude(fournisseur="")
+            .values("fournisseur", "fournisseur_email")
+            .annotate(total_dossiers=Count("id"), derniere_activite=Max("date_updated"))
+            .order_by("fournisseur")
+        )
+        return Response(list(suppliers), status=status.HTTP_200_OK)
 
 
 class LogisticsPaymentReceiptConfirmView(CompanyAccessMixin, APIView):

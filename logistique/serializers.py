@@ -1,5 +1,5 @@
 from collections.abc import Iterable, Sized
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 from pathlib import Path
 from typing import Any, cast
 
@@ -9,10 +9,12 @@ from rest_framework import serializers
 
 from account.models import Membership
 from core.constants import CURRENCY_CHOICES
+from parameter.models import Marque
 from .models import (
     LogisticsOrder,
     LogisticsOrderEvent,
     LogisticsOrderLine,
+    LogisticsProcessNote,
     LogisticsPaymentInstallment,
 )
 
@@ -48,6 +50,7 @@ LOGISTICS_IMPORT_TITLE_FIELDS = frozenset(
         "statut_titre_importation",
         "titre_importation_file",
         "methode_paiement",
+        "avance_pourcentage",
     }
 )
 
@@ -161,6 +164,7 @@ class LogisticsPaymentInstallmentSerializer(serializers.ModelSerializer):
             "id",
             "date_echeance",
             "montant_prevu",
+            "pourcentage",
             "devise",
             "statut_traitement",
             "date_paiement",
@@ -204,6 +208,7 @@ class LogisticsPaymentInstallmentSerializer(serializers.ModelSerializer):
 
 class LogisticsOrderBaseSerializer(serializers.ModelSerializer):
     marque_name = serializers.CharField(source="marque.nom", read_only=True)
+    marques_names = serializers.SerializerMethodField()
     responsable_name = serializers.SerializerMethodField()
     demande_paiement_envoyee_par_name = serializers.SerializerMethodField()
     proforma_demandee_par_name = serializers.SerializerMethodField()
@@ -235,10 +240,13 @@ class LogisticsOrderBaseSerializer(serializers.ModelSerializer):
             "fournisseur_email",
             "marque",
             "marque_name",
+            "marques",
+            "marques_names",
             "devise",
             "incoterm",
             "transport",
             "conditions_paiement",
+            "description",
             "responsable",
             "responsable_name",
             "date_prevue",
@@ -259,6 +267,7 @@ class LogisticsOrderBaseSerializer(serializers.ModelSerializer):
             "delai_proforma_jours",
             "ecart_prix_proforma",
             "ecart_quantite_proforma",
+            "ecart_autre_proforma",
             "notes_ecarts_proforma",
             "proforma_controlee_le",
             "proforma_controlee_par",
@@ -280,6 +289,7 @@ class LogisticsOrderBaseSerializer(serializers.ModelSerializer):
             "date_validation_titre_importation",
             "statut_titre_importation",
             "methode_paiement",
+            "avance_pourcentage",
             "statut_paiement",
             "statut_banque_paiement",
             "statut_traitement_paiement",
@@ -320,6 +330,8 @@ class LogisticsOrderBaseSerializer(serializers.ModelSerializer):
             "justificatifs_file",
             "swift_file",
             "documents_originaux_file",
+            "documents_originaux_requis",
+            "statut_documents_originaux",
             "created_by_user",
             "created_by_user_name",
             "date_created",
@@ -337,6 +349,7 @@ class LogisticsOrderBaseSerializer(serializers.ModelSerializer):
             "fournisseur",
             "fournisseur_email",
             "marque_name",
+            "marques_names",
             "responsable_name",
             "statut_global",
             "statut_commande_lancement",
@@ -353,6 +366,7 @@ class LogisticsOrderBaseSerializer(serializers.ModelSerializer):
             "delai_proforma_jours",
             "ecart_prix_proforma",
             "ecart_quantite_proforma",
+            "ecart_autre_proforma",
             "notes_ecarts_proforma",
             "proforma_controlee_le",
             "proforma_controlee_par",
@@ -390,6 +404,10 @@ class LogisticsOrderBaseSerializer(serializers.ModelSerializer):
     @staticmethod
     def get_responsable_name(obj):
         return _user_display_name(obj.responsable)
+
+    @staticmethod
+    def get_marques_names(obj):
+        return [marque.nom for marque in obj.marques.all()]
 
     @staticmethod
     def get_demande_paiement_envoyee_par_name(obj):
@@ -477,11 +495,11 @@ class LogisticsOrderBaseSerializer(serializers.ModelSerializer):
         if obj.has_missing_swift:
             alerts.append("SWIFT manquant")
         if (
-            obj.statut in {"Documents originaux", "Transit"}
-            and not obj.documents_originaux_file
+            obj.documents_originaux_requis
+            and obj.statut_documents_originaux != "Réceptionné"
         ):
             alerts.append("Documents non reçus")
-        if obj.statut in {"Expédition", "Documents originaux"}:
+        if obj.statut == "Expédition":
             alerts.append("Transit non lancé")
         if obj.is_delivery_overdue:
             alerts.append("Livraison dépassée")
@@ -497,6 +515,8 @@ class LogisticsOrderListSerializer(LogisticsOrderBaseSerializer):
             "fournisseur",
             "marque",
             "marque_name",
+            "marques",
+            "marques_names",
             "devise",
             "transport",
             "date_prevue",
@@ -536,6 +556,7 @@ class LogisticsOrderDetailSerializer(LogisticsOrderBaseSerializer):
     echeancier_paiement = LogisticsPaymentInstallmentSerializer(
         source="echeances_paiement", many=True, read_only=True
     )
+    process_notes = serializers.SerializerMethodField()
 
     class Meta(LogisticsOrderBaseSerializer.Meta):
         fields = LogisticsOrderBaseSerializer.Meta.fields + [
@@ -543,12 +564,14 @@ class LogisticsOrderDetailSerializer(LogisticsOrderBaseSerializer):
             "events",
             "proformas_detail",
             "echeancier_paiement",
+            "process_notes",
         ]
         read_only_fields = LogisticsOrderBaseSerializer.Meta.read_only_fields + [
             "lignes",
             "events",
             "proformas_detail",
             "echeancier_paiement",
+            "process_notes",
         ]
 
     @staticmethod
@@ -560,7 +583,15 @@ class LogisticsOrderDetailSerializer(LogisticsOrderBaseSerializer):
                 "client_name": str(proforma.client) if proforma.client else None,
                 "fournisseur": proforma.fournisseur,
                 "fournisseur_email": proforma.fournisseur_email,
-                "project_reference": proforma.numero_bon_commande_client or "",
+                "project_reference": (
+                    (proforma.numero_bon_commande_client or "").strip()
+                    or (
+                        (proforma.source_devis.numero_demande_prix_client or "").strip()
+                        if proforma.source_devis
+                        else ""
+                    )
+                    or proforma.numero_facture
+                ),
                 "date_facture": proforma.date_facture,
                 "total_ttc_apres_remise": proforma.total_ttc_apres_remise,
                 "devise": proforma.devise,
@@ -568,12 +599,17 @@ class LogisticsOrderDetailSerializer(LogisticsOrderBaseSerializer):
             for proforma in obj.proformas.all()
         ]
 
+    @staticmethod
+    def get_process_notes(obj):
+        return LogisticsProcessNoteSerializer(
+            obj.process_notes.all(), many=True
+        ).data
+
 
 class LogisticsOrderCreateSerializer(serializers.Serializer):
     proformas = serializers.ListField(
         child=serializers.IntegerField(min_value=1),
         allow_empty=False,
-        max_length=1,
     )
     date_prevue = serializers.DateField(required=True)
     date_reelle = serializers.DateField(required=False, allow_null=True)
@@ -583,7 +619,7 @@ class LogisticsOrderCreateSerializer(serializers.Serializer):
     nature_marchandise = serializers.CharField(
         required=False, allow_blank=True, default=""
     )
-    responsable = serializers.IntegerField(required=True, allow_null=False, min_value=1)
+    responsable = serializers.IntegerField(required=False, allow_null=True, min_value=1)
 
     def validate(self, attrs):
         responsable = attrs.get("responsable")
@@ -604,12 +640,20 @@ class LogisticsOrderCreateSerializer(serializers.Serializer):
 
 
 class LogisticsOrderUpdateSerializer(serializers.ModelSerializer):
+    marques = serializers.PrimaryKeyRelatedField(
+        many=True,
+        required=False,
+        queryset=Marque.objects.all(),
+    )
+
     class Meta:
         model = LogisticsOrder
         fields = [
             "transport",
+            "description",
             "statut",
             "responsable",
+            "marques",
             "date_prevue",
             "date_reelle",
             "poids_net",
@@ -625,6 +669,7 @@ class LogisticsOrderUpdateSerializer(serializers.ModelSerializer):
             "date_validation_titre_importation",
             "statut_titre_importation",
             "methode_paiement",
+            "avance_pourcentage",
             "date_paiement",
             "montant_paiement",
             "devise_paiement",
@@ -641,6 +686,8 @@ class LogisticsOrderUpdateSerializer(serializers.ModelSerializer):
             "justificatifs_file",
             "swift_file",
             "documents_originaux_file",
+            "documents_originaux_requis",
+            "statut_documents_originaux",
         ]
 
     @property
@@ -658,6 +705,13 @@ class LogisticsOrderUpdateSerializer(serializers.ModelSerializer):
         ):
             raise serializers.ValidationError(
                 _("Ce responsable n'appartient pas à cette société.")
+            )
+        return value
+
+    def validate_marques(self, value):
+        if any(marque.company_id != self.order.company_id for marque in value):
+            raise serializers.ValidationError(
+                _("Toutes les marques doivent appartenir à cette société.")
             )
         return value
 
@@ -745,6 +799,18 @@ class LogisticsOrderUpdateSerializer(serializers.ModelSerializer):
         }
         if errors:
             raise serializers.ValidationError(errors)
+        payment_method = attrs.get("methode_paiement", self.order.methode_paiement)
+        advance = attrs.get("avance_pourcentage", self.order.avance_pourcentage)
+        if payment_method != "LC":
+            attrs["avance_pourcentage"] = None
+        elif advance is not None and not Decimal("0") <= advance <= Decimal("100"):
+            raise serializers.ValidationError(
+                {"avance_pourcentage": _("Le pourcentage doit être compris entre 0 et 100.")}
+            )
+        if not attrs.get(
+            "documents_originaux_requis", self.order.documents_originaux_requis
+        ):
+            attrs["statut_documents_originaux"] = ""
         return attrs
 
     def update(self, instance: LogisticsOrder, validated_data) -> LogisticsOrder:
@@ -793,10 +859,12 @@ class LogisticsLaunchStatusSerializer(serializers.Serializer):
 
 class LogisticsPaymentScheduleItemSerializer(serializers.Serializer):
     date_echeance = serializers.DateField()
-    montant_prevu = serializers.DecimalField(
-        max_digits=12, decimal_places=2, min_value=Decimal("0.01")
+    pourcentage = serializers.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        min_value=Decimal("0.01"),
+        max_value=Decimal("100"),
     )
-    devise = serializers.ChoiceField(choices=[choice[0] for choice in CURRENCY_CHOICES])
 
 
 class LogisticsPaymentRequestSerializer(serializers.Serializer):
@@ -804,28 +872,41 @@ class LogisticsPaymentRequestSerializer(serializers.Serializer):
 
     def validate_echeancier(self, value):
         order = self.context["order"]
-        expected_currency = order.devise_titre_importation
-        invalid_currencies = {
-            item["devise"] for item in value if item["devise"] != expected_currency
-        }
-        if invalid_currencies:
+        total = sum((item["pourcentage"] for item in value), Decimal("0"))
+        if total != Decimal("100"):
             raise serializers.ValidationError(
-                _(
-                    "Toutes les échéances doivent utiliser la devise du titre d'importation."
-                )
+                _("Le total des pourcentages de l'échéancier doit être égal à 100 %.")
             )
-        total = sum((item["montant_prevu"] for item in value), Decimal("0"))
-        if total != order.montant_titre_importation:
-            raise serializers.ValidationError(
-                _(
-                    "Le total de l'échéancier doit correspondre au montant du titre d'importation."
-                )
+        normalized = []
+        assigned = Decimal("0")
+        for index, item in enumerate(value):
+            if index == len(value) - 1:
+                amount = order.montant_titre_importation - assigned
+            else:
+                amount = (
+                    order.montant_titre_importation
+                    * item["pourcentage"]
+                    / Decimal("100")
+                ).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+                assigned += amount
+            normalized.append(
+                {
+                    **item,
+                    "montant_prevu": amount,
+                    "devise": order.devise_titre_importation,
+                }
             )
-        return value
+        return normalized
 
 
 class LogisticsPaymentInstallmentActionSerializer(serializers.Serializer):
     echeance_id = serializers.IntegerField(min_value=1)
+
+
+class LogisticsPaymentProofEmailStatusSerializer(
+    LogisticsPaymentInstallmentActionSerializer
+):
+    email_envoye = serializers.BooleanField()
 
 
 class LogisticsPaymentExecutionSerializer(LogisticsPaymentInstallmentActionSerializer):
@@ -840,7 +921,7 @@ class LogisticsPaymentExecutionSerializer(LogisticsPaymentInstallmentActionSeria
         choices=[choice[0] for choice in CURRENCY_CHOICES]
     )
     banque_paiement = serializers.CharField(required=True, allow_blank=False)
-    reference_paiement = serializers.CharField(required=True, allow_blank=False)
+    reference_paiement = serializers.CharField(required=False, allow_blank=True, default="")
     methode_paiement = serializers.ChoiceField(
         choices=[choice[0] for choice in LogisticsOrder.PAYMENT_METHOD_CHOICES],
         required=True,
@@ -918,6 +999,7 @@ class LogisticsSupplierProformaReviewSerializer(serializers.Serializer):
     delai_proforma_jours = serializers.IntegerField(required=False, min_value=0)
     ecart_prix_proforma = serializers.BooleanField(required=False)
     ecart_quantite_proforma = serializers.BooleanField(required=False)
+    ecart_autre_proforma = serializers.BooleanField(required=False)
     notes_ecarts_proforma = serializers.CharField(required=False, allow_blank=True)
     proforma_fournisseur_file = serializers.FileField(required=False, allow_null=True)
 
@@ -979,19 +1061,22 @@ class LogisticsSupplierProformaReviewSerializer(serializers.Serializer):
 
         has_price_variance = bool(effective("ecart_prix_proforma"))
         has_quantity_variance = bool(effective("ecart_quantite_proforma"))
+        has_other_variance = bool(effective("ecart_autre_proforma"))
         notes = (effective("notes_ecarts_proforma") or "").strip()
         action = attrs["action"]
 
         if action == "request_correction":
-            if not (has_price_variance or has_quantity_variance):
+            if not (has_price_variance or has_quantity_variance or has_other_variance):
                 errors["variances"] = _(
-                    "Signalez au moins un écart de prix ou de quantité."
+                    "Signalez au moins un écart de prix, de quantité ou autre."
                 )
             if not notes:
                 errors["notes_ecarts_proforma"] = _(
                     "Décrivez les écarts avant de demander une correction."
                 )
-        elif action == "validate" and (has_price_variance or has_quantity_variance):
+        elif action == "validate" and (
+            has_price_variance or has_quantity_variance or has_other_variance
+        ):
             errors["variances"] = _(
                 "Une pro forma fournisseur comportant des écarts ne peut pas être validée."
             )
@@ -1003,3 +1088,28 @@ class LogisticsSupplierProformaReviewSerializer(serializers.Serializer):
         if errors:
             raise serializers.ValidationError(errors)
         return attrs
+
+
+class LogisticsProcessNoteSerializer(serializers.ModelSerializer):
+    user_name = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = LogisticsProcessNote
+        fields = [
+            "id",
+            "statut",
+            "remarque",
+            "fichier",
+            "user",
+            "user_name",
+            "date_created",
+        ]
+        read_only_fields = ["id", "statut", "user", "user_name", "date_created"]
+
+    @staticmethod
+    def get_user_name(obj):
+        return _user_display_name(obj.user)
+
+    @staticmethod
+    def validate_fichier(value):
+        return validate_logistics_document(value)

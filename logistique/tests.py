@@ -172,8 +172,7 @@ def payment_schedule_payload(order, **overrides):
         "echeancier": [
             {
                 "date_echeance": (timezone.localdate() + timedelta(days=7)).isoformat(),
-                "montant_prevu": str(order.montant_titre_importation),
-                "devise": order.devise_titre_importation,
+                "pourcentage": "100.00",
             }
         ]
     }
@@ -294,7 +293,8 @@ def test_create_logistics_order_inherits_supplier_and_all_source_lines(
     assert response.status_code == status.HTTP_201_CREATED
     assert response.data["created"] == 1
     order = LogisticsOrder.objects.get()
-    assert getattr(order, "marque_id", None) is None
+    assert order.marque_id is not None
+    assert set(order.marques.values_list("nom", flat=True)) == {"Brand A", "Brand B"}
     assert order.lignes.count() == 2
     assert order.fournisseur == "Supplier One"
     assert order.fournisseur_email == "supplier@example.com"
@@ -400,8 +400,25 @@ def test_create_logistics_order_rejects_missing_required_fields(
     )
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert "responsable" in response.data["details"]
+    assert "date_prevue" in response.data["details"]
     assert LogisticsOrder.objects.count() == 0
+
+
+def test_create_logistics_order_defaults_responsible_to_current_user(
+    api_client, logistics_company, logistics_user, logistics_proformas
+):
+    proforma, _, _ = logistics_proformas
+    payload = valid_logistics_payload(
+        logistics_company, logistics_user, proforma
+    )
+    payload.pop("responsable")
+
+    response = api_client.post(
+        reverse("logistique:logistique-list-create"), payload, format="json"
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED, response.data
+    assert LogisticsOrder.objects.get().responsable == logistics_user
 
 
 def test_create_logistics_order_rejects_zero_responsible(
@@ -460,20 +477,48 @@ def test_create_logistics_order_allows_missing_source_supplier(
     assert order.fournisseur == ""
 
 
-def test_create_logistics_order_rejects_multiple_sources(
+def test_create_logistics_order_accepts_multiple_sources_for_same_supplier(
     api_client, logistics_company, logistics_user, logistics_proformas
 ):
     proforma, _, _ = logistics_proformas
+    source_line = proforma.lignes.first()
+    second = FactureProForma.objects.create(
+        company=logistics_company,
+        numero_facture="P002/26",
+        client=proforma.client,
+        fournisseur=proforma.fournisseur,
+        fournisseur_email=proforma.fournisseur_email,
+        date_facture="2026-07-02",
+        numero_bon_commande_client="PROJET-LOG-002",
+        mode_paiement=proforma.mode_paiement,
+        statut="Accepté",
+        termes_paiement=proforma.termes_paiement,
+        created_by_user=logistics_user,
+    )
+    FactureProFormaLine.objects.create(
+        facture_pro_forma=second,
+        article=source_line.article,
+        prix_achat=Decimal("50.00"),
+        prix_vente=Decimal("75.00"),
+        quantity=1,
+        devise_prix_achat=source_line.devise_prix_achat,
+        devise_prix_vente=source_line.devise_prix_vente,
+    )
     payload = valid_logistics_payload(logistics_company, logistics_user, proforma)
-    payload["proformas"] = [proforma.id, proforma.id]
+    payload["proformas"] = [proforma.id, second.id]
 
     response = api_client.post(
         reverse("logistique:logistique-list-create"), payload, format="json"
     )
 
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert "proformas" in response.data["details"]
-    assert LogisticsOrder.objects.count() == 0
+    assert response.status_code == status.HTTP_201_CREATED, response.data
+    order = LogisticsOrder.objects.get()
+    assert set(order.proformas.values_list("id", flat=True)) == {proforma.id, second.id}
+    assert order.lignes.count() == 3
+    assert set(order.lignes.values_list("project_reference", flat=True)) == {
+        "PROJET-LOG-001",
+        "PROJET-LOG-002",
+    }
 
 
 def test_logistics_source_preview_returns_inherited_source_data(
@@ -494,10 +539,10 @@ def test_logistics_source_preview_returns_inherited_source_data(
     assert source["numero_facture"] == "P001/26"
     assert source["fournisseur"] == "Supplier One"
     assert source["fournisseur_email"] == "supplier@example.com"
-    assert source["articles_count"] == 2
-    assert source["total_quantity"] == Decimal("3")
-    assert source["total_achat"] == Decimal("400")
-    assert source["devise"] == "MAD"
+    assert response.data["articles_count"] == 2
+    assert response.data["total_quantity"] == Decimal("3")
+    assert response.data["total_achat"] == Decimal("400")
+    assert response.data["devise"] == "MAD"
 
 
 def test_create_logistics_order_rejects_mixed_purchase_currencies(
@@ -603,6 +648,33 @@ def test_logistics_filters_accept_selectable_multi_values(
 
     assert response.status_code == status.HTTP_200_OK
     assert response.data["count"] == 2
+
+
+def test_supplier_list_and_process_note_endpoints(
+    api_client, logistics_company, logistics_user, logistics_proformas
+):
+    create_logistics_order(
+        api_client, logistics_company, logistics_user, logistics_proformas
+    )
+    order = LogisticsOrder.objects.get()
+
+    suppliers_response = api_client.get(
+        reverse("logistique:logistique-fournisseurs"),
+        {"company_id": logistics_company.id},
+    )
+    note_response = api_client.post(
+        reverse("logistique:logistique-process-note-create", args=[order.id]),
+        {"remarque": "Relance fournisseur effectuée."},
+        format="multipart",
+    )
+
+    assert suppliers_response.status_code == status.HTTP_200_OK
+    assert suppliers_response.data[0]["fournisseur"] == "Supplier One"
+    assert suppliers_response.data[0]["total_dossiers"] == 1
+    assert note_response.status_code == status.HTTP_201_CREATED
+    assert note_response.data["statut"] == order.statut
+    assert note_response.data["remarque"] == "Relance fournisseur effectuée."
+    assert note_response.data["fichier"] is None
 
 
 def test_legacy_status_filter_keeps_original_semantics(
@@ -1170,6 +1242,9 @@ def test_part_three_full_payment_flow_matches_docx(
     proforma_response = complete_supplier_proforma_step(api_client, order)
     assert proforma_response.status_code == status.HTTP_200_OK
     prepare_valid_import_title(order)
+    order.methode_paiement = "LC"
+    order.avance_pourcentage = Decimal("30.00")
+    order.save(update_fields=["methode_paiement", "avance_pourcentage"])
 
     request_url = reverse("logistique:logistique-request-payment", args=[order.id])
     comptable_client = APIClient()
@@ -1204,6 +1279,8 @@ def test_part_three_full_payment_flow_matches_docx(
     assert "Fournisseur : Supplier One" in accounting_email.body
     assert "Montant : 400.00 EUR" in accounting_email.body
     assert "Référence titre d'importation : TI-2026-001" in accounting_email.body
+    assert "Méthode de paiement : LC" in accounting_email.body
+    assert "Avance : 30.00 %" in accounting_email.body
     assert (
         f"/dashboard/logistique/{order.id}?company_id={order.company_id}"
         in accounting_email.body
@@ -1223,6 +1300,8 @@ def test_part_three_full_payment_flow_matches_docx(
         title="Effectuer le paiement fournisseur", object_id=order.id
     ).exists()
     installment = order.echeances_paiement.get()
+    assert installment.pourcentage == Decimal("100.00")
+    assert installment.montant_prevu == Decimal("400.00")
 
     unauthorized_start = api_client.post(
         reverse("logistique:logistique-start-payment", args=[order.id]),
@@ -1239,7 +1318,11 @@ def test_part_three_full_payment_flow_matches_docx(
 
     execution_response = comptable_client.post(
         reverse("logistique:logistique-record-payment-execution", args=[order.id]),
-        payment_execution_payload(installment, methode_paiement="Remise documentaire"),
+        payment_execution_payload(
+            installment,
+            methode_paiement="Remise documentaire",
+            reference_paiement="",
+        ),
         format="json",
     )
     assert execution_response.status_code == status.HTTP_200_OK, execution_response.data
@@ -1247,14 +1330,15 @@ def test_part_three_full_payment_flow_matches_docx(
     assert installment.statut_traitement == "Paiement effectué – Justificatif à joindre"
     assert installment.methode_paiement == "Remise documentaire"
     order.refresh_from_db()
-    assert order.methode_paiement == "Virement"
+    assert order.methode_paiement == "LC"
 
     validate_url = reverse("logistique:logistique-validate-payment", args=[order.id])
-    validate_response = comptable_client.post(
-        validate_url,
-        payment_validation_payload(installment),
-        format="multipart",
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        validate_response = comptable_client.post(
+            validate_url,
+            payment_validation_payload(installment),
+            format="multipart",
+        )
 
     assert validate_response.status_code == status.HTTP_200_OK
     order.refresh_from_db()
@@ -1265,7 +1349,7 @@ def test_part_three_full_payment_flow_matches_docx(
     assert order.solde_restant == Decimal("0")
     assert getattr(order, "paiement_assigne_a", None) is None
     assert order.paiement_valide_par == comptable_user
-    assert order.reference_paiement == "SWIFT-001"
+    assert order.reference_paiement == ""
     assert order.devise_paiement == "EUR"
     assert order.banque_paiement == "Banque comptable"
     assert order.commentaire_paiement == "Paiement fournisseur"
@@ -1278,34 +1362,33 @@ def test_part_three_full_payment_flow_matches_docx(
         "de la commande."
     )
     assert logistics_user.notifications.filter(message=expected_message).exists()
+    assert len(mail.outbox) == 2
+    responsible_email = mail.outbox[1]
+    assert responsible_email.to == [logistics_user.email]
+    assert responsible_email.subject == (
+        f"Paiement validé – Dossier Import {order.numero_commande}"
+    )
+    assert "Méthode de paiement : LC" in responsible_email.body
 
     send_url = reverse("logistique:logistique-send-swift", args=[order.id])
     non_owner_send = comptable_client.post(
-        send_url, {"echeance_id": installment.id}, format="json"
+        send_url,
+        {"echeance_id": installment.id, "email_envoye": True},
+        format="json",
     )
     assert non_owner_send.status_code == status.HTTP_403_FORBIDDEN
     with django_capture_on_commit_callbacks(execute=True):
         first_send = api_client.post(
-            send_url, {"echeance_id": installment.id}, format="json"
+            send_url,
+            {"echeance_id": installment.id, "email_envoye": True},
+            format="json",
         )
-    duplicate_send = api_client.post(
-        send_url, {"echeance_id": installment.id}, format="json"
-    )
     assert first_send.status_code == status.HTTP_200_OK
-    assert duplicate_send.status_code == status.HTTP_400_BAD_REQUEST
     installment.refresh_from_db()
     assert installment.preuve_email_statut == "Envoyé"
-    assert installment.preuve_email_destinataire == "supplier@example.com"
+    assert installment.preuve_email_destinataire == ""
     assert installment.preuve_envoyee_fournisseur_le is not None
     assert len(mail.outbox) == 2
-    supplier_email = mail.outbox[1]
-    assert supplier_email.to == ["supplier@example.com"]
-    assert supplier_email.subject == (
-        f"Justificatif de paiement – Dossier import {order.numero_commande}"
-    )
-    assert "Montant payé : 400.00 EUR" in supplier_email.body
-    assert "Référence bancaire : SWIFT-001" in supplier_email.body
-    assert len(supplier_email.attachments) == 1
 
     confirm_url = reverse(
         "logistique:logistique-confirm-payment-receipt", args=[order.id]
@@ -1814,7 +1897,7 @@ def test_payment_request_cannot_be_replayed_or_reopen_completed_state(
     assert order.events.filter(action="Demande de paiement").count() == 1
 
 
-def test_supplier_proof_email_requires_source_address(
+def test_supplier_proof_email_status_is_manual_and_does_not_require_address(
     api_client, logistics_company, logistics_user
 ):
     order = LogisticsOrder.objects.create(
@@ -1837,14 +1920,14 @@ def test_supplier_proof_email_requires_source_address(
 
     response = api_client.post(
         reverse("logistique:logistique-send-swift", args=[order.id]),
-        {"echeance_id": installment.id},
+        {"echeance_id": installment.id, "email_envoye": True},
         format="json",
     )
 
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert "fournisseur_email" in response.data["details"]
+    assert response.status_code == status.HTTP_200_OK
     installment.refresh_from_db()
-    assert installment.preuve_email_statut == "Non demandé"
+    assert installment.preuve_email_statut == "Envoyé"
+    assert installment.preuve_envoyee_fournisseur_le is not None
 
 
 def test_failed_accounting_email_can_be_requeued_by_order_responsible(
