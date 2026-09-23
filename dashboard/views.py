@@ -1665,14 +1665,10 @@ class MonthlyObjectivesView(APIView):
             parse_date_filters(request)
         )
 
-        # Use date range or default to current month
-        if date_from:
-            current_period_start = date_from
-        else:
-            today = timezone.now()
-            current_period_start = today.replace(
-                day=1, hour=0, minute=0, second=0, microsecond=0
-            ).date()
+        # Monthly objectives always measure the calendar month containing date_to.
+        # The dashboard's general date range can span several months, but carrying
+        # that range into this KPI prevents progress from resetting each month.
+        current_period_start = date_to.replace(day=1)
 
         facture_filter: dict[str, Any] = {
             "date_facture__gte": current_period_start,

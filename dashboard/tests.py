@@ -658,6 +658,44 @@ class TestKPIEndpoints:
         )
         assert response.status_code == status.HTTP_200_OK
 
+    def test_monthly_objectives_reset_for_new_month_despite_broader_date_range(
+        self, authenticated_client, facture_client, devi, company
+    ):
+        """Previous-month activity must not carry into the new month's progress."""
+        current_month_start = date.today().replace(day=1)
+        previous_month_date = current_month_start - timedelta(days=1)
+        facture_client.date_facture = previous_month_date
+        facture_client.total_ttc_apres_remise = Decimal("100.00")
+        facture_client.save(
+            update_fields=["date_facture", "total_ttc_apres_remise"]
+        )
+        devi.date_devis = previous_month_date
+        devi.statut = "Accepté"
+        devi.save(update_fields=["date_devis", "statut"])
+        MonthlyObjectives.objects.create(
+            company=company,
+            objectif_ca=Decimal("100.00"),
+            objectif_factures=1,
+            objectif_conversion=Decimal("100.00"),
+        )
+
+        response = authenticated_client.get(
+            "/api/dashboard/kpi/monthly-objectives/",
+            {
+                "company_id": company.id,
+                "date_from": previous_month_date.isoformat(),
+                "date_to": date.today().isoformat(),
+            },
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["revenue"]["current"] == 0
+        assert response.data["revenue"]["percentage"] == 0
+        assert response.data["invoices"]["current"] == 0
+        assert response.data["invoices"]["percentage"] == 0
+        assert response.data["conversion"]["current"] == 0
+        assert response.data["conversion"]["percentage"] == 0
+
 
 class TestDiscountAndMarginEndpoints:
     """Tests for discount and margin analysis endpoints."""
