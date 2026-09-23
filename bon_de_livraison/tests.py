@@ -18,6 +18,7 @@ from bon_de_livraison.serializers import (
     BonDeLivraisonSerializer,
 )
 from bon_de_livraison.utils import get_next_numero_bon_livraison
+from bon_de_livraison.views import BonDeLivraisonPDFGenerator
 from client.models import Client
 from company.models import Company
 from core.tests import (
@@ -672,6 +673,18 @@ class TestBonDeLivraisonLineModelExtra:
 @pytest.mark.django_db
 class TestBonDeLivraisonPDFGeneration:
     """Test PDF generation for bon de livraison."""
+
+    def test_quantity_only_pdf_keeps_designation_line_breaks(
+        self, bon_de_livraison_with_lines, bon_de_livraison_article, bon_de_livraison_company
+    ):
+        bon_de_livraison_article.designation = "Plan 2D\nPlan électricité\nPlan 3D"
+        bon_de_livraison_article.save(update_fields=["designation"])
+        generator = BonDeLivraisonPDFGenerator(
+            bon_de_livraison_with_lines, bon_de_livraison_company
+        )
+        table = generator._create_articles_table_quantity_only()
+
+        assert "Plan 2D<br/>Plan électricité<br/>Plan 3D" in table._cellvalues[1][0].text
 
     def _mark_printable(self, bon_de_livraison):
         bon_de_livraison.statut = "Envoyé"

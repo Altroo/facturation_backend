@@ -196,6 +196,16 @@ class TestArticleAPI:
         self.article_produit.refresh_from_db()
         assert self.article_produit.designation == "Partial Update"
 
+    def test_article_designation_preserves_line_breaks(self):
+        designation = "*Plan 2D pour gros oeuvre\n*Plan pour électricité\n*Plan 3D"
+        url = reverse("article:article-detail", args=[self.article_produit.id])
+        response = self.client.patch(url, {"designation": designation}, format="json")
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["designation"] == designation
+        self.article_produit.refresh_from_db()
+        assert self.article_produit.designation == designation
+
     def test_delete_article(self):
         url = reverse("article:article-detail", args=[self.article_service.id])
         response = self.client.delete(url)

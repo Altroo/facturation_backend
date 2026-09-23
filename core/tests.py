@@ -2307,6 +2307,33 @@ class TestBasePDFGenerator:
         table = generator._create_articles_table(show_remise=True, show_unite=False)
         assert isinstance(table, Table)
 
+    def test_article_designation_line_breaks_in_pdf_tables(self, pdf_devi, pdf_company):
+        designation = "Plan 2D\nPlan électricité & plomberie\nPlan 3D"
+        article = Article.objects.create(
+            company=pdf_company,
+            reference="ART<001",
+            designation=designation,
+            prix_vente=Decimal("150.00"),
+            tva=Decimal("20"),
+        )
+        DeviLine.objects.create(
+            devis=pdf_devi,
+            article=article,
+            prix_achat=Decimal("100.00"),
+            prix_vente=Decimal("150.00"),
+            quantity=Decimal("1"),
+        )
+        generator = BasePDFGenerator(pdf_devi, pdf_company)
+
+        for table in (
+            generator._create_articles_table(),
+            generator._build_standard_articles_table(),
+            generator._build_nectar_articles_table(),
+        ):
+            text = table._cellvalues[1][0].text
+            assert "Plan 2D<br/>Plan électricité &amp; plomberie<br/>Plan 3D" in text
+            assert "ART&lt;001" in text
+
     def test_create_articles_table_with_unite(self, pdf_devi, pdf_company, pdf_client):
         """Test _create_articles_table with unite column."""
 

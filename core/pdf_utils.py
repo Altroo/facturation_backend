@@ -4,6 +4,7 @@ import os
 from decimal import Decimal
 from io import BytesIO
 from typing import Optional
+from xml.sax.saxutils import escape
 
 from django.http import HttpResponse
 from reportlab.lib import colors
@@ -29,6 +30,12 @@ from reportlab.platypus import (
 from core.nectar import is_nectar_company
 
 logger = logging.getLogger(__name__)
+
+
+def format_multiline_pdf_text(value: str | None) -> str:
+    """Keep user-entered line breaks while treating the text as plain text."""
+    normalized = (value or "-").replace("\r\n", "\n").replace("\r", "\n")
+    return escape(normalized).replace("\n", "<br/>")
 
 
 def number_to_french_words(number: Decimal, currency: str = "MAD") -> str:
@@ -1337,12 +1344,10 @@ class BasePDFGenerator:
             .all()
         ):
             row = []
-            designation_text = (
-                line.article.designation if line.article.designation else "-"
-            )
+            designation_text = format_multiline_pdf_text(line.article.designation)
             if line.article.reference:
                 designation_text = (
-                    f"<b>{line.article.reference}</b><br/>{designation_text}"
+                    f"<b>{escape(line.article.reference)}</b><br/>{designation_text}"
                 )
             row.append(Paragraph(designation_text, self.styles["CustomSmall"]))
             row.append(
@@ -1551,9 +1556,9 @@ class BasePDFGenerator:
             .order_by("article__reference")
             .all()
         ):
-            designation = line.article.designation or "-"
+            designation = format_multiline_pdf_text(line.article.designation)
             if line.article.reference:
-                designation = f"{line.article.reference} {designation}"
+                designation = f"{escape(line.article.reference)} {designation}"
             tva_pct = line.article.tva if line.article.tva else Decimal("0")
             total_ht = line.prix_vente * line.quantity
             table_data.append(
@@ -1912,10 +1917,10 @@ class BasePDFGenerator:
             row = []
 
             # Designation
-            designation_text = line.article.designation
+            designation_text = format_multiline_pdf_text(line.article.designation)
             if line.article.reference:
                 designation_text = (
-                    f"<b>{line.article.reference}</b><br/>{designation_text}"
+                    f"<b>{escape(line.article.reference)}</b><br/>{designation_text}"
                 )
             row.append(Paragraph(designation_text, self.styles["CustomSmall"]))
 

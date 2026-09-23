@@ -1,3 +1,5 @@
+from xml.sax.saxutils import escape
+
 from django.db import transaction
 from django.http import Http404
 from django.shortcuts import get_object_or_404
@@ -13,7 +15,7 @@ from rest_framework.views import APIView
 
 from company.models import Company
 from core.authentication import JWTQueryParamAuthentication
-from core.pdf_utils import BasePDFGenerator, format_number_for_pdf
+from core.pdf_utils import BasePDFGenerator, format_multiline_pdf_text, format_number_for_pdf
 from core.permissions import can_print
 from core.views import (
     BaseDocumentListCreateView,
@@ -187,12 +189,10 @@ class BonDeLivraisonPDFGenerator(BasePDFGenerator):
             row = []
 
             # Designation
-            designation_text = (
-                line.article.designation if line.article.designation else "-"
-            )
+            designation_text = format_multiline_pdf_text(line.article.designation)
             if line.article.reference:
                 designation_text = (
-                    f"<b>{line.article.reference}</b><br/>{designation_text}"
+                    f"<b>{escape(line.article.reference)}</b><br/>{designation_text}"
                 )
             row.append(Paragraph(designation_text, self.styles["CustomSmall"]))
 
