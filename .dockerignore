@@ -1,0 +1,14 @@
+# Runtime uploads are mounted by Compose, never baked into an image.
+media/
+staticfiles/
+.git/
+.venv*/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+htmlcov/
+coverage.xml
+.coverage*
+.DS_Store
+tmp/
