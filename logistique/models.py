@@ -954,6 +954,7 @@ class LogisticsFieldReview(models.Model):
         "company.Company", on_delete=models.CASCADE, related_name="logistics_field_review"
     )
     decisions = models.JSONField(default=dict)
+    proposed_fields = models.JSONField(default=dict)
     updated_by = models.ForeignKey(
         CustomUser, on_delete=models.SET_NULL, null=True, blank=True,
         related_name="logistics_field_reviews",

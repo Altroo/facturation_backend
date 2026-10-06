@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework.test import APIClient
@@ -26,7 +28,7 @@ class LogisticsFieldReviewTests(TestCase):
     def test_initial_get_does_not_create_a_review(self):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data, {"decisions": {}, "updated_at": None, "can_edit": True})
+        self.assertEqual(response.data, {"decisions": {}, "proposed_fields": {}, "updated_at": None, "can_edit": True})
         self.assertFalse(LogisticsFieldReview.objects.exists())
 
     def test_saved_decisions_are_shared_with_another_account(self):
@@ -87,3 +89,62 @@ class LogisticsFieldReviewTests(TestCase):
         self.assertEqual(len(decisions), 103)
         self.assertEqual(self.save(decisions).status_code, 200)
         self.assertEqual(LogisticsFieldReview.objects.get().decisions, decisions)
+
+    def proposals(self, changes, **extra):
+        return self.client.patch(self.url, {"proposed_fields": changes, **extra}, format="json")
+
+    def test_proposals_save_with_decisions_and_are_shared_after_reopening(self):
+        key = str(uuid4())
+        proposal = {"stage": "2", "name": "Mode de livraison", "description": "Choisir bateau, avion ou camion. Obligatoire."}
+        response = self.proposals({key: proposal}, decisions={"1-1": {"choice": "Modifier"}})
+        self.assertEqual(response.status_code, 200)
+        self.client.force_authenticate(self.reader)
+        response = self.client.get(self.url)
+        self.assertEqual(response.data["proposed_fields"], {key: proposal})
+        self.assertEqual(response.data["decisions"]["1-1"]["choice"], "Modifier")
+        self.assertEqual(self.proposals({key: None}).status_code, 403)
+
+    def test_proposal_changes_and_removal_preserve_other_reviewers_work(self):
+        first, second = str(uuid4()), str(uuid4())
+        original = {"stage": "1", "name": "Date", "description": "Sélectionner une date"}
+        self.proposals({first: original})
+        self.proposals({second: {**original, "stage": "common"}})
+        self.proposals({first: {"name": "Date souhaitée"}})
+        result = self.proposals({first: {"description": "Date obligatoire"}})
+        self.assertEqual(result.data["proposed_fields"][first], {"stage": "1", "name": "Date souhaitée", "description": "Date obligatoire"})
+        result = self.proposals({first: None})
+        self.assertEqual(set(result.data["proposed_fields"]), {second})
+        self.assertEqual(self.proposals({first: None}).status_code, 200)
+        # A stale partial edit must not recreate an incomplete deleted proposal.
+        self.assertEqual(self.proposals({first: {"name": "Stale"}}).status_code, 400)
+        self.assertEqual(set(self.client.get(self.url).data["proposed_fields"]), {second})
+
+    def test_invalid_proposal_never_changes_decisions_or_proposals(self):
+        key = str(uuid4())
+        original = {"stage": "1", "name": "Valide", "description": ""}
+        self.proposals({key: original}, decisions={"1-1": {"note": "À garder"}})
+        invalid = [None, [], {}, {"bad-id": original}, {key: []}, {key: {}},
+                   {key: {"name": ""}}, {key: {"name": "   "}}, {key: {"name": 123}},
+                   {key: {"name": "x" * 201}}, {key: {"stage": "9"}}, {key: {"stage": []}},
+                   {key: {"description": None}}, {key: {"description": "x" * 2001}},
+                   {key: {"extra": "no"}}, {str(uuid4()): {"name": "Incomplete"}}]
+        for value in invalid:
+            with self.subTest(value=value):
+                result = self.proposals(value, decisions={"1-1": {"note": "Must not replace"}})
+                self.assertEqual(result.status_code, 400)
+                review = LogisticsFieldReview.objects.get()
+                self.assertEqual(review.proposed_fields, {key: original})
+                self.assertEqual(review.decisions["1-1"]["note"], "À garder")
+
+    def test_all_stages_allow_proposals_with_maximum_lengths(self):
+        proposals = {str(uuid4()): {"stage": stage, "name": "é" * 200, "description": "é" * 2000}
+                     for stage in ["1", "2", "3", "4", "5", "6", "7", "8", "common"]}
+        self.assertEqual(self.proposals(proposals).status_code, 200)
+        self.assertEqual(self.client.get(self.url).data["proposed_fields"], proposals)
+        # The old client's decisions-only saves must leave all proposals intact.
+        self.save({"1-1": {"choice": "Conserver"}})
+        self.assertEqual(self.client.get(self.url).data["proposed_fields"], proposals)
+
+    def test_proposals_cannot_be_saved_to_another_company(self):
+        self.url = reverse("logistique:logistique-field-review") + f"?company_id={self.other_company.pk}"
+        self.assertEqual(self.proposals({str(uuid4()): {"stage": "1", "name": "No", "description": ""}}).status_code, 403)

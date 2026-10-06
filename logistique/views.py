@@ -1564,6 +1564,7 @@ class LogisticsFieldReviewView(CompanyAccessMixin, APIView):
     def _response(review, can_edit):
         return Response({
             "decisions": review.decisions if review else {},
+            "proposed_fields": review.proposed_fields if review else {},
             "updated_at": review.updated_at if review else None,
             "can_edit": can_edit,
         })
@@ -1583,10 +1584,18 @@ class LogisticsFieldReviewView(CompanyAccessMixin, APIView):
             # Lock the company even for the first save, before the review exists.
             Company.objects.select_for_update().get(pk=company_id)
             review, _ = LogisticsFieldReview.objects.get_or_create(company_id=company_id)
-            for key, change in serializer.validated_data["decisions"].items():
+            for key, change in serializer.validated_data.get("proposed_fields", {}).items():
+                if change is None:
+                    review.proposed_fields.pop(key, None)
+                    continue
+                proposal = {**review.proposed_fields.get(key, {}), **change}
+                if set(proposal) != {"stage", "name", "description"}:
+                    raise ValidationError({"removed_proposal": key})
+                review.proposed_fields[key] = proposal
+            for key, change in serializer.validated_data.get("decisions", {}).items():
                 review.decisions[key] = {
                     **review.decisions.get(key, {"choice": "", "note": ""}), **change
                 }
             review.updated_by = request.user
-            review.save(update_fields=["decisions", "updated_by", "updated_at"])
+            review.save(update_fields=["decisions", "proposed_fields", "updated_by", "updated_at"])
         return self._response(review, True)

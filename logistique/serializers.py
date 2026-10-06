@@ -2,6 +2,7 @@ from collections.abc import Iterable, Sized
 from decimal import Decimal, ROUND_HALF_UP
 from pathlib import Path
 from typing import Any, cast
+from uuid import UUID
 
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -1116,12 +1117,39 @@ class LogisticsProcessNoteSerializer(serializers.ModelSerializer):
 
 
 class LogisticsFieldReviewSerializer(serializers.Serializer):
-    decisions = serializers.JSONField()
+    decisions = serializers.JSONField(required=False)
+    proposed_fields = serializers.JSONField(required=False)
 
     def validate(self, attrs):
-        if set(self.initial_data) != {"decisions"}:
-            raise serializers.ValidationError("Seules les décisions sont acceptées.")
+        if not attrs or not set(self.initial_data) <= {"decisions", "proposed_fields"}:
+            raise serializers.ValidationError("Une décision ou une proposition de champ est attendue.")
         return attrs
+
+    def validate_proposed_fields(self, value):
+        if not isinstance(value, dict) or not value:
+            raise serializers.ValidationError("Les propositions de champs sont invalides.")
+        for key, change in value.items():
+            try:
+                if str(UUID(key)) != key:
+                    raise ValueError
+            except (ValueError, TypeError, AttributeError):
+                raise serializers.ValidationError("Identifiant de proposition invalide.")
+            # Null removes only this proposal; other reviewers' additions survive.
+            if change is None:
+                continue
+            if (not isinstance(change, dict) or not change
+                    or not set(change) <= {"stage", "name", "description"}):
+                raise serializers.ValidationError({key: "Proposition de champ invalide."})
+            if "stage" in change and change["stage"] not in (
+                    "1", "2", "3", "4", "5", "6", "7", "8", "common"):
+                raise serializers.ValidationError({key: "Étape invalide."})
+            if "name" in change and (not isinstance(change["name"], str)
+                    or not change["name"].strip() or len(change["name"]) > 200):
+                raise serializers.ValidationError({key: "Indiquez un nom de champ (200 caractères maximum)."})
+            if "description" in change and (not isinstance(change["description"], str)
+                    or len(change["description"]) > 2000):
+                raise serializers.ValidationError({key: "Description : 2 000 caractères maximum."})
+        return value
 
     def validate_decisions(self, value):
         # These stable keys match the temporary Gantt's field catalogue.
