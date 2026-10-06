@@ -92,7 +92,12 @@ MIDDLEWARE = [
 ]
 
 # Use WhiteNoise’s compressed static files storage
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"
+    },
+}
 
 ROOT_URLCONF = "facturation_backend.urls"
 
@@ -180,7 +185,8 @@ USE_TZ = True
 # Static & media files config
 STATIC_URL = "/static/"
 STATIC_PATH = "static"
-STATIC_ROOT = os.path.join(BASE_DIR, "static")
+# Generate assets separately so a host mount cannot replace current Django CSS.
+STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = (
     # os.path.join(BASE_DIR, "static"),
 )
