@@ -945,3 +945,17 @@ class LogisticsProcessNote(models.Model):
 
     def __str__(self):
         return f"{self.commande} - {self.statut}"
+
+
+class LogisticsFieldReview(models.Model):
+    """Temporary field review shared by the members of one company."""
+
+    company = models.OneToOneField(
+        "company.Company", on_delete=models.CASCADE, related_name="logistics_field_review"
+    )
+    decisions = models.JSONField(default=dict)
+    updated_by = models.ForeignKey(
+        CustomUser, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name="logistics_field_reviews",
+    )
+    updated_at = models.DateTimeField(auto_now=True)

@@ -4,6 +4,7 @@ from .views import (
     BulkDeleteLogisticsOrderView,
     GenerateNumeroLogistiqueView,
     LogisticsDashboardView,
+    LogisticsFieldReviewView,
     LogisticsOrderDetailEditDeleteView,
     LogisticsOrderListCreateView,
     LogisticsOrderSourcePreviewView,
@@ -28,6 +29,7 @@ from .views import (
 app_name = "logistique"
 
 urlpatterns = [
+    path("field_review/", LogisticsFieldReviewView.as_view(), name="logistique-field-review"),
     path("", LogisticsOrderListCreateView.as_view(), name="logistique-list-create"),
     path(
         "source_preview/",

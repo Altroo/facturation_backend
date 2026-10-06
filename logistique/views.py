@@ -16,6 +16,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from account.models import Membership
+from company.models import Company
 from core.constants import ROLE_COMPTABLE, ROLE_LOGISTIQUE
 from core.permissions import (
     can_change_document_status,
@@ -30,9 +31,10 @@ from notification.models import Notification
 from stock.services import activate_incoming
 
 from .filters import LogisticsOrderFilter
-from .models import LogisticsOrder, LogisticsPaymentInstallment
+from .models import LogisticsOrder, LogisticsPaymentInstallment, LogisticsFieldReview
 from .serializers import (
     LOGISTICS_IMPORT_TITLE_FIELDS,
+    LogisticsFieldReviewSerializer,
     LogisticsOrderCreateSerializer,
     LogisticsOrderDetailSerializer,
     LogisticsOrderListSerializer,
@@ -1546,3 +1548,45 @@ class BulkDeleteLogisticsOrderView(BaseBulkDeleteView):
 
     def get_company_id(self, obj):
         return obj.company_id
+
+
+class LogisticsFieldReviewView(CompanyAccessMixin, APIView):
+    """Temporary shared Gantt review; independent of actual logistics orders."""
+
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def _company_id(self, request):
+        company_id = self._parse_company_id(request.query_params.get("company_id"))
+        self._check_company_access(request, company_id)
+        return company_id
+
+    @staticmethod
+    def _response(review, can_edit):
+        return Response({
+            "decisions": review.decisions if review else {},
+            "updated_at": review.updated_at if review else None,
+            "can_edit": can_edit,
+        })
+
+    def get(self, request):
+        company_id = self._company_id(request)
+        review = LogisticsFieldReview.objects.filter(company_id=company_id).first()
+        return self._response(review, _can_manage_logistics(request.user, company_id))
+
+    def patch(self, request):
+        company_id = self._company_id(request)
+        if not _can_manage_logistics(request.user, company_id):
+            raise PermissionDenied("Vous ne pouvez pas modifier cette revue.")
+        serializer = LogisticsFieldReviewSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        with transaction.atomic():
+            # Lock the company even for the first save, before the review exists.
+            Company.objects.select_for_update().get(pk=company_id)
+            review, _ = LogisticsFieldReview.objects.get_or_create(company_id=company_id)
+            for key, change in serializer.validated_data["decisions"].items():
+                review.decisions[key] = {
+                    **review.decisions.get(key, {"choice": "", "note": ""}), **change
+                }
+            review.updated_by = request.user
+            review.save(update_fields=["decisions", "updated_by", "updated_at"])
+        return self._response(review, True)

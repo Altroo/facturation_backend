@@ -1113,3 +1113,30 @@ class LogisticsProcessNoteSerializer(serializers.ModelSerializer):
     @staticmethod
     def validate_fichier(value):
         return validate_logistics_document(value)
+
+
+class LogisticsFieldReviewSerializer(serializers.Serializer):
+    decisions = serializers.JSONField()
+
+    def validate(self, attrs):
+        if set(self.initial_data) != {"decisions"}:
+            raise serializers.ValidationError("Seules les décisions sont acceptées.")
+        return attrs
+
+    def validate_decisions(self, value):
+        # These stable keys match the temporary Gantt's field catalogue.
+        counts = {"1": 16, "2": 23, "3": 27, "4": 3, "5": 6,
+                  "6": 6, "7": 9, "8": 7, "common": 6}
+        valid_keys = {f"{stage}-{index}" for stage, count in counts.items()
+                      for index in range(count)}
+        if not isinstance(value, dict) or not value or not set(value) <= valid_keys:
+            raise serializers.ValidationError("Les champs de la revue sont invalides.")
+        for key, change in value.items():
+            if (not isinstance(change, dict) or not change
+                    or not set(change) <= {"choice", "note"}):
+                raise serializers.ValidationError({key: "Décision ou commentaire attendu."})
+            if "choice" in change and change["choice"] not in ("", "Conserver", "Modifier", "Supprimer"):
+                raise serializers.ValidationError({key: "Décision invalide."})
+            if "note" in change and (not isinstance(change["note"], str) or len(change["note"]) > 2000):
+                raise serializers.ValidationError({key: "Commentaire : 2 000 caractères maximum."})
+        return value
