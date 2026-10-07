@@ -15,7 +15,11 @@ from rest_framework.views import APIView
 
 from company.models import Company
 from core.authentication import JWTQueryParamAuthentication
-from core.pdf_utils import BasePDFGenerator, format_multiline_pdf_text, format_number_for_pdf
+from core.pdf_utils import (
+    BasePDFGenerator,
+    format_multiline_pdf_text,
+    format_number_for_pdf,
+)
 from core.permissions import can_print
 from core.views import (
     BaseDocumentListCreateView,
@@ -167,64 +171,49 @@ class BonDeLivraisonUninvoicedListView(BaseDocumentListCreateView):
 class BonDeLivraisonPDFGenerator(BasePDFGenerator):
     """PDF generator for BonDeLivraison documents."""
 
-    def _create_articles_table_quantity_only(self):
-        """Create a simplified articles table showing only designation and quantity."""
-        headers = [self._("Designation"), self._("Quantity")]
-        col_widths = [14 * cm, 4 * cm]
-
-        # Create header row - Designation left, Qté centered
-        table_data = [
+    def _create_delivery_articles_table(self):
+        """Delivery quantities, with space for handwritten receiving remarks."""
+        headers = (
+            ["Référence", "Désignation", "Quantité", "Remarque"]
+            if self.language == "fr"
+            else ["Reference", "Description", "Quantity", "Remark"]
+        )
+        styles = [
+            self.styles["CustomSmall"],
+            self.styles["CustomSmall"],
+            self.styles["CustomSmallCenter"],
+            self.styles["CustomSmall"],
+        ]
+        rows = [
             [
-                Paragraph(f"<b>{headers[0]}</b>", self.styles["CustomSmall"]),
-                Paragraph(f"<b>{headers[1]}</b>", self.styles["CustomSmallCenter"]),
+                Paragraph(f"<b>{label}</b>", style)
+                for label, style in zip(headers, styles)
             ]
         ]
-
-        # Add article lines
-        for line in (
-            self.document.lignes.select_related("article")
-            .order_by("article__reference")
-            .all()
+        for line in self.document.lignes.select_related("article").order_by(
+            "article__reference", "pk"
         ):
-            row = []
-
-            # Designation
-            designation_text = format_multiline_pdf_text(line.article.designation)
-            if line.article.reference:
-                designation_text = (
-                    f"<b>{escape(line.article.reference)}</b><br/>{designation_text}"
-                )
-            row.append(Paragraph(designation_text, self.styles["CustomSmall"]))
-
-            # Quantity - centered
-            row.append(
-                Paragraph(
-                    format_number_for_pdf(line.quantity),
-                    self.styles["CustomSmallCenter"],
-                )
+            rows.append(
+                [
+                    Paragraph(escape(line.article.reference or ""), styles[0]),
+                    Paragraph(
+                        format_multiline_pdf_text(line.article.designation), styles[1]
+                    ),
+                    Paragraph(format_number_for_pdf(line.quantity), styles[2]),
+                    "",
+                ]
             )
-
-            table_data.append(row)
-
-        # Create table
-        table = Table(table_data, colWidths=col_widths, repeatRows=1)
+        table = Table(
+            rows,
+            colWidths=[3 * cm, 8.8 * cm, 2 * cm, self.CONTENT_WIDTH - 13.8 * cm],
+            repeatRows=1,
+        )
         table.setStyle(
             TableStyle(
                 [
-                    # Header styling - soft light gray background
                     ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#f5f5f5")),
                     ("TEXTCOLOR", (0, 0), (-1, 0), colors.HexColor("#333333")),
-                    ("ALIGN", (1, 0), (-1, 0), "CENTER"),  # Center Qté header
-                    ("ALIGN", (0, 0), (0, 0), "LEFT"),  # Designation header stays left
-                    ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-                    ("FONTSIZE", (0, 0), (-1, 0), 9),
-                    ("BOTTOMPADDING", (0, 0), (-1, 0), 8),
-                    ("TOPPADDING", (0, 0), (-1, 0), 8),
-                    # Body styling
-                    ("VALIGN", (0, 1), (-1, -1), "TOP"),
-                    ("ALIGN", (1, 1), (1, -1), "CENTER"),  # Center Qté values
-                    ("ALIGN", (0, 1), (0, -1), "LEFT"),
-                    ("FONTSIZE", (0, 1), (-1, -1), 8),
+                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
                     (
                         "ROWBACKGROUNDS",
                         (0, 1),
@@ -232,69 +221,100 @@ class BonDeLivraisonPDFGenerator(BasePDFGenerator):
                         [colors.white, colors.HexColor("#fafafa")],
                     ),
                     ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#e0e0e0")),
-                    ("LEFTPADDING", (0, 0), (-1, -1), 4),
-                    ("RIGHTPADDING", (0, 0), (-1, -1), 4),
-                    ("TOPPADDING", (0, 1), (-1, -1), 4),
-                    ("BOTTOMPADDING", (0, 1), (-1, -1), 4),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 6),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 6),
+                    ("TOPPADDING", (0, 0), (-1, -1), 8),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
                 ]
             )
         )
-
         return table
 
-    def _build_content(self) -> list:
-        """Build PDF content for bon de livraison."""
-        if self._uses_nectar_layout():
-            return self._build_nectar_document_content(
-                "Bon de Livraison",
-                self.document.numero_bon_livraison,
-                self.document.date_bon_livraison,
+    def _build_delivery_signatures(self):
+        company_label = f"Signature {self.company.raison_sociale}".strip()
+        client_label = (
+            "Signature client" if self.language == "fr" else "Client signature"
+        )
+        signatures = Table(
+            [
+                [
+                    Paragraph(
+                        f"<b>{escape(company_label)}</b>", self.styles["CustomNormal"]
+                    ),
+                    Paragraph(f"<b>{client_label}</b>", self.styles["CustomRight"]),
+                ],
+                ["", ""],
+            ],
+            colWidths=[self.HALF_WIDTH, self.HALF_WIDTH],
+            rowHeights=[None, 3 * cm],
+        )
+        signatures.setStyle(
+            TableStyle(
+                [
+                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+                ]
             )
+        )
+        return KeepTogether([Spacer(1, 0.8 * cm), signatures])
 
-        extra_company_lines = None
-        if self.document.livre_par:
-            extra_company_lines = [
+    def _build_content(self) -> list:
+        """All delivery-note variants use the same price-free layout."""
+        if self._uses_nectar_layout():
+            elements = [
+                *self._build_nectar_header(),
+                Spacer(1, 1.5 * cm),
+                self._build_nectar_client_block(),
+                Spacer(1, 0.8 * cm),
                 Paragraph(
-                    f"{self._('Delivered_By')}: {self.document.livre_par.nom}",
-                    self.styles["CustomSmall"],
-                )
-            ]
-        elements: list = [
-            self._build_doc_header(
-                f"{self._('Delivery_Number')} {self.document.numero_bon_livraison}",
-                f"{self._('Delivery_Date')} {self.document.date_bon_livraison.strftime('%d/%m/%Y')}",
-            ),
-            Spacer(1, 0.5 * cm),
-            self._build_parties_grid(
-                Paragraph(
-                    f"<b>{self._('Delivery_Issued_By')}</b>",
-                    self.styles["SectionHeader"],
+                    f"{self._('Delivery')} {escape(self._nectar_display_number(self.document.numero_bon_livraison))}",
+                    self.styles["NectarTitle"],
                 ),
-                extra_company_lines=extra_company_lines,
-            ),
-            Spacer(1, 0.7 * cm),
-        ]
-        if self.pdf_type == "quantity_only":
-            elements.append(self._create_articles_table_quantity_only())
-            elements.append(Spacer(1, 0.5 * cm))
+                Spacer(1, 0.35 * cm),
+                Paragraph(
+                    f"<b>{self._('Delivery_Date')}</b> {self.document.date_bon_livraison.strftime('%d/%m/%Y')}",
+                    self.styles["CustomNormal"],
+                ),
+                Spacer(1, 0.8 * cm),
+            ]
         else:
-            show_remise = self._should_show_remise()
-            show_unite = self._should_show_unite()
-            elements.append(
-                self._build_standard_articles_table(
-                    show_remise=show_remise, show_unite=show_unite
-                )
-            )
-            elements.append(Spacer(1, 0.3 * cm))
-            elements.append(
-                KeepTogether(
-                    self._build_tail(
-                        self._("Delivery_Amount_Words"),
-                        show_remise=show_remise,
+            extra_company_lines = None
+            if self.document.livre_par:
+                extra_company_lines = [
+                    Paragraph(
+                        f"{self._('Delivered_By')}: {escape(self.document.livre_par.nom)}",
+                        self.styles["CustomSmall"],
                     )
-                )
+                ]
+            elements = [
+                self._build_doc_header(
+                    f"{self._('Delivery_Number')} {self.document.numero_bon_livraison}",
+                    f"{self._('Delivery_Date')} {self.document.date_bon_livraison.strftime('%d/%m/%Y')}",
+                ),
+                Spacer(1, 0.5 * cm),
+                self._build_parties_grid(
+                    Paragraph(
+                        f"<b>{self._('Delivery_Issued_By')}</b>",
+                        self.styles["SectionHeader"],
+                    ),
+                    extra_company_lines=extra_company_lines,
+                ),
+                Spacer(1, 0.7 * cm),
+            ]
+        elements.append(self._create_delivery_articles_table())
+        if self.document.remarque:
+            label = "Remarque" if self.language == "fr" else "Remark"
+            elements.extend(
+                [
+                    Spacer(1, 0.3 * cm),
+                    Paragraph(
+                        f"<b>{label} :</b> {format_multiline_pdf_text(self.document.remarque)}",
+                        self.styles["CustomNormal"],
+                    ),
+                ]
             )
-            elements.append(Spacer(1, 0.5 * cm))
+        elements.append(self._build_delivery_signatures())
         return elements
 
     def _get_filename(self) -> str:

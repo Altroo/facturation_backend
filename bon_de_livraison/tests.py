@@ -674,17 +674,94 @@ class TestBonDeLivraisonLineModelExtra:
 class TestBonDeLivraisonPDFGeneration:
     """Test PDF generation for bon de livraison."""
 
-    def test_quantity_only_pdf_keeps_designation_line_breaks(
-        self, bon_de_livraison_with_lines, bon_de_livraison_article, bon_de_livraison_company
+    def test_delivery_pdf_keeps_designation_line_breaks(
+        self,
+        bon_de_livraison_with_lines,
+        bon_de_livraison_article,
+        bon_de_livraison_company,
     ):
         bon_de_livraison_article.designation = "Plan 2D\nPlan électricité\nPlan 3D"
         bon_de_livraison_article.save(update_fields=["designation"])
         generator = BonDeLivraisonPDFGenerator(
             bon_de_livraison_with_lines, bon_de_livraison_company
         )
-        table = generator._create_articles_table_quantity_only()
+        table = generator._create_delivery_articles_table()
 
-        assert "Plan 2D<br/>Plan électricité<br/>Plan 3D" in table._cellvalues[1][0].text
+        assert (
+            "Plan 2D<br/>Plan électricité<br/>Plan 3D" in table._cellvalues[1][1].text
+        )
+
+    @pytest.mark.parametrize("company_name", ["CDL & Associés", "IMMOBILIERE NECTAR"])
+    @pytest.mark.parametrize("language", ["fr", "en"])
+    @pytest.mark.parametrize(
+        "pdf_type",
+        [
+            "normal",
+            "quantity_only",
+            "avec_remise",
+            "sans_remise",
+            "avec_unite",
+            "avec_unite_sans_remise",
+            "avec_unite_avec_remise",
+        ],
+    )
+    def test_all_delivery_pdf_links_are_price_free(
+        self,
+        bon_de_livraison_with_lines,
+        bon_de_livraison_company,
+        company_name,
+        language,
+        pdf_type,
+    ):
+        document = bon_de_livraison_with_lines
+        document.refresh_from_db()
+        bon_de_livraison_company.raison_sociale = company_name
+        generator = BonDeLivraisonPDFGenerator(
+            document, bon_de_livraison_company, pdf_type, language
+        )
+        table = generator._create_delivery_articles_table()
+        expected = (
+            ["Référence", "Désignation", "Quantité", "Remarque"]
+            if language == "fr"
+            else ["Reference", "Description", "Quantity", "Remark"]
+        )
+        assert [cell.getPlainText() for cell in table._cellvalues[0]] == expected
+        assert table._cellvalues[1][0].getPlainText() == "BL001"
+        assert table._cellvalues[1][1].getPlainText() == "Livraison Article"
+        assert table._cellvalues[1][2].getPlainText() == "2,00"
+        assert table._cellvalues[1][3] == ""
+        signatures = generator._build_delivery_signatures()._content[-1]
+        assert (
+            signatures._cellvalues[0][0].getPlainText() == f"Signature {company_name}"
+        )
+        assert signatures._cellvalues[0][1].getPlainText() == (
+            "Signature client" if language == "fr" else "Client signature"
+        )
+        with (
+            patch.object(
+                generator,
+                "_build_standard_articles_table",
+                side_effect=AssertionError("Priced table used"),
+            ),
+            patch.object(
+                generator,
+                "_build_tail",
+                side_effect=AssertionError("Financial tail used"),
+            ),
+            patch.object(
+                generator,
+                "_build_nectar_articles_table",
+                side_effect=AssertionError("Priced Nectar table used"),
+            ),
+            patch.object(
+                generator,
+                "_build_nectar_totals_table",
+                side_effect=AssertionError("Financial totals used"),
+            ),
+        ):
+            response = generator.generate_pdf()
+        assert response.status_code == 200
+        assert response.content.startswith(b"%PDF-")
 
     def _mark_printable(self, bon_de_livraison):
         bon_de_livraison.statut = "Envoyé"
