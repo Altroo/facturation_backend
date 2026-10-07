@@ -65,6 +65,15 @@ class AiAssistantClient:
                 ) from exc
             if exc.code in (408, 504):
                 raise ModelTimeout() from exc
+            if exc.code == 502:
+                # A rejected model answer concerns this field; a proxy outage
+                # has no signed-service error code and remains unavailable.
+                try:
+                    failure = json.loads(exc.read(4096).decode("utf-8"))
+                except (ValueError, OSError):
+                    failure = None
+                if isinstance(failure, dict) and failure.get("code") == "ai_invalid_response":
+                    raise InvalidModelResponse() from exc
             raise ModelUnavailable() from exc
         except (error.URLError, ConnectionError, OSError) as exc:
             raise ModelUnavailable() from exc

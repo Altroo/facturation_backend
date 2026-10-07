@@ -7,11 +7,15 @@ import os
 import time
 from copy import deepcopy
 from pathlib import Path
+from urllib.error import HTTPError
 
 from django.apps import apps
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from django.db.models import CharField, TextField
+from rest_framework.exceptions import APIException
+
+from ai_assistant.exceptions import AssistantDisabled, InvalidModelResponse
 
 # Business prose only. Never credentials, codes, financial values, parties or history.
 MODEL_NAMES = {
@@ -121,6 +125,41 @@ def fingerprint(value):
     ).hexdigest()
 
 
+def service_http_status(exc):
+    """Keep the upstream status; ModelUnavailable itself always reports 503."""
+    cause = exc
+    while cause is not None:
+        if isinstance(cause, HTTPError):
+            return cause.code
+        cause = cause.__cause__
+    return getattr(exc, "status_code", None)
+
+
+def service_failure_reason(exc):
+    status = service_http_status(exc)
+    reasons = {
+        401: "authentification IA refusée",
+        403: "accès au service IA refusé",
+        404: "route du service IA introuvable",
+        405: "route du service IA incorrecte",
+        429: "service IA toujours occupé",
+    }
+    reason = reasons.get(status, "service IA indisponible ou réponse invalide")
+    return f"{reason} (HTTP {status})" if status else reason
+
+
+def remaining_time(seconds):
+    seconds = max(0, int(seconds))
+    days, seconds = divmod(seconds, 86400)
+    hours, seconds = divmod(seconds, 3600)
+    minutes, seconds = divmod(seconds, 60)
+    if days:
+        return f"{days} j {hours} h {minutes} min"
+    if hours:
+        return f"{hours} h {minutes} min"
+    return f"{minutes} min {seconds} s"
+
+
 def correct_text(text, protected_terms):
     if not text or not text.strip():
         return text
@@ -156,8 +195,14 @@ def correct_text(text, protected_terms):
                     protected_terms=protected_terms,
                 )
                 break
-            except Exception as exc:
-                if attempt == 2:
+            except APIException as exc:
+                status = service_http_status(exc)
+                # Configuration/auth/routing failures cannot recover by retrying.
+                if (
+                    isinstance(exc, AssistantDisabled)
+                    or (status is not None and 400 <= status < 500 and status not in (408, 429))
+                    or attempt == 2
+                ):
                     raise
                 # Respect private gateway throttling without flooding the models.
                 delay = min(float(getattr(exc, "wait", None) or 5 * (attempt + 1)), 65)
@@ -283,7 +328,12 @@ class Command(BaseCommand):
         prepared = {
             row["key"]: row for row in records if row.get("status") == "prepared"
         }
-        started = time.monotonic()
+        applied_keys = set()
+        for row in records:
+            if row.get("status") == "apply" and row.get("result") == "done":
+                applied_keys.add(row["key"])
+            elif row.get("status") == "rollback" and row.get("result", "").startswith("done"):
+                applied_keys.discard(row["key"])
         models = [
             model
             for model in apps.get_models()
@@ -302,6 +352,7 @@ class Command(BaseCommand):
                     row
                     for row in prepared.values()
                     if row["before"] != row["after"]
+                    and (not options["rollback"] or row["key"] in applied_keys)
                     and (not options["model"] or row["model"] in options["model"])
                 ]
                 failures = 0
@@ -350,7 +401,8 @@ class Command(BaseCommand):
             total = sum(query.count() for _, _, query in selections)
             if options["limit"]:
                 total = min(total, options["limit"])
-            done = changed = failed = 0
+            done = changed = failed = processed = 0
+            processing_seconds = 0.0
             for model, field, query in selections:
                 for obj in query.order_by("pk").iterator(chunk_size=100):
                     if done >= total:
@@ -365,6 +417,7 @@ class Command(BaseCommand):
                     self.stdout.write(
                         f"[{done}/{total}] {label} : en cours", ending="\n"
                     )
+                    field_started = time.monotonic()
                     try:
                         protected = [
                             getattr(obj, name, "")
@@ -380,9 +433,9 @@ class Command(BaseCommand):
                             )
                         ]
                         protected = [
-                            text
+                            text.strip()
                             for text in protected
-                            if isinstance(text, str) and 1 < len(text) <= 200
+                            if isinstance(text, str) and 1 < len(text.strip()) <= 200
                         ]
                         after = correct_value(value, field, protected)
                         row = {
@@ -413,12 +466,21 @@ class Command(BaseCommand):
                                 "key": key,
                                 "status": "error",
                                 "error": type(exc).__name__,
+                                "http_status": service_http_status(exc),
                             },
                         )
-                    elapsed = time.monotonic() - started
-                    eta = int(elapsed / done * (total - done)) if done else 0
+                        if isinstance(exc, APIException) and not isinstance(exc, InvalidModelResponse):
+                            raise CommandError(
+                                f"Arrêt : {service_failure_reason(exc)}. "
+                                "Aucune donnée modifiée. Propositions conservées dans "
+                                f"{path}. Après réparation, relancez avec le même journal."
+                            ) from exc
+                    processed += 1
+                    # Previously prepared rows do not make this run seem faster.
+                    processing_seconds += time.monotonic() - field_started
+                    eta = (processing_seconds / processed + max(0, options["pause"])) * (total - done)
                     self.stdout.write(
-                        f"[{done}/{total} · {done/max(total,1):.0%}] {label} : {status} · reste estimé {eta//60} min {eta%60} s"
+                        f"[{done}/{total} · {done/max(total,1):.0%}] {label} : {status} · reste estimé {remaining_time(eta)}"
                     )
                     time.sleep(max(0, options["pause"]))
             self.stdout.write(

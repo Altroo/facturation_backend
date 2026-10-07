@@ -324,3 +324,94 @@ def test_configured_gateway_identity_matches_this_application():
     from facturation_backend import settings as application_settings
 
     assert application_settings.AI_ASSISTANT_SERVICE_NAME == "facturation"
+
+
+def test_correction_service_failure_stops_preserves_journal_and_resumes(tmp_path):
+    from io import StringIO
+    from urllib.error import HTTPError
+    from django.core.management import call_command, CommandError
+    from company.models import Company
+    from article.models import Article
+    from .exceptions import ModelUnavailable
+
+    company = Company.objects.create(raison_sociale="Recovery", ICE="CORR-RECOVERY")
+    articles = [Article.objects.create(company=company, reference=f"REC-{i}",
+                designation=f"Chaise abimee {i}", prix_vente=100) for i in range(3)]
+    journal = tmp_path / "corrections.jsonl"
+    args = dict(journal=str(journal), model=["article.Article"], pause=0, stdout=StringIO())
+    error = ModelUnavailable()
+    error.__cause__ = HTTPError("http://private.invalid", 404, "hidden", {}, None)
+    with patch("ai_assistant.management.commands.ai_correct_texts.correct_text",
+               side_effect=["Chaise abîmée 0", error]) as correct:
+        with pytest.raises(CommandError, match="route du service IA introuvable.*HTTP 404"):
+            call_command("ai_correct_texts", **args)
+    assert correct.call_count == 2  # third article must not be attempted
+    rows = [json.loads(line) for line in journal.read_text().splitlines()]
+    assert [row["status"] for row in rows] == ["prepared", "error"]
+    assert rows[1]["http_status"] == 404
+    assert "reste estimé" not in args["stdout"].getvalue().split("en cours")[-1]
+    with patch("ai_assistant.management.commands.ai_correct_texts.correct_text",
+               side_effect=lambda text, protected: text.replace("abimee", "abîmée")) as correct:
+        call_command("ai_correct_texts", **args)
+    assert correct.call_count == 2  # only failed and not-yet-attempted fields
+    rows = [json.loads(line) for line in journal.read_text().splitlines()]
+    assert len([row for row in rows if row["status"] == "prepared"]) == 3
+    for index, article in enumerate(articles):
+        article.refresh_from_db()
+        assert article.designation == f"Chaise abimee {index}"
+
+
+def test_correction_resume_estimate_uses_only_new_processing_time(tmp_path):
+    from io import StringIO
+    from django.core.management import call_command
+    from company.models import Company
+    from article.models import Article
+
+    company = Company.objects.create(raison_sociale="Estimate", ICE="CORR-ETA")
+    for i in range(3):
+        Article.objects.create(company=company, reference=f"ETA-{i}", designation=f"Chaise {i}", prix_vente=100)
+    args = dict(journal=str(tmp_path / "eta.jsonl"), model=["article.Article"], stdout=StringIO())
+    with patch("ai_assistant.management.commands.ai_correct_texts.correct_text", side_effect=lambda text, protected: text):
+        call_command("ai_correct_texts", limit=1, pause=0, **args)
+        args["stdout"] = StringIO()
+        with patch("ai_assistant.management.commands.ai_correct_texts.time.monotonic", side_effect=[0, 10, 10, 20]), patch("ai_assistant.management.commands.ai_correct_texts.time.sleep"):
+            call_command("ai_correct_texts", pause=2, **args)
+    assert "done (journal)" in args["stdout"].getvalue()
+    assert "reste estimé 0 min 12 s" in args["stdout"].getvalue()
+
+
+@pytest.mark.parametrize("noop_apply", [False, True])
+def test_correction_rollback_never_undoes_unapplied_human_change(tmp_path, noop_apply):
+    from io import StringIO
+    from django.core.management import call_command
+    from company.models import Company
+    from article.models import Article
+
+    company = Company.objects.create(raison_sociale="Manual", ICE="CORR-MANUAL")
+    article = Article.objects.create(company=company, reference="MAN-1", designation="Chaise abimee", prix_vente=100)
+    args = dict(journal=str(tmp_path / "manual.jsonl"), model=["article.Article"], pause=0, stdout=StringIO())
+    with patch("ai_assistant.management.commands.ai_correct_texts.correct_text", return_value="Chaise abîmée"):
+        call_command("ai_correct_texts", **args)
+    Article.objects.filter(pk=article.pk).update(designation="Chaise abîmée")
+    if noop_apply:
+        call_command("ai_correct_texts", apply=True, **args)
+    call_command("ai_correct_texts", rollback=True, **args)
+    article.refresh_from_db()
+    assert article.designation == "Chaise abîmée"
+
+
+def test_correction_invalid_answer_skips_field_and_preserves_following_proposal(tmp_path):
+    from io import StringIO
+    from django.core.management import call_command, CommandError
+    from company.models import Company
+    from article.models import Article
+
+    company = Company.objects.create(raison_sociale="Rejected", ICE="CORR-REJECTED")
+    for i in range(2):
+        Article.objects.create(company=company, reference=f"REJ-{i}", designation=f"Chaise abimee {i}", prix_vente=100)
+    journal = tmp_path / "rejected.jsonl"
+    with patch("ai_assistant.management.commands.ai_correct_texts.correct_text", side_effect=[InvalidModelResponse(), "Chaise abîmée 1"]) as correct:
+        with pytest.raises(CommandError, match="Des champs ont échoué"):
+            call_command("ai_correct_texts", journal=str(journal), model=["article.Article"], pause=0, stdout=StringIO())
+    assert correct.call_count == 2
+    assert [json.loads(line)["status"] for line in journal.read_text().splitlines()] == ["error", "prepared"]
