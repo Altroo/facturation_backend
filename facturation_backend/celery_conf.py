@@ -7,7 +7,7 @@ from celery.schedules import crontab
 from django.conf import settings
 
 # cmd line to run in terminal
-# celery --app=facturation_backend.celery_conf worker --loglevel=debug --concurrency=4 -E -P gevent
+# celery --app=facturation_backend.celery_conf worker --loglevel=debug --concurrency=4 -E -P prefork
 environ.setdefault("DJANGO_SETTINGS_MODULE", "facturation_backend.settings")
 
 app = Celery("ai_workx_backend", broker=settings.CELERY_BROKER_URL)

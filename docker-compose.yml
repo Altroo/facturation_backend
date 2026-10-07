@@ -69,7 +69,7 @@ services:
     build: .
     container_name: facturation_celery
     restart: always
-    command: celery -A facturation_backend worker --loglevel=info --concurrency=4 -E -P gevent
+    command: celery -A facturation_backend worker --loglevel=info --concurrency=4 -E -P prefork
     depends_on:
       db:
         condition: service_healthy
