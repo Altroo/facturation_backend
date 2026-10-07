@@ -57,4 +57,10 @@ urlpatterns = [
         {"language": "en"},
         name="devi-pdf-en",
     ),
+    path(
+        "pdf/nl/<int:pk>/",
+        DeviPDFView.as_view(),
+        {"language": "nl"},
+        name="devi-pdf-nl",
+    ),
 ]

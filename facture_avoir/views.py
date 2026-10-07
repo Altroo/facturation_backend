@@ -1,3 +1,4 @@
+from xml.sax.saxutils import escape
 from decimal import Decimal
 
 from django.core.exceptions import ValidationError as DjangoValidationError
@@ -263,7 +264,11 @@ class FactureAvoirFromFactureView(APIView):
 
 class FactureAvoirPDFGenerator(BasePDFGenerator):
     def _label(self, fr_value: str, en_value: str) -> str:
-        return en_value if self.language == "en" else fr_value
+        return (
+            self._(fr_value)
+            if self.language == "nl"
+            else (en_value if self.language == "en" else fr_value)
+        )
 
     def _build_content(self) -> list:
         elements = []
@@ -302,7 +307,7 @@ class FactureAvoirPDFGenerator(BasePDFGenerator):
             )
         extra_lines.append(
             Paragraph(
-                f"{self._label('Motif', 'Reason')}: {self.document.get_motif_avoir_display()}",
+                f"{self._label('Motif', 'Reason')}: {escape(self._text(self.document.get_motif_avoir_display()))}",
                 self.styles["CustomSmall"],
             )
         )

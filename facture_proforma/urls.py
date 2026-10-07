@@ -62,4 +62,10 @@ urlpatterns = [
         {"language": "en"},
         name="facture-proforma-pdf-en",
     ),
+    path(
+        "pdf/nl/<int:pk>/",
+        FactureProFormaPDFView.as_view(),
+        {"language": "nl"},
+        name="facture-proforma-pdf-nl",
+    ),
 ]

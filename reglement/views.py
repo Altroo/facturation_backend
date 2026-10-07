@@ -1,3 +1,4 @@
+from xml.sax.saxutils import escape
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
@@ -17,9 +18,8 @@ from account.models import Membership
 from company.models import Company
 from core.authentication import JWTQueryParamAuthentication
 from core.pdf_utils import (
+    format_multiline_pdf_text,
     BasePDFGenerator,
-    number_to_french_words,
-    number_to_english_words,
     format_number_for_pdf,
 )
 from core.permissions import (
@@ -414,10 +414,7 @@ class ReglementPDFGenerator(BasePDFGenerator):
         # Amount and price in words
         amount = self.document.montant
         devise = self.document.facture_client.devise
-        if self.language == "en":
-            price_in_words = number_to_english_words(amount, currency=devise)
-        else:
-            price_in_words = number_to_french_words(amount, currency=devise)
+        price_in_words = self._amount_words(amount, devise)
 
         # Create info table
         info_data = [
@@ -456,7 +453,8 @@ class ReglementPDFGenerator(BasePDFGenerator):
                         self.styles["CustomNormal"],
                     ),
                     Paragraph(
-                        self.document.mode_reglement.nom, self.styles["CustomNormal"]
+                        escape(self._text(self.document.mode_reglement.nom)),
+                        self.styles["CustomNormal"],
                     ),
                 ]
             )
@@ -514,7 +512,10 @@ class ReglementPDFGenerator(BasePDFGenerator):
                 )
             )
             elements.append(
-                Paragraph(self.document.libelle, self.styles["CustomSmall"])
+                Paragraph(
+                    format_multiline_pdf_text(self._text(self.document.libelle)),
+                    self.styles["CustomSmall"],
+                )
             )
             elements.append(Spacer(1, 0.3 * cm))
 

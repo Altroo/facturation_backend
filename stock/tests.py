@@ -56,6 +56,7 @@ def stock_context() -> StockContext:
         raison_sociale="Stock Company",
         ICE="STOCK-COMPANY",
         stock_management_enabled=True,
+        inventory_management_enabled=True,
     )
     emplacement = Emplacement.objects.create(company=company, nom="Dépôt")
     ville = Ville.objects.create(company=company, nom="Casablanca")

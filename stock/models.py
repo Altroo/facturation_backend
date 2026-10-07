@@ -73,6 +73,8 @@ class StockReservation(models.Model):
     status = models.CharField(
         max_length=12, choices=STATUS_CHOICES, default=STATUS_ACTIVE
     )
+    expires_at = models.DateTimeField(null=True, blank=True, db_index=True)
+    expiry_reminded_at = models.DateTimeField(null=True, blank=True)
     date_created = models.DateTimeField(auto_now_add=True)
     date_updated = models.DateTimeField(auto_now=True)
 

@@ -76,4 +76,10 @@ urlpatterns = [
         {"language": "en"},
         name="facture-client-pdf-en",
     ),
+    path(
+        "pdf/nl/<int:pk>/",
+        FactureClientPDFView.as_view(),
+        {"language": "nl"},
+        name="facture-client-pdf-nl",
+    ),
 ]

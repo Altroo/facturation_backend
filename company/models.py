@@ -80,7 +80,7 @@ class Company(models.Model):
     nbr_employe = models.CharField(
         max_length=12,
         choices=NBR_EMPLOYE_CHOICES,
-        default=1,
+        default="1 à 5",
         verbose_name=_("Nombre d'employés"),
         help_text=_("Tranche du nombre d'employés"),
     )
@@ -238,6 +238,14 @@ class Company(models.Model):
         verbose_name=_("Gestion de stock activée"),
         help_text=_(
             "Active les réservations, les entrées et les sorties de stock pour cette société"
+        ),
+    )
+
+    inventory_management_enabled = models.BooleanField(
+        default=False,
+        verbose_name=_("Inventaire activé"),
+        help_text=_(
+            "Autorise le comptage et la régularisation du stock par inventaire"
         ),
     )
 

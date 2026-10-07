@@ -55,6 +55,7 @@ handler500 = custom_500
 
 urlpatterns = [
     # Health check endpoint (unauthenticated)
+    path("api/ai/", include("ai_assistant.urls")),
     path("api/health/", health_check, name="health-check"),
     # Account
     path("api/account/", include("account.urls")),

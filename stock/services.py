@@ -411,6 +411,7 @@ def post_movement(
     return movement
 
 
+@transaction.atomic
 def sync_proforma_reservations(proforma, old_status, new_status):
     if not stock_enabled(proforma.company) or old_status == new_status:
         return
@@ -418,6 +419,7 @@ def sync_proforma_reservations(proforma, old_status, new_status):
         proforma.lignes.select_related("article", "article__emplacement").order_by("id")
     )
     if new_status == "Accepté":
+        expires_at = timezone.now() + timedelta(days=7)
         missing = [
             line.article.reference
             for line in lines
@@ -452,6 +454,8 @@ def sync_proforma_reservations(proforma, old_status, new_status):
                     balance.reserved_quantity = ZERO
                 balance.save(update_fields=("reserved_quantity", "date_updated"))
             reservation.balance = balance
+            reservation.expires_at = expires_at
+            reservation.expiry_reminded_at = None
             if delta > ZERO:
                 restored_quantity = min(delta, reservation.released_quantity)
                 reservation.released_quantity -= restored_quantity
@@ -469,6 +473,14 @@ def sync_proforma_reservations(proforma, old_status, new_status):
         return
 
     if old_status == "Accepté" and new_status != "Accepté":
+        balance_ids = StockReservation.objects.filter(
+            proforma_line__facture_pro_forma=proforma
+        ).values("balance_id")
+        list(
+            StockBalance.objects.select_for_update()
+            .filter(pk__in=balance_ids)
+            .order_by("pk")
+        )
         reservations = (
             StockReservation.objects.select_for_update()
             .filter(
@@ -567,6 +579,9 @@ def _consume_reservation(proforma, article, quantity, balance):
 def sync_delivery_stock(delivery, old_status, new_status, actor):
     if not stock_enabled(delivery.company) or old_status == new_status:
         return
+    source_proforma = getattr(delivery.source_facture_client, "source_proforma", None)
+    if source_proforma:
+        FactureProForma.objects.select_for_update().get(pk=source_proforma.pk)
     posted_statuses = set(POSTED_DELIVERY_STATUSES)
     if new_status in posted_statuses and old_status not in posted_statuses:
         previous_postings = list(
@@ -838,6 +853,13 @@ def cancel_receipt(receipt, actor):
 
 
 def validate_inventory(inventory, actor):
+    if (
+        not inventory.company.stock_management_enabled
+        or not inventory.company.inventory_management_enabled
+    ):
+        raise ValidationError(
+            {"inventory": _("L'inventaire n'est pas activé pour cette société.")}
+        )
     if inventory.status != InventorySession.STATUS_DRAFT:
         raise ValidationError(
             {"status": _("Seul un inventaire brouillon peut être validé.")}

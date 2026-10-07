@@ -60,4 +60,10 @@ urlpatterns = [
         {"language": "en"},
         name="bon-de-livraison-pdf-en",
     ),
+    path(
+        "pdf/nl/<int:pk>/",
+        BonDeLivraisonPDFView.as_view(),
+        {"language": "nl"},
+        name="bon-de-livraison-pdf-nl",
+    ),
 ]

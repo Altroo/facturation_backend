@@ -1,7 +1,16 @@
 from typing import cast
 
 from django.db import transaction
-from django.db.models import DecimalField, ExpressionWrapper, F, Q
+from django.db.models import (
+    Case,
+    DecimalField,
+    ExpressionWrapper,
+    F,
+    IntegerField,
+    Q,
+    Value,
+    When,
+)
 from django.http import Http404
 from rest_framework import permissions, status
 from rest_framework.exceptions import PermissionDenied, ValidationError
@@ -118,6 +127,14 @@ class StockAccessMixin:
                 {"stock": "La gestion de stock n'est pas activée pour cette société."}
             )
 
+    @staticmethod
+    def ensure_inventory_enabled(company):
+        StockAccessMixin.ensure_enabled(company)
+        if not company.inventory_management_enabled:
+            raise ValidationError(
+                {"inventory": "L'inventaire n'est pas activé pour cette société."}
+            )
+
 
 class StockBalanceListView(StockAccessMixin, APIView):
     permission_classes = (permissions.IsAuthenticated,)
@@ -137,9 +154,7 @@ class StockBalanceListView(StockAccessMixin, APIView):
             queryset = queryset.filter(emplacement_id=emplacement_id)
         emplacement_ids = request.query_params.get("emplacement_ids")
         if emplacement_ids:
-            queryset = queryset.filter(
-                emplacement_id__in=emplacement_ids.split(",")
-            )
+            queryset = queryset.filter(emplacement_id__in=emplacement_ids.split(","))
         if search:
             queryset = queryset.filter(
                 Q(article__reference__icontains=search)
@@ -193,7 +208,13 @@ class StockBalanceListView(StockAccessMixin, APIView):
                     available_for_filter__gte=0,
                 ) | Q(available_for_filter__gt=F("article__stock_minimum"))
             queryset = queryset.filter(state_filter)
-        ordered_queryset = queryset.order_by("article__reference", "emplacement__nom")
+        ordered_queryset = queryset.annotate(
+            positive_stock=Case(
+                When(physical_quantity__gt=0, then=Value(0)),
+                default=Value(1),
+                output_field=IntegerField(),
+            )
+        ).order_by("positive_stock", "article__reference", "emplacement__nom", "pk")
         if request.query_params.get("pagination", "true").lower() == "true":
             paginator = CustomPagination()
             page = cast(
@@ -383,9 +404,7 @@ class StockReceiptListCreateView(StockAccessMixin, APIView):
             queryset = queryset.filter(status__in=statuses.split(","))
         emplacement_ids = request.query_params.get("emplacement_ids")
         if emplacement_ids:
-            queryset = queryset.filter(
-                emplacement_id__in=emplacement_ids.split(",")
-            )
+            queryset = queryset.filter(emplacement_id__in=emplacement_ids.split(","))
         paginator = CustomPagination()
         page = paginator.paginate_queryset(queryset, request)
         return paginator.get_paginated_response(
@@ -498,7 +517,7 @@ class InventoryListCreateView(StockAccessMixin, APIView):
     @transaction.atomic
     def post(self, request):
         company = self.get_company(request)
-        self.ensure_enabled(company)
+        self.ensure_inventory_enabled(company)
         self.require_role(request, company, (ROLE_CAISSIER,))
         serializer = InventorySerializer(
             data=request.data, context={"request": request}
@@ -546,7 +565,7 @@ class InventoryValidateView(StockAccessMixin, APIView):
         company = self.get_company(request)
         if inventory.company_id != company.id:
             raise PermissionDenied("Cet inventaire appartient à une autre société.")
-        self.ensure_enabled(company)
+        self.ensure_inventory_enabled(company)
         self.require_role(request, company, (ROLE_CAISSIER,))
         validate_inventory(inventory, request.user)
         inventory.refresh_from_db()

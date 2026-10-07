@@ -491,6 +491,11 @@ class LogisticsOrderBaseSerializer(serializers.ModelSerializer):
     @staticmethod
     def get_alerts(obj):
         alerts = []
+        for proforma in obj.proformas.all():
+            if proforma.statut == "Expiré":
+                alerts.append(
+                    f"Proforma client {proforma.numero_facture} expirée — commande à vérifier."
+                )
         if obj.statut_paiement == "En attente":
             alerts.append("Retard paiement en attente")
         if obj.has_missing_swift:
@@ -593,6 +598,7 @@ class LogisticsOrderDetailSerializer(LogisticsOrderBaseSerializer):
                     )
                     or proforma.numero_facture
                 ),
+                "statut": proforma.statut,
                 "date_facture": proforma.date_facture,
                 "total_ttc_apres_remise": proforma.total_ttc_apres_remise,
                 "devise": proforma.devise,
@@ -602,9 +608,7 @@ class LogisticsOrderDetailSerializer(LogisticsOrderBaseSerializer):
 
     @staticmethod
     def get_process_notes(obj):
-        return LogisticsProcessNoteSerializer(
-            obj.process_notes.all(), many=True
-        ).data
+        return LogisticsProcessNoteSerializer(obj.process_notes.all(), many=True).data
 
 
 class LogisticsOrderCreateSerializer(serializers.Serializer):
@@ -806,7 +810,11 @@ class LogisticsOrderUpdateSerializer(serializers.ModelSerializer):
             attrs["avance_pourcentage"] = None
         elif advance is not None and not Decimal("0") <= advance <= Decimal("100"):
             raise serializers.ValidationError(
-                {"avance_pourcentage": _("Le pourcentage doit être compris entre 0 et 100.")}
+                {
+                    "avance_pourcentage": _(
+                        "Le pourcentage doit être compris entre 0 et 100."
+                    )
+                }
             )
         if not attrs.get(
             "documents_originaux_requis", self.order.documents_originaux_requis
@@ -922,7 +930,9 @@ class LogisticsPaymentExecutionSerializer(LogisticsPaymentInstallmentActionSeria
         choices=[choice[0] for choice in CURRENCY_CHOICES]
     )
     banque_paiement = serializers.CharField(required=True, allow_blank=False)
-    reference_paiement = serializers.CharField(required=False, allow_blank=True, default="")
+    reference_paiement = serializers.CharField(
+        required=False, allow_blank=True, default=""
+    )
     methode_paiement = serializers.ChoiceField(
         choices=[choice[0] for choice in LogisticsOrder.PAYMENT_METHOD_CHOICES],
         required=True,
@@ -1122,49 +1132,104 @@ class LogisticsFieldReviewSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         if not attrs or not set(self.initial_data) <= {"decisions", "proposed_fields"}:
-            raise serializers.ValidationError("Une décision ou une proposition de champ est attendue.")
+            raise serializers.ValidationError(
+                "Une décision ou une proposition de champ est attendue."
+            )
         return attrs
 
     def validate_proposed_fields(self, value):
         if not isinstance(value, dict) or not value:
-            raise serializers.ValidationError("Les propositions de champs sont invalides.")
+            raise serializers.ValidationError(
+                "Les propositions de champs sont invalides."
+            )
         for key, change in value.items():
             try:
                 if str(UUID(key)) != key:
                     raise ValueError
             except (ValueError, TypeError, AttributeError):
-                raise serializers.ValidationError("Identifiant de proposition invalide.")
+                raise serializers.ValidationError(
+                    "Identifiant de proposition invalide."
+                )
             # Null removes only this proposal; other reviewers' additions survive.
             if change is None:
                 continue
-            if (not isinstance(change, dict) or not change
-                    or not set(change) <= {"stage", "name", "description"}):
-                raise serializers.ValidationError({key: "Proposition de champ invalide."})
+            if (
+                not isinstance(change, dict)
+                or not change
+                or not set(change) <= {"stage", "name", "description"}
+            ):
+                raise serializers.ValidationError(
+                    {key: "Proposition de champ invalide."}
+                )
             if "stage" in change and change["stage"] not in (
-                    "1", "2", "3", "4", "5", "6", "7", "8", "common"):
+                "1",
+                "2",
+                "3",
+                "4",
+                "5",
+                "6",
+                "7",
+                "8",
+                "common",
+            ):
                 raise serializers.ValidationError({key: "Étape invalide."})
-            if "name" in change and (not isinstance(change["name"], str)
-                    or not change["name"].strip() or len(change["name"]) > 200):
-                raise serializers.ValidationError({key: "Indiquez un nom de champ (200 caractères maximum)."})
-            if "description" in change and (not isinstance(change["description"], str)
-                    or len(change["description"]) > 2000):
-                raise serializers.ValidationError({key: "Description : 2 000 caractères maximum."})
+            if "name" in change and (
+                not isinstance(change["name"], str)
+                or not change["name"].strip()
+                or len(change["name"]) > 200
+            ):
+                raise serializers.ValidationError(
+                    {key: "Indiquez un nom de champ (200 caractères maximum)."}
+                )
+            if "description" in change and (
+                not isinstance(change["description"], str)
+                or len(change["description"]) > 2000
+            ):
+                raise serializers.ValidationError(
+                    {key: "Description : 2 000 caractères maximum."}
+                )
         return value
 
     def validate_decisions(self, value):
         # These stable keys match the temporary Gantt's field catalogue.
-        counts = {"1": 16, "2": 23, "3": 27, "4": 3, "5": 6,
-                  "6": 6, "7": 9, "8": 7, "common": 6}
-        valid_keys = {f"{stage}-{index}" for stage, count in counts.items()
-                      for index in range(count)}
+        counts = {
+            "1": 16,
+            "2": 23,
+            "3": 27,
+            "4": 3,
+            "5": 6,
+            "6": 6,
+            "7": 9,
+            "8": 7,
+            "common": 6,
+        }
+        valid_keys = {
+            f"{stage}-{index}"
+            for stage, count in counts.items()
+            for index in range(count)
+        }
         if not isinstance(value, dict) or not value or not set(value) <= valid_keys:
             raise serializers.ValidationError("Les champs de la revue sont invalides.")
         for key, change in value.items():
-            if (not isinstance(change, dict) or not change
-                    or not set(change) <= {"choice", "note"}):
-                raise serializers.ValidationError({key: "Décision ou commentaire attendu."})
-            if "choice" in change and change["choice"] not in ("", "Conserver", "Modifier", "Supprimer"):
+            if (
+                not isinstance(change, dict)
+                or not change
+                or not set(change) <= {"choice", "note"}
+            ):
+                raise serializers.ValidationError(
+                    {key: "Décision ou commentaire attendu."}
+                )
+            if "choice" in change and change["choice"] not in (
+                "",
+                "Conserver",
+                "Modifier",
+                "Supprimer",
+            ):
                 raise serializers.ValidationError({key: "Décision invalide."})
-            if "note" in change and (not isinstance(change["note"], str) or len(change["note"]) > 2000):
-                raise serializers.ValidationError({key: "Commentaire : 2 000 caractères maximum."})
+            if "note" in change and (
+                not isinstance(change["note"], str) or len(change["note"]) > 2000
+            ):
+                raise serializers.ValidationError(
+                    {key: "Commentaire : 2 000 caractères maximum."}
+                )
         return value

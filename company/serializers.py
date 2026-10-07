@@ -90,6 +90,7 @@ class CompanyBasicListSerializer(serializers.ModelSerializer):
             "role",
             "uses_foreign_currency",
             "stock_management_enabled",
+            "inventory_management_enabled",
             "can_validate_factures",
             "can_change_document_status",
         ]
@@ -170,6 +171,26 @@ class CompanySerializer(serializers.ModelSerializer):
         model = Company
         fields = "__all__"
         read_only_fields = ["date_created", "date_updated"]
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        stock_enabled = attrs.get(
+            "stock_management_enabled",
+            getattr(self.instance, "stock_management_enabled", False),
+        )
+        inventory_enabled = attrs.get(
+            "inventory_management_enabled",
+            getattr(self.instance, "inventory_management_enabled", False),
+        )
+        if inventory_enabled and not stock_enabled:
+            raise serializers.ValidationError(
+                {
+                    "inventory_management_enabled": _(
+                        "Activez la gestion de stock avant d'activer l'inventaire."
+                    )
+                }
+            )
+        return attrs
 
     @staticmethod
     def _process_image_field(field_name, validated_data, instance):

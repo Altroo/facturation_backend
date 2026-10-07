@@ -176,7 +176,14 @@ class BonDeLivraisonPDFGenerator(BasePDFGenerator):
         headers = (
             ["Référence", "Désignation", "Quantité", "Remarque"]
             if self.language == "fr"
-            else ["Reference", "Description", "Quantity", "Remark"]
+            else (
+                ["Reference", "Description", "Quantity", "Remark"]
+                if self.language == "en"
+                else [
+                    self._(key)
+                    for key in ("Reference", "Designation", "Quantity", "Remark")
+                ]
+            )
         )
         styles = [
             self.styles["CustomSmall"],
@@ -197,7 +204,8 @@ class BonDeLivraisonPDFGenerator(BasePDFGenerator):
                 [
                     Paragraph(escape(line.article.reference or ""), styles[0]),
                     Paragraph(
-                        format_multiline_pdf_text(line.article.designation), styles[1]
+                        format_multiline_pdf_text(self._text(line.article.designation)),
+                        styles[1],
                     ),
                     Paragraph(format_number_for_pdf(line.quantity), styles[2]),
                     "",
@@ -231,10 +239,8 @@ class BonDeLivraisonPDFGenerator(BasePDFGenerator):
         return table
 
     def _build_delivery_signatures(self):
-        company_label = f"Signature {self.company.raison_sociale}".strip()
-        client_label = (
-            "Signature client" if self.language == "fr" else "Client signature"
-        )
+        company_label = f"{self._('Signature')} {self.company.raison_sociale}".strip()
+        client_label = self._("Client_Signature")
         signatures = Table(
             [
                 [
@@ -304,12 +310,12 @@ class BonDeLivraisonPDFGenerator(BasePDFGenerator):
             ]
         elements.append(self._create_delivery_articles_table())
         if self.document.remarque:
-            label = "Remarque" if self.language == "fr" else "Remark"
+            label = self._("Remark")
             elements.extend(
                 [
                     Spacer(1, 0.3 * cm),
                     Paragraph(
-                        f"<b>{label} :</b> {format_multiline_pdf_text(self.document.remarque)}",
+                        f"<b>{label} :</b> {format_multiline_pdf_text(self._text(self.document.remarque))}",
                         self.styles["CustomNormal"],
                     ),
                 ]

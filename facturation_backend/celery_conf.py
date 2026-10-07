@@ -27,8 +27,12 @@ app.autodiscover_tasks(
 )
 
 app.conf.beat_schedule = {
+    "check-reservation-deadlines-every-minute": {
+        "task": "stock.tasks.check_reservation_deadlines",
+        "schedule": crontab(),
+    },
     "check-facturation-notifications-every-hour": {
-        "task": "notification.tasks.check_facturation_notifications",
+        "task": "notification.check_facturation_notifications",
         "schedule": crontab(minute=0),  # every hour
     },
     "check-low-stock-every-hour": {

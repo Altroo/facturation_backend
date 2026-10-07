@@ -226,7 +226,7 @@ class LogisticsPaymentRequestPDFGenerator(BasePDFGenerator):
                         ),
                     ),
                     ("Incoterm", order.incoterm),
-                    ("Conditions de paiement", order.conditions_paiement),
+                    ("Conditions de paiement", self._text(order.conditions_paiement)),
                     (
                         "Délai fournisseur",
                         (

@@ -46,5 +46,13 @@ urlpatterns = [
         {"language": "en"},
         name="facture-avoir-pdf-en",
     ),
-    path("<int:pk>/", FactureAvoirDetailEditView.as_view(), name="facture-avoir-detail"),
+    path(
+        "pdf/nl/<int:pk>/",
+        FactureAvoirPDFView.as_view(),
+        {"language": "nl"},
+        name="facture-avoir-pdf-nl",
+    ),
+    path(
+        "<int:pk>/", FactureAvoirDetailEditView.as_view(), name="facture-avoir-detail"
+    ),
 ]

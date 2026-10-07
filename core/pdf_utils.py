@@ -6,7 +6,10 @@ from io import BytesIO
 from typing import Optional
 from xml.sax.saxutils import escape
 
+from django.conf import settings
 from django.http import HttpResponse
+from ai_assistant.client import AiAssistantClient
+from core.pdf_translations import NL
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_RIGHT, TA_CENTER
 from reportlab.lib.pagesizes import A4
@@ -334,6 +337,7 @@ class BasePDFGenerator:
         self.styles = getSampleStyleSheet()
         self._setup_translations()
         self._setup_custom_styles()
+        self._text_translations = {}
 
     def _should_show_remise(self) -> bool:
         """Return whether this PDF variant should display remise columns and totals."""
@@ -508,6 +512,109 @@ class BasePDFGenerator:
                 "It does not constitute a final invoice and has no accounting value.",
             },
         }
+
+        self.translations["fr"].update(
+            {
+                "Reference": "Référence",
+                "Remark": "Remarque",
+                "Signature": "Signature",
+                "Client_Signature": "Signature client",
+                "Tax_Included": "TTC",
+                "Draft": "Brouillon",
+                "Due_Date": "Date d’échéance",
+                "Payment_Reference": "Merci d'utiliser la référence suivante pour votre paiement:",
+                "Morocco": "Maroc",
+            }
+        )
+        self.translations["en"].update(
+            {
+                "Reference": "Reference",
+                "Remark": "Remark",
+                "Signature": "Signature",
+                "Client_Signature": "Client signature",
+                "Tax_Included": "incl. VAT",
+                "Draft": "Draft",
+                "Due_Date": "Due date",
+                "Amount_Intro": "The total amount including VAT is:",
+                "Payment_Reference": "Please use the following reference for your payment:",
+                "Morocco": "Morocco",
+                "Quote": "Quote",
+                "Invoice": "Invoice",
+                "Proforma": "Pro-forma invoice",
+                "Delivery": "Delivery note",
+                "Client": "Client",
+            }
+        )
+        self.translations["nl"] = NL
+
+    def _prepare_text_translations(self):
+        if not getattr(settings, "AI_PDF_TRANSLATION_ENABLED", False):
+            return
+        texts = [
+            getattr(self.document, key, "")
+            for key in ("remarque", "termes_paiement", "libelle", "conditions_paiement")
+        ]
+        protected = [self.company.raison_sociale]
+        client = getattr(self.document, "client", None)
+        if client is None and getattr(self.document, "facture_client", None):
+            client = self.document.facture_client.client
+        if client:
+            protected.extend(
+                getattr(client, key, "") for key in ("raison_sociale", "nom", "prenom")
+            )
+        lines = getattr(self.document, "lignes", None)
+        if lines is not None:
+            for line in lines.select_related("article").all():
+                article = line.article
+                if not article:
+                    continue
+                texts.append(article.designation)
+                protected.append(article.reference)
+                if article.unite:
+                    texts.append(article.unite.nom)
+                if article.marque:
+                    protected.append(article.marque.nom)
+        payment = getattr(self.document, "mode_reglement", None)
+        if payment:
+            texts.append(payment.nom)
+        if hasattr(self.document, "get_motif_avoir_display"):
+            texts.append(self.document.get_motif_avoir_display())
+        self._text_translations = AiAssistantClient().translate_many(
+            texts,
+            target_language=self.language,
+            protected_terms=list(
+                dict.fromkeys(
+                    p for p in protected if isinstance(p, str) and 1 < len(p) <= 200
+                )
+            )[:100],
+            context="invoice_pdf",
+        )
+
+    def _text(self, value):
+        return (
+            self._text_translations.get(value, value)
+            if isinstance(value, str)
+            else value
+        )
+
+    def _amount_words(self, amount, currency="MAD"):
+        if self.language == "nl":
+            from num2words import num2words
+
+            value = Decimal(str(amount)).quantize(Decimal("0.01"))
+            units, cents = divmod(int(abs(value) * 100), 100)
+            currency_name = {
+                "MAD": "Marokkaanse dirham",
+                "EUR": "euro",
+                "USD": "Amerikaanse dollar",
+            }.get(currency, currency)
+            result = f"{num2words(units, lang='nl')} {currency_name}"
+            if cents:
+                result += f" en {num2words(cents, lang='nl')} cent"
+            return ("min " if value < 0 else "") + result
+        if self.language == "en":
+            return number_to_english_words(amount, currency)
+        return number_to_french_words(amount, currency)
 
     def _(self, key: str) -> str:
         """
@@ -736,6 +843,7 @@ class BasePDFGenerator:
     def generate_pdf(self) -> HttpResponse:
         """Generate and return PDF as HTTP response."""
 
+        self._prepare_text_translations()
         filename = self._get_filename()
         pdf_title = self._get_pdf_title()
 
@@ -827,7 +935,7 @@ class BasePDFGenerator:
             canvas.setFillAlpha(0.18)
         except AttributeError:
             pass
-        watermark = "Draft" if self.language == "en" else "Brouillon"
+        watermark = self._("Draft")
         font_name = "Helvetica-Bold"
         target_width = math.hypot(self.PAGE_WIDTH, self.PAGE_HEIGHT) * 0.55
         font_size = target_width / pdfmetrics.stringWidth("Brouillon", font_name, 1)
@@ -1344,7 +1452,9 @@ class BasePDFGenerator:
             .all()
         ):
             row = []
-            designation_text = format_multiline_pdf_text(line.article.designation)
+            designation_text = format_multiline_pdf_text(
+                self._text(line.article.designation)
+            )
             if line.article.reference:
                 designation_text = (
                     f"<b>{escape(line.article.reference)}</b><br/>{designation_text}"
@@ -1366,7 +1476,11 @@ class BasePDFGenerator:
                 )
             )
             if show_unite:
-                unite_name = line.article.unite.nom if line.article.unite else "-"
+                unite_name = (
+                    escape(self._text(line.article.unite.nom))
+                    if line.article.unite
+                    else "-"
+                )
                 row.append(Paragraph(unite_name, self.styles["CustomSmallCenter"]))
             if show_remise:
                 if line.remise_type == "Pourcentage" and line.remise:
@@ -1440,11 +1554,12 @@ class BasePDFGenerator:
             else self.document.total_ttc
         )
         currency = self.document.devise
-        if self.language == "en":
-            price_in_words = number_to_english_words(total_price, currency)
-        else:
-            price_in_words = number_to_french_words(total_price, currency)
-        tail.append(Paragraph(f"{price_in_words} TTC", self.styles["PriceWords"]))
+        price_in_words = self._amount_words(total_price, currency)
+        tail.append(
+            Paragraph(
+                f"{price_in_words} {self._('Tax_Included')}", self.styles["PriceWords"]
+            )
+        )
         tail.append(Spacer(1, 0.5 * cm))
         if default_remarks_key is not None:
             tail.append(
@@ -1452,9 +1567,13 @@ class BasePDFGenerator:
             )
             remarks_text = self._(default_remarks_key)
             if self.document.remarque:
-                remarks_text = self.document.remarque + "\n\n" + remarks_text
+                remarks_text = (
+                    self._text(self.document.remarque) + "\n\n" + remarks_text
+                )
             tail.append(
-                Paragraph(remarks_text.replace("\n", "<br/>"), self.styles["Remarks"])
+                Paragraph(
+                    format_multiline_pdf_text(remarks_text), self.styles["Remarks"]
+                )
             )
         termes_paiement = getattr(self.document, "termes_paiement", None)
         if termes_paiement:
@@ -1467,7 +1586,8 @@ class BasePDFGenerator:
             )
             tail.append(
                 Paragraph(
-                    str(termes_paiement).replace("\n", "<br/>"), self.styles["Remarks"]
+                    format_multiline_pdf_text(self._text(str(termes_paiement))),
+                    self.styles["Remarks"],
                 )
             )
         return tail
@@ -1527,7 +1647,7 @@ class BasePDFGenerator:
             lines.append(client.adresse)
         if getattr(client, "ville", None):
             lines.append(str(client.ville))
-        lines.append("Maroc")
+        lines.append(self._("Morocco"))
         if client.ICE:
             lines.extend(["", f"ICE: {client.ICE}"])
 
@@ -1539,7 +1659,14 @@ class BasePDFGenerator:
         return table
 
     def _build_nectar_articles_table(self) -> Table:
-        headers = ["DESCRIPTION", "QUANTITÉ", "PRIX UNITAIRE", "TAXES", "MONTANT"]
+        headers = (
+            ["DESCRIPTION", "QUANTITÉ", "PRIX UNITAIRE", "TAXES", "MONTANT"]
+            if self.language == "fr"
+            else [
+                self._(key)
+                for key in ("Designation", "Quantity", "Unit_Price_HT", "TVA", "Amount")
+            ]
+        )
         col_widths = [
             self.CONTENT_WIDTH * 0.34,
             self.CONTENT_WIDTH * 0.16,
@@ -1556,7 +1683,9 @@ class BasePDFGenerator:
             .order_by("article__reference")
             .all()
         ):
-            designation = format_multiline_pdf_text(line.article.designation)
+            designation = format_multiline_pdf_text(
+                self._text(line.article.designation)
+            )
             if line.article.reference:
                 designation = f"{escape(line.article.reference)} {designation}"
             tva_pct = line.article.tva if line.article.tva else Decimal("0")
@@ -1605,9 +1734,18 @@ class BasePDFGenerator:
             "DH" if (self.document.devise or "MAD") == "MAD" else self.document.devise
         )
         rows = [
-            ["Montant HT", f"{format_number_for_pdf(self.document.total_ht)} {devise}"],
-            ["TVA", f"{format_number_for_pdf(self.document.total_tva)} {devise}"],
-            ["Total", f"{format_number_for_pdf(self.document.total_ttc)} {devise}"],
+            [
+                self._("Total_HT_Label"),
+                f"{format_number_for_pdf(self.document.total_ht)} {devise}",
+            ],
+            [
+                self._("TVA"),
+                f"{format_number_for_pdf(self.document.total_tva)} {devise}",
+            ],
+            [
+                self._("Total_TTC_Label"),
+                f"{format_number_for_pdf(self.document.total_ttc)} {devise}",
+            ],
         ]
         table = Table(rows, colWidths=[4.7 * cm, 4.8 * cm])
         table.hAlign = "RIGHT"
@@ -1643,6 +1781,17 @@ class BasePDFGenerator:
             if lower_label.startswith("facture")
             else f"Arrêté le présent {lower_label}, toutes taxes comprises, à la somme de :"
         )
+        if self.language != "fr":
+            label_key = {
+                "Devis": "Quote",
+                "Facture": "Invoice",
+                "Facture client": "Invoice",
+                "Facture pro-forma": "Proforma",
+                "Facture Pro-Forma": "Proforma",
+                "Bon de livraison": "Delivery",
+            }.get(document_label)
+            document_label = self._(label_key) if label_key else document_label
+            amount_intro = self._("Amount_Intro")
         elements = []
         elements.extend(self._build_nectar_header())
         elements.append(Spacer(1, 1.5 * cm))
@@ -1658,10 +1807,16 @@ class BasePDFGenerator:
             [
                 [
                     Paragraph(
-                        f"<b>Date {date_article} {lower_label}:</b>",
+                        (
+                            f"<b>Date {date_article} {lower_label}:</b>"
+                            if self.language == "fr"
+                            else f"<b>{self._('Date')}:</b>"
+                        ),
                         self.styles["CustomNormal"],
                     ),
-                    Paragraph("<b>Date d'échéance:</b>", self.styles["CustomNormal"]),
+                    Paragraph(
+                        f"<b>{self._('Due_Date')}:</b>", self.styles["CustomNormal"]
+                    ),
                 ],
                 [
                     Paragraph(
@@ -1693,7 +1848,7 @@ class BasePDFGenerator:
         elements.append(Spacer(1, 0.35 * cm))
 
         total_price = self.document.total_ttc
-        price_in_words = number_to_french_words(total_price, self.document.devise)
+        price_in_words = self._amount_words(total_price, self.document.devise)
         elements.append(
             Paragraph(
                 amount_intro,
@@ -1702,15 +1857,14 @@ class BasePDFGenerator:
         )
         elements.append(
             Paragraph(
-                f"<b>{price_in_words.capitalize()} TTC</b>",
+                f"<b>{price_in_words.capitalize()} {self._('Tax_Included')}</b>",
                 self.styles["PriceWords"],
             )
         )
         elements.append(Spacer(1, 1.0 * cm))
         elements.append(
             Paragraph(
-                "Merci d'utiliser la référence suivante pour votre paiement: "
-                f"<b>{display_number}</b>",
+                f"{self._('Payment_Reference')} " f"<b>{display_number}</b>",
                 self.styles["NectarClient"],
             )
         )
@@ -1917,7 +2071,9 @@ class BasePDFGenerator:
             row = []
 
             # Designation
-            designation_text = format_multiline_pdf_text(line.article.designation)
+            designation_text = format_multiline_pdf_text(
+                self._text(line.article.designation)
+            )
             if line.article.reference:
                 designation_text = (
                     f"<b>{escape(line.article.reference)}</b><br/>{designation_text}"
@@ -1946,7 +2102,11 @@ class BasePDFGenerator:
 
             # Unite (if showing)
             if show_unite:
-                unite_name = line.article.unite.nom if line.article.unite else ""
+                unite_name = (
+                    escape(self._text(line.article.unite.nom))
+                    if line.article.unite
+                    else ""
+                )
                 row.append(Paragraph(unite_name, self.styles["CustomSmall"]))
 
             # Total HT
@@ -2114,30 +2274,37 @@ class BasePDFGenerator:
         )
 
         # Use appropriate function based on language and currency
-        if self.language == "fr":
-            price_in_words = number_to_french_words(total_price, self.document.devise)
-        else:
-            price_in_words = number_to_english_words(total_price, self.document.devise)
+        price_in_words = self._amount_words(total_price, self.document.devise)
 
-        elements.append(Paragraph(f"{price_in_words} TTC", self.styles["PriceWords"]))
+        elements.append(
+            Paragraph(
+                f"{price_in_words} {self._('Tax_Included')}", self.styles["PriceWords"]
+            )
+        )
         elements.append(Spacer(1, 0.5 * cm))
 
         return elements
 
     def _create_remarks_section(self, custom_remarks: str = "") -> list:
         """Create remarks section."""
-        elements = [Paragraph("<b>Remarques :</b>", self.styles["SectionHeader"])]
+        elements = [
+            Paragraph(f"<b>{self._('Remarks')} :</b>", self.styles["SectionHeader"])
+        ]
 
         remarks_text = custom_remarks
         if self.document.remarque:
             if remarks_text:
-                remarks_text = self.document.remarque + "\n\n" + remarks_text
+                remarks_text = (
+                    self._text(self.document.remarque) + "\n\n" + remarks_text
+                )
             else:
-                remarks_text = self.document.remarque
+                remarks_text = self._text(self.document.remarque)
 
         if remarks_text:
             elements.append(
-                Paragraph(remarks_text.replace("\n", "<br/>"), self.styles["Remarks"])
+                Paragraph(
+                    format_multiline_pdf_text(remarks_text), self.styles["Remarks"]
+                )
             )
 
         return elements

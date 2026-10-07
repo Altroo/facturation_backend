@@ -48,4 +48,10 @@ urlpatterns = [
         {"language": "en"},
         name="reglement-pdf-en",
     ),
+    path(
+        "pdf/nl/<int:pk>/",
+        ReglementPDFView.as_view(),
+        {"language": "nl"},
+        name="reglement-pdf-nl",
+    ),
 ]
