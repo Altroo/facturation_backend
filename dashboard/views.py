@@ -125,21 +125,25 @@ def _total_avoirs(
     )
 
 
-def _annotate_total_reglements(queryset):
+def _annotate_total_reglements(queryset, as_of=None):
     """Annotate a FactureClient queryset with payments, credits, and net total."""
+    payments = Reglement.objects.filter(
+        facture_client_id=OuterRef("id"), statut="Valide"
+    )
+    credits = FactureAvoir.objects.filter(
+        facture_origine_id=OuterRef("id"), statut__in=AVOIR_ACTIVE_STATUSES
+    )
+    if as_of is not None:
+        payments = payments.filter(date_reglement__lte=as_of)
+        credits = credits.filter(date_avoir__lte=as_of)
     total_reglements_subquery = Subquery(
-        Reglement.objects.filter(facture_client_id=OuterRef("id"), statut="Valide")
-        .values("facture_client_id")
+        payments.values("facture_client_id")
         .annotate(total=Sum("montant"))
         .values("total")[:1],
         output_field=_money_field(),
     )
     total_avoirs_subquery = Subquery(
-        FactureAvoir.objects.filter(
-            facture_origine_id=OuterRef("id"),
-            statut__in=AVOIR_ACTIVE_STATUSES,
-        )
-        .values("facture_origine_id")
+        credits.values("facture_origine_id")
         .annotate(total=Sum("total_ttc_apres_remise"))
         .values("total")[:1],
         output_field=_money_field(),
@@ -306,6 +310,170 @@ class MonthlyRevenueEvolutionView(APIView):
         ]
 
         return Response(result)
+
+
+def _decision_chart_queryset(request, model, date_field):
+    """Current action backlog within the selected document dates and company."""
+    date_from, date_to, company_id, devise, client_id, project_ref = parse_date_filters(
+        request
+    )
+    today = timezone.localdate()
+    currency = devise or "MAD"
+    queryset = model.objects.filter(
+        company_id=company_id,
+        devise=currency,
+        **{f"{date_field}__lte": min(date_to, today)},
+    )
+    if date_from:
+        queryset = queryset.filter(**{f"{date_field}__gte": date_from})
+    queryset = _apply_scope_to_queryset(
+        queryset,
+        client_id,
+        project_ref,
+        client_field="client_id",
+        project_field="numero_bon_commande_client",
+    )
+    return queryset, today, currency
+
+
+class ReceivablesByClientView(APIView):
+    """Largest current customer balances, with overdue amounts made visible."""
+
+    permission_classes = [IsAuthenticated]
+
+    @staticmethod
+    def get(request):
+        queryset, today, currency = _decision_chart_queryset(
+            request, FactureClient, "date_facture"
+        )
+        queryset = (
+            _annotate_total_reglements(
+                queryset.filter(statut__in=["Envoyé", "Accepté"]), as_of=today
+            )
+            .annotate(outstanding=F("net_total") - F("total_reglements"))
+            .filter(outstanding__gt=0)
+        )
+        totals = queryset.aggregate(
+            total_amount=Sum("outstanding", default=Decimal("0")),
+            overdue_amount=Sum(
+                "outstanding", filter=Q(date_echeance__lt=today), default=Decimal("0")
+            ),
+            client_count=Count("client_id", distinct=True),
+            invoice_count=Count("id"),
+        )
+        clients = (
+            queryset.values(
+                "client_id",
+                "client__client_type",
+                "client__raison_sociale",
+                "client__nom",
+                "client__prenom",
+                "client__code_client",
+            )
+            .annotate(
+                amount=Sum("outstanding"),
+                overdue=Sum(
+                    "outstanding",
+                    filter=Q(date_echeance__lt=today),
+                    default=Decimal("0"),
+                ),
+                not_due=Sum(
+                    "outstanding",
+                    filter=Q(date_echeance__gte=today),
+                    default=Decimal("0"),
+                ),
+                no_due_date=Sum(
+                    "outstanding",
+                    filter=Q(date_echeance__isnull=True),
+                    default=Decimal("0"),
+                ),
+                invoice_count=Count("id"),
+            )
+            .order_by("-amount", "client_id")[:5]
+        )
+        rows = []
+        for client in clients:
+            name = (
+                " ".join(
+                    filter(None, [client["client__nom"], client["client__prenom"]])
+                )
+                if client["client__client_type"] == "PP"
+                else client["client__raison_sociale"]
+            ) or client["client__code_client"]
+            rows.append(
+                {
+                    "client_id": client["client_id"],
+                    "client_name": name,
+                    "invoice_count": client["invoice_count"],
+                    **{
+                        key: float(client[key])
+                        for key in ["amount", "overdue", "not_due", "no_due_date"]
+                    },
+                }
+            )
+        return Response(
+            {
+                "as_of": today.isoformat(),
+                "currency": currency,
+                **totals,
+                "clients": rows,
+            }
+        )
+
+
+class UninvoicedDeliveriesView(APIView):
+    """Accepted delivery notes that still need invoicing, aged from their date."""
+
+    permission_classes = [IsAuthenticated]
+
+    @staticmethod
+    def get(request):
+        queryset, today, currency = _decision_chart_queryset(
+            request, BonDeLivraison, "date_bon_livraison"
+        )
+        queryset = queryset.filter(statut="Accepté", source_facture_client__isnull=True)
+        groups = [
+            ("0_7", Q(date_bon_livraison__gte=today - timedelta(days=7))),
+            (
+                "8_30",
+                Q(
+                    date_bon_livraison__lt=today - timedelta(days=7),
+                    date_bon_livraison__gte=today - timedelta(days=30),
+                ),
+            ),
+            (
+                "31_60",
+                Q(
+                    date_bon_livraison__lt=today - timedelta(days=30),
+                    date_bon_livraison__gte=today - timedelta(days=60),
+                ),
+            ),
+            ("over_60", Q(date_bon_livraison__lt=today - timedelta(days=60))),
+        ]
+        aggregates = {}
+        for key, condition in groups:
+            aggregates[f"amount_{key}"] = Sum(
+                "total_ttc_apres_remise", filter=condition, default=Decimal("0")
+            )
+            aggregates[f"count_{key}"] = Count("id", filter=condition)
+        totals = queryset.aggregate(**aggregates)
+        buckets = [
+            {
+                "key": key,
+                "amount": float(totals[f"amount_{key}"]),
+                "count": totals[f"count_{key}"],
+            }
+            for key, _ in groups
+        ]
+        return Response(
+            {
+                "as_of": today.isoformat(),
+                "currency": currency,
+                "total_amount": sum(totals[f"amount_{key}"] for key, _ in groups),
+                "total_count": sum(bucket["count"] for bucket in buckets),
+                "buckets": buckets,
+            }
+        )
 
 
 class RevenueByDocumentTypeView(APIView):
