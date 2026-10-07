@@ -296,3 +296,25 @@ def test_pdf_batch_waits_for_existing_rate_limit_before_retrying():
     assert result == {"Chaise": "Chair"}
     sleep.assert_called_once_with(60.1)
     assert send.call_count == 2
+
+
+def test_ai_rate_limit_is_separate_from_page_requests_and_still_enforced():
+    from types import SimpleNamespace
+    from rest_framework.throttling import UserRateThrottle
+    from .views import AssistantThrottle
+
+    request = SimpleNamespace(user=SimpleNamespace(is_authenticated=True, pk=999123))
+    ordinary = UserRateThrottle()
+    assistant = AssistantThrottle()
+    ordinary_key = ordinary.get_cache_key(request, None)
+    ai_key = assistant.get_cache_key(request, None)
+    assert ordinary_key != ai_key
+    assistant.cache.delete(ai_key)
+    ordinary.cache.set(ordinary_key, [ordinary.timer()] * 30, 60)
+    try:
+        for _ in range(10):
+            assert AssistantThrottle().allow_request(request, None)
+        assert not AssistantThrottle().allow_request(request, None)
+    finally:
+        ordinary.cache.delete(ordinary_key)
+        assistant.cache.delete(ai_key)

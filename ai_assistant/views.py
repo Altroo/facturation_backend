@@ -9,6 +9,7 @@ from .serializers import AssistRequestSerializer
 
 
 class AssistantThrottle(UserRateThrottle):
+    scope = "ai_assistant"
     rate = "10/minute"
 
 
