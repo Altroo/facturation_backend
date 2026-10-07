@@ -355,7 +355,7 @@ AXES_IPWARE_PROXY_ORDER = "left-most"
 
 # Reuse the private Management Projet models through their signed gateway.
 AI_ASSISTANT_ENABLED = config("AI_ASSISTANT_ENABLED", default=False, cast=bool)
-AI_ASSISTANT_SERVICE_NAME = "facturation"
+AI_ASSISTANT_SERVICE_NAME = config("AI_ASSISTANT_SERVICE_NAME", default="facturation")
 AI_ASSISTANT_SERVICE_SECRET = config("AI_ASSISTANT_SERVICE_SECRET", default="")
 AI_ASSISTANT_GATEWAY_URL = config(
     "AI_ASSISTANT_GATEWAY_URL", default="http://ai-assistant-gateway:8080"

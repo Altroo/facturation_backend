@@ -21,7 +21,7 @@ NL = {
     "Designation": "Omschrijving",
     "Quantity": "Aantal",
     "TVA": "BTW",
-    "Unit_Price_HT": "EENHEIDSPRIJS EXCL. BTW",
+    "Unit_Price_HT": "PRIJS PER STUK EXCL. BTW",
     "Unit": "Eenheid",
     "Discount": "Korting",
     "Total_HT": "Totaal excl. BTW",
