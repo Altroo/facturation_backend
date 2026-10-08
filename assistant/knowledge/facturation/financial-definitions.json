@@ -1,0 +1,40 @@
+{
+  "application_id": "facturation",
+  "document_id": "financial-definitions",
+  "approved": true,
+  "title": "Comprendre les indicateurs financiers",
+  "category": "workflow",
+  "keywords": [
+    "revenue",
+    "chiffre",
+    "affaire",
+    "ttc",
+    "income",
+    "profit",
+    "bénéfice",
+    "encaissements",
+    "taxes",
+    "dépenses",
+    "collected",
+    "montant",
+    "outstanding",
+    "créances",
+    "balance",
+    "solde"
+  ],
+  "content": "Le tableau de bord distingue la facturation TTC nette des avoirs actifs et les encaissements, qui sont les règlements au statut Valide par date de règlement. Le chiffre affiché par les calculs existants inclut tous les statuts de factures. Il ne mesure pas le bénéfice, qui nécessiterait une définition et des charges complètes. Les créances utilisent les soldes de factures, paiements et avoirs. MAD, EUR et USD sont séparés sans conversion. Si «combien avons-nous gagné» est ambigu, demandez si l’utilisateur veut le montant facturé ou les encaissements. HT signifie hors taxes (excluding tax); TVA correspond à la taxe sur la valeur ajoutée (VAT); TTC signifie toutes taxes comprises (including tax).",
+  "required_capabilities": [
+    "read"
+  ],
+  "source_verification": {
+    "date": "2026-10-08",
+    "sources": [
+      "facturation/facturation_backend/dashboard/views.py:666",
+      "facturation/facturation_backend/chat_ai/tools.py:338",
+      "facturation/facturation_frontend/src/translations/en.ts:279",
+      "facturation/facturation_frontend/src/translations/en.ts:280",
+      "facturation/facturation_frontend/src/translations/en.ts:293"
+    ],
+    "notes": "Verified assistant delegation to existing dashboard calculations, valid-payment date basis, separate currencies and unsupported profit distinction."
+  }
+}

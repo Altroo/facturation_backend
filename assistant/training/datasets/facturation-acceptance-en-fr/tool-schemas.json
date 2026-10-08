@@ -1,0 +1,979 @@
+[
+  {
+    "type": "function",
+    "function": {
+      "name": "search_invoices",
+      "description": "Search invoices by exact number, client name, date interval or unpaid balance. Dates ISO. No guessed year.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "invoice_number": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "client_name": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "product_name": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "date_from": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "date_to": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "unpaid": {
+            "type": "boolean"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "search_quotes",
+      "description": "Find devis/quotes by client name AND product name/reference, date range or quote number. Return authorized choices, never require an internal ID.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "quote_number": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "client_name": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "product_name": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "date_from": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "date_to": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "search_documents",
+      "description": "Search pro forma invoices (proforma), credit notes/factures avoir (credit_note), or delivery notes/bons de livraison (delivery_note). Combine client AND product filters; never require remembered IDs.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "resource": {
+            "enum": [
+              "proforma",
+              "credit_note",
+              "delivery_note"
+            ]
+          },
+          "document_number": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "client_name": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "product_name": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "date_from": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "date_to": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000
+          }
+        },
+        "required": [
+          "resource"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "search_articles",
+      "description": "Find articles/products/services by reference or designation. Archived is optional. Prices follow the existing member access.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "reference": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "product_name": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "type_article": {
+            "enum": [
+              "Produit",
+              "Service"
+            ]
+          },
+          "archived": {
+            "type": "boolean"
+          },
+          "date_from": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "date_to": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "search_payments",
+      "description": "Find règlements/payments by invoice number, client name, product, status or dates. Valide means collected; Annulé is not collected.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "invoice_number": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "client_name": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "product_name": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "status": {
+            "enum": [
+              "Valide",
+              "Annulé"
+            ]
+          },
+          "date_from": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "date_to": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "search_users",
+      "description": "Staff-only account lookup by name or email using the existing global account administration scope; excludes your own account.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "email": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "is_active": {
+            "type": "boolean"
+          },
+          "date_from": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "date_to": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "search_operations",
+      "description": "Find stock balances, movements, receipts, inventories, or permitted logistics orders by product/reference/location/client/supplier. Use only filters supported for that resource. Stock status is État; logistics status is Phase du dossier. Read only.",
+      "parameters": {
+        "type": "object",
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "location_name": {
+                "type": "string",
+                "maxLength": 120
+              },
+              "product_name": {
+                "type": "string",
+                "maxLength": 120
+              },
+              "reference": {
+                "type": "string",
+                "maxLength": 120
+              },
+              "resource": {
+                "const": "stock_balance"
+              },
+              "status": {
+                "enum": [
+                  "a_approvisionner",
+                  "disponible",
+                  "minimum"
+                ]
+              },
+              "date_from": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+              },
+              "date_to": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+              },
+              "limit": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 10
+              },
+              "offset": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1000
+              }
+            },
+            "required": [
+              "resource"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "location_name": {
+                "type": "string",
+                "maxLength": 120
+              },
+              "product_name": {
+                "type": "string",
+                "maxLength": 120
+              },
+              "reference": {
+                "type": "string",
+                "maxLength": 120
+              },
+              "resource": {
+                "const": "stock_movement"
+              },
+              "status": {
+                "enum": [
+                  "adjustment",
+                  "delivery",
+                  "inventory",
+                  "opening",
+                  "receipt",
+                  "reversal"
+                ]
+              },
+              "date_from": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+              },
+              "date_to": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+              },
+              "limit": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 10
+              },
+              "offset": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1000
+              }
+            },
+            "required": [
+              "resource"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "client_name": {
+                "type": "string",
+                "maxLength": 120
+              },
+              "location_name": {
+                "type": "string",
+                "maxLength": 120
+              },
+              "product_name": {
+                "type": "string",
+                "maxLength": 120
+              },
+              "reference": {
+                "type": "string",
+                "maxLength": 120
+              },
+              "supplier_name": {
+                "type": "string",
+                "maxLength": 120
+              },
+              "resource": {
+                "const": "stock_receipt"
+              },
+              "status": {
+                "enum": [
+                  "cancelled",
+                  "draft",
+                  "validated"
+                ]
+              },
+              "date_from": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+              },
+              "date_to": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+              },
+              "limit": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 10
+              },
+              "offset": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1000
+              }
+            },
+            "required": [
+              "resource"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "location_name": {
+                "type": "string",
+                "maxLength": 120
+              },
+              "product_name": {
+                "type": "string",
+                "maxLength": 120
+              },
+              "reference": {
+                "type": "string",
+                "maxLength": 120
+              },
+              "resource": {
+                "const": "stock_inventory"
+              },
+              "status": {
+                "enum": [
+                  "cancelled",
+                  "draft",
+                  "validated"
+                ]
+              },
+              "date_from": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+              },
+              "date_to": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+              },
+              "limit": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 10
+              },
+              "offset": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1000
+              }
+            },
+            "required": [
+              "resource"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "client_name": {
+                "type": "string",
+                "maxLength": 120
+              },
+              "location_name": {
+                "type": "string",
+                "maxLength": 120
+              },
+              "product_name": {
+                "type": "string",
+                "maxLength": 120
+              },
+              "reference": {
+                "type": "string",
+                "maxLength": 120
+              },
+              "supplier_name": {
+                "type": "string",
+                "maxLength": 120
+              },
+              "resource": {
+                "const": "logistics_order"
+              },
+              "status": {
+                "enum": [
+                  "Annulé",
+                  "Clôture",
+                  "Commande fournisseur",
+                  "Dédouanement",
+                  "Envoi SWIFT / Draft LC",
+                  "Expédition",
+                  "Livraison client",
+                  "Paiement demandé",
+                  "Paiement effectué",
+                  "Production",
+                  "Proforma",
+                  "Réception commande",
+                  "Réception locale",
+                  "SWIFT / Draft LC",
+                  "Titre d'Importation",
+                  "Transit",
+                  "Validation"
+                ]
+              },
+              "date_from": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+              },
+              "date_to": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+              },
+              "limit": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 10
+              },
+              "offset": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1000
+              }
+            },
+            "required": [
+              "resource"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "get_record",
+      "description": "Retrieve a previously identified proforma, credit note, delivery note, article, payment, user, stock record or logistics order. IDs must come from authorized results, never guesses.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "resource": {
+            "enum": [
+              "proforma",
+              "credit_note",
+              "delivery_note",
+              "article",
+              "payment",
+              "user",
+              "stock_balance",
+              "stock_movement",
+              "stock_receipt",
+              "stock_inventory",
+              "logistics_order"
+            ]
+          },
+          "identifier": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          }
+        },
+        "required": [
+          "resource",
+          "identifier"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "get_invoice",
+      "description": "Get a specific authorized invoice. Omit invoice_id only when current page is an invoice.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "invoice_id": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "search_clients",
+      "description": "Search client name or exact client ID; use related_invoice for the current invoice client.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "client_id": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "related_invoice": {
+            "type": "boolean"
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "financial_summary",
+      "description": "Existing dashboard metric: invoiced_net_ttc = invoices TTC minus active credits, collected = valid payments, outstanding = invoice balance, invoice_count = issued records. Not profit. Currency required.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "metric": {
+            "enum": [
+              "invoiced_net_ttc",
+              "collected",
+              "outstanding",
+              "invoice_count"
+            ]
+          },
+          "period": {
+            "type": "string",
+            "enum": [
+              "current_month",
+              "previous_month",
+              "current_year",
+              "previous_year",
+              "custom"
+            ]
+          },
+          "currency": {
+            "enum": [
+              "MAD",
+              "EUR",
+              "USD"
+            ]
+          },
+          "date_from": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "date_to": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          }
+        },
+        "required": [
+          "metric",
+          "period",
+          "currency"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "list_payments",
+      "description": "Latest valid payments in the current company; optional date range.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "date_from": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "date_to": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "navigate",
+      "description": "Explicit request to open an authorized page or a specific invoice/client. Supply ID or invoice_number. Never a URL.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "resource": {
+            "enum": [
+              "proformas",
+              "credit_notes",
+              "delivery_notes",
+              "quotes",
+              "invoices",
+              "clients",
+              "payments",
+              "articles",
+              "users",
+              "stock",
+              "stock_movements",
+              "stock_receipts",
+              "stock_inventories",
+              "logistics",
+              "dashboard",
+              "proforma",
+              "credit_note",
+              "delivery_note",
+              "quote",
+              "invoice",
+              "client",
+              "article",
+              "payment",
+              "user",
+              "stock_balance",
+              "stock_movement",
+              "stock_receipt",
+              "stock_inventory",
+              "logistics_order",
+              "invoice_edit",
+              "client_edit",
+              "quote_edit",
+              "proforma_edit",
+              "credit_note_edit",
+              "delivery_note_edit"
+            ]
+          },
+          "identifier": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "invoice_number": {
+            "type": "string",
+            "maxLength": 120
+          }
+        },
+        "required": [
+          "resource"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "previous_results",
+      "description": "Show or open previous authorized results by 1-based index. Unpaid filtering applies only to invoices.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "operation": {
+            "enum": [
+              "show",
+              "unpaid",
+              "open"
+            ]
+          },
+          "index": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10
+          }
+        },
+        "required": [
+          "operation"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "prepare_change",
+      "description": "Prepare an edit or deletion of ONE authorized invoice, quote, proforma, credit note, delivery note or client for human confirmation. Never executes it. Changes: invoice remarque/termes_paiement/date_echeance; client raison_sociale/nom/prenom/adresse. Quotes allow remarque/date_echeance only. Credit notes allow remarque only and must be Brouillon; delivery notes allow remarque/date_echeance; proformas use invoice fields. Other edits use the existing form.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "resource": {
+            "enum": [
+              "invoice",
+              "client",
+              "quote",
+              "proforma",
+              "credit_note",
+              "delivery_note"
+            ]
+          },
+          "identifier": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "invoice_number": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "operation": {
+            "enum": [
+              "update",
+              "delete"
+            ]
+          },
+          "changes": {
+            "type": "object",
+            "properties": {
+              "remarque": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 2000
+              },
+              "termes_paiement": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 2000
+              },
+              "date_echeance": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 2000
+              },
+              "raison_sociale": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 2000
+              },
+              "nom": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 2000
+              },
+              "prenom": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 2000
+              },
+              "adresse": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 2000
+              }
+            },
+            "required": [],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "resource",
+          "operation"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "invoice_pdf",
+      "description": "Offer a PDF of an invoice only with existing print rights; requires invoice_id.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "invoice_id": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "invoice_number": {
+            "type": "string",
+            "maxLength": 120
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "knowledge",
+      "description": "Retrieve approved instructions, invoice creation workflow, payment/status meanings or financial definitions.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 300
+          }
+        },
+        "required": [
+          "query"
+        ],
+        "additionalProperties": false
+      }
+    }
+  }
+]

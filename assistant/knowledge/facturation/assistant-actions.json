@@ -1,0 +1,37 @@
+{
+  "application_id": "facturation",
+  "document_id": "assistant-actions",
+  "approved": true,
+  "title": "Commandes et confirmations",
+  "category": "workflow",
+  "keywords": [
+    "slash",
+    "commande",
+    "shortcut",
+    "aide",
+    "help",
+    "delete",
+    "modifier",
+    "edit",
+    "supprimer",
+    "pdf",
+    "imprimer",
+    "print",
+    "confirmation",
+    "confirm"
+  ],
+  "content": "L’assistant utilise les mêmes droits de lecture, modification, suppression et impression que l’application. Les commandes disponibles dépendent de vos droits. Une modification ou suppression doit afficher le document exact et demander confirmation avant exécution; les permissions sont vérifiées à nouveau. Une suppression peut être refusée par une relation protégée. Les données de facturation ne sont pas utilisées pour entraîner le modèle.",
+  "required_capabilities": [
+    "read"
+  ],
+  "source_verification": {
+    "date": "2026-10-08",
+    "sources": [
+      "facturation/facturation_backend/chat_ai/shortcuts.py:5",
+      "facturation/facturation_backend/chat_ai/actions.py:26",
+      "facturation/facturation_backend/chat_ai/actions.py:66",
+      "facturation/facturation_backend/chat_ai/actions.py:86"
+    ],
+    "notes": "Verified existing shortcut intent, confirmation, permission recheck and protected-relation handling. No permission or mutation scope changed."
+  }
+}

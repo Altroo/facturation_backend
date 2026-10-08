@@ -1,0 +1,148 @@
+{
+  "version": "facturation-independent-acceptance-en-fr-v1",
+  "created_date": "2026-10-08",
+  "languages": [
+    "en",
+    "fr"
+  ],
+  "frozen": true,
+  "model_calls_during_authoring": 0,
+  "business_data_reads": 0,
+  "authorship": "Independent reviewer-authored scenarios grounded in current tool schemas, permission filtering, service context and verified workflows. No v4 training source or model failure output consulted.",
+  "independence_limit": "40 independently written semantic scenarios, each expressed in English and French: 80 cases, not 80 independent business scenarios. Earlier legacy work was visible in the shared conversation; no textual non-overlap proof or statistical guarantee is claimed.",
+  "holdout_policy": "Never include these cases, paraphrases or model responses in training. Freeze before any model call. Record defects and new versions separately; never silently replace this acceptance version after viewing outputs.",
+  "methodology": "Use the current production SYSTEM plus the same trusted-context keys; previous history contains user utterances only. Interface language deliberately opposes current-message language. All offered tool schemas are frozen from registry.permitted(capabilities) then the production shortlist. Model-only planning, no business tool execution.",
+  "argument_scoring": "evaluate_v2 exact arguments after its documented defaults; knowledge query paraphrases are unscored. Generated explanations, permission enforcement and full workflow behavior require separate tests.",
+  "profiles": {
+    "member_read": [
+      "context",
+      "stock_read",
+      "read"
+    ],
+    "member_editor": [
+      "context",
+      "stock_read",
+      "read",
+      "create",
+      "mutate"
+    ],
+    "staff_member": [
+      "context",
+      "stock_read",
+      "read",
+      "user_admin"
+    ],
+    "stock_superuser": [
+      "context",
+      "stock_read"
+    ]
+  },
+  "counts": {
+    "rows": 80,
+    "scenario_groups": 40,
+    "by_language": {
+      "en": 40,
+      "fr": 40
+    },
+    "by_category": {
+      "document_filters": 4,
+      "exact_reference": 4,
+      "mutation_target_discovery": 2,
+      "relative_search_dates": 2,
+      "catalog_filters": 4,
+      "payment_filters": 4,
+      "staff_lookup": 2,
+      "operational_filters": 10,
+      "page_context": 4,
+      "structured_memory": 6,
+      "explicit_record_reference": 2,
+      "customer_lookup": 2,
+      "financial_metric": 8,
+      "navigation": 4,
+      "printing": 2,
+      "payment_listing": 2,
+      "workflow_knowledge": 4,
+      "confirmed_mutation_proposal": 4,
+      "capability_boundary": 4,
+      "language_switch_clarification": 4,
+      "unsupported_operation": 2
+    },
+    "by_profile": {
+      "member_read": 56,
+      "member_editor": 12,
+      "staff_member": 4,
+      "stock_superuser": 8
+    },
+    "by_expected_tool": {
+      "search_invoices": 4,
+      "search_quotes": 2,
+      "search_documents": 6,
+      "search_articles": 4,
+      "search_payments": 4,
+      "search_users": 2,
+      "search_operations": 10,
+      "get_invoice": 2,
+      "search_clients": 4,
+      "previous_results": 6,
+      "get_record": 2,
+      "financial_summary": 8,
+      "navigate": 4,
+      "invoice_pdf": 2,
+      "list_payments": 2,
+      "knowledge": 4,
+      "prepare_change": 4,
+      "clarify": 10
+    }
+  },
+  "router_omitted_expected_tools": [
+    {
+      "id": "acceptance-delete_known_client-en",
+      "expected_tool": "prepare_change",
+      "offered_tools": [
+        "search_clients",
+        "navigate",
+        "previous_results",
+        "knowledge"
+      ]
+    },
+    {
+      "id": "acceptance-delete_known_client-fr",
+      "expected_tool": "prepare_change",
+      "offered_tools": [
+        "search_clients",
+        "navigate",
+        "previous_results",
+        "knowledge"
+      ]
+    }
+  ],
+  "files": {
+    "test.eval.jsonl": {
+      "sha256": "a060127a4068a4901861980e40acba08be7215817c8831008ef2ef5c7a931808",
+      "rows": 80
+    },
+    "tool-schemas.json": {
+      "sha256": "4319de5c2f849444171077495315724bc233a475bd83c7212d82821d1b0f97f0",
+      "tools": 17
+    }
+  },
+  "source_sha256": {
+    "chat_ai_assistant/training/scripts/build_acceptance_en_fr.py": "83e9b94caefccf11018333e2650f582385949279684e8f6d2de7f6f6217c6bc9",
+    "chat_ai_assistant/src/chat_ai_assistant/orchestrator.py": "6d135df474775029b4820c827efb546e5d3866edf0dad5a316e79c4f6a30e7e9",
+    "chat_ai_assistant/src/chat_ai_assistant/routing.py": "7642cf7ccb074f92f2b5e9eb8df4421535850a5eb812e5686bbbefdae1ed24a2",
+    "chat_ai_assistant/src/chat_ai_assistant/clarifications.py": "423bf5e16f641ad9b492fb2cb59f25de0c8817aca49b5e23926aa7014200a8e2",
+    "chat_ai_assistant/src/chat_ai_assistant/contracts.py": "ab31f8ff3f2f20b776ca412436e0730dc8fa00e892801772e863400bab4b6fa3",
+    "facturation/facturation_backend/chat_ai/tools.py": "e5c59826657605614b973c83a6db749c6f77239b6a0246fc6618a70023a972cd",
+    "facturation/facturation_backend/chat_ai/services.py": "ccd81a52e3447cc94ca74d8a859b0e0436e797476e9c3d6b61d22ea346950da5",
+    "facturation/facturation_backend/chat_ai/operations.py": "8107fc9dadc8c0d6051068f9ab6fe606214a96963656eb51e08b6c0041cff862",
+    "facturation/facturation_backend/chat_ai/catalog.py": "f44a946bf2c148d8ecc341316930adccaccd75ff42c7801e137117408ef65f42",
+    "facturation/facturation_backend/chat_ai/navigation.py": "3aeb3a2d946fb01cfb816b8fd6137edb2e079abd0e0fa3c0f2dd76910aa5fb42"
+  },
+  "not_measured": [
+    "model accuracy",
+    "freeform explanation factuality",
+    "end-to-end authorization",
+    "latency",
+    "CPU or RAM consumption"
+  ]
+}

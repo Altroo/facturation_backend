@@ -1,0 +1,34 @@
+{
+  "application_id": "facturation",
+  "document_id": "clients",
+  "approved": true,
+  "title": "Clients et sociétés",
+  "category": "workflow",
+  "keywords": [
+    "client",
+    "customer",
+    "société",
+    "company",
+    "entreprise",
+    "raison",
+    "sociale",
+    "nom",
+    "prénom",
+    "name",
+    "type"
+  ],
+  "content": "Les clients appartiennent à une société. Le « Type de client » peut être « Personne morale », « Personne physique » ou « Client Divers ». Le nom affiché vient de « Raison sociale » ou de « Nom » et « Prénom » selon ce type. La liste et les fiches clients sont accessibles selon l’appartenance de l’utilisateur à la société. Changer l’onglet société change le périmètre de consultation.",
+  "required_capabilities": [
+    "read"
+  ],
+  "source_verification": {
+    "date": "2026-10-08",
+    "sources": [
+      "facturation/facturation_backend/client/models.py:11",
+      "facturation/facturation_backend/client/models.py:198",
+      "facturation/facturation_frontend/src/components/pages/dashboard/clients/clients-form.tsx:449",
+      "facturation/facturation_frontend/src/translations/fr.ts:393"
+    ],
+    "notes": "Client types and displayed-name selection checked against the model and visible client form labels."
+  }
+}

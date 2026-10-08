@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+trap 'printf "Deployment failed at line %s. Inspect running services; Git receipt is not deployment success.\n" "$LINENO" >&2' ERR
+# Draft: build-time public flags must be set in the server .env.production.
+# Never stop/recreate the shared nginx service; reload only to refresh upstream DNS.
+target=/var/www/facturation_frontend
+repo=/var/repo/facturation_frontend.git
+exec 9>"$repo/deploy.lock"
+flock 9
+while read -r oldrev newrev ref; do
+  [[ "$ref" == refs/heads/main ]] || continue
+  [[ "$newrev" == "$(git --git-dir="$repo" rev-parse refs/heads/main)" ]] || continue
+  git --work-tree="$target" --git-dir="$repo" checkout -f main
+  unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE
+  cd "$target"
+  compose=(docker compose --project-directory "$target" -f "$target/docker-compose.yml")
+  "${compose[@]}" config --quiet
+  docker exec nginx nginx -t
+  "${compose[@]}" build web
+  "${compose[@]}" up --no-deps --no-build --wait --wait-timeout 180 web
+  docker exec nginx nginx -t
+  docker exec nginx nginx -s reload
+  curl --fail --silent --show-error --output /dev/null https://facturation.elbouazzatiholding.ma/
+  printf 'Frontend deployment verified: %s\n' "$newrev"
+done

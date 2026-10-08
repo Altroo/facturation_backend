@@ -1,0 +1,20 @@
+# Build from the pinned Colibri source in runtime/colibri; Qwen CPU engine only.
+FROM debian:bookworm-slim AS builder
+ARG TARGETARCH
+RUN apt-get update && apt-get install -y --no-install-recommends build-essential make && rm -rf /var/lib/apt/lists/*
+WORKDIR /src
+COPY runtime/colibri/c/ ./c/
+RUN case "$TARGETARCH" in amd64) build_arch=x86-64-v3 ;; arm64) build_arch=native ;; *) exit 1 ;; esac && rm -f c/qwen36 c/qwen36_tier.o c/.build-config && make -C c qwen36 ARCH=$build_arch
+
+FROM python:3.12-slim-bookworm
+RUN apt-get update && apt-get install -y --no-install-recommends libgomp1 && rm -rf /var/lib/apt/lists/* && useradd --uid 10001 --create-home assistant
+WORKDIR /opt/colibri/c
+COPY --from=builder /src/c/qwen36 ./qwen36
+COPY runtime/colibri/c/*.py ./
+COPY runtime/colibri/c/coli ./coli
+COPY runtime/colibri/c/tools/ ./tools/
+ENV COLI_ENGINE=/opt/colibri/c/qwen36 COLI_DENSE_I8=1 OMP_NUM_THREADS=4 COLI_MODEL_ID=chat-ai-facturation PYTHONUNBUFFERED=1
+USER 10001
+EXPOSE 18090
+ENTRYPOINT ["python", "/opt/colibri/c/coli"]
+CMD ["serve", "--model", "/model", "--host", "0.0.0.0", "--port", "18090", "--allowed-host", "chat-ai-model", "--ctx", "8192", "--ngen", "512", "--gpu", "none", "--no-think", "--temp", "0", "--max-queue", "2", "--queue-timeout", "10", "--kv-slots", "1"]

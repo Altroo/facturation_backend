@@ -1,0 +1,35 @@
+{
+  "application_id": "facturation",
+  "document_id": "form-labels",
+  "approved": true,
+  "title": "Libellés des champs du formulaire",
+  "category": "terminology",
+  "keywords": [
+    "champ",
+    "field",
+    "remarque",
+    "remark",
+    "terms",
+    "payment",
+    "échéance",
+    "due",
+    "formulaire",
+    "form",
+    "label",
+    "libellé"
+  ],
+  "content": "L’assistant nomme les champs avec les libellés du formulaire. Pour une facture client ou pro forma : « Remarque », « Termes de paiement » et « Date d'échéance ». Les devis et bons de livraison n’ont pas de champ Termes de paiement. La facture d’avoir permet une Remarque. Dans les formulaires de documents partagés, Date d'échéance est affichée pour Nectar et Remarque pour les autres sociétés. Sur la fiche client, une personne morale utilise Raison sociale; une personne physique utilise Nom et Prénom. L’Adresse dépend du type de client. Dans l’interface anglaise : Remark, Payment terms, Due date, Company name, Last name, First name, Address. Ne présentez jamais de noms techniques de champs à l’utilisateur.",
+  "required_capabilities": [
+    "read"
+  ],
+  "source_verification": {
+    "date": "2026-10-08",
+    "sources": [
+      "facturation/facturation_frontend/src/components/pages/dashboard/shared/company-documents-form/companyDocumentFormContent.tsx:1216",
+      "facturation/facturation_frontend/src/components/pages/dashboard/shared/company-documents-form/companyDocumentFormContent.tsx:1489",
+      "facturation/facturation_frontend/src/translations/fr.ts:1473",
+      "facturation/facturation_frontend/src/translations/en.ts:1459"
+    ],
+    "notes": "Visible labels and company-dependent fields checked against shared document forms and current translations; supported assistant changes are unchanged."
+  }
+}

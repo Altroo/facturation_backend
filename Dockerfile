@@ -6,13 +6,15 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y build-essential libpq-dev gettext ffmpeg libsm6 libxext6 curl gosu && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
+COPY vendor/ ./vendor/
 
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
 # Collect static files for WhiteNoise
-RUN python manage.py collectstatic --noinput
+# Static collection needs configuration, but never real runtime credentials.
+RUN SECRET_KEY=build-only-static-assets REDIS_HOST=localhost REDIS_PORT=6379 API_URL=http://localhost python manage.py collectstatic --noinput
 
 # Ensure media directories exist
 RUN mkdir -p /app/media/user_avatars /app/media/article_images /app/media/company_images

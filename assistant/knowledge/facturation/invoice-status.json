@@ -1,0 +1,34 @@
+{
+  "application_id": "facturation",
+  "document_id": "invoice-status",
+  "approved": true,
+  "title": "Statut de facture et de paiement",
+  "category": "workflow",
+  "keywords": [
+    "status",
+    "statut",
+    "payé",
+    "impayé",
+    "unpaid",
+    "paid",
+    "payment",
+    "paiement",
+    "solde",
+    "balance",
+    "partiellement",
+    "partially"
+  ],
+  "content": "Les statuts documentaires sont Brouillon, Envoyé, Accepté, Refusé, Annulé, Expiré. Ils sont distincts du statut de paiement. Le statut de paiement est calculé: Payée si le solde est inférieur ou égal à zéro; Partiellement payée si des paiements valides existent et le solde est positif; sinon Non payée. Le solde est le TTC après remise moins les avoirs actifs moins les règlements Valide. Une facture Accepté peut donc rester Non payée.",
+  "required_capabilities": [
+    "read"
+  ],
+  "source_verification": {
+    "date": "2026-10-08",
+    "sources": [
+      "facturation/facturation_backend/core/models.py:17",
+      "facturation/facturation_backend/facture_client/serializers.py:39",
+      "facturation/facturation_frontend/src/translations/fr.ts:550"
+    ],
+    "notes": "Verified native document statuses and authoritative payment-status/balance calculation; payment and document states remain distinct."
+  }
+}

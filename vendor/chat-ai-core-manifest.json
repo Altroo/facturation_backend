@@ -1,0 +1,13 @@
+{
+  "file": "chat_ai_assistant-0.1.0-py3-none-any.whl",
+  "sha256": "72ea4feafffb50db7c7974c1615a53735e8345893d5ef4b3101894232f495229",
+  "source_files": {
+    "src/chat_ai_assistant/__init__.py": "89de2438dbe666b8ce112a701c89faf82ef9afec7c7a61c9ec1bbfc9da5192e1",
+    "src/chat_ai_assistant/clarifications.py": "e5cb817facdb8e440538cc0ed9b252ff127f6d8e470bb630574e5530e7a31a7d",
+    "src/chat_ai_assistant/contracts.py": "ab31f8ff3f2f20b776ca412436e0730dc8fa00e892801772e863400bab4b6fa3",
+    "src/chat_ai_assistant/orchestrator.py": "3b416c67e637ab27ed1dcc19c21ec3a734cf7f5a55e5bd0362caee15a1ca6cfa",
+    "src/chat_ai_assistant/presentation.py": "21e6ac7828f15164c88d8cdd40a558863d091d03eb4b1d7baa0e66e8a682dad4",
+    "src/chat_ai_assistant/provider.py": "f5a65cf7ed046dcce5b21697ac69866fa8f6ba8a6601eeff70d2819d8414e86e",
+    "src/chat_ai_assistant/routing.py": "ce83349ece6145baf1f8fcb449860123417d3a046001685d843d2ee8915214ae"
+  }
+}

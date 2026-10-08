@@ -1,0 +1,35 @@
+{
+  "application_id": "facturation",
+  "document_id": "users-find",
+  "approved": true,
+  "title": "Consulter les comptes utilisateurs",
+  "category": "workflow",
+  "keywords": [
+    "utilisateur",
+    "user",
+    "account",
+    "compte",
+    "email",
+    "administrateur",
+    "administrator",
+    "active",
+    "actif",
+    "name",
+    "nom",
+    "prénom"
+  ],
+  "content": "L’administration des utilisateurs est réservée aux comptes autorisés par l’application à accéder à cette administration. Cette liste globale présente les autres comptes avec les colonnes « Nom », « Prénom », « Email », « Active » et « Admin ». Dans l’interface anglaise, les noms des colonnes correspondantes sont « Last Name », « First Name », « Email », « Active » et « Admin ». Elle n’est pas limitée à une seule société. Le compte connecté dispose d’une page de profil distincte. L’assistant permet uniquement de retrouver et d’ouvrir les comptes accessibles; il n’attribue pas de rôle, ne change pas de permission et ne crée pas d’invitation.",
+  "required_capabilities": [
+    "user_admin"
+  ],
+  "source_verification": {
+    "date": "2026-10-08",
+    "sources": [
+      "facturation/facturation_backend/account/views.py:489",
+      "facturation/facturation_frontend/src/translations/fr.ts:1105",
+      "facturation/facturation_frontend/src/translations/en.ts:1093",
+      "facturation/facturation_backend/chat_ai/catalog.py:81"
+    ],
+    "notes": "Verified staff-only global list excludes current user, and exact native list captions. No permissions or user-management actions changed."
+  }
+}

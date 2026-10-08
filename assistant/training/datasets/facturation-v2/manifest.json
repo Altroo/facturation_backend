@@ -1,0 +1,40 @@
+{
+  "version": "facturation-synthetic-v2",
+  "source": "Verified tool schemas and synthetic multilingual scenarios; no database records or private conversations",
+  "split_policy": "All four translations in one scenario split. Entity and combination variations; small pilot, not independent population evidence. No evaluation results used for training.",
+  "schema_sha256": "e12b0d64122cf0e3d981d256cb5b0589f9ef1ef43da7cf03df49e08700dbdb6a",
+  "router_omitted_expected_tools": [],
+  "label_policy": "User prompts use visible form labels; technical names exist only inside structured tool calls.",
+  "files": [
+    {
+      "file": "train.jsonl",
+      "rows": 152,
+      "sha256": "679f0cf185951eba56deb2b8e5cfc8778117cf45813c12e63a6ec53887b65c8b"
+    },
+    {
+      "file": "train.eval.jsonl",
+      "rows": 152,
+      "sha256": "171585a4e71cbf130cff0132461a7433f3aec2ac9a6fdf70b2e751d676c23c32"
+    },
+    {
+      "file": "valid.jsonl",
+      "rows": 36,
+      "sha256": "1a3e65e2293c39276314043846c84b7229ca02caca127f8c0aa4c22335d4b0db"
+    },
+    {
+      "file": "valid.eval.jsonl",
+      "rows": 36,
+      "sha256": "80d06a52b6d5ca8109b75e80a92b7bc1e53636abb56cc5d5757cb512d45bb78e"
+    },
+    {
+      "file": "test.jsonl",
+      "rows": 104,
+      "sha256": "f967d9ddc8aa52184356adc7cc44390e71f048fca4a363ca08e8255eb00ce526"
+    },
+    {
+      "file": "test.eval.jsonl",
+      "rows": 104,
+      "sha256": "e178e6dddae252a068f79a4204fe6a6ef6848b436c41080a0c2210a95e51bde1"
+    }
+  ]
+}

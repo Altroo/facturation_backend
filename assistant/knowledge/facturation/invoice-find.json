@@ -1,0 +1,36 @@
+{
+  "application_id": "facturation",
+  "document_id": "invoice-find",
+  "approved": true,
+  "title": "Trouver une facture ancienne",
+  "category": "workflow",
+  "keywords": [
+    "find",
+    "search",
+    "invoice",
+    "chercher",
+    "ancienne",
+    "old",
+    "facture",
+    "recherche",
+    "number",
+    "numéro",
+    "customer",
+    "client",
+    "date"
+  ],
+  "content": "Ouvrez « Factures clients » (« Client Invoices » en anglais), puis la liste, sélectionnez la société et utilisez la recherche par numéro ou client et les filtres de date. Les numéros sont ceux enregistrés dans l’application, souvent au format 0001/25. Ouvrez la fiche du résultat choisi. Si plusieurs résultats correspondent, précisez le client, le numéro complet ou la période avec l’année. Les factures des autres sociétés restent inaccessibles sans appartenance autorisée.",
+  "required_capabilities": [
+    "read"
+  ],
+  "source_verification": {
+    "date": "2026-10-08",
+    "sources": [
+      "facturation/facturation_frontend/src/components/pages/dashboard/facture-client/facture-client-list.tsx:44",
+      "facturation/facturation_frontend/src/utils/routes.ts:55",
+      "facturation/facturation_backend/core/filters.py:297",
+      "facturation/facturation_backend/facture_client/filters.py:6"
+    ],
+    "notes": "Verified invoice list route, document-number/client search and date filters; no arbitrary route or record identifier added."
+  }
+}

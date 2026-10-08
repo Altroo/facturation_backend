@@ -1,0 +1,51 @@
+{
+  "version": "facturation-synthetic-v2",
+  "source": "Verified tool schemas and synthetic multilingual scenarios; no database records or private conversations",
+  "split_policy": "All four translations in one scenario split. Entity and combination variations; small pilot, not independent population evidence. No evaluation results used for training.",
+  "schema_sha256": "e12b0d64122cf0e3d981d256cb5b0589f9ef1ef43da7cf03df49e08700dbdb6a",
+  "router_omitted_expected_tools": [
+    "train-7-en:financial_summary",
+    "train-7-fr:financial_summary",
+    "train-7-ary:financial_summary",
+    "train-36-ar:prepare_change",
+    "train-36-ary:prepare_change",
+    "valid-5-ar:search_documents",
+    "test-9-ar:prepare_change",
+    "test-14-ar:search_documents",
+    "test-15-ar:search_documents",
+    "test-22-ar:search_operations"
+  ],
+  "label_policy": "User prompts use visible form labels; technical names exist only inside structured tool calls.",
+  "files": [
+    {
+      "file": "train.jsonl",
+      "rows": 152,
+      "sha256": "6795240359de2ca76a6bb06c540a533442cb7a7db0bc499eede304bdb0ac35da"
+    },
+    {
+      "file": "train.eval.jsonl",
+      "rows": 152,
+      "sha256": "478810b97934b18d201d88bdeef1bd95b0c636162571cdd15560d4b2b4c41283"
+    },
+    {
+      "file": "valid.jsonl",
+      "rows": 36,
+      "sha256": "4135986cc056482868a1e4c7433753dd9402d262a63aaac218bc8c54eba2f6b8"
+    },
+    {
+      "file": "valid.eval.jsonl",
+      "rows": 36,
+      "sha256": "5ca090145ff021cb4d5cf8720da2b3bd5d6f957bba6c328f8f9e1764781af2c7"
+    },
+    {
+      "file": "test.jsonl",
+      "rows": 104,
+      "sha256": "52b7a532a33eea87dacd0943b2fc163cef991d6606a1999ee193dd7c072ce353"
+    },
+    {
+      "file": "test.eval.jsonl",
+      "rows": 104,
+      "sha256": "2d6f912e9bc38c61cd9d94370451e117e93a562ff6b35c3c930cf654d11f35fc"
+    }
+  ]
+}

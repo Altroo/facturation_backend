@@ -1,0 +1,15 @@
+{
+  "checks": {
+    "authenticated": 200,
+    "no_key": 401,
+    "wrong_host": 403
+  },
+  "image": "sha256:5af2ae03d6f7868d6e5b47ab2b531cd5ab7bc4d5be3cb54c7133ed5f02d68455",
+  "readonly_root": true,
+  "network": "none",
+  "published_ports": {},
+  "user": "10001",
+  "model_mount_readonly": true,
+  "initial_failure": "Converted weight permissions were 0600; converter now publishes model-only artifacts as 0644; corrected before successful restart.",
+  "production_deployment": false
+}

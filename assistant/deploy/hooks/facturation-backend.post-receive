@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+trap 'printf "Deployment failed at line %s. Inspect running services; Git receipt is not deployment success.\n" "$LINENO" >&2' ERR
+# Draft: back up the database and current images before installing this hook.
+# Start the private assistant network first if the assistant override is present.
+# Keep the assistant feature disabled until model/application acceptance passes.
+target=/var/www/facturation_backend
+repo=/var/repo/facturation_backend.git
+exec 9>"$repo/deploy.lock"
+flock 9
+while read -r oldrev newrev ref; do
+  [[ "$ref" == refs/heads/main ]] || continue
+  [[ "$newrev" == "$(git --git-dir="$repo" rev-parse refs/heads/main)" ]] || continue
+  git --work-tree="$target" --git-dir="$repo" checkout -f main
+  unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE
+  cd "$target"
+  compose=(docker compose --project-directory "$target" -f "$target/docker-compose.yml")
+  if [[ -f "$target/docker-compose.assistant.yml" ]]; then
+    compose+=(-f "$target/docker-compose.assistant.yml")
+  fi
+  "${compose[@]}" config --quiet
+  "${compose[@]}" build web celery celery-beat
+  "${compose[@]}" run --rm --no-deps --interactive=false -T web python manage.py check
+  "${compose[@]}" run --rm --no-deps --interactive=false -T web python manage.py migrate --noinput
+  "${compose[@]}" run --rm --no-deps --interactive=false -T web python manage.py migrate --check
+  "${compose[@]}" run --rm --no-deps --interactive=false -T web python manage.py sync_ai_knowledge
+  "${compose[@]}" up --no-deps --no-build --wait --wait-timeout 180 web celery celery-beat
+  "${compose[@]}" exec -T web python manage.py migrate --check
+  curl --fail --silent --show-error --output /dev/null http://127.0.0.1:8000/api/health/
+  printf 'Backend deployment verified: %s\n' "$newrev"
+done

@@ -1,0 +1,44 @@
+{
+  "version": "facturation-synthetic-v3-en-fr",
+  "languages": [
+    "en",
+    "fr"
+  ],
+  "source": "Verified tool schemas and synthetic English/French scenarios; no database records or private conversations",
+  "split_policy": "Both English/French phrasings in one scenario split. Entity and combination variations; small pilot, not independent population evidence. No evaluation results used for training.",
+  "schema_sha256": "e12b0d64122cf0e3d981d256cb5b0589f9ef1ef43da7cf03df49e08700dbdb6a",
+  "router_omitted_expected_tools": [],
+  "label_policy": "User prompts use visible form labels; technical names exist only inside structured tool calls.",
+  "files": [
+    {
+      "file": "train.jsonl",
+      "rows": 76,
+      "sha256": "00d80486559b3db3b31c659038c2cc65996b54902e7b902f1f5b941e6cb5efbc"
+    },
+    {
+      "file": "train.eval.jsonl",
+      "rows": 76,
+      "sha256": "a2df3182694752caca34611adaf2aa4ffa3a47d70c8e9d00e8b9930991926980"
+    },
+    {
+      "file": "valid.jsonl",
+      "rows": 18,
+      "sha256": "a7bcf10a68aa79f8e99b0e10fe893c8c197a27f43c08f1e333932be84d6b821b"
+    },
+    {
+      "file": "valid.eval.jsonl",
+      "rows": 18,
+      "sha256": "1cb2f7cfce04f34c06532e5d55981fa278f0453a9ce0cec38b8fb719e6961cb6"
+    },
+    {
+      "file": "test.jsonl",
+      "rows": 52,
+      "sha256": "e0f22600e60e60608758e5dc54bc9a417c7ed0beb6f1b353d6dc7271c071cc92"
+    },
+    {
+      "file": "test.eval.jsonl",
+      "rows": 52,
+      "sha256": "543aabec9ee5849177593c6cf4d442d25ea35d1a2b86a70fc9b79cb49729dc32"
+    }
+  ]
+}

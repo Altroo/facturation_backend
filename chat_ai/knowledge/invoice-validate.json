@@ -1,0 +1,34 @@
+{
+  "application_id": "facturation",
+  "document_id": "invoice-validate",
+  "approved": true,
+  "title": "Validation des factures",
+  "category": "workflow",
+  "keywords": [
+    "validate",
+    "validation",
+    "accepter",
+    "accept",
+    "approve",
+    "valider",
+    "permission",
+    "autorisation"
+  ],
+  "content": "Dans la fiche de facture, le bouton « Valider » (« Validate » en anglais) passe la facture au statut Accepté. Il exige à la fois les autorisations « Validation factures client » (« Client invoice validation ») et « Changement statut document » (« Document status change »), définies pour cette société. L’application vérifie ces deux autorisations. Les règlements intégrés à la fiche et au formulaire de facture sont gérables par les rôles Caissier ou Commercial lorsque la facture est Accepté. Ne présentez pas une simple consultation comme une validation.",
+  "required_capabilities": [
+    "read",
+    "create"
+  ],
+  "source_verification": {
+    "date": "2026-10-08",
+    "sources": [
+      "facturation/facturation_frontend/src/components/shared/addManagedByTable/addManagedByTable.tsx:90",
+      "facturation/facturation_frontend/src/translations/fr.ts:1650",
+      "facturation/facturation_frontend/src/translations/en.ts:1635",
+      "facturation/facturation_frontend/src/components/pages/dashboard/facture-client/facture-client-view.tsx:100",
+      "facturation/facturation_frontend/src/components/pages/dashboard/facture-client/facture-client-form.tsx:125",
+      "facturation/facturation_backend/facture_client/views.py:193"
+    ],
+    "notes": "Visible permission captions checked in both interface languages; invoice validation requires both flags. Inline payment controls require an accepted invoice and the existing cashier/commercial roles."
+  }
+}

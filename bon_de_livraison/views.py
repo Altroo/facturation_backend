@@ -20,7 +20,7 @@ from core.pdf_utils import (
     format_multiline_pdf_text,
     format_number_for_pdf,
 )
-from core.permissions import can_print
+from core.permissions import can_delete, can_print
 from core.views import (
     BaseDocumentListCreateView,
     BaseDocumentDetailEditDeleteView,
@@ -29,7 +29,7 @@ from core.views import (
     BaseBulkDeleteView,
 )
 from facturation_backend.utils import CustomPagination
-from stock.services import sync_delivery_stock
+from stock.services import delete_deliveries_with_stock, delete_delivery_with_stock, sync_delivery_stock
 from .filters import BonDeLivraisonFilter
 from .models import BonDeLivraison
 from .serializers import (
@@ -80,6 +80,20 @@ class BonDeLivraisonDetailEditDeleteView(BaseDocumentDetailEditDeleteView):
                 }
             )
         return super().put(request, pk, *args, **kwargs)
+
+    @transaction.atomic
+    def delete(self, request, pk, *args, **kwargs):
+        delivery = get_object_or_404(
+            self.model.objects.select_for_update(of=("self",)).select_related("client"),
+            pk=pk,
+        )
+        company_id = delivery.client.company_id
+        if not self._has_membership(request.user, company_id):
+            raise PermissionDenied(_("Vous n'êtes pas autorisé à supprimer ce bon de livraison."))
+        if not can_delete(request.user, company_id):
+            raise PermissionDenied(_("Vous n'avez pas les droits pour supprimer ce bon de livraison."))
+        delete_delivery_with_stock(delivery, request.user)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     def apply_status_change(self, request, object_, old_status, new_status):
         sync_delivery_stock(object_, old_status, new_status, request.user)
@@ -383,3 +397,28 @@ class BulkDeleteBonDeLivraisonView(BaseBulkDeleteView):
 
     def get_company_id(self, obj):
         return obj.client.company_id
+
+    @transaction.atomic
+    def delete(self, request, *args, **kwargs):
+        ids = request.data.get("ids")
+        if not ids or not isinstance(ids, list):
+            raise ValidationError({"ids": _("Une liste d'identifiants est requise.")})
+        try:
+            ids = [int(identifier) for identifier in ids]
+        except (TypeError, ValueError):
+            raise ValidationError({"ids": _("Les identifiants doivent être des entiers.")})
+        deliveries = list(
+            self.get_queryset_with_related(ids).select_for_update(of=("self",)).order_by("pk")
+        )
+        if len(deliveries) != len(ids):
+            raise Http404(_("Certains bons de livraison sont introuvables."))
+        # Validate the whole selection before any ledger or document is changed.
+        for delivery in deliveries:
+            company_id = self.get_company_id(delivery)
+            if not self._has_membership(request.user, company_id):
+                raise PermissionDenied(_("Vous n'êtes pas autorisé à supprimer ce bon de livraison."))
+            if not can_delete(request.user, company_id):
+                raise PermissionDenied(_("Vous n'avez pas les droits pour supprimer ce bon de livraison."))
+        self.validate_bulk_delete(deliveries)
+        delete_deliveries_with_stock(deliveries, request.user)
+        return Response(status=status.HTTP_204_NO_CONTENT)

@@ -1,0 +1,37 @@
+{
+  "version": "facturation-synthetic-v1",
+  "source": "hand-labelled synthetic scenarios plus verified registered tool schemas; no database records",
+  "split_policy": "Scenario groups and all four translations kept together. No test failures added to training. Structural overlap of supported tools is intentional. Small pilot set, not a population guarantee.",
+  "files": [
+    {
+      "file": "train.jsonl",
+      "rows": 96,
+      "sha256": "ceb941913d83a7b36d4e93141d8f2bee243f8f345926716429b8b31c5376896f"
+    },
+    {
+      "file": "train.eval.jsonl",
+      "rows": 96,
+      "sha256": "8dfb1814df420a7beac2f2622e1db4a71fe49dedf181df23b5b46add13531649"
+    },
+    {
+      "file": "valid.jsonl",
+      "rows": 16,
+      "sha256": "ce5f3c73ab93b0a28923e22c9a516e2c6b95372c0c683d40264e4109380efdb0"
+    },
+    {
+      "file": "valid.eval.jsonl",
+      "rows": 16,
+      "sha256": "059d3cc6a9d2ff74290675414b6013b9095d6b08b73d1da76e929d49f6c60b26"
+    },
+    {
+      "file": "test.jsonl",
+      "rows": 48,
+      "sha256": "3dfcb8f05d5f562cca76aea8bae5c784439da7bb4a607f68329d47dc24734c20"
+    },
+    {
+      "file": "test.eval.jsonl",
+      "rows": 48,
+      "sha256": "81d1b202b0a404183436b1febada5c322ac33a0e270442ff64223592d9edb5f2"
+    }
+  ]
+}

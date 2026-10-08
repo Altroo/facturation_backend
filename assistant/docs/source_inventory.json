@@ -1,0 +1,3603 @@
+{
+  "backend": {
+    "account/__init__.py": {
+      "classes": [],
+      "functions": []
+    },
+    "account/admin.py": {
+      "classes": [
+        "CustomUserAdmin",
+        "MembershipAdmin",
+        "HistoricalCustomUserAdmin",
+        "HistoricalMembershipAdmin"
+      ],
+      "functions": []
+    },
+    "account/apps.py": {
+      "classes": [
+        "AccountConfig"
+      ],
+      "functions": []
+    },
+    "account/filters.py": {
+      "classes": [
+        "UsersFilter"
+      ],
+      "functions": []
+    },
+    "account/forms.py": {
+      "classes": [
+        "CustomAuthShopCreationForm",
+        "CustomAuthShopChangeForm"
+      ],
+      "functions": []
+    },
+    "account/management/commands/setup_groups.py": {
+      "classes": [
+        "Command"
+      ],
+      "functions": []
+    },
+    "account/managers.py": {
+      "classes": [
+        "CustomUserManager"
+      ],
+      "functions": []
+    },
+    "account/migrations/0001_initial.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "account/migrations/0002_remove_customuser_avatar_thumbnail_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "account/migrations/0003_alter_customuser_date_joined_alter_customuser_gender_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "account/migrations/0004_alter_customuser_options.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "account/migrations/0005_alter_membership_company.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "account/migrations/0006_customuser_date_updated.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "account/migrations/0007_create_role_model.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "account/migrations/0008_populate_roles.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": [
+        "create_roles_and_migrate_data",
+        "reverse_migration"
+      ]
+    },
+    "account/migrations/0009_switch_to_role.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "account/migrations/0010_historicalcustomuser_historicalmembership.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "account/migrations/0011_remove_role_is_admin.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "account/migrations/0012_alter_customuser_options_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "account/migrations/0013_customuser_default_password_set_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "account/migrations/0014_alter_historicalcustomuser_options_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "account/migrations/0015_membership_unique_user_company_membership.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "account/migrations/0016_customuser_password_reset_code_created_at_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "account/migrations/0017_customuser_sso_subject.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "account/migrations/0018_historicalmembership_can_validate_factures_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": [
+        "allow_existing_caissiers_to_validate",
+        "unset_existing_caissier_validation"
+      ]
+    },
+    "account/migrations/0019_membership_can_change_document_status_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": [
+        "allow_existing_caissiers_to_change_status",
+        "unset_existing_caissier_status_permission"
+      ]
+    },
+    "account/migrations/0020_ensure_logistics_role.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": [
+        "ensure_logistics_role"
+      ]
+    },
+    "account/migrations/__init__.py": {
+      "classes": [],
+      "functions": []
+    },
+    "account/models.py": {
+      "classes": [
+        "Role",
+        "CustomUser",
+        "Membership"
+      ],
+      "functions": [
+        "get_avatar_path"
+      ]
+    },
+    "account/permissions.py": {
+      "classes": [
+        "IsSuperUser"
+      ],
+      "functions": []
+    },
+    "account/serializers.py": {
+      "classes": [
+        "MembershipSerializer",
+        "CreateAccountSerializer",
+        "ChangePasswordSerializer",
+        "PasswordResetSerializer",
+        "UserEmailSerializer",
+        "ProfileGETSerializer",
+        "ProfilePutSerializer",
+        "UsersListSerializer",
+        "UserDetailSerializer",
+        "UserPatchSerializer"
+      ],
+      "functions": []
+    },
+    "account/sso.py": {
+      "classes": [
+        "SSOCredentialCheckView",
+        "SSOExchangeView"
+      ],
+      "functions": []
+    },
+    "account/tasks.py": {
+      "classes": [],
+      "functions": [
+        "send_email",
+        "send_csv_example_email",
+        "start_deleting_expired_codes",
+        "random_color_picker",
+        "get_text_fill_color",
+        "from_img_to_io",
+        "generate_avatar",
+        "generate_user_thumbnail",
+        "resize_images_v2",
+        "generate_images_v2",
+        "resize_avatar"
+      ]
+    },
+    "account/templates/__init__.py": {
+      "classes": [],
+      "functions": []
+    },
+    "account/tests.py": {
+      "classes": [
+        "TestAccountAPI",
+        "TestAccountAPIExtras",
+        "TestManagers",
+        "TestFilters",
+        "TestSerializers",
+        "TestSerializersExtra",
+        "TestTasksExtra",
+        "TestMembershipSerializerExtra",
+        "TestCreateAccountSerializerExtra",
+        "TestUserPatchSerializerExtra",
+        "TestProfilePutSerializerExtra",
+        "TestUserDetailSerializerExtra",
+        "TestCreateAccountSerializerRepresentation",
+        "TestProfilePutSerializerBase64Exception",
+        "TestUserPatchSerializerMembershipNotFound",
+        "TestProfilePutSerializerDeleteBranches",
+        "TestUsersFilterExtra",
+        "TestAccountViewsExtra",
+        "TestAccountAdditionalCoverage",
+        "TestBulkDeleteUsersAPI"
+      ],
+      "functions": [
+        "temp_media_root",
+        "test_send_email_task_updates_user_and_sends_mail",
+        "test_start_deleting_expired_codes_clears_code",
+        "test_start_deleting_expired_codes_unknown_type",
+        "test_generate_user_thumbnail_saves_images",
+        "test_resize_avatar_saves_and_sends_event",
+        "test_view_schedules_and_revokes",
+        "user_extra",
+        "company_extra"
+      ]
+    },
+    "account/urls.py": {
+      "classes": [],
+      "functions": []
+    },
+    "account/views.py": {
+      "classes": [
+        "CheckEmailView",
+        "LoginView",
+        "LogoutView",
+        "TokenRefreshView",
+        "PasswordChangeView",
+        "PasswordResetView",
+        "SendPasswordResetView",
+        "ProfileView",
+        "GroupView",
+        "UsersListCreateView",
+        "UserDetailEditDeleteView",
+        "BulkDeleteUsersView"
+      ],
+      "functions": []
+    },
+    "ai_assistant/__init__.py": {
+      "classes": [],
+      "functions": []
+    },
+    "ai_assistant/apps.py": {
+      "classes": [
+        "AiAssistantConfig"
+      ],
+      "functions": []
+    },
+    "ai_assistant/client.py": {
+      "classes": [
+        "AiAssistantClient"
+      ],
+      "functions": []
+    },
+    "ai_assistant/exceptions.py": {
+      "classes": [
+        "AssistantDisabled",
+        "ModelUnavailable",
+        "ModelTimeout",
+        "InvalidModelResponse"
+      ],
+      "functions": []
+    },
+    "ai_assistant/management/__init__.py": {
+      "classes": [],
+      "functions": []
+    },
+    "ai_assistant/management/commands/__init__.py": {
+      "classes": [],
+      "functions": []
+    },
+    "ai_assistant/management/commands/ai_correct_texts.py": {
+      "classes": [
+        "Command"
+      ],
+      "functions": [
+        "editable_fields",
+        "fingerprint",
+        "service_http_status",
+        "service_failure_reason",
+        "remaining_time",
+        "correct_text",
+        "correct_value",
+        "write_record",
+        "save_field"
+      ]
+    },
+    "ai_assistant/serializers.py": {
+      "classes": [
+        "AssistRequestSerializer"
+      ],
+      "functions": []
+    },
+    "ai_assistant/test_correction_command.py": {
+      "classes": [],
+      "functions": [
+        "assist",
+        "upstream_failure",
+        "test_permanent_gateway_error_is_not_retried",
+        "test_transient_outage_has_bounded_retries",
+        "test_timeout_can_recover_before_stopping",
+        "test_throttling_keeps_existing_rate_limit",
+        "test_disabled_service_stops_without_retry",
+        "test_interrupt_is_not_swallowed_or_retried",
+        "test_remaining_time_displays_days_and_hours",
+        "test_gateway_distinguishes_rejected_answer_from_proxy_outage"
+      ]
+    },
+    "ai_assistant/tests.py": {
+      "classes": [],
+      "functions": [
+        "ai_settings",
+        "test_signed_gateway_request_uses_exact_body_and_unique_identifier",
+        "test_pdf_translation_deduplicates_and_bounds_batches",
+        "test_long_text_retains_spacing_when_gateway_returns_identical_text",
+        "test_translation_rejects_missing_or_blank_output",
+        "test_assistant_is_authenticated_validates_action_and_only_returns_a_preview",
+        "test_missing_service_key_fails_without_network",
+        "test_pdf_translates_text_once_without_changing_saved_article",
+        "test_pdf_translation_error_does_not_silently_print_mixed_language",
+        "test_correction_journal_preview_resume_apply_conflict_and_rollback",
+        "test_pdf_batch_waits_for_existing_rate_limit_before_retrying",
+        "test_ai_rate_limit_is_separate_from_page_requests_and_still_enforced",
+        "test_configured_gateway_identity_matches_this_application",
+        "test_correction_service_failure_stops_preserves_journal_and_resumes",
+        "test_correction_resume_estimate_uses_only_new_processing_time",
+        "test_correction_rollback_never_undoes_unapplied_human_change",
+        "test_correction_invalid_answer_skips_field_and_preserves_following_proposal"
+      ]
+    },
+    "ai_assistant/urls.py": {
+      "classes": [],
+      "functions": []
+    },
+    "ai_assistant/views.py": {
+      "classes": [
+        "AssistantThrottle",
+        "AssistView"
+      ],
+      "functions": []
+    },
+    "article/__init__.py": {
+      "classes": [],
+      "functions": []
+    },
+    "article/admin.py": {
+      "classes": [
+        "ArticleAdmin",
+        "HistoricalArticleAdmin"
+      ],
+      "functions": []
+    },
+    "article/apps.py": {
+      "classes": [
+        "ArticleConfig"
+      ],
+      "functions": []
+    },
+    "article/filters.py": {
+      "classes": [
+        "ArticleFilter"
+      ],
+      "functions": []
+    },
+    "article/management/__init__.py": {
+      "classes": [],
+      "functions": []
+    },
+    "article/management/commands/__init__.py": {
+      "classes": [],
+      "functions": []
+    },
+    "article/management/commands/fix_art_references.py": {
+      "classes": [
+        "Command"
+      ],
+      "functions": []
+    },
+    "article/management/commands/fix_images.py": {
+      "classes": [
+        "Command"
+      ],
+      "functions": []
+    },
+    "article/management/commands/undo_csv_import.py": {
+      "classes": [
+        "Command"
+      ],
+      "functions": []
+    },
+    "article/migrations/0001_initial.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "article/migrations/0002_alter_article_options.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "article/migrations/0003_alter_article_type_article.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "article/migrations/0004_alter_article_prix_achat_alter_article_prix_vente_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "article/migrations/0005_article_date_updated.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "article/migrations/0006_historicalarticle.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "article/migrations/0007_alter_article_archived_alter_article_categorie_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "article/migrations/0008_alter_historicalarticle_options.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "article/migrations/0009_add_devise_prix_achat.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "article/migrations/0010_article_devise_prix_vente_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "article/migrations/0011_alter_article_reference_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "article/migrations/0012_change_price_decimal_places.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "article/migrations/0013_revert_to_2_decimal_places.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "article/migrations/0014_alter_article_company.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "article/migrations/0015_article_article_company_archived_idx.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "article/migrations/0016_article_stock_minimum_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "article/migrations/__init__.py": {
+      "classes": [],
+      "functions": []
+    },
+    "article/models.py": {
+      "classes": [
+        "Article"
+      ],
+      "functions": [
+        "get_article_image_path"
+      ]
+    },
+    "article/serializers.py": {
+      "classes": [
+        "ArticleBaseSerializer",
+        "ArticleSerializer",
+        "ArticleDetailSerializer",
+        "ArticleListSerializer"
+      ],
+      "functions": []
+    },
+    "article/tests.py": {
+      "classes": [
+        "TestArticleAPI",
+        "TestArticleImagesAndPhotos",
+        "TestArticleFilters",
+        "TestArticleSerializerExtra",
+        "TestArticleViewsCoverage",
+        "TestArticleImport",
+        "TestSendCSVExampleEmailView",
+        "TestBulkDeleteArticleAPI",
+        "TestBulkArchiveArticleAPI"
+      ],
+      "functions": [
+        "png_image_bytes",
+        "temp_media_root"
+      ]
+    },
+    "article/urls.py": {
+      "classes": [],
+      "functions": []
+    },
+    "article/utils.py": {
+      "classes": [],
+      "functions": [
+        "get_next_article_reference"
+      ]
+    },
+    "article/views.py": {
+      "classes": [
+        "ArticleListCreateView",
+        "ArticleDetailEditDeleteView",
+        "GenerateArticleReferenceCodeView",
+        "ArchiveToggleArticleView",
+        "ImportArticlesView",
+        "SendCSVExampleEmailView",
+        "BulkDeleteArticleView",
+        "BulkArchiveArticleView"
+      ],
+      "functions": [
+        "_stringify_cell_value"
+      ]
+    },
+    "bon_de_livraison/__init__.py": {
+      "classes": [],
+      "functions": []
+    },
+    "bon_de_livraison/admin.py": {
+      "classes": [
+        "BonDeLivraisonLineInline",
+        "BonDeLivraisonAdmin",
+        "BonDeLivraisonLineAdmin",
+        "HistoricalBonDeLivraisonAdmin",
+        "HistoricalBonDeLivraisonLineAdmin"
+      ],
+      "functions": []
+    },
+    "bon_de_livraison/apps.py": {
+      "classes": [
+        "BonDeLivraisonConfig"
+      ],
+      "functions": []
+    },
+    "bon_de_livraison/filters.py": {
+      "classes": [
+        "BonDeLivraisonFilter"
+      ],
+      "functions": []
+    },
+    "bon_de_livraison/migrations/0001_initial.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "bon_de_livraison/migrations/0002_alter_bondelivraison_total_ht_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "bon_de_livraison/migrations/0003_alter_bondelivraison_statut.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "bon_de_livraison/migrations/0004_historicalbondelivraison_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "bon_de_livraison/migrations/0005_alter_bondelivraison_client_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "bon_de_livraison/migrations/0006_alter_bondelivraison_client_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "bon_de_livraison/migrations/0007_alter_historicalbondelivraison_options_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "bon_de_livraison/migrations/0008_bondelivraisonline_devise_prix_achat.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "bon_de_livraison/migrations/0009_bondelivraison_devise_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "bon_de_livraison/migrations/0010_bondelivraison_company_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "bon_de_livraison/migrations/0011_alter_bondelivraison_mode_paiement.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "bon_de_livraison/migrations/0012_alter_bondelivraison_company.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "bon_de_livraison/migrations/0013_alter_bondelivraison_devise_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "bon_de_livraison/migrations/0014_bondelivraison_bon_de_livr_company_3da1e4_idx_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "bon_de_livraison/migrations/0015_quantity_to_decimal.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "bon_de_livraison/migrations/0016_recalculate_totals_remise_on_ht.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": [
+        "_recalc",
+        "recalculate_totals"
+      ]
+    },
+    "bon_de_livraison/migrations/0017_alter_bondelivraison_total_ttc_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "bon_de_livraison/migrations/0018_bondelivraison_date_echeance_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "bon_de_livraison/migrations/0019_bondelivraison_fournisseur_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "bon_de_livraison/migrations/__init__.py": {
+      "classes": [],
+      "functions": []
+    },
+    "bon_de_livraison/models.py": {
+      "classes": [
+        "BonDeLivraison",
+        "BonDeLivraisonLine"
+      ],
+      "functions": [
+        "_recalc_bon_de_livraison_on_line_change"
+      ]
+    },
+    "bon_de_livraison/serializers.py": {
+      "classes": [
+        "BonDeLivraisonListSerializer",
+        "BonDeLivraisonLineWriteSerializer",
+        "BonDeLivraisonLineSerializer",
+        "BonDeLivraisonSerializer",
+        "BonDeLivraisonDetailSerializer"
+      ],
+      "functions": [
+        "_validate_inherited_supplier_snapshot"
+      ]
+    },
+    "bon_de_livraison/tests.py": {
+      "classes": [
+        "TestBonDeLivraisonAPI",
+        "TestBonDeLivraisonFilters",
+        "TestBonDeLivraisonModels",
+        "TestBonDeLivraisonAdmin",
+        "TestBonDeLivraisonUtilsExtra",
+        "TestBonDeLivraisonAdminExtra",
+        "TestBonDeLivraisonLineModelExtra",
+        "TestBonDeLivraisonPDFGeneration",
+        "TestBonDeLivraisonUninvoicedListView",
+        "TestBonDeLivraisonSerializerCoverage",
+        "TestBonDeLivraisonUtilsCoverage",
+        "TestBonDeLivraisonViewsCoverage",
+        "TestBulkDeleteBonDeLivraisonAPI"
+      ],
+      "functions": [
+        "bon_de_livraison_user",
+        "bon_de_livraison_company",
+        "bon_de_livraison_ville",
+        "bon_de_livraison_livre_par",
+        "bon_de_livraison_client",
+        "bon_de_livraison_mode_paiement",
+        "bon_de_livraison_article",
+        "bon_de_livraison_obj",
+        "bon_de_livraison_with_lines"
+      ]
+    },
+    "bon_de_livraison/urls.py": {
+      "classes": [],
+      "functions": []
+    },
+    "bon_de_livraison/utils.py": {
+      "classes": [],
+      "functions": [
+        "get_next_numero_bon_livraison"
+      ]
+    },
+    "bon_de_livraison/views.py": {
+      "classes": [
+        "BonDeLivraisonListCreateView",
+        "BonDeLivraisonDetailEditDeleteView",
+        "GenerateNumeroBonDeLivraisonView",
+        "BonDeLivraisonStatusUpdateView",
+        "BonDeLivraisonUninvoicedListView",
+        "BonDeLivraisonPDFGenerator",
+        "BonDeLivraisonPDFView",
+        "BulkDeleteBonDeLivraisonView"
+      ],
+      "functions": []
+    },
+    "client/__init__.py": {
+      "classes": [],
+      "functions": []
+    },
+    "client/admin.py": {
+      "classes": [
+        "ClientAdmin",
+        "HistoricalClientAdmin"
+      ],
+      "functions": []
+    },
+    "client/apps.py": {
+      "classes": [
+        "ClientConfig"
+      ],
+      "functions": []
+    },
+    "client/filters.py": {
+      "classes": [
+        "ClientFilter"
+      ],
+      "functions": []
+    },
+    "client/migrations/0001_initial.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "client/migrations/0002_client_date_created.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "client/migrations/0003_client_archived.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "client/migrations/0004_alter_client_client_type.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "client/migrations/0005_alter_client_archived_alter_client_date_created_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "client/migrations/0006_alter_client_options.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "client/migrations/0007_alter_client_options.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "client/migrations/0008_client_date_updated.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "client/migrations/0009_historicalclient.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "client/migrations/0010_alter_client_cnss_alter_client_ice_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "client/migrations/0011_alter_historicalclient_options.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "client/migrations/0012_alter_client_code_client_alter_client_company_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "client/migrations/0013_alter_client_company.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "client/migrations/0014_alter_client_client_type_and_historicalclient.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "client/migrations/__init__.py": {
+      "classes": [],
+      "functions": []
+    },
+    "client/models.py": {
+      "classes": [
+        "Client"
+      ],
+      "functions": []
+    },
+    "client/serializers.py": {
+      "classes": [
+        "ClientBaseSerializer",
+        "ClientSerializer",
+        "ClientDetailSerializer",
+        "ClientListSerializer"
+      ],
+      "functions": [
+        "_normalize_company_name"
+      ]
+    },
+    "client/tests.py": {
+      "classes": [
+        "TestClientAPI",
+        "TestClientFilters",
+        "TestClientModelExtra",
+        "TestClientSerializerCoverage",
+        "TestClientViewsCoverage",
+        "TestBulkDeleteClientAPI",
+        "TestBulkArchiveClientAPI"
+      ],
+      "functions": []
+    },
+    "client/urls.py": {
+      "classes": [],
+      "functions": []
+    },
+    "client/utils.py": {
+      "classes": [],
+      "functions": [
+        "get_next_client_code"
+      ]
+    },
+    "client/views.py": {
+      "classes": [
+        "ClientListCreateView",
+        "ClientDetailEditDeleteView",
+        "ClientHistoryView",
+        "GenerateClientCodeView",
+        "ArchiveToggleClientView",
+        "BulkDeleteClientView",
+        "BulkArchiveClientView"
+      ],
+      "functions": []
+    },
+    "company/__init__.py": {
+      "classes": [],
+      "functions": []
+    },
+    "company/admin.py": {
+      "classes": [
+        "MembershipInlineForm",
+        "MembershipInline",
+        "CompanyAdmin",
+        "HistoricalCompanyAdmin"
+      ],
+      "functions": []
+    },
+    "company/apps.py": {
+      "classes": [
+        "CompanyConfig"
+      ],
+      "functions": []
+    },
+    "company/filters.py": {
+      "classes": [
+        "CompanyFilter"
+      ],
+      "functions": []
+    },
+    "company/migrations/0001_initial.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "company/migrations/0002_company_cachet_cropped_company_logo_cropped.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "company/migrations/0003_alter_company_cachet_alter_company_cachet_cropped_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "company/migrations/0004_alter_company_civilite_responsable_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "company/migrations/0005_alter_company_options.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "company/migrations/0006_company_date_updated.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "company/migrations/0007_company_suspended_historicalcompany.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "company/migrations/0008_alter_company_options_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "company/migrations/0009_alter_historicalcompany_options.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "company/migrations/0010_company_uses_foreign_currency.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "company/migrations/0011_company_stock_management_enabled_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "company/migrations/0012_company_inventory_management_enabled_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": [
+        "preserve_existing_inventories"
+      ]
+    },
+    "company/migrations/0013_alter_company_nbr_employe_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": [
+        "normalize_legacy_default"
+      ]
+    },
+    "company/migrations/__init__.py": {
+      "classes": [],
+      "functions": []
+    },
+    "company/models.py": {
+      "classes": [
+        "Company"
+      ],
+      "functions": [
+        "get_company_image_path"
+      ]
+    },
+    "company/serializers.py": {
+      "classes": [
+        "MembershipUserSerializer",
+        "MembershipCompanySerializer",
+        "CompanyListSerializer",
+        "CompanyBasicListSerializer",
+        "CompanySerializer",
+        "ManagedByItemSerializer",
+        "CompanyDetailSerializer"
+      ],
+      "functions": []
+    },
+    "company/tests.py": {
+      "classes": [
+        "TestCompanyAPI",
+        "TestCompanyImagesAndMemberships",
+        "TestCompanyFilters",
+        "TestCompanySerializerExtra",
+        "TestCompanyViewsExtra",
+        "TestCompanySerializerCoverage",
+        "TestCompanyViewsCoverage"
+      ],
+      "functions": [
+        "temp_media_root"
+      ]
+    },
+    "company/urls.py": {
+      "classes": [],
+      "functions": []
+    },
+    "company/views.py": {
+      "classes": [
+        "CompanyListCreateView",
+        "CompanyDetailEditDeleteView",
+        "BulkSuspendCompaniesView",
+        "CompaniesByUserView"
+      ],
+      "functions": [
+        "_is_admin_for_company",
+        "_has_staff_company_access"
+      ]
+    },
+    "core/__init__.py": {
+      "classes": [],
+      "functions": []
+    },
+    "core/admin.py": {
+      "classes": [
+        "BaseDocumentLineInline",
+        "BaseDocumentAdmin"
+      ],
+      "functions": []
+    },
+    "core/apps.py": {
+      "classes": [
+        "CoreConfig"
+      ],
+      "functions": []
+    },
+    "core/authentication.py": {
+      "classes": [
+        "JWTQueryParamAuthentication"
+      ],
+      "functions": []
+    },
+    "core/constants.py": {
+      "classes": [],
+      "functions": []
+    },
+    "core/filters.py": {
+      "classes": [
+        "CommaSeparatedIDsFilter",
+        "IsEmptyFilter",
+        "IsEmptyAutoMixin",
+        "BaseDocumentFilter"
+      ],
+      "functions": [
+        "add_is_empty_filters"
+      ]
+    },
+    "core/migrations/__init__.py": {
+      "classes": [],
+      "functions": []
+    },
+    "core/models.py": {
+      "classes": [
+        "BaseDeviFactureDocument",
+        "BaseDeviFactureLine"
+      ],
+      "functions": [
+        "create_line_signal_receiver"
+      ]
+    },
+    "core/nectar.py": {
+      "classes": [],
+      "functions": [
+        "normalize_company_name",
+        "is_nectar_raison_sociale",
+        "is_nectar_company",
+        "is_nectar_company_id"
+      ]
+    },
+    "core/ordering.py": {
+      "classes": [],
+      "functions": [
+        "user_name",
+        "client_name",
+        "_direct",
+        "_stock_fields",
+        "_fields",
+        "apply_list_ordering"
+      ]
+    },
+    "core/pdf_translations.py": {
+      "classes": [],
+      "functions": []
+    },
+    "core/pdf_utils.py": {
+      "classes": [
+        "BasePDFGenerator"
+      ],
+      "functions": [
+        "format_multiline_pdf_text",
+        "number_to_french_words",
+        "number_to_english_words",
+        "format_number_for_pdf"
+      ]
+    },
+    "core/permissions.py": {
+      "classes": [],
+      "functions": [
+        "get_user_role",
+        "is_caissier",
+        "is_comptable",
+        "is_commercial",
+        "is_lecture",
+        "can_create",
+        "can_update",
+        "can_delete",
+        "can_view",
+        "can_print",
+        "can_validate_factures",
+        "can_change_document_status"
+      ]
+    },
+    "core/serializers.py": {
+      "classes": [
+        "BaseListSerializer",
+        "BaseDetailSerializer",
+        "BaseLineWriteSerializer",
+        "BaseCreateSerializer",
+        "BaseDetailUpdateSerializer"
+      ],
+      "functions": [
+        "sanitize_nectar_document_data",
+        "validate_line_currency",
+        "update_document_devise_on_first_line"
+      ]
+    },
+    "core/test_ordering.py": {
+      "classes": [],
+      "functions": [
+        "context",
+        "test_ordering_precedes_pagination_and_preserves_company_and_filters",
+        "test_related_names_numeric_values_ties_and_nulls",
+        "test_computed_available_stock_matches_displayed_quantity",
+        "test_every_public_ordering_expression_executes",
+        "test_unsupported_ordering_preserves_default"
+      ]
+    },
+    "core/tests.py": {
+      "classes": [
+        "_HasId",
+        "_HasRefreshFromDb",
+        "DocConfig",
+        "SharedDocumentAPITestsMixin",
+        "SharedDocumentFilterTestsMixin",
+        "SharedDocumentModelTestsMixin",
+        "SharedDocumentAdminTestsMixin",
+        "TestAdminExtra",
+        "TestCoreSerializerValidation",
+        "TestBaseLineWriteSerializerValidation",
+        "TestCoreModelsExtra",
+        "TestCoreFiltersExtra",
+        "TestCoreModelRecalcTotals",
+        "TestCoreViewsPermissions",
+        "TestFilterDatabaseErrorBranch",
+        "TestBaseDocumentListCreateViewPermissions",
+        "TestBaseStatusUpdateViewPermissions",
+        "TestBaseConversionViewPermissions",
+        "TestBaseDocumentDetailEditDeleteViewPermissions",
+        "TestNumberToFrenchWords",
+        "TestBasePDFGenerator",
+        "TestJWTQueryParamAuthentication",
+        "TestCoreSerializerAdditional",
+        "TestCoreFilterAdditional",
+        "TestAdditionalCoverageEdgeCases",
+        "TestFilterDatabaseErrorBranches",
+        "TestSerializersEdgeCases",
+        "TestPDFGeneratorEdgeCases",
+        "TestCoreModelsCoverage",
+        "TestBasePDFGeneratorDraftWatermark"
+      ],
+      "functions": [
+        "common_user",
+        "common_company",
+        "common_ville",
+        "common_mode_paiement",
+        "common_client",
+        "common_article",
+        "common_membership",
+        "_create_core_membership",
+        "is_numeric_or_none",
+        "assert_numeric_equal",
+        "admin_site",
+        "admin_user",
+        "extra_company",
+        "extra_ville",
+        "extra_client",
+        "extra_mode_paiement",
+        "extra_article",
+        "extra_devi",
+        "extra_devi_line"
+      ]
+    },
+    "core/utils.py": {
+      "classes": [],
+      "functions": [
+        "format_number_with_dynamic_digits"
+      ]
+    },
+    "core/views.py": {
+      "classes": [
+        "CompanyAccessMixin",
+        "BaseDocumentListCreateView",
+        "BaseDocumentDetailEditDeleteView",
+        "BaseGenerateNumeroView",
+        "BaseStatusUpdateView",
+        "BaseConversionView",
+        "BaseBulkDeleteView",
+        "BaseBulkArchiveView"
+      ],
+      "functions": []
+    },
+    "dashboard/__init__.py": {
+      "classes": [],
+      "functions": []
+    },
+    "dashboard/apps.py": {
+      "classes": [
+        "DashboardConfig"
+      ],
+      "functions": []
+    },
+    "dashboard/migrations/0001_initial.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "dashboard/migrations/0002_historicalmonthlyobjectives_objectif_ca_eur_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "dashboard/migrations/__init__.py": {
+      "classes": [],
+      "functions": []
+    },
+    "dashboard/models.py": {
+      "classes": [
+        "MonthlyObjectives"
+      ],
+      "functions": []
+    },
+    "dashboard/serializers.py": {
+      "classes": [
+        "MonthlyObjectivesSerializer"
+      ],
+      "functions": []
+    },
+    "dashboard/test_decision_charts.py": {
+      "classes": [],
+      "functions": [
+        "context",
+        "document",
+        "credit",
+        "get",
+        "test_receivables_subtract_valid_payments_and_credits_without_join_multiplication",
+        "test_drafts_cancelled_paid_and_overpaid_invoices_do_not_inflate_receivables",
+        "test_top_five_is_ranked_but_summary_includes_all_clients",
+        "test_date_currency_client_project_and_company_scope",
+        "test_deliveries_age_boundaries_and_already_invoiced_exclusions",
+        "test_empty_and_company_permissions"
+      ]
+    },
+    "dashboard/tests.py": {
+      "classes": [
+        "TestMonthlyObjectivesSettingsEndpoints",
+        "TestFinancialOverviewEndpoints",
+        "TestCommercialPerformanceEndpoints",
+        "TestOperationalIndicatorEndpoints",
+        "TestCashFlowEndpoints",
+        "TestClientAnalysisEndpoints",
+        "TestKPIEndpoints",
+        "TestDiscountAndMarginEndpoints",
+        "TestSyntheticDashboardEndpoints",
+        "TestDateFilterEdgeCases",
+        "TestAuthenticationRequired",
+        "TestEmptyDataHandling",
+        "TestDocumentLinesAggregation",
+        "TestCompanyFiltering",
+        "TestDateFromFilterBranches",
+        "TestPaymentStatusScenarios",
+        "TestOverdueReceivablesAgingBuckets",
+        "TestMonthlyPerformanceWithDateRange",
+        "TestKPICardsWithDateFrom",
+        "TestDiscountImpactWithDiscount",
+        "TestClientMultidimensionalProfile",
+        "TestMonthlyObjectivesWithDateFrom",
+        "TestHelperFunctions",
+        "TestHelperFunctionsNoneCases",
+        "TestCollectionRateZeroInvoiced",
+        "TestOverdueReceivables0to30Days",
+        "TestPaymentStatusPartialAndUnpaid",
+        "TestTopProductsFiltering",
+        "TestQuoteConversionFiltering",
+        "TestInvoiceStatusFiltering",
+        "TestPaymentDelayFiltering",
+        "TestOverdueReceivablesFiltering",
+        "TestClientProfileFiltering",
+        "TestKPICardsFiltering",
+        "TestDiscountImpactFiltering",
+        "TestProductMarginFiltering",
+        "TestMonthlyPerformanceFiltering"
+      ],
+      "functions": [
+        "user",
+        "company",
+        "membership",
+        "ville",
+        "mode_paiement",
+        "client_entity",
+        "article",
+        "facture_client",
+        "facture_with_line",
+        "devi",
+        "facture_proforma",
+        "bon_de_livraison",
+        "mode_reglement",
+        "reglement",
+        "api_client",
+        "authenticated_client"
+      ]
+    },
+    "dashboard/urls.py": {
+      "classes": [],
+      "functions": []
+    },
+    "dashboard/views.py": {
+      "classes": [
+        "MonthlyRevenueEvolutionView",
+        "ReceivablesByClientView",
+        "UninvoicedDeliveriesView",
+        "RevenueByDocumentTypeView",
+        "PaymentStatusOverviewView",
+        "CollectionRateView",
+        "TopClientsByRevenueView",
+        "TopProductsByQuantityView",
+        "QuoteConversionRateView",
+        "ProductPriceVolumeAnalysisView",
+        "InvoiceStatusDistributionView",
+        "MonthlyDocumentVolumeView",
+        "PaymentTimelineView",
+        "OverdueReceivablesView",
+        "PaymentDelayByClientView",
+        "ClientMultidimensionalProfileView",
+        "KPICardsWithTrendsView",
+        "MonthlyObjectivesView",
+        "DiscountImpactAnalysisView",
+        "ProductMarginVolumeView",
+        "MonthlyGlobalPerformanceView",
+        "SectionMicroTrendsView",
+        "MonthlyObjectivesListCreateView",
+        "MonthlyObjectivesDetailView",
+        "MonthlyObjectivesByCompanyView"
+      ],
+      "functions": [
+        "make_aware_datetime_start",
+        "_money_field",
+        "_sum_decimal",
+        "_apply_scope_to_queryset",
+        "_apply_scope_to_filters",
+        "_avoir_queryset",
+        "_total_avoirs",
+        "_annotate_total_reglements",
+        "make_aware_datetime_end",
+        "parse_date_filters",
+        "_decision_chart_queryset"
+      ]
+    },
+    "devi/__init__.py": {
+      "classes": [],
+      "functions": []
+    },
+    "devi/admin.py": {
+      "classes": [
+        "DeviLineInline",
+        "DeviAdmin",
+        "DeviLineAdmin",
+        "HistoricalDeviAdmin",
+        "HistoricalDeviLineAdmin"
+      ],
+      "functions": []
+    },
+    "devi/apps.py": {
+      "classes": [
+        "DeviConfig"
+      ],
+      "functions": []
+    },
+    "devi/filters.py": {
+      "classes": [
+        "DeviFilter"
+      ],
+      "functions": []
+    },
+    "devi/migrations/0001_initial.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "devi/migrations/0002_alter_devi_statut.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "devi/migrations/0003_remove_deviline_pourcentage_remise_devi_remise_type_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "devi/migrations/0004_devi_remise.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "devi/migrations/0005_alter_devi_remise_type_alter_deviline_remise_type.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "devi/migrations/0006_alter_devi_remise_type_alter_deviline_remise_type.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "devi/migrations/0007_alter_devi_remise_type_alter_deviline_remise_type.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "devi/migrations/0008_alter_devi_remise_alter_deviline_remise.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "devi/migrations/0009_alter_deviline_prix_achat_alter_deviline_prix_vente.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "devi/migrations/0010_alter_devi_total_ht_alter_devi_total_ttc_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "devi/migrations/0011_historicaldevi_historicaldeviline.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "devi/migrations/0012_alter_devi_client_alter_deviline_article.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "devi/migrations/0013_alter_devi_client_alter_devi_created_by_user_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "devi/migrations/0014_alter_historicaldevi_options_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "devi/migrations/0015_deviline_devise_prix_achat.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "devi/migrations/0016_devi_devise_deviline_devise_prix_vente_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "devi/migrations/0017_devi_company_historicaldevi_company_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "devi/migrations/0018_alter_devi_mode_paiement.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "devi/migrations/0019_alter_devi_company.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "devi/migrations/0020_alter_devi_devise_alter_devi_statut_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "devi/migrations/0021_devi_devi_devi_company_5ff77b_idx_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "devi/migrations/0022_quantity_to_decimal.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "devi/migrations/0023_recalculate_totals_remise_on_ht.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": [
+        "_recalc",
+        "recalculate_totals"
+      ]
+    },
+    "devi/migrations/0024_alter_devi_total_ttc_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "devi/migrations/0025_devi_date_echeance_historicaldevi_date_echeance.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "devi/migrations/0026_devi_fournisseur_devi_fournisseur_email_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "devi/migrations/__init__.py": {
+      "classes": [],
+      "functions": []
+    },
+    "devi/models.py": {
+      "classes": [
+        "Devi",
+        "DeviLine"
+      ],
+      "functions": [
+        "_recalc_devi_on_line_change"
+      ]
+    },
+    "devi/serializers.py": {
+      "classes": [
+        "DeviListSerializer",
+        "DeviLineWriteSerializer",
+        "DeviLineSerializer",
+        "DeviSerializer",
+        "DeviDetailSerializer"
+      ],
+      "functions": []
+    },
+    "devi/tests.py": {
+      "classes": [
+        "TestDeviAPI",
+        "TestDeviFilters",
+        "TestDeviConversionExtra",
+        "TestFactureProFormaConversionExtra",
+        "TestDeviUtilsExtra",
+        "TestDeviModelExtra",
+        "TestDeviAdminExtra",
+        "TestDeviLineModelExtra",
+        "TestDeviPDFGeneration",
+        "TestDeviSerializerCoverage",
+        "TestCoreViewsCoverage",
+        "TestBulkDeleteDeviAPI"
+      ],
+      "functions": [
+        "_create_devi_membership",
+        "devi_conv_user",
+        "devi_conv_company",
+        "devi_conv_ville",
+        "devi_conv_client",
+        "devi_conv_mode_paiement",
+        "devi_conv_article",
+        "devi_conv_obj",
+        "devi_conv_with_lines"
+      ]
+    },
+    "devi/urls.py": {
+      "classes": [],
+      "functions": []
+    },
+    "devi/utils.py": {
+      "classes": [],
+      "functions": [
+        "get_next_numero_devis"
+      ]
+    },
+    "devi/views.py": {
+      "classes": [
+        "DeviListCreateView",
+        "DeviDetailEditDeleteView",
+        "GenerateNumeroDevisView",
+        "DeviStatusUpdateView",
+        "DeviConvertToFactureProformaView",
+        "DeviConvertToFactureClientView",
+        "DeviPDFGenerator",
+        "DeviPDFView",
+        "BulkDeleteDeviView"
+      ],
+      "functions": []
+    },
+    "facturation_backend/__init__.py": {
+      "classes": [],
+      "functions": []
+    },
+    "facturation_backend/asgi.py": {
+      "classes": [],
+      "functions": []
+    },
+    "facturation_backend/celery_conf.py": {
+      "classes": [],
+      "functions": []
+    },
+    "facturation_backend/settings.py": {
+      "classes": [],
+      "functions": []
+    },
+    "facturation_backend/settings_test.py": {
+      "classes": [],
+      "functions": []
+    },
+    "facturation_backend/test_static_assets.py": {
+      "classes": [],
+      "functions": [
+        "collected_static",
+        "test_static_storage_uses_hashed_urls_without_changing_upload_storage",
+        "test_collected_admin_css_matches_installed_django",
+        "test_admin_template_references_existing_versioned_stylesheets",
+        "test_docker_keeps_build_time_assets_outside_host_bind_mounts"
+      ]
+    },
+    "facturation_backend/tests.py": {
+      "classes": [
+        "TestImageProcessor",
+        "TestBase64ImageField",
+        "TestApiExceptionHandler",
+        "TestCustomPagination",
+        "TestApiExceptionHandlerExtra"
+      ],
+      "functions": []
+    },
+    "facturation_backend/urls.py": {
+      "classes": [],
+      "functions": [
+        "health_check",
+        "custom_404",
+        "custom_500"
+      ]
+    },
+    "facturation_backend/utils.py": {
+      "classes": [
+        "ImageProcessor",
+        "Base64ImageField",
+        "CustomPagination"
+      ],
+      "functions": [
+        "api_exception_handler"
+      ]
+    },
+    "facturation_backend/wsgi.py": {
+      "classes": [],
+      "functions": []
+    },
+    "facture_avoir/__init__.py": {
+      "classes": [],
+      "functions": []
+    },
+    "facture_avoir/admin.py": {
+      "classes": [
+        "FactureAvoirLineInline",
+        "FactureAvoirAdmin",
+        "FactureAvoirLineAdmin",
+        "HistoricalFactureAvoirAdmin",
+        "HistoricalFactureAvoirLineAdmin"
+      ],
+      "functions": []
+    },
+    "facture_avoir/apps.py": {
+      "classes": [
+        "FactureAvoirConfig"
+      ],
+      "functions": []
+    },
+    "facture_avoir/filters.py": {
+      "classes": [
+        "FactureAvoirFilter"
+      ],
+      "functions": []
+    },
+    "facture_avoir/migrations/0001_initial.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "facture_avoir/migrations/0002_normalize_index_names.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "facture_avoir/migrations/0003_alter_factureavoir_numero_avoir.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "facture_avoir/migrations/0004_historicalfactureavoir_historicalfactureavoirline.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "facture_avoir/migrations/0005_factureavoir_fournisseur_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": [
+        "backfill_supplier_from_origin"
+      ]
+    },
+    "facture_avoir/migrations/__init__.py": {
+      "classes": [],
+      "functions": []
+    },
+    "facture_avoir/models.py": {
+      "classes": [
+        "FactureAvoir",
+        "FactureAvoirLine"
+      ],
+      "functions": [
+        "_recalc_facture_avoir_on_line_change"
+      ]
+    },
+    "facture_avoir/serializers.py": {
+      "classes": [
+        "FactureAvoirListSerializer",
+        "FactureAvoirLineWriteSerializer",
+        "FactureAvoirLineSerializer",
+        "FactureAvoirSerializer",
+        "FactureAvoirDetailSerializer"
+      ],
+      "functions": []
+    },
+    "facture_avoir/stats.py": {
+      "classes": [],
+      "functions": [
+        "get_avoir_stats_by_currency"
+      ]
+    },
+    "facture_avoir/tests.py": {
+      "classes": [],
+      "functions": [
+        "avoir_context",
+        "_line_payload",
+        "test_create_avoir_from_facture_assigns_legal_number_and_origin_data",
+        "test_avoir_prefill_includes_supplier_snapshot",
+        "test_create_avoir_requires_origin_facture",
+        "test_linked_avoir_supplier_snapshot_is_read_only",
+        "test_avoir_supplier_data_migration_backfills_origin_link",
+        "test_active_origin_avoir_cannot_credit_more_than_original_quantity",
+        "test_avoir_delete_is_allowed",
+        "test_avoir_bulk_delete_is_allowed",
+        "test_avoir_pdf_accepts_explicit_unit_variants",
+        "test_avoir_pdf_allows_draft"
+      ]
+    },
+    "facture_avoir/urls.py": {
+      "classes": [],
+      "functions": []
+    },
+    "facture_avoir/utils.py": {
+      "classes": [],
+      "functions": [
+        "get_next_numero_facture_avoir"
+      ]
+    },
+    "facture_avoir/views.py": {
+      "classes": [
+        "FactureAvoirListCreateView",
+        "FactureAvoirDetailEditView",
+        "GenerateNumeroFactureAvoirView",
+        "FactureAvoirStatusUpdateView",
+        "BulkDeleteFactureAvoirView",
+        "FactureAvoirFromFactureView",
+        "FactureAvoirPDFGenerator",
+        "FactureAvoirPDFView"
+      ],
+      "functions": []
+    },
+    "facture_client/__init__.py": {
+      "classes": [],
+      "functions": []
+    },
+    "facture_client/admin.py": {
+      "classes": [
+        "FactureClientLineInline",
+        "FactureClientAdmin",
+        "FactureClientLineAdmin",
+        "HistoricalFactureClientAdmin",
+        "HistoricalFactureClientLineAdmin"
+      ],
+      "functions": []
+    },
+    "facture_client/apps.py": {
+      "classes": [
+        "FactureClientConfig"
+      ],
+      "functions": []
+    },
+    "facture_client/filters.py": {
+      "classes": [
+        "FactureClientFilter"
+      ],
+      "functions": []
+    },
+    "facture_client/migrations/0001_initial.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "facture_client/migrations/0002_alter_factureclient_remise_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "facture_client/migrations/0003_alter_factureclientline_prix_achat_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "facture_client/migrations/0004_alter_factureclient_total_ht_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "facture_client/migrations/0005_historicalfactureclient_historicalfactureclientline.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "facture_client/migrations/0006_alter_factureclient_client_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "facture_client/migrations/0007_alter_factureclient_client_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "facture_client/migrations/0008_alter_historicalfactureclient_options_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "facture_client/migrations/0009_factureclientline_devise_prix_achat.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "facture_client/migrations/0010_factureclient_devise_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "facture_client/migrations/0011_factureclient_company_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "facture_client/migrations/0012_alter_factureclient_mode_paiement.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "facture_client/migrations/0013_alter_factureclient_company.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "facture_client/migrations/0014_alter_factureclient_devise_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "facture_client/migrations/0015_factureclient_facture_cli_company_1b551e_idx_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "facture_client/migrations/0016_quantity_to_decimal.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "facture_client/migrations/0017_recalculate_totals_remise_on_ht.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": [
+        "_recalc",
+        "recalculate_totals"
+      ]
+    },
+    "facture_client/migrations/0018_alter_factureclient_total_ttc_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "facture_client/migrations/0019_factureclient_date_echeance_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "facture_client/migrations/0020_factureclient_termes_paiement_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "facture_client/migrations/0021_factureclient_source_proforma_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "facture_client/migrations/0022_factureclient_fournisseur_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": [
+        "backfill_supplier_from_source"
+      ]
+    },
+    "facture_client/migrations/__init__.py": {
+      "classes": [],
+      "functions": []
+    },
+    "facture_client/models.py": {
+      "classes": [
+        "FactureClient",
+        "FactureClientLine"
+      ],
+      "functions": [
+        "_recalc_facture_client_on_line_change"
+      ]
+    },
+    "facture_client/serializers.py": {
+      "classes": [
+        "FactureClientPaymentFieldsMixin",
+        "FactureClientListSerializer",
+        "FactureClientLineWriteSerializer",
+        "FactureClientLineSerializer",
+        "FactureClientSerializer",
+        "FactureClientDetailSerializer"
+      ],
+      "functions": [
+        "_validate_inherited_supplier_snapshot"
+      ]
+    },
+    "facture_client/stats.py": {
+      "classes": [],
+      "functions": [
+        "get_stats_by_currency"
+      ]
+    },
+    "facture_client/tests.py": {
+      "classes": [
+        "TestFactureClientAPI",
+        "TestFactureClientFilters",
+        "TestFactureClientUtilsExtra",
+        "TestFactureClientModelExtra",
+        "TestFactureClientAdminExtra",
+        "TestFactureClientLineModelExtra",
+        "TestFactureClientConversionExtra",
+        "TestFactureClientPDFGeneration",
+        "TestFactureClientUnpaidListView",
+        "TestFactureClientForPaymentView",
+        "TestBulkDeleteFactureClientAPI"
+      ],
+      "functions": [
+        "fc_conv_user",
+        "fc_conv_company",
+        "_create_fc_membership",
+        "_accept_facture",
+        "fc_conv_ville",
+        "fc_conv_client",
+        "fc_conv_mode_paiement",
+        "fc_conv_article",
+        "fc_conv_obj",
+        "fc_conv_with_lines"
+      ]
+    },
+    "facture_client/urls.py": {
+      "classes": [],
+      "functions": []
+    },
+    "facture_client/utils.py": {
+      "classes": [],
+      "functions": [
+        "get_next_numero_facture_client"
+      ]
+    },
+    "facture_client/views.py": {
+      "classes": [
+        "FactureClientListCreateView",
+        "FactureClientDetailEditDeleteView",
+        "GenerateNumeroFactureView",
+        "FactureClientStatusUpdateView",
+        "FactureClientConvertToBonDeLivraisonView",
+        "FactureClientUnpaidListView",
+        "FactureClientForPaymentView",
+        "FactureClientPDFGenerator",
+        "FactureClientPDFView",
+        "BulkDeleteFactureClientView"
+      ],
+      "functions": [
+        "annotate_payment_and_avoir_totals"
+      ]
+    },
+    "facture_proforma/__init__.py": {
+      "classes": [],
+      "functions": []
+    },
+    "facture_proforma/admin.py": {
+      "classes": [
+        "FactureProFormaLineInline",
+        "FactureProFormaAdmin",
+        "FactureProFormaLineAdmin",
+        "HistoricalFactureProFormaAdmin",
+        "HistoricalFactureProFormaLineAdmin"
+      ],
+      "functions": []
+    },
+    "facture_proforma/apps.py": {
+      "classes": [
+        "FactureProformaConfig"
+      ],
+      "functions": []
+    },
+    "facture_proforma/filters.py": {
+      "classes": [
+        "FactureProFormaFilter"
+      ],
+      "functions": []
+    },
+    "facture_proforma/migrations/0001_initial.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "facture_proforma/migrations/0002_alter_factureproforma_options_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "facture_proforma/migrations/0003_alter_factureproforma_remise_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "facture_proforma/migrations/0004_alter_factureproformaline_prix_achat_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "facture_proforma/migrations/0005_alter_factureproforma_total_ht_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "facture_proforma/migrations/0006_historicalfactureproforma_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "facture_proforma/migrations/0007_alter_factureproforma_client_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "facture_proforma/migrations/0008_alter_factureproforma_client_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "facture_proforma/migrations/0009_alter_historicalfactureproforma_options_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "facture_proforma/migrations/0010_factureproformaline_devise_prix_achat.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "facture_proforma/migrations/0011_factureproforma_devise_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "facture_proforma/migrations/0012_factureproforma_company_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "facture_proforma/migrations/0013_alter_factureproforma_mode_paiement.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "facture_proforma/migrations/0014_alter_factureproforma_company.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "facture_proforma/migrations/0015_alter_factureproforma_devise_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "facture_proforma/migrations/0016_factureproforma_facture_pro_company_9d28a1_idx_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "facture_proforma/migrations/0017_quantity_to_decimal.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "facture_proforma/migrations/0018_recalculate_totals_remise_on_ht.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": [
+        "_recalc",
+        "recalculate_totals"
+      ]
+    },
+    "facture_proforma/migrations/0019_alter_factureproforma_total_ttc_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "facture_proforma/migrations/0020_factureproforma_date_echeance_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "facture_proforma/migrations/0021_factureproforma_termes_paiement_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "facture_proforma/migrations/0022_factureproforma_source_devis_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "facture_proforma/migrations/0023_factureproforma_fournisseur_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "facture_proforma/migrations/0024_factureproforma_fournisseur_email_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "facture_proforma/migrations/0025_alter_factureproforma_fournisseur_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "facture_proforma/migrations/__init__.py": {
+      "classes": [],
+      "functions": []
+    },
+    "facture_proforma/models.py": {
+      "classes": [
+        "FactureProForma",
+        "FactureProFormaLine"
+      ],
+      "functions": [
+        "_recalc_facture_pro_forma_on_line_change"
+      ]
+    },
+    "facture_proforma/serializers.py": {
+      "classes": [
+        "FactureProformaListSerializer",
+        "FactureProformaLineWriteSerializer",
+        "FactureProFormaLineSerializer",
+        "FactureProformaSerializer",
+        "FactureProformaDetailSerializer"
+      ],
+      "functions": [
+        "_fill_blank_supplier_snapshot",
+        "_backfill_blank_descendant_supplier_snapshots"
+      ]
+    },
+    "facture_proforma/tests.py": {
+      "classes": [
+        "TestFactureProFormaAPI",
+        "TestFactureProFormaFilters",
+        "TestFactureProFormaUtilsExtra",
+        "TestFactureProFormaModelExtra",
+        "TestFactureProFormaAdminExtra",
+        "TestFactureProFormaLineModelExtra",
+        "TestFactureProFormaPDFGeneration",
+        "TestBulkDeleteFactureProFormaAPI"
+      ],
+      "functions": [
+        "_create_pf_membership",
+        "pf_conv_user",
+        "pf_conv_company",
+        "pf_conv_ville",
+        "pf_conv_client",
+        "pf_conv_mode_paiement",
+        "pf_conv_article",
+        "pf_conv_obj",
+        "pf_conv_with_lines"
+      ]
+    },
+    "facture_proforma/urls.py": {
+      "classes": [],
+      "functions": []
+    },
+    "facture_proforma/utils.py": {
+      "classes": [],
+      "functions": [
+        "get_next_numero_facture_pro_forma"
+      ]
+    },
+    "facture_proforma/views.py": {
+      "classes": [
+        "FactureProFormaListCreateView",
+        "FactureProFormaDetailEditDeleteView",
+        "GenerateNumeroFactureView",
+        "FactureProFormaStatusUpdateView",
+        "FactureProFormaConvertToFactureClientView",
+        "FactureProFormaPDFGenerator",
+        "FactureProFormaPDFView",
+        "BulkDeleteFactureProFormaView"
+      ],
+      "functions": []
+    },
+    "logistique/__init__.py": {
+      "classes": [],
+      "functions": []
+    },
+    "logistique/admin.py": {
+      "classes": [
+        "LogisticsOrderLineInline",
+        "LogisticsOrderProformaInline",
+        "LogisticsOrderEventInline",
+        "LogisticsPaymentInstallmentInline",
+        "LogisticsOrderAdmin",
+        "HistoricalLogisticsOrderAdmin",
+        "LogisticsOrderEventAdmin"
+      ],
+      "functions": []
+    },
+    "logistique/apps.py": {
+      "classes": [
+        "LogistiqueConfig"
+      ],
+      "functions": []
+    },
+    "logistique/filters.py": {
+      "classes": [
+        "LogisticsOrderFilter"
+      ],
+      "functions": []
+    },
+    "logistique/management/__init__.py": {
+      "classes": [],
+      "functions": []
+    },
+    "logistique/management/commands/__init__.py": {
+      "classes": [],
+      "functions": []
+    },
+    "logistique/management/commands/seed_logistique_demo.py": {
+      "classes": [
+        "Command"
+      ],
+      "functions": [
+        "add_months",
+        "make_aware_date",
+        "build_demo_pdf",
+        "ensure_demo_document"
+      ]
+    },
+    "logistique/migrations/0001_initial.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "logistique/migrations/0002_logisticsorderline_project_reference.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "logistique/migrations/0003_command_launch_workflow.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": [
+        "initialize_new_workflow_fields"
+      ]
+    },
+    "logistique/migrations/0004_historicallogisticsorder_date_proforma_fournisseur_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "logistique/migrations/0005_historicallogisticsorder_banque_paiement_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": [
+        "copy_legacy_payment_currency"
+      ]
+    },
+    "logistique/migrations/0006_historicallogisticsorder_paiement_assigne_a_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": [
+        "migrate_legacy_payment_workflow"
+      ]
+    },
+    "logistique/migrations/0007_historicallogisticsorder_demande_paiement_email_destinataires_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": [
+        "preserve_legacy_delivery_records"
+      ]
+    },
+    "logistique/migrations/0008_historicallogisticsorder_demande_paiement_email_prise_en_charge_le_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": [
+        "correct_already_migrated_legacy_delivery_statuses"
+      ]
+    },
+    "logistique/migrations/0009_historicallogisticsorder_demande_paiement_email_file_token_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": [
+        "make_pre_token_queued_deliveries_retryable"
+      ]
+    },
+    "logistique/migrations/0010_backfill_supplier_snapshots.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": [
+        "backfill_supplier_snapshots"
+      ]
+    },
+    "logistique/migrations/0011_rename_logistics_user_facing_labels.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": [
+        "rename_event_actions",
+        "restore_event_actions"
+      ]
+    },
+    "logistique/migrations/0012_logisticsorderline_expected_emplacement_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "logistique/migrations/0013_logistics_boss_feedback.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": [
+        "backfill_logistics_fields"
+      ]
+    },
+    "logistique/migrations/0014_logistics_field_review.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "logistique/migrations/0015_logistics_field_review_proposed_fields.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "logistique/migrations/__init__.py": {
+      "classes": [],
+      "functions": []
+    },
+    "logistique/models.py": {
+      "classes": [
+        "LogisticsOrder",
+        "LogisticsPaymentInstallment",
+        "LogisticsOrderProforma",
+        "LogisticsOrderLine",
+        "LogisticsOrderEvent",
+        "LogisticsProcessNote",
+        "LogisticsFieldReview"
+      ],
+      "functions": [
+        "get_logistique_document_path"
+      ]
+    },
+    "logistique/pdf.py": {
+      "classes": [
+        "LogisticsPaymentRequestPDFGenerator"
+      ],
+      "functions": [
+        "_text",
+        "_date",
+        "_amount",
+        "build_accounting_payment_pdf"
+      ]
+    },
+    "logistique/serializers.py": {
+      "classes": [
+        "LogisticsOrderLineSerializer",
+        "LogisticsOrderEventSerializer",
+        "LogisticsPaymentInstallmentSerializer",
+        "LogisticsOrderBaseSerializer",
+        "LogisticsOrderListSerializer",
+        "LogisticsOrderDetailSerializer",
+        "LogisticsOrderCreateSerializer",
+        "LogisticsOrderUpdateSerializer",
+        "LogisticsStatusSerializer",
+        "LogisticsGlobalStatusSerializer",
+        "LogisticsLaunchStatusSerializer",
+        "LogisticsPaymentScheduleItemSerializer",
+        "LogisticsPaymentRequestSerializer",
+        "LogisticsPaymentInstallmentActionSerializer",
+        "LogisticsPaymentProofEmailStatusSerializer",
+        "LogisticsPaymentExecutionSerializer",
+        "LogisticsPaymentValidationSerializer",
+        "LogisticsPaymentRejectSerializer",
+        "LogisticsProformaRequestSerializer",
+        "LogisticsSupplierProformaReviewSerializer",
+        "LogisticsProcessNoteSerializer",
+        "LogisticsFieldReviewSerializer"
+      ],
+      "functions": [
+        "validate_logistics_document",
+        "_user_display_name"
+      ]
+    },
+    "logistique/services.py": {
+      "classes": [],
+      "functions": [
+        "_load_proforma_lines",
+        "_unique_non_empty",
+        "_proforma_summary",
+        "_project_reference",
+        "build_proforma_source_preview",
+        "_get_comptable_emails",
+        "create_orders_from_proformas",
+        "send_payment_request_email"
+      ]
+    },
+    "logistique/tasks.py": {
+      "classes": [],
+      "functions": [
+        "_dossier_url",
+        "_attach_file",
+        "_accounting_message",
+        "_build_accounting_email",
+        "_supplier_message",
+        "_active_accounting_recipients",
+        "_claim_is_fresh",
+        "queue_accounting_payment_email",
+        "queue_supplier_payment_proof_email",
+        "queue_logistics_responsible_payment_email",
+        "deliver_logistics_responsible_payment_email",
+        "_claim_accounting_delivery",
+        "_finalize_accounting_delivery",
+        "deliver_accounting_payment_email",
+        "_claim_supplier_delivery",
+        "_finalize_supplier_delivery",
+        "deliver_supplier_payment_proof_email"
+      ]
+    },
+    "logistique/test_field_review.py": {
+      "classes": [
+        "LogisticsFieldReviewTests"
+      ],
+      "functions": []
+    },
+    "logistique/tests.py": {
+      "classes": [],
+      "functions": [
+        "logistics_company",
+        "logistics_roles",
+        "logistics_user",
+        "comptable_user",
+        "api_client",
+        "valid_logistics_payload",
+        "supplier_proforma_payload",
+        "complete_supplier_proforma_step",
+        "prepare_valid_import_title",
+        "payment_schedule_payload",
+        "payment_execution_payload",
+        "payment_validation_payload",
+        "logistics_proformas",
+        "create_logistics_order",
+        "test_create_logistics_order_inherits_supplier_and_all_source_lines",
+        "test_supplier_snapshot_data_migration_backfills_single_source_only",
+        "test_logistics_label_data_migration_updates_existing_history",
+        "test_create_logistics_order_rejects_already_linked_source_lines",
+        "test_create_logistics_order_rejects_missing_required_fields",
+        "test_create_logistics_order_defaults_responsible_to_current_user",
+        "test_create_logistics_order_rejects_zero_responsible",
+        "test_create_logistics_order_requires_validated_client_order",
+        "test_create_logistics_order_allows_missing_source_supplier",
+        "test_create_logistics_order_accepts_multiple_sources_for_same_supplier",
+        "test_logistics_source_preview_returns_inherited_source_data",
+        "test_create_logistics_order_rejects_mixed_purchase_currencies",
+        "test_logistics_list_returns_dashboard_stats",
+        "test_logistics_filters_accept_selectable_multi_values",
+        "test_supplier_list_and_process_note_endpoints",
+        "test_legacy_status_filter_keeps_original_semantics",
+        "test_manager_records_proforma_request_and_completes_launch_step",
+        "test_part_one_substatuses_drive_global_status",
+        "test_manager_can_apply_part_one_substatuses_in_application",
+        "test_launch_step_can_only_finish_through_recorded_proforma_request",
+        "test_overdue_proforma_follow_up_drives_global_status",
+        "test_supplier_proforma_review_requires_completed_launch_step",
+        "test_supplier_proforma_correction_requires_a_documented_variance",
+        "test_supplier_proforma_review_requires_positive_amount_and_file",
+        "test_supplier_proforma_review_rejects_unsupported_file_type",
+        "test_supplier_proforma_correction_sets_external_waiting_status",
+        "test_supplier_proforma_validation_completes_second_step",
+        "test_legacy_downstream_order_keeps_proforma_step_complete",
+        "test_validated_proforma_fields_cannot_be_changed_by_generic_update",
+        "test_cancelled_order_blocks_launch_and_proforma_workflows",
+        "test_global_status_changes_require_specific_permission",
+        "test_reopened_legacy_cancelled_order_stays_reopened",
+        "test_only_cancelled_order_can_be_reopened",
+        "test_legacy_status_transition_requires_completed_payment",
+        "test_legacy_status_cannot_skip_supplier_proforma",
+        "test_detail_calculates_overdue_status_without_writing_on_get",
+        "test_delivered_kpi_includes_legacy_delivery_stage",
+        "test_part_three_full_payment_flow_matches_docx",
+        "test_payment_request_requires_a_complete_validated_import_title",
+        "test_payment_validation_requires_execution_and_proof",
+        "test_generic_edit_cannot_bypass_title_or_payment_workflow",
+        "test_generic_document_upload_rejects_unsupported_files",
+        "test_only_assigned_responsible_can_edit_import_title",
+        "test_responsible_without_manager_role_can_only_edit_import_title",
+        "test_partial_payment_keeps_remaining_installment_and_balance",
+        "test_accounting_can_block_for_correction_and_owner_can_resubmit",
+        "test_logistics_admin_keeps_supplier_snapshot_readonly",
+        "test_legacy_payment_data_migration_preserves_currency_and_proof",
+        "test_email_delivery_data_migration_preserves_legacy_actions_and_known_address",
+        "test_queue_token_migration_makes_preexisting_pending_rows_retryable",
+        "test_payment_request_cannot_be_replayed_or_reopen_completed_state",
+        "test_supplier_proof_email_status_is_manual_and_does_not_require_address",
+        "test_failed_accounting_email_can_be_requeued_by_order_responsible",
+        "test_unverified_legacy_supplier_action_must_be_resent_before_confirmation",
+        "test_stale_accounting_email_claim_can_be_requeued",
+        "test_accounting_delivery_storage_failure_is_retryable_and_refreshes_recipients",
+        "test_supplier_delivery_storage_failure_is_retryable",
+        "test_publish_failure_cannot_clobber_a_live_delivery_claim",
+        "test_fresh_delivery_lease_is_never_reclaimed_from_same_task_id",
+        "test_delivery_claim_revalidates_current_business_state",
+        "test_orphaned_queued_deliveries_become_retryable",
+        "test_cancellation_invalidates_queued_email_and_blocks_live_delivery",
+        "test_logistics_responsible_options_are_company_scoped"
+      ]
+    },
+    "logistique/urls.py": {
+      "classes": [],
+      "functions": []
+    },
+    "logistique/utils.py": {
+      "classes": [],
+      "functions": [
+        "get_next_numero_logistique"
+      ]
+    },
+    "logistique/views.py": {
+      "classes": [
+        "LogisticsOrderListCreateView",
+        "LogisticsOrderSourcePreviewView",
+        "LogisticsOrderDetailEditDeleteView",
+        "GenerateNumeroLogistiqueView",
+        "LogisticsResponsibleOptionsView",
+        "LogisticsOrderStatusUpdateView",
+        "LogisticsOrderGlobalStatusUpdateView",
+        "LogisticsProformaRequestView",
+        "LogisticsLaunchStatusUpdateView",
+        "LogisticsSupplierProformaReviewView",
+        "LogisticsPaymentRequestView",
+        "LogisticsPaymentEmailRetryView",
+        "LogisticsPaymentStartView",
+        "LogisticsPaymentExecutionView",
+        "LogisticsPaymentValidateView",
+        "LogisticsPaymentRejectView",
+        "LogisticsSwiftSentView",
+        "LogisticsProcessNoteCreateView",
+        "LogisticsSupplierListView",
+        "LogisticsPaymentReceiptConfirmView",
+        "LogisticsDashboardView",
+        "BulkDeleteLogisticsOrderView",
+        "LogisticsFieldReviewView"
+      ],
+      "functions": [
+        "_money_field",
+        "_add_months",
+        "_month_start_datetime",
+        "_has_payment_validation_permission",
+        "_is_order_responsible",
+        "_can_process_assigned_payment",
+        "_get_locked_installment",
+        "_clear_payment_installment_cache",
+        "_can_manage_logistics",
+        "_can_create_logistics",
+        "_ensure_order_active",
+        "_invalidate_or_block_active_email_deliveries",
+        "_notify_logistics_responsible",
+        "_assign_payment_task",
+        "get_logistics_stats"
+      ]
+    },
+    "manage.py": {
+      "classes": [],
+      "functions": [
+        "main"
+      ]
+    },
+    "notification/__init__.py": {
+      "classes": [],
+      "functions": []
+    },
+    "notification/admin.py": {
+      "classes": [
+        "NotificationPreferenceAdmin",
+        "NotificationAdmin",
+        "HistoricalNotificationPreferenceAdmin",
+        "HistoricalNotificationAdmin"
+      ],
+      "functions": []
+    },
+    "notification/apps.py": {
+      "classes": [
+        "NotificationConfig"
+      ],
+      "functions": []
+    },
+    "notification/migrations/0001_initial.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "notification/migrations/0002_notification_document_created_preference.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "notification/migrations/0003_notification_target_url.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "notification/migrations/0004_historicalnotificationpreference_low_stock_repeat_hours_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "notification/migrations/__init__.py": {
+      "classes": [],
+      "functions": []
+    },
+    "notification/models.py": {
+      "classes": [
+        "NotificationPreference",
+        "Notification"
+      ],
+      "functions": []
+    },
+    "notification/serializers.py": {
+      "classes": [
+        "NotificationPreferenceSerializer",
+        "NotificationSerializer"
+      ],
+      "functions": []
+    },
+    "notification/services.py": {
+      "classes": [],
+      "functions": [
+        "_dashboard_url",
+        "_get_document_company_id",
+        "_get_model_for_route",
+        "_resolve_document_company_id",
+        "_route_from_document_message",
+        "_route_from_target_url",
+        "_route_from_notification",
+        "resolve_notification_target_url",
+        "broadcast_notification",
+        "_clean_document_label",
+        "_get_document_number",
+        "_get_document_target_url",
+        "notify_document_created"
+      ]
+    },
+    "notification/signals.py": {
+      "classes": [],
+      "functions": [
+        "create_notification_preference"
+      ]
+    },
+    "notification/tasks.py": {
+      "classes": [],
+      "functions": [
+        "check_facturation_notifications",
+        "_get_user_companies"
+      ]
+    },
+    "notification/tests.py": {
+      "classes": [],
+      "functions": [
+        "_notification",
+        "test_notification_target_url_preserves_stored_url",
+        "test_notification_target_url_infers_legacy_document_created_url",
+        "test_notification_target_url_infers_periodic_notification_url",
+        "test_notification_serializer_returns_resolved_target_url",
+        "test_document_target_url_uses_document_class_name"
+      ]
+    },
+    "notification/urls.py": {
+      "classes": [],
+      "functions": []
+    },
+    "notification/views.py": {
+      "classes": [
+        "NotificationPreferenceView",
+        "NotificationListView",
+        "NotificationMarkReadView",
+        "NotificationUnreadCountView"
+      ],
+      "functions": []
+    },
+    "parameter/__init__.py": {
+      "classes": [],
+      "functions": []
+    },
+    "parameter/admin.py": {
+      "classes": [
+        "VilleAdmin",
+        "MarqueAdmin",
+        "CategorieAdmin",
+        "UniteAdmin",
+        "EmplacementAdmin",
+        "ModePaiementAdmin",
+        "LivreParAdmin",
+        "HistoricalVilleAdmin",
+        "HistoricalMarqueAdmin",
+        "HistoricalCategorieAdmin",
+        "HistoricalUniteAdmin",
+        "HistoricalEmplacementAdmin",
+        "HistoricalModePaiementAdmin",
+        "HistoricalLivreParAdmin"
+      ],
+      "functions": []
+    },
+    "parameter/apps.py": {
+      "classes": [
+        "ParameterConfig"
+      ],
+      "functions": []
+    },
+    "parameter/management/__init__.py": {
+      "classes": [],
+      "functions": []
+    },
+    "parameter/management/commands/__init__.py": {
+      "classes": [],
+      "functions": []
+    },
+    "parameter/management/commands/populate_initial_data.py": {
+      "classes": [
+        "Command"
+      ],
+      "functions": []
+    },
+    "parameter/migrations/0001_initial.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "parameter/migrations/0002_alter_ville_nom.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "parameter/migrations/0003_categorie_emplacement_marque_unite.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "parameter/migrations/0004_modepaiement_modereglement.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "parameter/migrations/0005_livrepar.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "parameter/migrations/0006_delete_modereglement.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "parameter/migrations/0007_historicalcategorie_historicalemplacement_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "parameter/migrations/0008_alter_categorie_nom_alter_emplacement_nom_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "parameter/migrations/0009_alter_historicalcategorie_options_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "parameter/migrations/0010_add_company_to_parameters.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": [
+        "set_default_company"
+      ]
+    },
+    "parameter/migrations/__init__.py": {
+      "classes": [],
+      "functions": []
+    },
+    "parameter/models.py": {
+      "classes": [
+        "Ville",
+        "ModePaiement",
+        "Marque",
+        "Categorie",
+        "Unite",
+        "Emplacement",
+        "LivrePar"
+      ],
+      "functions": []
+    },
+    "parameter/serializers.py": {
+      "classes": [
+        "VilleSerializer",
+        "MarqueSerializer",
+        "CategorieSerializer",
+        "UniteSerializer",
+        "EmplacementSerializer",
+        "ModePaiementSerializer",
+        "LivreParSerializer"
+      ],
+      "functions": []
+    },
+    "parameter/tests.py": {
+      "classes": [
+        "BaseAPITest",
+        "TestVilleAPI",
+        "TestMarqueAPI",
+        "TestCategorieAPI",
+        "TestUniteAPI",
+        "TestEmplacementAPI",
+        "TestModePaiementAPI",
+        "TestLivreParAPI",
+        "TestParameterModelsExtra"
+      ],
+      "functions": []
+    },
+    "parameter/urls.py": {
+      "classes": [],
+      "functions": []
+    },
+    "parameter/views.py": {
+      "classes": [
+        "BaseModelViewSet",
+        "VilleViewSet",
+        "MarqueViewSet",
+        "CategorieViewSet",
+        "UniteViewSet",
+        "EmplacementViewSet",
+        "ModePaiementViewSet",
+        "LivreParViewSet"
+      ],
+      "functions": []
+    },
+    "reglement/__init__.py": {
+      "classes": [],
+      "functions": []
+    },
+    "reglement/admin.py": {
+      "classes": [
+        "ReglementAdminForm",
+        "ReglementAdmin",
+        "HistoricalReglementAdmin"
+      ],
+      "functions": []
+    },
+    "reglement/apps.py": {
+      "classes": [
+        "ReglementConfig"
+      ],
+      "functions": []
+    },
+    "reglement/filters.py": {
+      "classes": [
+        "ReglementFilter"
+      ],
+      "functions": []
+    },
+    "reglement/migrations/0001_initial.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "reglement/migrations/0002_alter_reglement_mode_reglement_historicalreglement.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "reglement/migrations/0003_alter_reglement_facture_client.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "reglement/migrations/0004_alter_historicalreglement_date_created_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "reglement/migrations/0005_alter_historicalreglement_options.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "reglement/migrations/0006_alter_historicalreglement_montant_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "reglement/migrations/0007_alter_historicalreglement_statut_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "reglement/migrations/0008_reglement_reglement_r_facture_e4fbda_idx.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "reglement/migrations/0009_historicalreglement_observations_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "reglement/migrations/__init__.py": {
+      "classes": [],
+      "functions": []
+    },
+    "reglement/models.py": {
+      "classes": [
+        "Reglement"
+      ],
+      "functions": []
+    },
+    "reglement/serializers.py": {
+      "classes": [
+        "ReglementClientNameMixin",
+        "ReglementListSerializer",
+        "ReglementDetailSerializer",
+        "ReglementCreateSerializer",
+        "ReglementUpdateSerializer"
+      ],
+      "functions": []
+    },
+    "reglement/tests.py": {
+      "classes": [
+        "TestReglementModel",
+        "TestReglementAPI",
+        "TestReglementFilters",
+        "TestReglementAdmin",
+        "TestReglementSerializers",
+        "TestReglementEdgeCases",
+        "TestReglementFactureStatusValidation",
+        "TestReglementPDFGeneration",
+        "TestBulkDeleteReglementAPI"
+      ],
+      "functions": [
+        "reglement_user",
+        "reglement_company",
+        "reglement_ville",
+        "reglement_client",
+        "reglement_mode_paiement",
+        "reglement_mode_reglement",
+        "reglement_mode_reglement_cheque",
+        "reglement_article",
+        "reglement_facture",
+        "reglement_facture_with_lines",
+        "reglement_obj",
+        "reglement_membership"
+      ]
+    },
+    "reglement/urls.py": {
+      "classes": [],
+      "functions": []
+    },
+    "reglement/views.py": {
+      "classes": [
+        "ReglementListCreateView",
+        "ReglementDetailEditDeleteView",
+        "ReglementStatusUpdateView",
+        "ReglementPDFGenerator",
+        "ReglementPDFView",
+        "BulkDeleteReglementView"
+      ],
+      "functions": []
+    },
+    "stock/__init__.py": {
+      "classes": [],
+      "functions": []
+    },
+    "stock/admin.py": {
+      "classes": [
+        "StockBalanceAdmin",
+        "StockMovementAdmin",
+        "StockReceiptLineInline",
+        "StockReceiptAdmin",
+        "InventoryLineInline",
+        "InventorySessionAdmin"
+      ],
+      "functions": []
+    },
+    "stock/apps.py": {
+      "classes": [
+        "StockConfig"
+      ],
+      "functions": []
+    },
+    "stock/expiry.py": {
+      "classes": [],
+      "functions": [
+        "_active",
+        "_notify",
+        "process_reservation_deadline",
+        "scan_reservation_deadlines"
+      ]
+    },
+    "stock/migrations/0001_initial.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "stock/migrations/0002_stockreservation_expires_at_and_more.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": [
+        "start_existing_holds"
+      ]
+    },
+    "stock/migrations/__init__.py": {
+      "classes": [],
+      "functions": []
+    },
+    "stock/models.py": {
+      "classes": [
+        "StockBalance",
+        "StockReservation",
+        "StockMovement",
+        "StockReceipt",
+        "StockReceiptLine",
+        "InventorySession",
+        "InventoryLine",
+        "LowStockAlert"
+      ],
+      "functions": []
+    },
+    "stock/serializers.py": {
+      "classes": [
+        "StockBalanceSerializer",
+        "StockMovementSerializer",
+        "StockAdjustmentSerializer",
+        "StockReceiptLineSerializer",
+        "StockReceiptSerializer",
+        "InventoryLineSerializer",
+        "InventorySerializer"
+      ],
+      "functions": []
+    },
+    "stock/services.py": {
+      "classes": [
+        "StockBalanceSnapshot",
+        "ArticleStockSnapshot"
+      ],
+      "functions": [
+        "is_product",
+        "stock_enabled",
+        "ensure_company_stock_ready",
+        "get_locked_balance",
+        "incoming_quantity",
+        "balance_snapshot",
+        "prepare_balance_snapshots",
+        "article_stock_snapshot",
+        "prepare_article_stock_snapshots",
+        "coverage_for_article",
+        "_schedule_low_stock_check",
+        "post_movement",
+        "sync_proforma_reservations",
+        "activate_incoming",
+        "_consume_reservation",
+        "sync_delivery_stock",
+        "validate_receipt",
+        "cancel_receipt",
+        "validate_inventory",
+        "evaluate_low_stock",
+        "scan_low_stock"
+      ]
+    },
+    "stock/tasks.py": {
+      "classes": [],
+      "functions": [
+        "check_low_stock",
+        "check_reservation_deadlines"
+      ]
+    },
+    "stock/test_expiry.py": {
+      "classes": [],
+      "functions": [
+        "accept",
+        "member_client",
+        "test_deadline_is_seven_days_from_acceptance_and_reacceptance",
+        "test_warning_once_at_24_hours_and_only_to_company_members",
+        "test_expiry_releases_once_preserves_physical_stock_and_logistics",
+        "test_expiry_after_partial_delivery_releases_only_remaining",
+        "test_consumed_or_cancelled_documents_are_not_expired",
+        "test_stock_default_positive_first_before_pagination_explicit_sort_still_works",
+        "test_inventory_activation_enforced_and_existing_history_readable",
+        "test_inventory_requires_stock_activation",
+        "test_missing_logistics_role_migration_is_idempotent",
+        "test_company_default_employee_range_can_be_saved"
+      ]
+    },
+    "stock/tests.py": {
+      "classes": [
+        "StockContext"
+      ],
+      "functions": [
+        "stock_context",
+        "test_proforma_reservation_can_exceed_available_stock",
+        "test_launched_logistics_is_reported_as_incoming_and_partial_receipt_reduces_it",
+        "test_delivery_rejects_entire_status_change_when_physical_stock_is_short",
+        "test_factured_delivery_posts_stock_once_and_can_be_reversed",
+        "test_reposted_delivery_deducts_stock_again_after_reversal",
+        "test_delivery_reversal_does_not_restore_cancelled_proforma_reservation",
+        "test_reaccepting_proforma_reuses_released_reservation_quantity",
+        "test_closed_logistics_order_is_not_counted_as_incoming",
+        "test_company_activation_only_initializes_the_selected_company",
+        "test_company_activation_does_not_reserve_historical_delivered_quantity",
+        "test_stock_api_is_visible_to_members_but_adjustments_require_caissier",
+        "test_low_stock_notifications_respect_role_and_user_preference",
+        "test_low_stock_repeat_delay_is_applied_per_user"
+      ]
+    },
+    "stock/urls.py": {
+      "classes": [],
+      "functions": []
+    },
+    "stock/views.py": {
+      "classes": [
+        "StockAccessMixin",
+        "StockBalanceListView",
+        "StockBalanceDetailView",
+        "StockMovementListView",
+        "StockMovementDetailView",
+        "StockAdjustmentCreateView",
+        "StockReceiptListCreateView",
+        "StockReceiptDetailView",
+        "StockReceiptActionView",
+        "InventoryListCreateView",
+        "InventoryDetailView",
+        "InventoryValidateView"
+      ],
+      "functions": [
+        "apply_list_filters"
+      ]
+    },
+    "ws/__init__.py": {
+      "classes": [],
+      "functions": []
+    },
+    "ws/admin.py": {
+      "classes": [
+        "WsMaintenanceStateAdmin"
+      ],
+      "functions": []
+    },
+    "ws/apps.py": {
+      "classes": [
+        "WsConfig"
+      ],
+      "functions": []
+    },
+    "ws/consumers.py": {
+      "classes": [
+        "ChatConsumer"
+      ],
+      "functions": []
+    },
+    "ws/jwt_middleware.py": {
+      "classes": [
+        "_AwaitableUser",
+        "SimpleJwtTokenAuthMiddleware"
+      ],
+      "functions": [
+        "simplejwttokenauthmiddlewarestack"
+      ]
+    },
+    "ws/migrations/0001_initial.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "ws/migrations/0002_alter_wsmaintenancestate_options.py": {
+      "classes": [
+        "Migration"
+      ],
+      "functions": []
+    },
+    "ws/migrations/__init__.py": {
+      "classes": [],
+      "functions": []
+    },
+    "ws/models.py": {
+      "classes": [
+        "WsMaintenanceState"
+      ],
+      "functions": [
+        "broadcast_maintenance_state"
+      ]
+    },
+    "ws/routing.py": {
+      "classes": [],
+      "functions": []
+    },
+    "ws/tests.py": {
+      "classes": [
+        "TestWebSocketConsumer",
+        "TestAwaitableUserExtra",
+        "TestSimpleJwtTokenAuthMiddlewareExtra",
+        "TestSimpleJwtTokenAuthMiddlewareStackExtra"
+      ],
+      "functions": [
+        "test_get_maintenance_view_is_public_and_not_throttled"
+      ]
+    },
+    "ws/views.py": {
+      "classes": [
+        "GetMaintenanceView"
+      ],
+      "functions": []
+    }
+  },
+  "frontend_routes": [
+    "src/app/(auth)/login/page.tsx",
+    "src/app/(auth)/reset-password/enter-code/page.tsx",
+    "src/app/(auth)/reset-password/page.tsx",
+    "src/app/(auth)/reset-password/set-password-complete/page.tsx",
+    "src/app/(auth)/reset-password/set-password/page.tsx",
+    "src/app/dashboard/articles/[id]/edit/page.tsx",
+    "src/app/dashboard/articles/[id]/page.tsx",
+    "src/app/dashboard/articles/archived/page.tsx",
+    "src/app/dashboard/articles/new/page.tsx",
+    "src/app/dashboard/articles/page.tsx",
+    "src/app/dashboard/bon-de-livraison/[id]/edit/page.tsx",
+    "src/app/dashboard/bon-de-livraison/[id]/page.tsx",
+    "src/app/dashboard/bon-de-livraison/new/page.tsx",
+    "src/app/dashboard/bon-de-livraison/page.tsx",
+    "src/app/dashboard/bon-de-livraison/uninvoiced/page.tsx",
+    "src/app/dashboard/clients/[id]/edit/page.tsx",
+    "src/app/dashboard/clients/[id]/page.tsx",
+    "src/app/dashboard/clients/archived/page.tsx",
+    "src/app/dashboard/clients/new/page.tsx",
+    "src/app/dashboard/clients/page.tsx",
+    "src/app/dashboard/companies/[id]/edit/page.tsx",
+    "src/app/dashboard/companies/[id]/page.tsx",
+    "src/app/dashboard/companies/new/page.tsx",
+    "src/app/dashboard/companies/page.tsx",
+    "src/app/dashboard/devis/[id]/edit/page.tsx",
+    "src/app/dashboard/devis/[id]/page.tsx",
+    "src/app/dashboard/devis/new/page.tsx",
+    "src/app/dashboard/devis/page.tsx",
+    "src/app/dashboard/facture-avoir/[id]/edit/page.tsx",
+    "src/app/dashboard/facture-avoir/[id]/page.tsx",
+    "src/app/dashboard/facture-avoir/new/page.tsx",
+    "src/app/dashboard/facture-avoir/page.tsx",
+    "src/app/dashboard/facture-client/[id]/edit/page.tsx",
+    "src/app/dashboard/facture-client/[id]/page.tsx",
+    "src/app/dashboard/facture-client/new/page.tsx",
+    "src/app/dashboard/facture-client/page.tsx",
+    "src/app/dashboard/facture-client/unpaid/page.tsx",
+    "src/app/dashboard/facture-pro-forma/[id]/edit/page.tsx",
+    "src/app/dashboard/facture-pro-forma/[id]/page.tsx",
+    "src/app/dashboard/facture-pro-forma/new/page.tsx",
+    "src/app/dashboard/facture-pro-forma/page.tsx",
+    "src/app/dashboard/logistique/[id]/edit/page.tsx",
+    "src/app/dashboard/logistique/[id]/page.tsx",
+    "src/app/dashboard/logistique/dashboard/page.tsx",
+    "src/app/dashboard/logistique/fournisseurs/page.tsx",
+    "src/app/dashboard/logistique/gantt/page.tsx",
+    "src/app/dashboard/logistique/new/page.tsx",
+    "src/app/dashboard/logistique/page.tsx",
+    "src/app/dashboard/page.tsx",
+    "src/app/dashboard/reglements/[id]/edit/page.tsx",
+    "src/app/dashboard/reglements/[id]/page.tsx",
+    "src/app/dashboard/reglements/new/page.tsx",
+    "src/app/dashboard/reglements/page.tsx",
+    "src/app/dashboard/settings/edit-profile/page.tsx",
+    "src/app/dashboard/settings/notifications/page.tsx",
+    "src/app/dashboard/settings/objectifs-mensuels/page.tsx",
+    "src/app/dashboard/settings/password/page.tsx",
+    "src/app/dashboard/stock/[id]/page.tsx",
+    "src/app/dashboard/stock/inventories/[id]/page.tsx",
+    "src/app/dashboard/stock/inventories/new/page.tsx",
+    "src/app/dashboard/stock/inventories/page.tsx",
+    "src/app/dashboard/stock/movements/[id]/page.tsx",
+    "src/app/dashboard/stock/movements/page.tsx",
+    "src/app/dashboard/stock/new/page.tsx",
+    "src/app/dashboard/stock/page.tsx",
+    "src/app/dashboard/stock/receipts/[id]/page.tsx",
+    "src/app/dashboard/stock/receipts/new/page.tsx",
+    "src/app/dashboard/stock/receipts/page.tsx",
+    "src/app/dashboard/users/[id]/edit/page.tsx",
+    "src/app/dashboard/users/[id]/page.tsx",
+    "src/app/dashboard/users/new/page.tsx",
+    "src/app/dashboard/users/page.tsx",
+    "src/app/page.tsx",
+    "src/app/sso/callback/page.tsx",
+    "src/app/sso/start/page.tsx"
+  ],
+  "heads": {
+    "facturation_backend": "a97edcab12ce6d1d82833e961d00c55a15cf7e78",
+    "facturation_frontend": "8d866ab9c5229f250641c7026d38d7143934d1c3"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "image": "chat-ai-facturation-backend:validation-20261008",
+  "checks": [
+    {
+      "command": "manage.py check",
+      "exit_code": 0
+    },
+    {
+      "command": "manage.py migrate --noinput",
+      "exit_code": 0
+    },
+    {
+      "command": "manage.py migrate --check",
+      "exit_code": 0
+    },
+    {
+      "command": "manage.py sync_ai_knowledge",
+      "exit_code": 0
+    }
+  ],
+  "image_id": "sha256:4a885c2525fb6465be272ab4726f44fa19d13dd1da78e21b96b549293c511fef",
+  "status": "passed"
+}

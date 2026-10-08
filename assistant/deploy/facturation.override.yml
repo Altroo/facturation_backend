@@ -1,0 +1,19 @@
+# Compose with Facturation's existing docker-compose.yml after explicit approval.
+services:
+  web:
+    networks:
+      - backend
+      - ai-gateway
+      - chat-ai-internal
+    environment:
+      CHAT_AI_ASSISTANT_ENABLED: ${CHAT_AI_ASSISTANT_ENABLED:-false}
+      CHAT_AI_MODEL_URL: http://chat-ai-model:18090/v1
+      CHAT_AI_MODEL_KEY: ${CHAT_AI_MODEL_KEY:?Set the same dedicated inference key}
+      CHAT_AI_MODEL_ID: ${CHAT_AI_MODEL_ID:?Set the same immutable model release identifier}
+      CHAT_AI_MODEL_MAX_TOKENS: '512'
+      CHAT_AI_MODEL_TIMEOUT: '120'
+      CHAT_AI_RETENTION_DAYS: '30'
+networks:
+  chat-ai-internal:
+    external: true
+    name: chat-ai-facturation-internal

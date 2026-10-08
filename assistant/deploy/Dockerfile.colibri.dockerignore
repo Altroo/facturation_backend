@@ -1,0 +1,10 @@
+**
+!runtime/
+!runtime/colibri/
+!runtime/colibri/c/
+!runtime/colibri/c/**
+runtime/colibri/c/__pycache__/
+runtime/colibri/c/*.o
+runtime/colibri/c/*.dylib
+runtime/colibri/c/*.so
+runtime/colibri/c/.build-config

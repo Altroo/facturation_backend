@@ -1,0 +1,88 @@
+{
+  "version": "facturation-synthetic-v4-en-fr",
+  "languages": [
+    "en",
+    "fr"
+  ],
+  "source": "Independently authored synthetic capability/argument combinations from current registered contracts; no database connection or private business records.",
+  "split_policy": "Scenario families and their two language variants stay together. Training and validation have separate phrasings and unseen filter combinations. Normalized/context duplicates and cross-split delexicalized near duplicates are rejected. Historical held-out prompts are exclusion-only.",
+  "test_status": "NO TEST SET. Independent held-out scenarios must be authored and frozen separately; validation is development data.",
+  "permissions": "Profiles represent backend capability sets, not an alternative role hierarchy. Tool execution must still reauthorize. All database connections are forbidden during export.",
+  "limitations": [
+    "Synthetic planner actions only; no business execution or generated RAG-answer evaluation.",
+    "Numeric hints are uncommon explicit user inputs and never authorization. Most discovery uses names/products and previous_results.",
+    "Production context exposes previous result type/count, not IDs. Natural selected-document edits still need result selection/action cards; no invented context keys.",
+    "Lifecycle/object permission checks remain backend responsibilities; mutation calls propose confirmation, never execute writes.",
+    "Evaluator must consume per-case offered_tool_schemas to preserve capability-narrowed validation.",
+    "No accuracy or training result is claimed."
+  ],
+  "generator_sha256": "f5f4deb354557d007f13ea23721577ca666aecf492f662bf3233ac6f4db34476",
+  "backend_source_sha256": {
+    "chat_ai/tools.py": "e5c59826657605614b973c83a6db749c6f77239b6a0246fc6618a70023a972cd",
+    "chat_ai/security.py": "377cb4bf4bb4e3974844959e9a2db89c5fcff73d08d41913a9b5f2eb62c36279",
+    "chat_ai/catalog.py": "f44a946bf2c148d8ecc341316930adccaccd75ff42c7801e137117408ef65f42",
+    "chat_ai/documents.py": "ed49142ac4b7bf90f5dd49f95df1635070d2877defee360f0be56e7b744bfe95",
+    "chat_ai/operations.py": "8107fc9dadc8c0d6051068f9ab6fe606214a96963656eb51e08b6c0041cff862",
+    "chat_ai/navigation.py": "3aeb3a2d946fb01cfb816b8fd6137edb2e079abd0e0fa3c0f2dd76910aa5fb42",
+    "chat_ai/actions.py": "cd64b022fb988c48b51dca5dda77861493f171bf7917f1b3d1024301d9b0a87c"
+  },
+  "core_source_sha256": {
+    "orchestrator.py": "6d135df474775029b4820c827efb546e5d3866edf0dad5a316e79c4f6a30e7e9",
+    "routing.py": "7642cf7ccb074f92f2b5e9eb8df4421535850a5eb812e5686bbbefdae1ed24a2",
+    "clarifications.py": "423bf5e16f641ad9b492fb2cb59f25de0c8817aca49b5e23926aa7014200a8e2",
+    "contracts.py": "ab31f8ff3f2f20b776ca412436e0730dc8fa00e892801772e863400bab4b6fa3"
+  },
+  "tokenizer_sha256": {
+    "tokenizer.json": "5f9e4d4901a92b997e463c1f46055088b6cca5ca61a6522d1b9f64c4bb81cb42",
+    "chat_template.jinja": "273d8e0e683b885071fb17e08d71e5f2a5ddfb5309756181681de4f5a1822d80",
+    "tokenizer_config.json": "49e2b6e395f959f077f1e992b338919c0d4a9732fc6e613995e06557f843500c"
+  },
+  "validation": {
+    "schema": true,
+    "business_argument_invariants": true,
+    "credentials_and_internal_prompt_keys": true,
+    "cross_split_duplicates": true,
+    "historical_heldout_exclusion": true,
+    "colibri_hf_template_parity": true,
+    "assistant_loss_boundary": true,
+    "context_limit": true,
+    "database_access": "forbidden"
+  },
+  "files": [
+    {
+      "file": "train.jsonl",
+      "sha256": "2279c822c34b4e18ec1ee3a5d5e92c076b221becd7ec0e2bc65a4bafb2ad47dc",
+      "rows": 410
+    },
+    {
+      "file": "train.eval.jsonl",
+      "sha256": "902a288fede3e94c63176ec25647e742af58ebe789cbdc358278e830f19c3b35",
+      "rows": 410
+    },
+    {
+      "file": "valid.jsonl",
+      "sha256": "1f476c825b9467ad79ad4c6b3bd9f2ed18237d532ea492f5c6c9089e0de75881",
+      "rows": 86
+    },
+    {
+      "file": "valid.eval.jsonl",
+      "sha256": "b8c604ca98bde0c70b8d07d800d3984c6a3538e60a092e93a3c432f96fc3fa1a",
+      "rows": 86
+    },
+    {
+      "file": "tool-schemas.json",
+      "sha256": "9699ddfea76317f96eec5a89ff17a3418220d371e850fffca261f7fcbcf7bfe4",
+      "rows": null
+    },
+    {
+      "file": "capability-schemas.json",
+      "sha256": "4cb6ba3dadbc5805ad96712c7e69b0c046155fa434b8f2003f3f9e4c2edc5836",
+      "rows": null
+    },
+    {
+      "file": "coverage.json",
+      "sha256": "d61ff75ffd700d3ef94eeab609515d99bc5773d6c7e28fd96dd690edf19f8bfb",
+      "rows": null
+    }
+  ]
+}

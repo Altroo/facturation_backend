@@ -1,0 +1,275 @@
+{
+  "inference_platform": "Linux-6.8.0-117-generic-x86_64-with-glibc2.39",
+  "model_manifest": {
+    "model_id": "chat-ai-facturation",
+    "weights_sha256": "4d46fb74493ea9cde6115c928de9d902c10bce247d1f2701c55d7464237f815b",
+    "tokenizer_sha256": "a5cd9732badce41de57e6efce8302930ded1c1188c5f81feb2bd6c24c4a1941f",
+    "config_sha256": "88536d56364862eef9db15bc331df9586f9d57d533c1c5e277619b93e8f566e9",
+    "runtime_sha256": "abbe8902ab7db126019b780521fb14b163798a1354904cdb2b7f8620da5cb2ff",
+    "inference_platform": "Linux x86_64; AMD Ryzen 7 7700; 16 logical CPUs; CPU inference 4 threads",
+    "runtime": "Colibri Qwen engine x86-64-v3, dense int8; pinned source 4a4f7a73",
+    "model_path": "/var/www/chat-ai-assistant-training/models/Qwen3.5-0.8B-facturation-v2-colibri",
+    "service_unit": "chat-ai-eval-model-v2-20261008",
+    "ctx": 8192,
+    "max_tokens": 512,
+    "thinking": false,
+    "cpu_quota": 4,
+    "memory_limit_gib": 6,
+    "attestation": "Recorded during uninterrupted evaluation. No model process or weight replacement occurred. SHA256 source evidence v2-artifact-sha256.txt."
+  },
+  "profile_attributed": true,
+  "logical_cpus": 16,
+  "unit": "chat-ai-eval-model-v2-20261008",
+  "threads_env": "4",
+  "cpu_quota_systemd": "4s",
+  "model": "chat-ai-facturation",
+  "sequential": {
+    "count": 4,
+    "mean_latency_s": 10.182918222621083,
+    "p95_latency_s": 11.779190415516496,
+    "errors": 0
+  },
+  "concurrency_two": {
+    "count": 4,
+    "mean_latency_s": 14.965497839730233,
+    "p95_latency_s": 21.381493002176285,
+    "errors": 0
+  },
+  "cases": [
+    {
+      "id": "valid-00-en",
+      "language": "en",
+      "latency_s": 9.988958204165101,
+      "first_visible_event_s": 9.988862475380301,
+      "usage": {
+        "prompt_tokens": 2306,
+        "completion_tokens": 69,
+        "total_tokens": 2375
+      },
+      "finish_reason": "tool_calls",
+      "error": null
+    },
+    {
+      "id": "valid-00-fr",
+      "language": "fr",
+      "latency_s": 9.461339626461267,
+      "first_visible_event_s": 9.46123193576932,
+      "usage": {
+        "prompt_tokens": 2306,
+        "completion_tokens": 39,
+        "total_tokens": 2345
+      },
+      "finish_reason": "tool_calls",
+      "error": null
+    },
+    {
+      "id": "valid-00-ar",
+      "language": "ar",
+      "latency_s": 11.779190415516496,
+      "first_visible_event_s": 11.779067736119032,
+      "usage": {
+        "prompt_tokens": 2689,
+        "completion_tokens": 69,
+        "total_tokens": 2758
+      },
+      "finish_reason": "tool_calls",
+      "error": null
+    },
+    {
+      "id": "valid-00-ary",
+      "language": "ary",
+      "latency_s": 9.502184644341469,
+      "first_visible_event_s": 9.502043019980192,
+      "usage": {
+        "prompt_tokens": 2312,
+        "completion_tokens": 40,
+        "total_tokens": 2352
+      },
+      "finish_reason": "tool_calls",
+      "error": null
+    },
+    {
+      "id": "valid-00-en",
+      "language": "en",
+      "latency_s": 19.48095966130495,
+      "first_visible_event_s": 19.480859093368053,
+      "usage": {
+        "prompt_tokens": 2306,
+        "completion_tokens": 69,
+        "total_tokens": 2375
+      },
+      "finish_reason": "tool_calls",
+      "error": null
+    },
+    {
+      "id": "valid-00-fr",
+      "language": "fr",
+      "latency_s": 9.449240854009986,
+      "first_visible_event_s": 9.44915864057839,
+      "usage": {
+        "prompt_tokens": 2306,
+        "completion_tokens": 39,
+        "total_tokens": 2345
+      },
+      "finish_reason": "tool_calls",
+      "error": null
+    },
+    {
+      "id": "valid-00-ar",
+      "language": "ar",
+      "latency_s": 21.381493002176285,
+      "first_visible_event_s": 21.381373837590218,
+      "usage": {
+        "prompt_tokens": 2689,
+        "completion_tokens": 69,
+        "total_tokens": 2758
+      },
+      "finish_reason": "tool_calls",
+      "error": null
+    },
+    {
+      "id": "valid-00-ary",
+      "language": "ary",
+      "latency_s": 9.55029784142971,
+      "first_visible_event_s": 9.550187746062875,
+      "usage": {
+        "prompt_tokens": 2312,
+        "completion_tokens": 40,
+        "total_tokens": 2352
+      },
+      "finish_reason": "tool_calls",
+      "error": null
+    }
+  ],
+  "wall_s": 81.59523038752377,
+  "process_cpu_seconds": 326.2000000000007,
+  "average_busy_cpu_cores": 3.9977826945369834,
+  "host_cpu_capacity_percent": 24.986141840856146,
+  "rss_initial_bytes": 2853928960,
+  "rss_peak_bytes": 2854129664,
+  "host_memory_available_bytes": 39151689728,
+  "runtime_profile": [
+    {
+      "wall_s": 1.253398,
+      "prompt_tokens": 2306,
+      "completion_tokens": 69,
+      "expert_disk_s": 0.0,
+      "expert_wait_s": 0.0,
+      "expert_matmul_s": 0.360534,
+      "attention_s": 0.533024,
+      "lm_head_s": 0.0,
+      "forwards": 68
+    },
+    {
+      "wall_s": 0.70617,
+      "prompt_tokens": 2306,
+      "completion_tokens": 39,
+      "expert_disk_s": 0.0,
+      "expert_wait_s": 0.0,
+      "expert_matmul_s": 0.201236,
+      "attention_s": 0.298675,
+      "lm_head_s": 0.0,
+      "forwards": 38
+    },
+    {
+      "wall_s": 1.27925,
+      "prompt_tokens": 2689,
+      "completion_tokens": 69,
+      "expert_disk_s": 0.0,
+      "expert_wait_s": 0.0,
+      "expert_matmul_s": 0.361863,
+      "attention_s": 0.557356,
+      "lm_head_s": 0.0,
+      "forwards": 68
+    },
+    {
+      "wall_s": 0.729055,
+      "prompt_tokens": 2312,
+      "completion_tokens": 40,
+      "expert_disk_s": 0.0,
+      "expert_wait_s": 0.0,
+      "expert_matmul_s": 0.205476,
+      "attention_s": 0.311418,
+      "lm_head_s": 0.0,
+      "forwards": 39
+    },
+    {
+      "wall_s": 0.711462,
+      "prompt_tokens": 2306,
+      "completion_tokens": 39,
+      "expert_disk_s": 0.0,
+      "expert_wait_s": 0.0,
+      "expert_matmul_s": 0.199461,
+      "attention_s": 0.305247,
+      "lm_head_s": 0.0,
+      "forwards": 38
+    },
+    {
+      "wall_s": 1.261905,
+      "prompt_tokens": 2306,
+      "completion_tokens": 69,
+      "expert_disk_s": 0.0,
+      "expert_wait_s": 0.0,
+      "expert_matmul_s": 0.361276,
+      "attention_s": 0.539179,
+      "lm_head_s": 0.0,
+      "forwards": 68
+    },
+    {
+      "wall_s": 0.726688,
+      "prompt_tokens": 2312,
+      "completion_tokens": 40,
+      "expert_disk_s": 0.0,
+      "expert_wait_s": 0.0,
+      "expert_matmul_s": 0.205253,
+      "attention_s": 0.308952,
+      "lm_head_s": 0.0,
+      "forwards": 39
+    },
+    {
+      "wall_s": 1.28034,
+      "prompt_tokens": 2689,
+      "completion_tokens": 69,
+      "expert_disk_s": 0.0,
+      "expert_wait_s": 0.0,
+      "expert_matmul_s": 0.362275,
+      "attention_s": 0.557764,
+      "lm_head_s": 0.0,
+      "forwards": 68
+    }
+  ],
+  "weighted_decode_tokens_per_second": 54.603090887222216,
+  "scheduler_before": {
+    "active": 0,
+    "queued": 0,
+    "capacity": 1,
+    "max_queue": 2,
+    "queue_timeout_seconds": 10.0,
+    "admitted": 104,
+    "completed": 104,
+    "failed": 0,
+    "rejected": 0,
+    "timed_out": 0,
+    "cancelled": 0
+  },
+  "scheduler_after": {
+    "active": 0,
+    "queued": 0,
+    "capacity": 1,
+    "max_queue": 2,
+    "queue_timeout_seconds": 10.0,
+    "admitted": 112,
+    "completed": 112,
+    "failed": 0,
+    "rejected": 0,
+    "timed_out": 0,
+    "cancelled": 0
+  },
+  "limitations": [
+    "Four synthetic validation prompts repeated sequentially then with concurrency two: small performance probe, not capacity certification. Concurrent pass runs second; model and prefix caches may be warm.",
+    "Runtime profile wall_s starts after prefill (qwen36.c q36_prepare); decode rate excludes prompt processing.",
+    "First visible event for native tool calls is buffered, not first generated token.",
+    "Tests inference directly; application serializes model requests with a database lease.",
+    "Existing production services were not stopped. No application business operations executed."
+  ]
+}

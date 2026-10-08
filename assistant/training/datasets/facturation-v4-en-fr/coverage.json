@@ -1,0 +1,77 @@
+{
+  "rows": {
+    "train": 410,
+    "valid": 86
+  },
+  "scenarios": {
+    "train": 205,
+    "valid": 43
+  },
+  "tools": {
+    "train": {
+      "search_invoices": 22,
+      "search_quotes": 16,
+      "search_documents": 38,
+      "search_articles": 16,
+      "search_payments": 14,
+      "search_users": 12,
+      "search_operations": 84,
+      "search_clients": 8,
+      "financial_summary": 24,
+      "list_payments": 6,
+      "navigate": 34,
+      "get_invoice": 4,
+      "get_record": 22,
+      "previous_results": 14,
+      "prepare_change": 42,
+      "invoice_pdf": 4,
+      "knowledge": 20,
+      "clarify": 30
+    },
+    "valid": {
+      "search_invoices": 6,
+      "search_quotes": 4,
+      "search_documents": 14,
+      "search_articles": 4,
+      "search_payments": 4,
+      "search_users": 4,
+      "search_operations": 10,
+      "search_clients": 4,
+      "financial_summary": 4,
+      "list_payments": 2,
+      "navigate": 4,
+      "get_invoice": 2,
+      "get_record": 2,
+      "previous_results": 4,
+      "prepare_change": 4,
+      "invoice_pdf": 2,
+      "knowledge": 4,
+      "clarify": 8
+    }
+  },
+  "capability_profiles": {
+    "train": {
+      "member_read": 316,
+      "staff_read": 16,
+      "stock_only": 22,
+      "member_edit": 54,
+      "staff_edit": 2
+    },
+    "valid": {
+      "member_read": 60,
+      "stock_staff": 4,
+      "staff_read": 4,
+      "stock_only": 12,
+      "member_edit": 6
+    }
+  },
+  "history_rows": {
+    "train": 16,
+    "valid": 14
+  },
+  "template_tokens": {
+    "minimum": 1297,
+    "maximum": 4977,
+    "context_limit": 8192
+  }
+}

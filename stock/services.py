@@ -579,11 +579,11 @@ def _consume_reservation(proforma, article, quantity, balance):
 def sync_delivery_stock(delivery, old_status, new_status, actor):
     if not stock_enabled(delivery.company) or old_status == new_status:
         return
-    source_proforma = getattr(delivery.source_facture_client, "source_proforma", None)
-    if source_proforma:
-        FactureProForma.objects.select_for_update().get(pk=source_proforma.pk)
     posted_statuses = set(POSTED_DELIVERY_STATUSES)
     if new_status in posted_statuses and old_status not in posted_statuses:
+        source_proforma = getattr(delivery.source_facture_client, "source_proforma", None)
+        if source_proforma:
+            FactureProForma.objects.select_for_update().get(pk=source_proforma.pk)
         previous_postings = list(
             StockMovement.objects.select_for_update().filter(
                 source_type="BonDeLivraison",
@@ -682,54 +682,131 @@ def sync_delivery_stock(delivery, old_status, new_status, actor):
         return
 
     if old_status in posted_statuses and new_status not in posted_statuses:
-        movements = (
-            StockMovement.objects.filter(
-                source_type="BonDeLivraison",
-                source_id=delivery.pk,
-                movement_type=StockMovement.TYPE_DELIVERY,
-            )
-            .select_related("balance", "reservation")
-            .order_by("id")
+        _reverse_delivery_stock(delivery, actor)
+
+
+def _prepare_delivery_stock_reversals(deliveries):
+    """Validate ledger ownership, then lock proformas before balances.
+
+    Reservation provenance survives deletion of a source invoice. Read it from
+    the immutable ledger and prelock the complete batch in a stable order.
+    """
+    delivery_by_id = {delivery.pk: delivery for delivery in deliveries}
+    queryset = StockMovement.objects.filter(
+        source_type="BonDeLivraison",
+        source_id__in=delivery_by_id,
+        movement_type=StockMovement.TYPE_DELIVERY,
+    ).select_related(
+        "balance__article", "balance__emplacement",
+        "reservation__balance__article", "reservation__balance__emplacement",
+        "reservation__proforma_line__article",
+        "reservation__proforma_line__facture_pro_forma__client",
+    ).order_by("id")
+    proforma_ids = sorted(set(queryset.exclude(reservation=None).values_list(
+        "reservation__proforma_line__facture_pro_forma_id", flat=True)))
+    list(FactureProForma.objects.select_for_update().filter(pk__in=proforma_ids).order_by("pk"))
+    # Refetch after acquiring the proforma locks: a competing status transition
+    # may have changed the reservation's balance while we were waiting.
+    movements = list(queryset)
+    balance_ids = set()
+    grouped = {identifier: [] for identifier in delivery_by_id}
+    for delivery in deliveries:
+        if delivery.client.company_id != delivery.company_id:
+            raise ValidationError(_("Les données de stock du bon de livraison sont incohérentes."))
+    for movement in movements:
+        company_id = delivery_by_id[movement.source_id].company_id
+        balances = [movement.balance]
+        if movement.reservation_id:
+            reservation = movement.reservation
+            proforma = reservation.proforma_line.facture_pro_forma
+            if (proforma.company_id != company_id
+                    or proforma.client.company_id != company_id
+                    or reservation.proforma_line.article.company_id != company_id):
+                raise ValidationError(_("Les données de stock du bon de livraison sont incohérentes."))
+            balances.append(reservation.balance)
+        for balance in balances:
+            if (balance.company_id != company_id or balance.article.company_id != company_id
+                    or balance.emplacement.company_id != company_id):
+                raise ValidationError(_("Les données de stock du bon de livraison sont incohérentes."))
+            balance_ids.add(balance.pk)
+        grouped[movement.source_id].append(movement)
+    list(StockBalance.objects.select_for_update().filter(pk__in=balance_ids).order_by("pk"))
+    return grouped
+
+
+def _reverse_delivery_stock(delivery, actor, movements=None):
+    """Reverse existing postings under the transaction's ordered stock locks."""
+    if movements is None:
+        movements = _prepare_delivery_stock_reversals([delivery])[delivery.pk]
+    for movement in movements:
+        if hasattr(movement, "reversal"):
+            continue
+        post_movement(
+            balance=movement.balance,
+            quantity=-movement.quantity,
+            movement_type=StockMovement.TYPE_REVERSAL,
+            actor=actor,
+            source_type="BonDeLivraison",
+            source_id=delivery.pk,
+            source_line_id=movement.source_line_id,
+            reservation=movement.reservation,
+            reversal_of=movement,
+            note=_("Annulation de la sortie du bon de livraison"),
+            idempotency_key=f"reverse:{movement.pk}",
         )
-        for movement in movements:
-            if hasattr(movement, "reversal"):
-                continue
-            post_movement(
-                balance=movement.balance,
-                quantity=-movement.quantity,
-                movement_type=StockMovement.TYPE_REVERSAL,
-                actor=actor,
-                source_type="BonDeLivraison",
-                source_id=delivery.pk,
-                source_line_id=movement.source_line_id,
-                reservation=movement.reservation,
-                reversal_of=movement,
-                note=_("Annulation de la sortie du bon de livraison"),
-                idempotency_key=f"reverse:{movement.pk}",
+        if movement.reservation_id:
+            reservation = (
+                StockReservation.objects.select_for_update(of=("self",))
+                .select_related("proforma_line__facture_pro_forma")
+                .get(pk=movement.reservation_id)
             )
-            if movement.reservation_id:
-                reservation = (
-                    StockReservation.objects.select_for_update()
-                    .select_related("proforma_line__facture_pro_forma")
-                    .get(pk=movement.reservation_id)
+            amount = abs(movement.quantity)
+            reservation.consumed_quantity = max(
+                ZERO, reservation.consumed_quantity - amount
+            )
+            proforma_status = reservation.proforma_line.facture_pro_forma.statut
+            if proforma_status == "Accepté":
+                reservation.status = StockReservation.STATUS_ACTIVE
+                balance = StockBalance.objects.select_for_update().get(
+                    pk=reservation.balance_id
                 )
-                amount = abs(movement.quantity)
-                reservation.consumed_quantity = max(
-                    ZERO, reservation.consumed_quantity - amount
-                )
-                proforma_status = reservation.proforma_line.facture_pro_forma.statut
-                if proforma_status == "Accepté":
-                    reservation.status = StockReservation.STATUS_ACTIVE
-                    balance = StockBalance.objects.select_for_update().get(
-                        pk=reservation.balance_id
-                    )
-                    balance.reserved_quantity += amount
-                    balance.save(update_fields=("reserved_quantity", "date_updated"))
-                    _schedule_low_stock_check(balance.pk)
-                else:
-                    reservation.released_quantity += amount
-                    reservation.status = StockReservation.STATUS_RELEASED
-                reservation.save()
+                balance.reserved_quantity += amount
+                balance.save(update_fields=("reserved_quantity", "date_updated"))
+                _schedule_low_stock_check(balance.pk)
+            else:
+                reservation.released_quantity += amount
+                reservation.status = StockReservation.STATUS_RELEASED
+            reservation.save()
+
+
+@transaction.atomic
+def delete_deliveries_with_stock(deliveries, actor):
+    """Delete an authorized batch and reverse its ledger as one transaction.
+
+    Existing postings are reversed even if stock management is now disabled or
+    the legacy document status no longer agrees with its recorded movements.
+    """
+    originals = {delivery.pk: delivery for delivery in deliveries}
+    if not originals:
+        return
+    model = type(next(iter(originals.values())))
+    locked = list(model.objects.select_for_update(of=("self",)).filter(
+        pk__in=originals).select_related("client").order_by("pk"))
+    if len(locked) != len(originals):
+        raise model.DoesNotExist
+    grouped = _prepare_delivery_stock_reversals(locked)
+    for delivery in locked:
+        _reverse_delivery_stock(delivery, actor, grouped[delivery.pk])
+        delivery._history_user = actor
+        original = originals[delivery.pk]
+        if hasattr(original, "_change_reason"):
+            delivery._change_reason = original._change_reason
+        delivery.delete()
+
+
+def delete_delivery_with_stock(delivery, actor):
+    """Single-record entry point; native and assistant callers authorize first."""
+    return delete_deliveries_with_stock([delivery], actor)
 
 
 def validate_receipt(receipt, actor):

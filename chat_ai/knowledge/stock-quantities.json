@@ -1,0 +1,40 @@
+{
+  "application_id": "facturation",
+  "document_id": "stock-quantities",
+  "approved": true,
+  "title": "Comprendre les quantités du stock",
+  "category": "terminology",
+  "keywords": [
+    "stock",
+    "physique",
+    "physical",
+    "réservé",
+    "reserved",
+    "disponible",
+    "available",
+    "entrant",
+    "incoming",
+    "projeté",
+    "projected",
+    "minimum",
+    "inventory",
+    "inventaire",
+    "réception",
+    "receipt"
+  ],
+  "content": "La page Stock affiche Physique, Réservé, Disponible, Entrant, Projeté et Minimum. Disponible correspond au Physique moins le Réservé. Projeté ajoute les quantités entrantes restantes des dossiers logistiques lancés selon les règles de l’application. Les états affichés sont Disponible, Stock minimum et À approvisionner. Les mouvements distinguent Stock initial, Ajustement, Réception, Livraison, Inventaire et Annulation. Le stock après mouvement fait partie de l’historique. Les réceptions ont les états Brouillon, Validée ou Annulée; les inventaires ont les états Brouillon, Validé ou Annulé. Ces libellés de stock restent en français dans l’interface actuelle. L’assistant consulte les calculs existants; il ne modifie ni le registre des mouvements ni les quantités.",
+  "required_capabilities": [
+    "stock_read"
+  ],
+  "source_verification": {
+    "date": "2026-10-08",
+    "sources": [
+      "facturation/facturation_frontend/src/utils/rawData.ts:248",
+      "facturation/facturation_frontend/src/utils/rawData.ts:266",
+      "facturation/facturation_frontend/src/utils/rawData.ts:278",
+      "facturation/facturation_backend/stock/services.py:172",
+      "facturation/facturation_backend/chat_ai/operations.py"
+    ],
+    "notes": "Verified quantity formulas and distinct native receipt/inventory state captions; stock UI currently keeps French labels in both interface languages."
+  }
+}

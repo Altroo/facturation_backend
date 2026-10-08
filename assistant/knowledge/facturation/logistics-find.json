@@ -1,0 +1,35 @@
+{
+  "application_id": "facturation",
+  "document_id": "logistics-find",
+  "approved": true,
+  "title": "Retrouver un dossier logistique",
+  "category": "workflow",
+  "keywords": [
+    "logistique",
+    "logistics",
+    "dossier",
+    "fournisseur",
+    "supplier",
+    "commande",
+    "order",
+    "client",
+    "customer",
+    "article",
+    "product",
+    "phase",
+    "date"
+  ],
+  "content": "La liste Logistique permet de retrouver un dossier par son numéro, son fournisseur, le client ou l’article de ses lignes. La fiche contient la Phase du dossier, le statut global calculé selon son avancement, Date prévue et Date réelle. Les lignes indiquent l’article, le client, la quantité et Reçu. Les étapes, paiements et transmissions comptables utilisent les actions existantes et leurs responsables autorisés. L’assistant permet la recherche, la consultation et l’ouverture; il ne déclenche pas ces étapes opérationnelles.",
+  "required_capabilities": [
+    "read"
+  ],
+  "source_verification": {
+    "date": "2026-10-08",
+    "sources": [
+      "facturation/facturation_frontend/src/translations/fr.ts:690",
+      "facturation/facturation_frontend/src/translations/fr.ts:817",
+      "facturation/facturation_backend/chat_ai/operations.py"
+    ],
+    "notes": "Existing logistics labels and bounded assistant read/search adapter verified; no workflow execution added."
+  }
+}

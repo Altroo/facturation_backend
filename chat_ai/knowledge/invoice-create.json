@@ -1,0 +1,42 @@
+{
+  "application_id": "facturation",
+  "document_id": "invoice-create",
+  "approved": true,
+  "title": "Créer une facture client",
+  "category": "workflow",
+  "keywords": [
+    "invoice",
+    "facture",
+    "create",
+    "créer",
+    "creation",
+    "création",
+    "client",
+    "nouveau",
+    "new",
+    "ajouter",
+    "articles",
+    "items"
+  ],
+  "content": "Dans « Factures clients » (« Client Invoices » en anglais), ouvrez la liste, sélectionnez la société puis « Nouvelle facture client » (« New client invoice »). Renseignez le client de cette société, « Date de la facture » (« Invoice date ») et les autres informations nécessaires. Cliquez sur « Ajouter des articles » (« Add items ») : cette première étape crée la facture et ouvre son formulaire de modification. Dans « Lignes de la facture » (« Invoice lines »), utilisez « Ajouter article » (« Add article »), puis complétez les quantités et les prix. Les totaux HT, TVA, TTC et remises sont calculés par l’application. Cliquez sur « Mettre à jour » (« Update ») pour enregistrer les lignes. La création et la modification dépendent des droits existants; la validation et les changements de statut exigent leurs autorisations spécifiques. Ne confondez pas une facture client avec un devis ou une facture pro forma. HT signifie hors taxes (excluding tax); TVA correspond à la taxe sur la valeur ajoutée (VAT); TTC signifie toutes taxes comprises (including tax).",
+  "required_capabilities": [
+    "read",
+    "create"
+  ],
+  "source_verification": {
+    "date": "2026-10-08",
+    "sources": [
+      "facturation/facturation_frontend/src/components/pages/dashboard/facture-client/facture-client-list.tsx:44",
+      "facturation/facturation_frontend/src/components/pages/dashboard/shared/company-documents-form/companyDocumentFormContent.tsx:383",
+      "facturation/facturation_frontend/src/components/pages/dashboard/shared/company-documents-form/companyDocumentFormContent.tsx:1566",
+      "facturation/facturation_frontend/src/components/pages/dashboard/shared/company-documents-form/companyDocumentFormContent.tsx:1691",
+      "facturation/facturation_frontend/src/components/shared/linesGrid/linesGrid.tsx:38",
+      "facturation/facturation_frontend/src/translations/fr.ts:516",
+      "facturation/facturation_frontend/src/translations/en.ts:515",
+      "facturation/facturation_frontend/src/translations/en.ts:279",
+      "facturation/facturation_frontend/src/translations/en.ts:280",
+      "facturation/facturation_frontend/src/translations/en.ts:293"
+    ],
+    "notes": "Verified the two-step create-then-edit flow and native French/English button/form labels. This describes the existing application workflow, not an assistant creation tool."
+  }
+}

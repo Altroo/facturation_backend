@@ -55,10 +55,12 @@ def test_admin_template_references_existing_versioned_stylesheets(collected_stat
 
 def test_docker_keeps_build_time_assets_outside_host_bind_mounts():
     root = Path(__file__).resolve().parent.parent
-    assert (
-        "RUN python manage.py collectstatic --noinput"
-        in (root / "Dockerfile").read_text()
-    )
+    # Build-only environment assignments may precede Python; static collection
+    # must still happen in the image without copying runtime credentials.
+    dockerfile = (root / "Dockerfile").read_text()
+    assert re.search(r"^RUN (?:[^\n]+ )?python manage\.py collectstatic --noinput$", dockerfile, re.M)
+    ignored = (root / ".dockerignore").read_text().splitlines()
+    assert ".env" in ignored and ".env.*" in ignored
     compose = (root / "docker-compose.yml").read_text()
     assert ":/app/static" not in compose
     assert "./media:/app/media" in compose

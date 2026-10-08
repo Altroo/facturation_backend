@@ -1,0 +1,37 @@
+{
+  "application_id": "facturation",
+  "document_id": "articles-find",
+  "approved": true,
+  "title": "Rechercher un article",
+  "category": "workflow",
+  "keywords": [
+    "article",
+    "produit",
+    "product",
+    "reference",
+    "référence",
+    "designation",
+    "désignation",
+    "service",
+    "price",
+    "prix",
+    "purchase",
+    "selling",
+    "tax"
+  ],
+  "content": "La liste Articles permet de rechercher par référence ou désignation et de distinguer Produit et Service. Les articles appartiennent à la société sélectionnée. Pour les sociétés autres que Nectar, la fiche expose « Prix d'achat » (« Purchase price » en anglais) et « Prix de vente » (« Selling price »), avec leurs devises respectives. Pour Nectar, le prix de vente est présenté sous « Prix H.T. » (« Price excl. tax »); le prix d’achat n’est pas affiché. La fiche Nectar présente aussi le « Prix T.T.C. » (« Price incl. tax »), calculé avec la TVA. Les droits existants de modification restent appliqués; un Commercial ne peut pas modifier le Prix de vente. L’assistant permet actuellement la recherche et l’ouverture de ces fiches; il ne modifie pas les prix ni les quantités de stock.",
+  "required_capabilities": [
+    "read"
+  ],
+  "source_verification": {
+    "date": "2026-10-08",
+    "sources": [
+      "facturation/facturation_frontend/src/components/pages/dashboard/articles/articles-form.tsx:223",
+      "facturation/facturation_frontend/src/components/pages/dashboard/articles/articles-form.tsx:536",
+      "facturation/facturation_frontend/src/components/pages/dashboard/articles/articles-view.tsx:352",
+      "facturation/facturation_backend/core/permissions.py:92",
+      "facturation/facturation_backend/chat_ai/catalog.py:94"
+    ],
+    "notes": "Verified Nectar price captions/hidden purchase row and existing commercial-role restriction. Assistant remains read-only for articles."
+  }
+}

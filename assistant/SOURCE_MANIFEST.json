@@ -1,0 +1,2498 @@
+{
+  "colibri": {
+    "revision_hint": "4a4f7a73",
+    "revision_verified_from_git": false,
+    "source_identity": "Exact included file hashes; historical revision hint only.",
+    "tree_sha256": "f0704cd1517a7da10e556d2d32148cfdc12d66bbc32d4e4f3379752ddda646e1"
+  },
+  "files": {
+    "README.md": {
+      "mode": 420,
+      "sha256": "021d41a77cf239aa925ffb1b42f52c655edb25bb16e1fd0378dd02d13ef7d8e0",
+      "size_bytes": 716
+    },
+    "SNAPSHOT.md": {
+      "mode": 420,
+      "sha256": "bbe0ecd61dc68105b1247a8a2641b6c8de9bb503c223c3c6cf392f74abb1b757",
+      "size_bytes": 2319
+    },
+    "deploy/Dockerfile.colibri": {
+      "mode": 420,
+      "sha256": "b7772efc03ef82e1a245999c29e92af491a8bb3e9d5dd4ada108ce4179ac3a11",
+      "size_bytes": 1285
+    },
+    "deploy/Dockerfile.colibri.dockerignore": {
+      "mode": 420,
+      "sha256": "05c1a78a1f74352dfb2c82d8229c3a3d9d33692c60ec782f61d013d1f6131191",
+      "size_bytes": 207
+    },
+    "deploy/compose.assistant.yml": {
+      "mode": 420,
+      "sha256": "a266dbc39f0eb87e92f1cca459a1adf2d41de44da697e2208659ce9853578d67",
+      "size_bytes": 1225
+    },
+    "deploy/example.env": {
+      "mode": 420,
+      "sha256": "2b27a7a42c4f17eb1a99fac3c8990b858071388202ce24b6dfcac8085b683949",
+      "size_bytes": 438
+    },
+    "deploy/facturation.override.yml": {
+      "mode": 420,
+      "sha256": "99a0c792136886ad96e68fc4e88d7bc9a1f1b5b9b6db7b09be7ff869145ffe5a",
+      "size_bytes": 687
+    },
+    "deploy/hooks/facturation-backend.post-receive": {
+      "mode": 493,
+      "sha256": "ae33bdc27a8f7f5b5297ea26eab716b37af6132603bafb57ed25a842c40261de",
+      "size_bytes": 1787
+    },
+    "deploy/hooks/facturation-frontend.post-receive": {
+      "mode": 493,
+      "sha256": "3d41b50a7ea970b2d945d61bbca1572b5f71838d1c507bb63c5081ca578677dd",
+      "size_bytes": 1209
+    },
+    "docs/AI_API.md": {
+      "mode": 420,
+      "sha256": "09f48e7700a910e191a65f2bd3eae86fb2c15e4b041f7fab5b520ea14db414b9",
+      "size_bytes": 17622
+    },
+    "docs/AI_APPLICATION_DISCOVERY.md": {
+      "mode": 420,
+      "sha256": "5c8b1c4056aa8a98522c5dbfa5b6f043c44715052b1bf85ee67f32a7b888778e",
+      "size_bytes": 7556
+    },
+    "docs/AI_ARCHITECTURE.md": {
+      "mode": 420,
+      "sha256": "b56801c814a5cd252673951055dfd46e0544274634137ca7aed4b85fc866cf52",
+      "size_bytes": 3852
+    },
+    "docs/AI_AUDIT_HISTORY.md": {
+      "mode": 420,
+      "sha256": "e881eccdf5c13a3041dd69048312a5ead830bf6a1228178e47c9eb5e1894f286",
+      "size_bytes": 2090
+    },
+    "docs/AI_DEPLOYMENT.md": {
+      "mode": 420,
+      "sha256": "09c43aa3024772ae5ec0816151b7948b6af3d0a1835d534d84b6386d8aca09bd",
+      "size_bytes": 6064
+    },
+    "docs/AI_FINE_TUNING.md": {
+      "mode": 420,
+      "sha256": "b066420d060d400123478e550a62013a4fcbde488306529d898656953d8aa5ac",
+      "size_bytes": 9650
+    },
+    "docs/AI_FRONTEND.md": {
+      "mode": 420,
+      "sha256": "93791c4b7a11b0c440b809a729c4fc87f22e9f9a3c5b472db11f374816a590dc",
+      "size_bytes": 15252
+    },
+    "docs/AI_KNOWLEDGE.md": {
+      "mode": 420,
+      "sha256": "9877121ac9501ff6d2d7500171136d3fc13c2505e1fd6cc7b16afd2bd17b96ce",
+      "size_bytes": 3928
+    },
+    "docs/AI_PROGRESS.md": {
+      "mode": 420,
+      "sha256": "be62f53246836155130e6713c656e04d5d346a22b27145d2725cc040534c2d6c",
+      "size_bytes": 17631
+    },
+    "docs/AI_SECURITY.md": {
+      "mode": 420,
+      "sha256": "b4281840eed3a8d85eb79a9b82b8f7f45486d43ba0b3ee82a3589bd61d7ac375",
+      "size_bytes": 14865
+    },
+    "docs/AI_TESTING.md": {
+      "mode": 420,
+      "sha256": "369725f1204cf8989975a650611a3a23d678dc37c6f884fde1eecf6b23e4d02e",
+      "size_bytes": 6424
+    },
+    "docs/AI_TOOLS.md": {
+      "mode": 420,
+      "sha256": "64d9f8ec5dc83c1bca0faaaee567079a510e6cde50ec9fef86e0248f09d4cdaf",
+      "size_bytes": 15369
+    },
+    "docs/implementation-files.json": {
+      "mode": 420,
+      "sha256": "6f9225ea760b7f68c8408482408ef09ce7f3bd7b9f3657446152eef3e97ce40f",
+      "size_bytes": 5214
+    },
+    "docs/source_inventory.json": {
+      "mode": 420,
+      "sha256": "f68ae24f19fc28298645e9a3ea1d46d5d89492d0a86bbce72c0765c84be82b8c",
+      "size_bytes": 98072
+    },
+    "knowledge/facturation/articles-find.json": {
+      "mode": 420,
+      "sha256": "7211f115bccc6e1361b12047a31f0d06795009f7f5400bc7e6a2e3c7795b3d98",
+      "size_bytes": 1935
+    },
+    "knowledge/facturation/assistant-actions.json": {
+      "mode": 420,
+      "sha256": "76b2031a0d2ca52aa654453d52fee663208835d2dacdc8aaddaf5cd74e4a9e58",
+      "size_bytes": 1399
+    },
+    "knowledge/facturation/clients.json": {
+      "mode": 420,
+      "sha256": "f6fe1839a394215faaf3a150585d366cc25221791be6a88d9757c0f0a437642a",
+      "size_bytes": 1297
+    },
+    "knowledge/facturation/financial-definitions.json": {
+      "mode": 420,
+      "sha256": "0b7d51d5dd1e79195135878bff0827d2fdde5cdc0f4b1d2327283007775f9c2c",
+      "size_bytes": 1808
+    },
+    "knowledge/facturation/form-labels.json": {
+      "mode": 420,
+      "sha256": "29e57288ce00ad7b6035548634d19496bf3ce78d38f1c9a328afcc590cd460bf",
+      "size_bytes": 1831
+    },
+    "knowledge/facturation/invoice-create.json": {
+      "mode": 420,
+      "sha256": "75af7364b0abdcded6261a0ce1f015310562925863d2415f254dc3eacb443cce",
+      "size_bytes": 2777
+    },
+    "knowledge/facturation/invoice-find.json": {
+      "mode": 420,
+      "sha256": "cc48b45ff2bbb70c67c8c3fff5dd88b4a8e6970a9baf7598b65b9dfebfa42f6e",
+      "size_bytes": 1457
+    },
+    "knowledge/facturation/invoice-status.json": {
+      "mode": 420,
+      "sha256": "80b0875bc8195a0ef5212651f6e9bf74f68fe834dfcc1275d06f6acc2c7acccc",
+      "size_bytes": 1312
+    },
+    "knowledge/facturation/invoice-validate.json": {
+      "mode": 420,
+      "sha256": "ea92d4181174d6abd0c747cb5a66e01786bde52bb9d988d292ba06b7d26502ff",
+      "size_bytes": 1816
+    },
+    "knowledge/facturation/logistics-find.json": {
+      "mode": 420,
+      "sha256": "aa4f1c2e7217b10b4a5007705748d3d0ee2a7c535d6d024b115e748263560e8a",
+      "size_bytes": 1397
+    },
+    "knowledge/facturation/stock-quantities.json": {
+      "mode": 420,
+      "sha256": "869de1c4de7f811749ca07042cbe5ce94ab55121577beb105390cf100b9fa270",
+      "size_bytes": 1895
+    },
+    "knowledge/facturation/users-find.json": {
+      "mode": 420,
+      "sha256": "3433e26dfe09e8d7a9b25c1f21e892753559580c77b13850bdadc58e333d0e59",
+      "size_bytes": 1632
+    },
+    "pyproject.toml": {
+      "mode": 420,
+      "sha256": "a1f914343d77ca9f4834788f7711ba5b06ade9ae732962ac91288ce6a540becc",
+      "size_bytes": 330
+    },
+    "runtime/colibri/LICENSE": {
+      "mode": 420,
+      "sha256": "fb9b97e1cc193452870025f6cf501003130561681659e265e5fdf6c023f71325",
+      "size_bytes": 11346
+    },
+    "runtime/colibri/NOTICE": {
+      "mode": 420,
+      "sha256": "c8a3ae98b85c30294ac8adeea94360dc25264dea0786a3d1ab0b48a4bc31b001",
+      "size_bytes": 673
+    },
+    "runtime/colibri/THIRD_PARTY_NOTICES.md": {
+      "mode": 420,
+      "sha256": "283fa1a9c27a8930340add500f2f0453dd15568ec38c21a1fff4f3d1f716ebc7",
+      "size_bytes": 4357
+    },
+    "runtime/colibri/c/Makefile": {
+      "mode": 420,
+      "sha256": "10666421bde71dabbe69f02624434c477321caae655144c2057814182b6e7604",
+      "size_bytes": 165594
+    },
+    "runtime/colibri/c/Makefile.deepseek-v4": {
+      "mode": 420,
+      "sha256": "640da577ca5e97bb3bbac5be80a650a804735cf053525b15273a6e901ac1a813",
+      "size_bytes": 18279
+    },
+    "runtime/colibri/c/Makefile.deepseek-v4.units": {
+      "mode": 420,
+      "sha256": "514c1d9c8d0d926a9743d85ec22ae83d8e0a4e1387321bc92ac65b6b1e9872ba",
+      "size_bytes": 1079
+    },
+    "runtime/colibri/c/abl.h": {
+      "mode": 420,
+      "sha256": "a4cb215afe81d3be1b2adf05a1198153f8bb451cc4f66cba7c9d82b7c5ae448e",
+      "size_bytes": 5342
+    },
+    "runtime/colibri/c/affine_quant.h": {
+      "mode": 420,
+      "sha256": "cb3699a244a11253ecd3f77775ae996a925f520375fc717f363c819596be081d",
+      "size_bytes": 11335
+    },
+    "runtime/colibri/c/autotune.py": {
+      "mode": 420,
+      "sha256": "e1bb41cb64eccc0f3983384255ae742b724bb17d05a988eda2a72385b22b1898",
+      "size_bytes": 28804
+    },
+    "runtime/colibri/c/backend_cuda.cu": {
+      "mode": 420,
+      "sha256": "332c82a291ecb3e9e321e44ebe35838d5943a403e030e7ba254b3541f42a37c3",
+      "size_bytes": 181358
+    },
+    "runtime/colibri/c/backend_cuda.h": {
+      "mode": 420,
+      "sha256": "02ec55aba8e789ce30082d683e3f81bce54a0e38f1fe0039b764eb0806f48480",
+      "size_bytes": 21225
+    },
+    "runtime/colibri/c/backend_cuda_dsv4.cu": {
+      "mode": 420,
+      "sha256": "40af9da262b42e01264d45c411a696576e3aa707c92b92eefe0568e8a3c81982",
+      "size_bytes": 248350
+    },
+    "runtime/colibri/c/backend_cuda_dsv4.h": {
+      "mode": 420,
+      "sha256": "ace35eb8a06491e9fa5d78ffbc182edb65e4968ddff155adfa8291ba02074211",
+      "size_bytes": 18290
+    },
+    "runtime/colibri/c/backend_cuda_ink.cu": {
+      "mode": 420,
+      "sha256": "0f4e3e8ed34bcddef22c5d431e3727053e43df548e4000bf08f51b53ddcdb6af",
+      "size_bytes": 4012
+    },
+    "runtime/colibri/c/backend_cuda_ink.h": {
+      "mode": 420,
+      "sha256": "66611f6e2abcb6ed7997eb9d8ff7e2ffcf70beac7bbf188a5f4d0c5024bd5f52",
+      "size_bytes": 893
+    },
+    "runtime/colibri/c/backend_gpu_compat.h": {
+      "mode": 420,
+      "sha256": "20cf4e1774481a384cf0fa6e72cdffb88fc1876c99fab59b46f9c6078ffb27cc",
+      "size_bytes": 6424
+    },
+    "runtime/colibri/c/backend_loader.c": {
+      "mode": 420,
+      "sha256": "45a477c81ea5ced23f690b1648d88d06c8b39f0fcd0f169702a1d82f2ffd5923",
+      "size_bytes": 90454
+    },
+    "runtime/colibri/c/backend_loader_dsv4.c": {
+      "mode": 420,
+      "sha256": "d8c3d8bc3acb0ad22c9ba7963266e3dc9a3dc87e3549ca82cf4acbe625aa963c",
+      "size_bytes": 62353
+    },
+    "runtime/colibri/c/backend_metal.h": {
+      "mode": 420,
+      "sha256": "b2a7c1dba3536101e7d428c93867bbd6da83b9e175bc41300317d252889baa3f",
+      "size_bytes": 20588
+    },
+    "runtime/colibri/c/backend_metal.mm": {
+      "mode": 420,
+      "sha256": "0059bf7fff3c2871f6b1713e18f5cbbbe1610722f61ce9a1ff288338d231b7fa",
+      "size_bytes": 137115
+    },
+    "runtime/colibri/c/backend_vulkan.c": {
+      "mode": 420,
+      "sha256": "814012747d9adcd10b63c37117ea171309c924860620eed92857c51674768321",
+      "size_bytes": 384900
+    },
+    "runtime/colibri/c/backend_vulkan.h": {
+      "mode": 420,
+      "sha256": "0c05f12131c1042f3a9009e346d4646fec14ed4f5697b5c02e826fa16281473b",
+      "size_bytes": 31082
+    },
+    "runtime/colibri/c/backend_xdna.c": {
+      "mode": 420,
+      "sha256": "c4154a6147cc73da109cd60ec52ebb5b6a719252f9e8adb93f72217a01bb27fb",
+      "size_bytes": 77908
+    },
+    "runtime/colibri/c/backend_xdna.h": {
+      "mode": 420,
+      "sha256": "f43c12e4d19157b5e39dd41a1f1e6dc50edfe00d523462c55efc2851024c47d0",
+      "size_bytes": 35856
+    },
+    "runtime/colibri/c/backend_xdna_helper.cpp": {
+      "mode": 420,
+      "sha256": "8e94ddf25a6ef67497ef4a41d0c86d8e709de358901e0bbbb5aaa7c2a0c21d51",
+      "size_bytes": 10336
+    },
+    "runtime/colibri/c/build_cuda.bat": {
+      "mode": 420,
+      "sha256": "a7b0ae49551ae36f5b6929ac30137f97ed0609d5a8d33a9f12f886410f9748e4",
+      "size_bytes": 5823
+    },
+    "runtime/colibri/c/cfse_pack.c": {
+      "mode": 420,
+      "sha256": "8b0644ce057cdaf6252e0e7bdd5bb1f84031d4e0ededb3feda3e5ccf4511eb16",
+      "size_bytes": 8622
+    },
+    "runtime/colibri/c/chat_olmoe.sh": {
+      "mode": 493,
+      "sha256": "335da366cec285196e8907f4924ae8047f9cb9ddc2d31581871063620ad4b5ac",
+      "size_bytes": 1536
+    },
+    "runtime/colibri/c/clef_head.h": {
+      "mode": 420,
+      "sha256": "b076d806554fd910eea642f9f5bfc66222eb0b0d7fb7f6c40f83bc667102ea8e",
+      "size_bytes": 33621
+    },
+    "runtime/colibri/c/cli_args.h": {
+      "mode": 420,
+      "sha256": "ca432bfa22b2e7031c0bdf7083a77887ff5bbea274030c5597d37f7fc1b66ca2",
+      "size_bytes": 2746
+    },
+    "runtime/colibri/c/cluster.py": {
+      "mode": 420,
+      "sha256": "2132c03fbb818f2b3fa274f3d15dba211aa9cd399f694f176276b46667335017",
+      "size_bytes": 7480
+    },
+    "runtime/colibri/c/coli": {
+      "mode": 493,
+      "sha256": "26a12aedf3fca6bb7ff105789b8485af15e0e1e501e5b66e3d290d620758333b",
+      "size_bytes": 197943
+    },
+    "runtime/colibri/c/coli.cmd": {
+      "mode": 420,
+      "sha256": "01ae67537072b0fa673d1fc6e37928217b9a43c0cfee567defb91c623c43f3d0",
+      "size_bytes": 3303
+    },
+    "runtime/colibri/c/colibri.c": {
+      "mode": 420,
+      "sha256": "23154484d1df560e41490060e91d96487a39f5aa9c569c2a3ce0becdd7447563",
+      "size_bytes": 820461
+    },
+    "runtime/colibri/c/compat.h": {
+      "mode": 420,
+      "sha256": "ed34db9b86ebff9749fcfc0ec03c48c02ea7551e8eff38cbef877d6313e2a74b",
+      "size_bytes": 31111
+    },
+    "runtime/colibri/c/compat_prefetch_win.h": {
+      "mode": 420,
+      "sha256": "5373c8342a41051a9654fd59856abe727a9816bd9d2816cff9170321be365737",
+      "size_bytes": 4192
+    },
+    "runtime/colibri/c/decide_serve.h": {
+      "mode": 420,
+      "sha256": "a7aad2133003d1f5c507c8d9b0faa9275bf9c5370e9070a9fd0c9a33662097bb",
+      "size_bytes": 20630
+    },
+    "runtime/colibri/c/decide_vk.h": {
+      "mode": 420,
+      "sha256": "164e3ec5758aa9c7e61b946be9852edcfbe926f9df6cf1ea18f4c3041c9f768e",
+      "size_bytes": 9157
+    },
+    "runtime/colibri/c/decode_batch.h": {
+      "mode": 420,
+      "sha256": "dd74df062842b31f69591ae2a0c0b4a66fb575082d842b7d534a5e4f871c7cd6",
+      "size_bytes": 9980
+    },
+    "runtime/colibri/c/deepseek_v4.c": {
+      "mode": 420,
+      "sha256": "783554cbba8c18bc0dc392569e97f48d236a2f8ac4e07cd38af3ab5d93d74bd2",
+      "size_bytes": 967907
+    },
+    "runtime/colibri/c/deepseek_v4.h": {
+      "mode": 420,
+      "sha256": "2c15027e3a4602c33178d18d20b708bb045f8ec54845d87212322ff16bf5e29e",
+      "size_bytes": 7468
+    },
+    "runtime/colibri/c/deepseek_v41.c": {
+      "mode": 420,
+      "sha256": "f34241f5c1094468e61a0428fbdf189799881c0f1dae4b55a60b7548c01733e0",
+      "size_bytes": 281422
+    },
+    "runtime/colibri/c/deepseek_v41_chain.h": {
+      "mode": 420,
+      "sha256": "a8d0ff445fd6ce8f972025699e4b94c77a301d6ae7bf10add6b5bbdcaf56e636",
+      "size_bytes": 81711
+    },
+    "runtime/colibri/c/deepseek_v4_bank_pair.h": {
+      "mode": 420,
+      "sha256": "32383dcf86be74ebf2630ac2e9cfa083aa3b046418843f6ac941828a727cbb45",
+      "size_bytes": 2672
+    },
+    "runtime/colibri/c/deepseek_v4_chain.h": {
+      "mode": 420,
+      "sha256": "f3b92594cbb512671724294e7a7c866b2ef12e2830afaad12a2b5e163ce63a52",
+      "size_bytes": 85116
+    },
+    "runtime/colibri/c/deepseek_v4_dspark.inc": {
+      "mode": 420,
+      "sha256": "49673e8f073bc7dc3c817530b2e018f89dd51d92c227835685158c81d7de12c6",
+      "size_bytes": 55437
+    },
+    "runtime/colibri/c/deepseek_v4_hybrid.h": {
+      "mode": 420,
+      "sha256": "f00932054a68d4d7b4ba685eda992696fb4f19f5868f0d1d365eec3cace65e02",
+      "size_bytes": 303
+    },
+    "runtime/colibri/c/deepseek_v4_internal.h": {
+      "mode": 420,
+      "sha256": "5bb6e2aaa9dfe2b9873d7ddc85f8b81817b236864d09418f65ebd75df2834381",
+      "size_bytes": 53888
+    },
+    "runtime/colibri/c/delta_attention.h": {
+      "mode": 420,
+      "sha256": "650bb9f9fa6412d9d5a2e0d4039889d5b00a0da5df2f7d3f1f5ed03ab9f1e4f9",
+      "size_bytes": 8199
+    },
+    "runtime/colibri/c/doctor.py": {
+      "mode": 420,
+      "sha256": "7d75496804b9535c4c0dee61b6a4c89e247cb86070afe2ba8245bd3da576b80e",
+      "size_bytes": 46940
+    },
+    "runtime/colibri/c/download_fp8.py": {
+      "mode": 420,
+      "sha256": "11d01192df9bffd7f7b63779441487b9bea297f1d0bf1fef78b3c83c90b38f9c",
+      "size_bytes": 11270
+    },
+    "runtime/colibri/c/dsv4.def": {
+      "mode": 420,
+      "sha256": "ed0b49ba2adeb0a3622f9ba882aa3854911e91e3bb0924237f0bfe530f13b469",
+      "size_bytes": 2350
+    },
+    "runtime/colibri/c/dsv4_mhc.h": {
+      "mode": 420,
+      "sha256": "b56fd492d57ad992e63b61c65ffe78130f9c784f4316945ffcd06d22c0e96a13",
+      "size_bytes": 2468
+    },
+    "runtime/colibri/c/dsv4_quant.h": {
+      "mode": 420,
+      "sha256": "f4cb5307b757c6a8b20923f0c616adb0a7963757b5a5cf6552d03380b3cc805a",
+      "size_bytes": 2433
+    },
+    "runtime/colibri/c/edge_adapter_internal.h": {
+      "mode": 420,
+      "sha256": "4e2ebfd790f9f91c980e732b8069905e9f2f65a211b422457829f4ca5ab788a0",
+      "size_bytes": 1075
+    },
+    "runtime/colibri/c/edge_adapters.h": {
+      "mode": 420,
+      "sha256": "5cf1995e6e5e9e033378dedb69554c5e3b55e6628b0e92a10bba54c7d22ecc72",
+      "size_bytes": 680
+    },
+    "runtime/colibri/c/edge_runtime.c": {
+      "mode": 420,
+      "sha256": "f507ef212f85121cba95e3218428bb4c3504aec70c347ecff535f0afe251f2da",
+      "size_bytes": 11471
+    },
+    "runtime/colibri/c/edge_runtime.h": {
+      "mode": 420,
+      "sha256": "7824b02a8ad27d7f0ad7f62ec2ec00e7746f017ac04349e0a536a54667e52260",
+      "size_bytes": 7316
+    },
+    "runtime/colibri/c/edge_tok_internal.h": {
+      "mode": 420,
+      "sha256": "4f576b74379bc586cf299a8d9b3b75f8f9b9eb810fb99d4b12f4d26a67a41df4",
+      "size_bytes": 4281
+    },
+    "runtime/colibri/c/evidence_digest.h": {
+      "mode": 420,
+      "sha256": "13ceacc9282025a0079629b77105f81e7eb8543fd023c9f0f22dd724804d197d",
+      "size_bytes": 5078
+    },
+    "runtime/colibri/c/exact_dot.h": {
+      "mode": 420,
+      "sha256": "b2677817831c18186b35aee629ced375d7f2feb1d8e144c4deb224651f8ab5a9",
+      "size_bytes": 8095
+    },
+    "runtime/colibri/c/experiment_manifest.py": {
+      "mode": 420,
+      "sha256": "ab7db5d7074828c3ffcc36a047016233d35cedd0498d1cda3805b1e2cf5ec3f3",
+      "size_bytes": 4550
+    },
+    "runtime/colibri/c/expert_ffn.h": {
+      "mode": 420,
+      "sha256": "deba9d3fd99c0f327876fa131401e744a8171780afda0c935562303a131eb51c",
+      "size_bytes": 23120
+    },
+    "runtime/colibri/c/expert_store.h": {
+      "mode": 420,
+      "sha256": "e2958ab832cce953448bc458dc6a76df6abb93abf0bfe3ea80fbb99640031f8f",
+      "size_bytes": 3293
+    },
+    "runtime/colibri/c/expert_store_registry.c": {
+      "mode": 420,
+      "sha256": "5e005110f88c54a23e0b99ccb230d1864451fadcfd37839b3352c7e64704b0ff",
+      "size_bytes": 4054
+    },
+    "runtime/colibri/c/expert_store_registry.h": {
+      "mode": 420,
+      "sha256": "5646942fa16914559d9f2a84cda4f2e5f7d12c2707ecd6d207ffeb2bd8b93d7c",
+      "size_bytes": 3646
+    },
+    "runtime/colibri/c/family_registry.py": {
+      "mode": 420,
+      "sha256": "3ee8d9f991dd4cc72bdfbac415d609641125fee7bbb040731dfe160ac0bf6a86",
+      "size_bytes": 107311
+    },
+    "runtime/colibri/c/fp8_format.h": {
+      "mode": 420,
+      "sha256": "8dd13973ca9b5df9a85f239efd894109b45a045369dca4988a8f4c467a7014af",
+      "size_bytes": 1944
+    },
+    "runtime/colibri/c/fse_coli.h": {
+      "mode": 420,
+      "sha256": "1f9c05dd75b600c777205a9b7e957540a056f916c9c8e8024985ea3b606936a1",
+      "size_bytes": 8736
+    },
+    "runtime/colibri/c/fused_simd.h": {
+      "mode": 420,
+      "sha256": "a5dee58e077b2b99dbbc081aa1e47e2ca7dbafb43a3d57500a189814c3de940c",
+      "size_bytes": 7923
+    },
+    "runtime/colibri/c/glibc_c23_math_compat.h": {
+      "mode": 420,
+      "sha256": "8c7a65fe53359557174e98fb48f482fa4df9d29ae4406005f4f4830954cbc52b",
+      "size_bytes": 1405
+    },
+    "runtime/colibri/c/gliner_decide.c": {
+      "mode": 420,
+      "sha256": "e4e1ccd198cd5bb045e1cbe85a72cc209b1a1ddb73a38646f69eea1f804f3566",
+      "size_bytes": 70775
+    },
+    "runtime/colibri/c/gliner_unicode.h": {
+      "mode": 420,
+      "sha256": "6915877eba7ab26bc6799c92019eb1b95eea1d23704f16d47b59e5d73300b41a",
+      "size_bytes": 52300
+    },
+    "runtime/colibri/c/glm53.c": {
+      "mode": 420,
+      "sha256": "ad64d91d230b325402c266df8999f394c811f78a469abed244ffbe9d04bafad0",
+      "size_bytes": 254937
+    },
+    "runtime/colibri/c/glm53_chain.h": {
+      "mode": 420,
+      "sha256": "683771fa34857e2409ab7f03907a715f2515031dc3d707df5ea129ac160a002d",
+      "size_bytes": 57261
+    },
+    "runtime/colibri/c/glm_chain.h": {
+      "mode": 420,
+      "sha256": "1923216c2f99d590a910aa17910647cc2fda2957ac76c4d53faadb7d0e0e566a",
+      "size_bytes": 70543
+    },
+    "runtime/colibri/c/grammar.h": {
+      "mode": 420,
+      "sha256": "b93cdc61b9ebfd39bd7419939d19f3db9261733915b001d612ad24c089b06130",
+      "size_bytes": 17449
+    },
+    "runtime/colibri/c/gsgemv.h": {
+      "mode": 420,
+      "sha256": "66bbbffbeb6c6aee07cb9d2508334a5e836554a122465aa2cddf780040e34033",
+      "size_bytes": 12601
+    },
+    "runtime/colibri/c/hybrid_split.h": {
+      "mode": 420,
+      "sha256": "2211e5fec7d1548fe55e9ed507cbf867ffb3bd945c28b01d631475061e063aa1",
+      "size_bytes": 3283
+    },
+    "runtime/colibri/c/hyper_connections.h": {
+      "mode": 420,
+      "sha256": "46e1342e7e5402c2194e423f18bbecbada3620987a66bcfbcfccfd2b3edf9c9d",
+      "size_bytes": 9192
+    },
+    "runtime/colibri/c/idot.h": {
+      "mode": 420,
+      "sha256": "d281c7a7331419f40288d19dbde09cef8e817dbeca74ec90a6ba4525c9a4824f",
+      "size_bytes": 54449
+    },
+    "runtime/colibri/c/image_engine.py": {
+      "mode": 420,
+      "sha256": "6aed76975d99d4fb919a2120ea3e9de16bfae916aae1fd2a3a3fc854d3331361",
+      "size_bytes": 42182
+    },
+    "runtime/colibri/c/inkling.c": {
+      "mode": 420,
+      "sha256": "fd065308bf22e92cf2ba1bc598b6c36024def7a493bbe2abe196f5a5250ca417",
+      "size_bytes": 222928
+    },
+    "runtime/colibri/c/inkling_chain.h": {
+      "mode": 420,
+      "sha256": "f03f40a9ff236bbc04cabde14030a355d5fccfc30b2135ccaf912934d3281885",
+      "size_bytes": 62719
+    },
+    "runtime/colibri/c/iobench.c": {
+      "mode": 420,
+      "sha256": "67380c4de791494b0490c7921ca75b115a57b2512f6c7e5fc1a608edfc7e972b",
+      "size_bytes": 4281
+    },
+    "runtime/colibri/c/json.h": {
+      "mode": 420,
+      "sha256": "81cdecc81e867f4584c8e2d7ad0d564da8dacf219d591762ddbf3b3a6c85ded9",
+      "size_bytes": 10019
+    },
+    "runtime/colibri/c/kimi_k3.c": {
+      "mode": 420,
+      "sha256": "1ce08e173e195d147f693a51bf4fc854d2938d0b9ed5c94d746d4b1204bbc4c0",
+      "size_bytes": 258749
+    },
+    "runtime/colibri/c/kimi_k3_chain.h": {
+      "mode": 420,
+      "sha256": "675f5d83b4ba57d8ee31502a81ed8601630729478d8aef6489e10c422f863fcf",
+      "size_bytes": 63823
+    },
+    "runtime/colibri/c/kv_fp8.h": {
+      "mode": 420,
+      "sha256": "9bc4e395fc52779989cc18fa36126ef935a49ac613c95c5af223dabee4bbfdcb",
+      "size_bytes": 4298
+    },
+    "runtime/colibri/c/kv_image_key.h": {
+      "mode": 420,
+      "sha256": "cbb9e8b7c5cbec7927b6cb533df5e151fbf1e890ecf8dbc6449b153a48d06a73",
+      "size_bytes": 4021
+    },
+    "runtime/colibri/c/kv_persist.h": {
+      "mode": 420,
+      "sha256": "b72f5378174ed2d7bb620e0fe115f7a5312e2d442bed15a331343a060d4da0d7",
+      "size_bytes": 13431
+    },
+    "runtime/colibri/c/kv_prefix.h": {
+      "mode": 420,
+      "sha256": "6d09893b5d2d4fd366bfea5cceebd90155d079545180db8b69a27ccc6a6059e4",
+      "size_bytes": 6845
+    },
+    "runtime/colibri/c/kv_tq.h": {
+      "mode": 420,
+      "sha256": "6c3f6d48726ea6eeaa7ad3e9e4166afec6ed3fbe7350715c6c097006b65f48b4",
+      "size_bytes": 12710
+    },
+    "runtime/colibri/c/laya.c": {
+      "mode": 420,
+      "sha256": "aaef6ec3339835260bf92ec46e1c89fe1c50330017abe602b9d1ebc633a83bb7",
+      "size_bytes": 62601
+    },
+    "runtime/colibri/c/load_fail.h": {
+      "mode": 420,
+      "sha256": "182bdcd76093a80ec806f692ba749dbd6cd8df8738a80a53db87f951007ebe4a",
+      "size_bytes": 3804
+    },
+    "runtime/colibri/c/matmul_f32.h": {
+      "mode": 420,
+      "sha256": "de40e87ddd6787d0e609ffbdf5a41a601ef3505221c346e000a95e79ad99293b",
+      "size_bytes": 2197
+    },
+    "runtime/colibri/c/mcp_server.py": {
+      "mode": 420,
+      "sha256": "cad92028a69a3b41c56bb1ee5f2aec38b8bf0e76f006359b80c4ca9d338cd78e",
+      "size_bytes": 19656
+    },
+    "runtime/colibri/c/mimo.c": {
+      "mode": 420,
+      "sha256": "44b3edc5aa546c29773f025262cd32a481c52af77649af8edb7d6943b5388dcb",
+      "size_bytes": 132262
+    },
+    "runtime/colibri/c/mimo_chain.h": {
+      "mode": 420,
+      "sha256": "a84f82383e4c5e4379088d13c21af7e17d51cf7653a228976f75922e69d7dcbb",
+      "size_bytes": 36749
+    },
+    "runtime/colibri/c/mimo_vision.h": {
+      "mode": 420,
+      "sha256": "b2d8d7c65c868ba6a7081728eb95a4c167d63052a702ff86de9d9685ec23a0fd",
+      "size_bytes": 15994
+    },
+    "runtime/colibri/c/native_quant.h": {
+      "mode": 420,
+      "sha256": "092a37874ad99351ba64381e0d7f3f46a1548de21c6c0047ab9176c9c6b238a8",
+      "size_bytes": 6232
+    },
+    "runtime/colibri/c/native_quant_batch.h": {
+      "mode": 420,
+      "sha256": "d0878a6f20af15e5afa8ae0fae2dbd8d393056c6de84053a9ccf5367ab6e0c99",
+      "size_bytes": 950
+    },
+    "runtime/colibri/c/native_quant_dual.h": {
+      "mode": 420,
+      "sha256": "fa5feead7f2a8091c2a5665a31766cb62d9d159567d515949d037bd1abb2ff24",
+      "size_bytes": 572
+    },
+    "runtime/colibri/c/native_quant_fp4_rows16.h": {
+      "mode": 420,
+      "sha256": "95cd8c1335fe80934ae9aa8c0ee40c7ae7ee27492d2ecc3eaef26cfdb063dbc3",
+      "size_bytes": 1042
+    },
+    "runtime/colibri/c/olmoe.c": {
+      "mode": 420,
+      "sha256": "f630200cc4222e0e8bfaa178af4c063b4cfe90acc96b89ee50169daefcbc23bf",
+      "size_bytes": 174520
+    },
+    "runtime/colibri/c/olmoe_chain.h": {
+      "mode": 420,
+      "sha256": "e43bd430c4c02abcbf6b9cd05a3a53e60aa39e4df407586fee491df723d440ae",
+      "size_bytes": 37354
+    },
+    "runtime/colibri/c/omp_tune.h": {
+      "mode": 420,
+      "sha256": "2385ba725f088b6b472aa59f18166ac8cf4008a24f3ba4a124affe7dccc3481a",
+      "size_bytes": 7020
+    },
+    "runtime/colibri/c/openai_server.py": {
+      "mode": 420,
+      "sha256": "0628d6e228a2f69964d1fbc6a922981f62c57acdffe69ab70c9f5dee8f72cf60",
+      "size_bytes": 449461
+    },
+    "runtime/colibri/c/oracle.h": {
+      "mode": 420,
+      "sha256": "1f0dfc2e31fd169ada45248d38fd2debe514718ee4ea3aa590a8464fd0837664",
+      "size_bytes": 3329
+    },
+    "runtime/colibri/c/own_file.h": {
+      "mode": 420,
+      "sha256": "c57308fa6b3ff6d25b8a23ed2ac7630f3599636448194cb5e99284670a4fe321",
+      "size_bytes": 3380
+    },
+    "runtime/colibri/c/patches-deepgemm-sm120-msvc.patch": {
+      "mode": 420,
+      "sha256": "64f5474af49f763cc081c03ff13193b7ab02ccbaee9052087878dddf8ebc7a8a",
+      "size_bytes": 3647
+    },
+    "runtime/colibri/c/pin_pool.h": {
+      "mode": 420,
+      "sha256": "db8171057013436506cf09ae41d97adcd92117ab973bb9e1545d922617be8c03",
+      "size_bytes": 6334
+    },
+    "runtime/colibri/c/qgemv.h": {
+      "mode": 420,
+      "sha256": "81bbaf9e5df4abe782bcf16b2a23131994b74e94573d226e4deba47ec5a3765e",
+      "size_bytes": 7250
+    },
+    "runtime/colibri/c/qi_gemm.h": {
+      "mode": 420,
+      "sha256": "fee547022a0dd3ef0d4acf603e355258aab4d2c12ec21a5066b23f4762d05cf0",
+      "size_bytes": 15436
+    },
+    "runtime/colibri/c/qpack.c": {
+      "mode": 420,
+      "sha256": "c2d0a5b0006f6677a084949469bb27f814253fb77b4598152aa278ecdbe87fe3",
+      "size_bytes": 31926
+    },
+    "runtime/colibri/c/qpack.h": {
+      "mode": 420,
+      "sha256": "782eccd5f765e000be549f3ba0244a478b0672e1e8faa0c9a355e839fb79fc11",
+      "size_bytes": 2423
+    },
+    "runtime/colibri/c/qpack_inspect.c": {
+      "mode": 420,
+      "sha256": "17a97ac9d1714e2893f83ccf32ce4948f9224493399d3b2191894ace97f5868f",
+      "size_bytes": 1652
+    },
+    "runtime/colibri/c/quant.h": {
+      "mode": 420,
+      "sha256": "f300f4f9214b4bc81c29e9cd83b89ab05be72941ca482b07e90abe62f4f8d6de",
+      "size_bytes": 83256
+    },
+    "runtime/colibri/c/qwen36.c": {
+      "mode": 420,
+      "sha256": "b9e01e98966f048de17b91461870af36615530a5a18c393d78d7bfe3dbd05ba1",
+      "size_bytes": 396023
+    },
+    "runtime/colibri/c/qwen36_chain.h": {
+      "mode": 420,
+      "sha256": "b208b659c03f26393b9294340ba1f9625a339fc1e582fbd459d9e7c53f8f7704",
+      "size_bytes": 58024
+    },
+    "runtime/colibri/c/qwen36_qpack.c": {
+      "mode": 420,
+      "sha256": "c2084f97a7515cb0e43879ae4b49decc7d8bfa7a186a5ed8556f47d6269f5ee6",
+      "size_bytes": 13869
+    },
+    "runtime/colibri/c/qwen36_qpack.h": {
+      "mode": 420,
+      "sha256": "a27b56f9a4c391892add072c72ff151f0d71843aa2fa054b29d64e21c651db17",
+      "size_bytes": 6283
+    },
+    "runtime/colibri/c/qwen36_tier.c": {
+      "mode": 420,
+      "sha256": "6f085d91e475e360bf6d88ab094c857c830c4cef5146ba496501798f1cb9eb62",
+      "size_bytes": 77769
+    },
+    "runtime/colibri/c/qwen36_tier.h": {
+      "mode": 420,
+      "sha256": "13faa64a6cb0170509cd7d94b2ea8b8c320e6495e439775f99a158f4c2c73b28",
+      "size_bytes": 15357
+    },
+    "runtime/colibri/c/qwen38.c": {
+      "mode": 420,
+      "sha256": "aedd2f76cc3015ff2d703605a60e9e16864740f13d71489c0025340554212586",
+      "size_bytes": 180528
+    },
+    "runtime/colibri/c/qwen38_chain.h": {
+      "mode": 420,
+      "sha256": "c1a7d68d142d9d75e7eb0fc5f8ca22215d379e6efd2222103557adee4b322339",
+      "size_bytes": 71183
+    },
+    "runtime/colibri/c/qwen38_core.h": {
+      "mode": 420,
+      "sha256": "21d13c86071a6e12146f9651000e021c91ba9fc94050c5531e2cbaa3b1c21ba8",
+      "size_bytes": 223070
+    },
+    "runtime/colibri/c/qwen38_nfc.h": {
+      "mode": 420,
+      "sha256": "c34b1fabf0a7df0e2d6a21c414abe09158f668aa7aa2c11e2bdfcf28f390b4f4",
+      "size_bytes": 10400
+    },
+    "runtime/colibri/c/qwen38_nfc_tables.h": {
+      "mode": 420,
+      "sha256": "800de0babb6cb55aa153149083ea8737b9a039e403b90515f49fff75f9622286",
+      "size_bytes": 670463
+    },
+    "runtime/colibri/c/qwen38_vision.h": {
+      "mode": 420,
+      "sha256": "30c04c8db0e6946f866740bd1de8aa31eed8e8dec1733b4bc4e5ecccfcaf4e9b",
+      "size_bytes": 13369
+    },
+    "runtime/colibri/c/qwenimage.c": {
+      "mode": 420,
+      "sha256": "f25c0a0edfec228727029ea2977591ca099e8ca8d0a220e579aaa277c68afba0",
+      "size_bytes": 73339
+    },
+    "runtime/colibri/c/qwenimage_chain.h": {
+      "mode": 420,
+      "sha256": "5f16ced99342fe7792fcbb9ee268ae1dc41976f7df40dbd681ab4b5f540bf907",
+      "size_bytes": 19434
+    },
+    "runtime/colibri/c/qwenimage_preview.h": {
+      "mode": 420,
+      "sha256": "b803815f6fc674c423f51c3329c0195a8bde674d9eaef95a3634844a107df3cf",
+      "size_bytes": 3360
+    },
+    "runtime/colibri/c/qwenimage_vae.h": {
+      "mode": 420,
+      "sha256": "3d7fbd03197f73e209743c952ac7f4ff5aefefc5f7a4765766b9f2d685445341",
+      "size_bytes": 29865
+    },
+    "runtime/colibri/c/qwenimage_vae_vk.h": {
+      "mode": 420,
+      "sha256": "b9535778740fb5b6857df0a967709587ed7fd4683a40633a1bda3b92715df551",
+      "size_bytes": 12003
+    },
+    "runtime/colibri/c/rans.h": {
+      "mode": 420,
+      "sha256": "2b98f88976de30de23fd767819b321df14e3e9811531619e2f4ed130cad8cd6e",
+      "size_bytes": 55951
+    },
+    "runtime/colibri/c/resource_plan.py": {
+      "mode": 420,
+      "sha256": "a72136d7d71099870a6ff471007aa12a86639b4d1f7b8daa51f379a305d1b85a",
+      "size_bytes": 170276
+    },
+    "runtime/colibri/c/route_trace.h": {
+      "mode": 420,
+      "sha256": "08887ab30efd7bab09c3b9d813a548fc1c38858f5a091f2350c4cc5cc5916d74",
+      "size_bytes": 25885
+    },
+    "runtime/colibri/c/sample.h": {
+      "mode": 420,
+      "sha256": "6a59800870e7f9445f51a9820a0e898d3548d8375785884c594f753205e37443",
+      "size_bytes": 15124
+    },
+    "runtime/colibri/c/schema_gbnf.h": {
+      "mode": 420,
+      "sha256": "bd5b3c6994693df4cdb9334e78025e6ee8759a62efcf54682815d92a6f5b1acd",
+      "size_bytes": 12900
+    },
+    "runtime/colibri/c/scripts/run.sh": {
+      "mode": 493,
+      "sha256": "bd3e3f3fa172f91cb915868d9859247119203110125dcd443c1821a7790b738a",
+      "size_bytes": 1786
+    },
+    "runtime/colibri/c/scripts/supervisor.sh": {
+      "mode": 493,
+      "sha256": "d14effea3f8f8cf291c061576ce4db15a154c46698bef17cfa30877a76b9201e",
+      "size_bytes": 3385
+    },
+    "runtime/colibri/c/segment_adapter_internal.h": {
+      "mode": 420,
+      "sha256": "fdd41ba1e6baff9ba9328ae6856430ce7a66c790e4c8e44fe45d666ce3febaa4",
+      "size_bytes": 8794
+    },
+    "runtime/colibri/c/segment_adapters.h": {
+      "mode": 420,
+      "sha256": "9d0953bab85f3daad21e1b23fd45a0a78225b7da0efe7f49436683366813ae82",
+      "size_bytes": 1021
+    },
+    "runtime/colibri/c/segment_runtime.c": {
+      "mode": 420,
+      "sha256": "8ad4e1a7f8489e20cf5576dc7d9a1fb59c2cc8e2793d692e95caee1e66831a01",
+      "size_bytes": 11548
+    },
+    "runtime/colibri/c/segment_runtime.h": {
+      "mode": 420,
+      "sha256": "2f4a37b5cb0cd4eae22bff875ab8c903e9a42ddff39ec10d827ef41d9c7d288b",
+      "size_bytes": 7813
+    },
+    "runtime/colibri/c/serve_budget.h": {
+      "mode": 420,
+      "sha256": "2454548fae36ade99f783c32f3888308104548ded82ad7259e096591c56b1dd3",
+      "size_bytes": 851
+    },
+    "runtime/colibri/c/serve_codec.h": {
+      "mode": 420,
+      "sha256": "fc24092b7e4f4bc0e8827300d9c25e59e1448cc24d9e50a1229d7dc5adcdb9ac",
+      "size_bytes": 21214
+    },
+    "runtime/colibri/c/serve_poll.h": {
+      "mode": 420,
+      "sha256": "0c9640c8d7599a6ace9378df7d3ed6b2e7f7d1a5ecf98b67378e4127032c9106",
+      "size_bytes": 3281
+    },
+    "runtime/colibri/c/setup.sh": {
+      "mode": 493,
+      "sha256": "1f1b7e8fdc727cc1d37e31403e949de3ae869e5add6eac963bcd8822330492cb",
+      "size_bytes": 3148
+    },
+    "runtime/colibri/c/setup_catalog.py": {
+      "mode": 420,
+      "sha256": "9b294941a9240c344f3612c513e20b4902f8bd3fd0045b7f9c8def3110feff9f",
+      "size_bytes": 13897
+    },
+    "runtime/colibri/c/setup_download.py": {
+      "mode": 420,
+      "sha256": "dce48b77362ffbfccc1927164579257861aa619c0374a7cd41bcf899358628bb",
+      "size_bytes": 19156
+    },
+    "runtime/colibri/c/setup_flow.py": {
+      "mode": 420,
+      "sha256": "ba0fdaaf1b01e761dce6789e018da30b7d8a34a98e2d2e2700ade594fcbfcaba",
+      "size_bytes": 92530
+    },
+    "runtime/colibri/c/setup_hw.py": {
+      "mode": 420,
+      "sha256": "669bd23df2079ea3baa0940b251a4b4ee290fc1717a2854ffe73027356802fdd",
+      "size_bytes": 39693
+    },
+    "runtime/colibri/c/shaders/attention_absorb.comp": {
+      "mode": 420,
+      "sha256": "92ae609f8e9f1379f2c64a50426fca97867a0a2955296e9ce6eb135a55924213",
+      "size_bytes": 9083
+    },
+    "runtime/colibri/c/shaders/chain_ares.comp": {
+      "mode": 420,
+      "sha256": "008c644f449de0d59c22bcaa83a126631a35580323a5f7ae412f9747128533d7",
+      "size_bytes": 3836
+    },
+    "runtime/colibri/c/shaders/chain_attn.comp": {
+      "mode": 420,
+      "sha256": "5d9ae5a0b0c1073b3cdf3cb1176d48b166ec0812129b41040acbf63130687fb8",
+      "size_bytes": 5406
+    },
+    "runtime/colibri/c/shaders/chain_attn_coop.comp": {
+      "mode": 420,
+      "sha256": "459fec15d524f8fe05749a8d3ac4d174efcc8d929313189bacb6527a90bf1c86",
+      "size_bytes": 7444
+    },
+    "runtime/colibri/c/shaders/chain_attn_flash.comp": {
+      "mode": 420,
+      "sha256": "6853790d59b88f6201d755dc2d27fa389071a5bc08ebca8957f37eec2455a7df",
+      "size_bytes": 10061
+    },
+    "runtime/colibri/c/shaders/chain_attn_full.comp": {
+      "mode": 420,
+      "sha256": "4f3756f42111eb6b2246357b87e340c11d4be19dfd0c759bd299cb4508764edb",
+      "size_bytes": 6494
+    },
+    "runtime/colibri/c/shaders/chain_attnb.comp": {
+      "mode": 420,
+      "sha256": "bf5ab15a9807586c9eddfd26a30c7c345d3a78d0598b7d7de4163281c5041c66",
+      "size_bytes": 9097
+    },
+    "runtime/colibri/c/shaders/chain_dnconv.comp": {
+      "mode": 420,
+      "sha256": "c945954bf0ab88f5f79c8f54f53c64a9e47d0c5b33be0c030ad8a242c2ddd375",
+      "size_bytes": 2479
+    },
+    "runtime/colibri/c/shaders/chain_dnrec.comp": {
+      "mode": 420,
+      "sha256": "087b4d017492fd61075c6eca58aeb94746101dac08b543e7fa02caf70869a490",
+      "size_bytes": 4989
+    },
+    "runtime/colibri/c/shaders/chain_dsa.comp": {
+      "mode": 420,
+      "sha256": "802380fbeceb7b8890d985bf7d3f6f2bbc04ce350f8b4e45d81241841bcfd66f",
+      "size_bytes": 10493
+    },
+    "runtime/colibri/c/shaders/chain_dsv4.comp": {
+      "mode": 420,
+      "sha256": "8511480fc82886f49f6f9968bb858d9cd28cdee60d4a3072583f456f78dde5ed",
+      "size_bytes": 25885
+    },
+    "runtime/colibri/c/shaders/chain_enc.comp": {
+      "mode": 420,
+      "sha256": "eb9ed2b3b071f8c1fcc2312f9a982756e8977d58aee0968694d49f5b93324ec7",
+      "size_bytes": 14238
+    },
+    "runtime/colibri/c/shaders/chain_ew.comp": {
+      "mode": 420,
+      "sha256": "12dd1629602714052f881536437624ab845f6f776bb654a76cbef1f478a4cfc8",
+      "size_bytes": 3742
+    },
+    "runtime/colibri/c/shaders/chain_gemm.comp": {
+      "mode": 420,
+      "sha256": "76c2949fe4fa51ae486c0205d721b89d159c91397b167b200c251f71457e4d7a",
+      "size_bytes": 8650
+    },
+    "runtime/colibri/c/shaders/chain_gemv.comp": {
+      "mode": 420,
+      "sha256": "6805534988d3b9dcd2efbd8dfc6269d6e96814b5035223f29c554042ce7fdb08",
+      "size_bytes": 6208
+    },
+    "runtime/colibri/c/shaders/chain_gemv2.comp": {
+      "mode": 420,
+      "sha256": "2e5a1d6f9fad9b2790074745029b0a8235cf96976baa3b9ddaff7ab64019c88f",
+      "size_bytes": 5065
+    },
+    "runtime/colibri/c/shaders/chain_hgemv.comp": {
+      "mode": 420,
+      "sha256": "2854b99bf9d7aa9047a7b87417da94c97188173c054b9acd3ee64110a6ecbfa0",
+      "size_bytes": 5408
+    },
+    "runtime/colibri/c/shaders/chain_kda.comp": {
+      "mode": 420,
+      "sha256": "ae641b42bbc613fe23b1dedc2f35d5cf8c55902fada73a6fa7f692886b1fd345",
+      "size_bytes": 7571
+    },
+    "runtime/colibri/c/shaders/chain_kvs.comp": {
+      "mode": 420,
+      "sha256": "376e5c9d8638efa58670ff674ab3cc17703c703b4efb442db26e7669c855aec2",
+      "size_bytes": 26754
+    },
+    "runtime/colibri/c/shaders/chain_mhc.comp": {
+      "mode": 420,
+      "sha256": "d5a44c71dbf50a96d4014255105cb405c3f27131874a4bb286738faaaceb06ab",
+      "size_bytes": 5779
+    },
+    "runtime/colibri/c/shaders/chain_mla.comp": {
+      "mode": 420,
+      "sha256": "17e26d60ed41ad0d5d8101f9c8e9bd4fd683914c756ab9ca4d6db7b53bd56469",
+      "size_bytes": 9726
+    },
+    "runtime/colibri/c/shaders/chain_norm.comp": {
+      "mode": 420,
+      "sha256": "2b3673d3de632cbef8fd1af99cb6ee718a35176b019cabf409a9e5111c34fc9f",
+      "size_bytes": 2536
+    },
+    "runtime/colibri/c/shaders/chain_ple.comp": {
+      "mode": 420,
+      "sha256": "a8a9b5444e4d9eca6980b3e8bbbd975310cdf4c5612178ed8cfac844e0fa9fa6",
+      "size_bytes": 4764
+    },
+    "runtime/colibri/c/shaders/chain_qsa.comp": {
+      "mode": 420,
+      "sha256": "e3d40ff9e277f78f5136fde6a5a42d55a158f07db2d0d3741af114d9de5c4a85",
+      "size_bytes": 4896
+    },
+    "runtime/colibri/c/shaders/chain_relattn.comp": {
+      "mode": 420,
+      "sha256": "6a5d24627d7e4c1e8b89de44fb677b9b4778324fcadf157da444e37b02b7d75f",
+      "size_bytes": 5397
+    },
+    "runtime/colibri/c/shaders/chain_rope.comp": {
+      "mode": 420,
+      "sha256": "4b40d4ae456ffdf77c763ee645d5c5e149831f22ffb2019551a2f5a81df27d8e",
+      "size_bytes": 1447
+    },
+    "runtime/colibri/c/shaders/chain_sconv.comp": {
+      "mode": 420,
+      "sha256": "328991f0c3a6bec5d3baeb9ca870b4e687120592a06b3906768c2e6c40ac1cc8",
+      "size_bytes": 2287
+    },
+    "runtime/colibri/c/shaders/chain_vae.comp": {
+      "mode": 420,
+      "sha256": "4b8c7acec60695001501577fed676418caa51c03641f2001be33cf047e85f4ed",
+      "size_bytes": 2324
+    },
+    "runtime/colibri/c/shaders/expert_act.comp": {
+      "mode": 420,
+      "sha256": "058e33d9195d34026e0665afa69514328fef4f72c0c05268dabb4152a505b5c1",
+      "size_bytes": 2455
+    },
+    "runtime/colibri/c/shaders/expert_act_v4.comp": {
+      "mode": 420,
+      "sha256": "520b86adba21e365e518827bac85df418ffe4a67c91cc82a6bf3a6192d7e5af6",
+      "size_bytes": 3300
+    },
+    "runtime/colibri/c/shaders/expert_sum.comp": {
+      "mode": 420,
+      "sha256": "2f086de7f52ba19d67402d27249cb53144c556aafcce713810404c509db1e03a",
+      "size_bytes": 1031
+    },
+    "runtime/colibri/c/shaders/qmatmul.comp": {
+      "mode": 420,
+      "sha256": "23f99514dccf2b3e3d758f65f8224a014d4e085e853de50c0a6f4a5c9d0e8f4f",
+      "size_bytes": 10077
+    },
+    "runtime/colibri/c/shaders/qmatmul_coop.comp": {
+      "mode": 420,
+      "sha256": "2879f03ece166b202c8a7cb350e66e637f66c6a7947eccd7db4bf55cdcc1d4ea",
+      "size_bytes": 14591
+    },
+    "runtime/colibri/c/shaders/qmatmul_gate_up.comp": {
+      "mode": 420,
+      "sha256": "b4557c60fb721e646715b7424175fb9d5b5c9ec818f5a7ee49c56e57cad55dab",
+      "size_bytes": 10134
+    },
+    "runtime/colibri/c/shaders/qmatmul_gemm.comp": {
+      "mode": 420,
+      "sha256": "b50e783a2decbaf8ac643b7f58b5604176398a5357ebad53bfa7d5a693f5216f",
+      "size_bytes": 12784
+    },
+    "runtime/colibri/c/shaders/qmatmul_grp.comp": {
+      "mode": 420,
+      "sha256": "9b53958a4fc4cb0b5c6db82a837336a204dd3e42293afd007b497f6d5f86f0b1",
+      "size_bytes": 14936
+    },
+    "runtime/colibri/c/shaders/qmatmul_grp_gemv.comp": {
+      "mode": 420,
+      "sha256": "5820404abe8bb785503bf329eb99d3f0f23264a5f686ed081f703983f2a67098",
+      "size_bytes": 9025
+    },
+    "runtime/colibri/c/shaders/rmsnorm.comp": {
+      "mode": 420,
+      "sha256": "92682142d9ec6d7c037366b776fd00263eea2ff98431171bac819618215917ae",
+      "size_bytes": 1325
+    },
+    "runtime/colibri/c/sparse_attn.h": {
+      "mode": 420,
+      "sha256": "2504b8c819b9672ca786f69c8dd7f3f91e4bcf04aa94b1a9105d18c3256fca63",
+      "size_bytes": 5592
+    },
+    "runtime/colibri/c/sparse_index.h": {
+      "mode": 420,
+      "sha256": "1613924ba25ee3c6a3621c08ffcc6cf93d5048d7caec3582e9d0dd8d3c1eb972",
+      "size_bytes": 11441
+    },
+    "runtime/colibri/c/spec_draft.h": {
+      "mode": 420,
+      "sha256": "f87a3694afe661564804fbf1825c023d24637d51cc7ee0a65bc62615404af5a9",
+      "size_bytes": 10870
+    },
+    "runtime/colibri/c/sse41_kernels.h": {
+      "mode": 420,
+      "sha256": "4e62a74b5cd4716f0a1f91c5cb13b17afd50cea18ae3582bb0bf7f52f698d3e4",
+      "size_bytes": 7930
+    },
+    "runtime/colibri/c/st.h": {
+      "mode": 420,
+      "sha256": "af15d038bb40b15a0af9ca0de0163018a3d49d785a6a9764343e31b725f209ba",
+      "size_bytes": 82064
+    },
+    "runtime/colibri/c/stop_ids.h": {
+      "mode": 420,
+      "sha256": "9f86061d86472416bb3c7491502a355573e22b120e1d1d398e3ad57ba9c4065e",
+      "size_bytes": 2931
+    },
+    "runtime/colibri/c/telemetry.h": {
+      "mode": 420,
+      "sha256": "fd9cadbb9e3954c27fda7599757d97a5aada4cdb33a14a8d1eeb158debc18a05",
+      "size_bytes": 12779
+    },
+    "runtime/colibri/c/tensor.h": {
+      "mode": 420,
+      "sha256": "c49a508a9d2a3661f8d538e8f23a334a0a82ac89f8d01297d9d36cd928a2a147",
+      "size_bytes": 1163
+    },
+    "runtime/colibri/c/term_image.py": {
+      "mode": 420,
+      "sha256": "15e0ba18bb79f753b12e0c339aa179d4669f258cf054328f26034c4e410c0c6e",
+      "size_bytes": 23440
+    },
+    "runtime/colibri/c/test_expert_store_registry.c": {
+      "mode": 420,
+      "sha256": "f31be9d2618c81f88fe70b3b2c6d6bf590294fc7c927a37224aa13464c5d8252",
+      "size_bytes": 3654
+    },
+    "runtime/colibri/c/tier.h": {
+      "mode": 420,
+      "sha256": "b03ca03b4366f6bdf4a7bcd94efef2d59d51b9025323f089c7387ae3d82ede4d",
+      "size_bytes": 2939
+    },
+    "runtime/colibri/c/tok.h": {
+      "mode": 420,
+      "sha256": "8209083ca7e36d505d2f75703492bbfef3057950d1540b901876dec57b4826bb",
+      "size_bytes": 36856
+    },
+    "runtime/colibri/c/tok_unicode.h": {
+      "mode": 420,
+      "sha256": "ed75c154fbd8984d504288d22d11e144c28160dbc67e4435eb9e3241c2816838",
+      "size_bytes": 14640
+    },
+    "runtime/colibri/c/tok_unicode_deepseek.h": {
+      "mode": 420,
+      "sha256": "4ae28d1c8fb68ddcf9b7ca09e9f5b8c9325d72a35e7f4e8e7b6a3b8dd363d238",
+      "size_bytes": 13022
+    },
+    "runtime/colibri/c/tok_unicode_o200k.h": {
+      "mode": 420,
+      "sha256": "fadb9aa169d04f75672a7da23c694dc6ae874e7a6af28abe9b6ebbf6acc4f5bb",
+      "size_bytes": 21216
+    },
+    "runtime/colibri/c/tools/README.md": {
+      "mode": 420,
+      "sha256": "7fdc7a943933204ee1bf0353abfbdc56e19aa8b1aee2cc97de9e90e59e31054a",
+      "size_bytes": 6137
+    },
+    "runtime/colibri/c/tools/__init__.py": {
+      "mode": 420,
+      "sha256": "27888a27d86d115a7fcb7a21341ccc2145f1c92b087ac5b01c400996cc98a380",
+      "size_bytes": 72
+    },
+    "runtime/colibri/c/tools/analyze_split_entropy.py": {
+      "mode": 420,
+      "sha256": "e80964a6e3951d71a690aeb76077921d9eda2247324f134b143f31d62f467f2b",
+      "size_bytes": 7349
+    },
+    "runtime/colibri/c/tools/bench_dsv4_deepgemm_real.py": {
+      "mode": 420,
+      "sha256": "2d05c651a55e5cb4173ec5b065731f591fda99b0eba8b6e8d32f452c09fc86f5",
+      "size_bytes": 7192
+    },
+    "runtime/colibri/c/tools/bench_fp4_matmul.c": {
+      "mode": 420,
+      "sha256": "11f5d74012502f990a23c0c7d8f764ca0daf34e003da89d5211c162eb70431e8",
+      "size_bytes": 6056
+    },
+    "runtime/colibri/c/tools/bench_fp4_matmul.sh": {
+      "mode": 493,
+      "sha256": "ca6a886fedf7b2beedd907cff442664af8f6572f7c30f84c6c8af6210d502298",
+      "size_bytes": 2598
+    },
+    "runtime/colibri/c/tools/bench_ux.sh": {
+      "mode": 493,
+      "sha256": "779c324f02b81d99882cf2368615a751aa726929b072bed4d1a9bf95a60d0c5f",
+      "size_bytes": 2589
+    },
+    "runtime/colibri/c/tools/benchmark_baseline.py": {
+      "mode": 420,
+      "sha256": "5cb6c657f3b547d9593a7f3d0da9d7ee6a2824b9169ea612c6dd3023a0029e6e",
+      "size_bytes": 12894
+    },
+    "runtime/colibri/c/tools/benchmark_continuous_batch.py": {
+      "mode": 420,
+      "sha256": "9b2240d409fdae1873ffb75db9401e2c64278417dcc89f3631a04af664261e01",
+      "size_bytes": 5267
+    },
+    "runtime/colibri/c/tools/benchmark_cuda_fixture.py": {
+      "mode": 420,
+      "sha256": "bda8064473210bf53a61758b2ec28316b7b745af1ca01d1092f8ecc53a85b0e8",
+      "size_bytes": 5040
+    },
+    "runtime/colibri/c/tools/benchmark_http_serving.py": {
+      "mode": 420,
+      "sha256": "8d637991cc987eeeb28bad9cc1c39b86c939d7b5001622c07ea093797b44b4fe",
+      "size_bytes": 16850
+    },
+    "runtime/colibri/c/tools/benchmark_kv_prefix.py": {
+      "mode": 420,
+      "sha256": "764ee52c55729b0f39882e3aa185b4b9cc126e002239b1d3c8dac137167d80ab",
+      "size_bytes": 4969
+    },
+    "runtime/colibri/c/tools/benchmark_serving_interference.py": {
+      "mode": 420,
+      "sha256": "fe3365c410894ff4de0cb7433ea6f76ed3aebce64fdc6a25b75f92a399f6c162",
+      "size_bytes": 5851
+    },
+    "runtime/colibri/c/tools/benchmark_split_entropy.cu": {
+      "mode": 420,
+      "sha256": "ea03bd5e98f755e00e7c4196b8c0c742e090e91bfe4720271f55be7cc705a88c",
+      "size_bytes": 9502
+    },
+    "runtime/colibri/c/tools/benchmark_split_matvec.cu": {
+      "mode": 420,
+      "sha256": "e8c8aa35292106382b141f5583c37df80613dce98b9f74436c80c3124c3661fb",
+      "size_bytes": 16647
+    },
+    "runtime/colibri/c/tools/blocksweep.py": {
+      "mode": 420,
+      "sha256": "abb883b26b8b6e782f9aedd2765873bfeae646525cd179ff6ad06c1c6a605569",
+      "size_bytes": 5009
+    },
+    "runtime/colibri/c/tools/build_xdna_package.py": {
+      "mode": 420,
+      "sha256": "d3c773215a1aa7ea601c89aa76c2742fff85c8534271b931c8614534ec0cc008",
+      "size_bytes": 17123
+    },
+    "runtime/colibri/c/tools/check_ablate_evidence.py": {
+      "mode": 420,
+      "sha256": "1c3d4b25b2584c5290708432e425d2083f8f15662fdef184d768014072cd9245",
+      "size_bytes": 19652
+    },
+    "runtime/colibri/c/tools/check_glm53_checkpoint.py": {
+      "mode": 420,
+      "sha256": "2da587c38f02ae427d92940014717dadba5612b89794bc4b66e27a32f6556bfc",
+      "size_bytes": 7072
+    },
+    "runtime/colibri/c/tools/check_glm53_container.c": {
+      "mode": 420,
+      "sha256": "6fba86bce5e64b316d3e4e0a240e0e5db2561c3dde15f62f054c0b18085111e4",
+      "size_bytes": 2322
+    },
+    "runtime/colibri/c/tools/clean.py": {
+      "mode": 420,
+      "sha256": "e40b52f5f1dfd0b1b1a865b774639acc74de468e56b4a1dc19d94aabf050df36",
+      "size_bytes": 5541
+    },
+    "runtime/colibri/c/tools/compare_clef.py": {
+      "mode": 420,
+      "sha256": "531bf48abec6dad3bed865dec49c3dab74a0d411e88005daa8331e05977f5c71",
+      "size_bytes": 20209
+    },
+    "runtime/colibri/c/tools/compare_gliner_decide.py": {
+      "mode": 420,
+      "sha256": "185e9149ed12f42de9be63bf179bd6c11cd96c93bac69a3fa144ad8efaab45b8",
+      "size_bytes": 25682
+    },
+    "runtime/colibri/c/tools/compare_laya.py": {
+      "mode": 420,
+      "sha256": "910e23f3e972be27e9087b9b2793c734a6f83d368c6b43086ed11d92c9b20f6b",
+      "size_bytes": 21797
+    },
+    "runtime/colibri/c/tools/convert_fmt4_to_fmt2.py": {
+      "mode": 420,
+      "sha256": "21a9a2f41737c49dc477258a25fe9b9c7e55ce7298dede6b367930137daae839",
+      "size_bytes": 21039
+    },
+    "runtime/colibri/c/tools/convert_fp8_to_int4.py": {
+      "mode": 420,
+      "sha256": "0e5b693624b8b5a0ed5b55c8f08daa3450a5548353ee7013c06f2ed93aef4493",
+      "size_bytes": 69246
+    },
+    "runtime/colibri/c/tools/convert_gguf_to_olmoe.py": {
+      "mode": 420,
+      "sha256": "945bb4587ceeb69cae6a35b5a28a9e67e8afff4f7d877ec0b96fa92f5b22bf06",
+      "size_bytes": 18010
+    },
+    "runtime/colibri/c/tools/convert_glm53.py": {
+      "mode": 420,
+      "sha256": "dd4f1b9ab8d16abf5948ddc24d50d60fecbe5dc7468e4dc5ffb4cb4e9d4f2ef5",
+      "size_bytes": 21643
+    },
+    "runtime/colibri/c/tools/convert_inkling_dense_int4.py": {
+      "mode": 420,
+      "sha256": "4131ec168d1560d30eb9b8c360e00fb93f0be26e88cb64968bda56f81b720571",
+      "size_bytes": 14115
+    },
+    "runtime/colibri/c/tools/convert_inkling_int4.py": {
+      "mode": 420,
+      "sha256": "3e30f3ce3c05caa9d13431f0b5a4c33ac5b661ebdb1bf367b525b19189f493a5",
+      "size_bytes": 19992
+    },
+    "runtime/colibri/c/tools/convert_olmoe.py": {
+      "mode": 420,
+      "sha256": "15dd64c83c1751a0acdbb9ced8a2c1ac463e81003952fca94dd17834f10e8f16",
+      "size_bytes": 5642
+    },
+    "runtime/colibri/c/tools/convert_olmoe_merged.py": {
+      "mode": 420,
+      "sha256": "f95f64ef4c168e6b550db9293653558a881dd4ee24ff087bea3b5ff66298bd4e",
+      "size_bytes": 11219
+    },
+    "runtime/colibri/c/tools/convert_qwen36.py": {
+      "mode": 420,
+      "sha256": "7780b25bd39c13e8d0a61fac4fb18cb37b9b23877e13fbca01f88de0c894d9c0",
+      "size_bytes": 40794
+    },
+    "runtime/colibri/c/tools/convert_qwen38_experts_int4.py": {
+      "mode": 420,
+      "sha256": "f2039eea4785e83d4082989b3155764d357a4de4cb7dbf2e5d6f04f922b0f436",
+      "size_bytes": 24205
+    },
+    "runtime/colibri/c/tools/datapoint.py": {
+      "mode": 420,
+      "sha256": "9e47454ebaaac9d3bd6c4ddbf1b2c96726dc289b213922fa82eaf2c27ad8e3a5",
+      "size_bytes": 35932
+    },
+    "runtime/colibri/c/tools/diag_harness.py": {
+      "mode": 420,
+      "sha256": "53a709e712ad1d6cb24c8377068e8de190d6b6d23b22f9aec278ad6e39a7952f",
+      "size_bytes": 39635
+    },
+    "runtime/colibri/c/tools/disaggregation_break_even.py": {
+      "mode": 420,
+      "sha256": "9a09c19a1ed378fb1f1d8e5ddafe688b6530145d42eb792fe51a098d7db58c69",
+      "size_bytes": 2415
+    },
+    "runtime/colibri/c/tools/download_glm52.py": {
+      "mode": 420,
+      "sha256": "1f02c6b6c8e4be9a5f7c5292db8a1d805580ef08b4649e55d4950616cf37818a",
+      "size_bytes": 2713
+    },
+    "runtime/colibri/c/tools/dsv41_image.py": {
+      "mode": 420,
+      "sha256": "6acf10d86ab3fbdf9d352bd329ec9dcba219837e49a6fcf8fb912d0e289fd514",
+      "size_bytes": 5035
+    },
+    "runtime/colibri/c/tools/dsv41_ref.py": {
+      "mode": 420,
+      "sha256": "f2d597fde096db8338fa075b57d671be60fc32c87a4e26d1a09e86f866a9cab2",
+      "size_bytes": 40979
+    },
+    "runtime/colibri/c/tools/dsv4_attn2_oracle.py": {
+      "mode": 420,
+      "sha256": "3a741fb1e47061418b7bd5fa42fc1593ab01d4771df55f52d8fa17c6959ed83d",
+      "size_bytes": 3341
+    },
+    "runtime/colibri/c/tools/dsv4_attn_oracle.py": {
+      "mode": 420,
+      "sha256": "a451d8a864060161af274552785b2b2cb309bc8a12a8b6be87c02bf133e179b8",
+      "size_bytes": 2293
+    },
+    "runtime/colibri/c/tools/dsv4_bf16_deepgemm_probe.py": {
+      "mode": 420,
+      "sha256": "e6c69abee39dbcbe9281a237a6c4a7dc95c929027cd67dc1339499dd275d9137",
+      "size_bytes": 445
+    },
+    "runtime/colibri/c/tools/dsv4_block_oracle.py": {
+      "mode": 420,
+      "sha256": "4052347be7d9cc20e31ae9df49ca3c4f1e78527a57277ec741b5ecd755898fbb",
+      "size_bytes": 3242
+    },
+    "runtime/colibri/c/tools/dsv4_compressor_oracle.py": {
+      "mode": 420,
+      "sha256": "03ef7720ffa3841cd4f30780412d5c7bf3cf902ca790c17d761b307d0401b300",
+      "size_bytes": 2271
+    },
+    "runtime/colibri/c/tools/dsv4_dense_deepgemm_probe.py": {
+      "mode": 420,
+      "sha256": "1c53a2a4a9b96a37449e85e2d57c04d412c17036582a2ea0385f51f3d31940cb",
+      "size_bytes": 2441
+    },
+    "runtime/colibri/c/tools/dsv4_fc1_deepgemm_oracle.py": {
+      "mode": 420,
+      "sha256": "972965ccc5c17ec615d9d7ce7df0a9b53af30a6f692ba84b1ca9de51f8486df8",
+      "size_bytes": 3386
+    },
+    "runtime/colibri/c/tools/dsv4_masked_moe_probe.py": {
+      "mode": 420,
+      "sha256": "0564ba357e707bc75a57ee6ed621b22f3b7666502f125bf30d5b1c89205f08d8",
+      "size_bytes": 2130
+    },
+    "runtime/colibri/c/tools/dsv4_mhc_oracle.py": {
+      "mode": 420,
+      "sha256": "b9ed48b82504b19d1e7b8cdc82554f811a169ae883fdd8e6527fce278daf72b0",
+      "size_bytes": 1416
+    },
+    "runtime/colibri/c/tools/dsv4_vllm_benchmark.py": {
+      "mode": 420,
+      "sha256": "30abd38d88c44ae91cd9f9e6a2e91084e1a64ee4dd852b2e4d16a408c514faa7",
+      "size_bytes": 1071
+    },
+    "runtime/colibri/c/tools/dsv4_vllm_oracle.py": {
+      "mode": 420,
+      "sha256": "4d4cb6e82424ba283ec18533ee5694a18e417a3cde88ec4a1b46da38abeadbdd",
+      "size_bytes": 610
+    },
+    "runtime/colibri/c/tools/dsv4_vllm_reference.py": {
+      "mode": 420,
+      "sha256": "f3cceb831ef7949abc56638757b1ddb9390b68cccade42ebf428f17ba055bd28",
+      "size_bytes": 1695
+    },
+    "runtime/colibri/c/tools/dsv4_vllm_shape_probe.py": {
+      "mode": 420,
+      "sha256": "f99b4b116582e7c09cc1711ff2c40aa0388b143103e1f1309a1c42e1d9a436ba",
+      "size_bytes": 2615
+    },
+    "runtime/colibri/c/tools/dsv4_wo_a_deepgemm_probe.py": {
+      "mode": 420,
+      "sha256": "2ea75e632f522b2126c760767e0557e9fb9148b7d7c9c9eb4cf8397435fe73b8",
+      "size_bytes": 1570
+    },
+    "runtime/colibri/c/tools/efficiency.py": {
+      "mode": 420,
+      "sha256": "74a84dcaecb9d02f5000c5f9503f730d0a55e37555476dddb1f2c4fc4a2126f8",
+      "size_bytes": 20750
+    },
+    "runtime/colibri/c/tools/engine_evidence.py": {
+      "mode": 420,
+      "sha256": "14d698c573df5c282a2c720dfee5768c9f63a9995e397da7adbd74a60d492d55",
+      "size_bytes": 6428
+    },
+    "runtime/colibri/c/tools/eval_glm.py": {
+      "mode": 420,
+      "sha256": "4fb5841ac099ec856c41730db9bee9786685ab22826e61c51252996e78007498",
+      "size_bytes": 33203
+    },
+    "runtime/colibri/c/tools/expert_atlas/README.md": {
+      "mode": 420,
+      "sha256": "185327c8086d4c98a682e5fb5f451dd3f0360bb9a684f58fce1da83aed7e40af",
+      "size_bytes": 4383
+    },
+    "runtime/colibri/c/tools/expert_atlas/analyze.py": {
+      "mode": 420,
+      "sha256": "f4ea05fb5e3d8e5138930dd173ece6ba5b2da33187c0643d0aebc11d5273cde3",
+      "size_bytes": 6482
+    },
+    "runtime/colibri/c/tools/expert_atlas/sweep.sh": {
+      "mode": 493,
+      "sha256": "44fe6339fc129df957067ff516433ab98ce9b4ebd4b141309b0663f69641caf2",
+      "size_bytes": 3785
+    },
+    "runtime/colibri/c/tools/expert_atlas/validate.py": {
+      "mode": 420,
+      "sha256": "ec269efeef834b8725a6d38a141fb0f9229d144dc669600f4fbb9a1cc5c5d40d",
+      "size_bytes": 2987
+    },
+    "runtime/colibri/c/tools/fetch_benchmarks.py": {
+      "mode": 420,
+      "sha256": "f5a67c2eb87a45468e054c1fe7e7d00f0369e1bca351b5f86f1e1898ee0067e7",
+      "size_bytes": 5194
+    },
+    "runtime/colibri/c/tools/fetch_deepgemm.sh": {
+      "mode": 493,
+      "sha256": "46ab07a4ab9f03c923762a3fb3d93aa7ee58a70c409b6e7c1e39b6503c4ca1e4",
+      "size_bytes": 4020
+    },
+    "runtime/colibri/c/tools/fp8_collision_census.py": {
+      "mode": 420,
+      "sha256": "c78b2b964b39fcf268bddafbb269ad910feb7b316599c9725e0e799d27a6d8c7",
+      "size_bytes": 8874
+    },
+    "runtime/colibri/c/tools/gen_gliner_unicode.py": {
+      "mode": 420,
+      "sha256": "0fd4e9b8372889576aeb92571ac9432939f95b49f578769c1faa555df1c79132",
+      "size_bytes": 4392
+    },
+    "runtime/colibri/c/tools/gen_qwen38_nfc.py": {
+      "mode": 420,
+      "sha256": "ad158256ebd9e9968ad7615e5c2c90f3f3960e3205928642724a81b36cc2e015",
+      "size_bytes": 3745
+    },
+    "runtime/colibri/c/tools/gen_unicode.py": {
+      "mode": 420,
+      "sha256": "51908b4f82a07be213b7a7b896a064acbccc935d3f50d5c5a300fdd48dbd4d14",
+      "size_bytes": 2219
+    },
+    "runtime/colibri/c/tools/gen_unicode_deepseek.py": {
+      "mode": 420,
+      "sha256": "fa289d6e743ea5ea367c1dc418459629e10e0f5f77a2369b57c71f0e7d525e0f",
+      "size_bytes": 1853
+    },
+    "runtime/colibri/c/tools/gguf_dequant.py": {
+      "mode": 420,
+      "sha256": "c9bbd3b736843b423cde202de35dfdedc4e9d02d6682dc1978f9f1ba1eb51cc3",
+      "size_bytes": 12077
+    },
+    "runtime/colibri/c/tools/gguf_olmoe_profile.py": {
+      "mode": 420,
+      "sha256": "7045f388f082de070820e579db9450ea1da86cc0e2181e147eca7b982e201123",
+      "size_bytes": 10000
+    },
+    "runtime/colibri/c/tools/gguf_reader.py": {
+      "mode": 420,
+      "sha256": "c829c0ab90cb46e49d4a15b1a1a7e543966e5e9c1295abd1d75e5d159a55b9e8",
+      "size_bytes": 13593
+    },
+    "runtime/colibri/c/tools/glm53_image.py": {
+      "mode": 420,
+      "sha256": "0968a0ea7b23d9d750eab7cf2fad2ed3a13e86e9c19fac7f0e9297fc893bb9e7",
+      "size_bytes": 9654
+    },
+    "runtime/colibri/c/tools/glm_fp8_emit.py": {
+      "mode": 420,
+      "sha256": "9a5046812e194de95a477a1c4dddf97453cce865ba7e751ec27d0f798fb5533f",
+      "size_bytes": 7194
+    },
+    "runtime/colibri/c/tools/iq3_encode.c": {
+      "mode": 420,
+      "sha256": "02387c2414c14f860c7787f3e03fc3f46ed4597af80fff114b4c98c47c49cefa",
+      "size_bytes": 13242
+    },
+    "runtime/colibri/c/tools/iq3_pack.py": {
+      "mode": 420,
+      "sha256": "e1631164a064c176aafa8e239ac62d187df977e579c00b9fb78c357f5598c749",
+      "size_bytes": 13903
+    },
+    "runtime/colibri/c/tools/k3_ref.py": {
+      "mode": 420,
+      "sha256": "78efa87142f9500df907520b95764e3bb671e88450245894e9281ed2df7060c6",
+      "size_bytes": 14338
+    },
+    "runtime/colibri/c/tools/k3_repack.py": {
+      "mode": 420,
+      "sha256": "fd4e8be873f0181aee26e080c8cbb7cb6bd95bd30fae96f756282a841ed97c0b",
+      "size_bytes": 13791
+    },
+    "runtime/colibri/c/tools/k3_tokenizer.py": {
+      "mode": 420,
+      "sha256": "b8f8359fd4ab4ad90a47ebf42ad3432061c576b73bf973811622646a88b9904f",
+      "size_bytes": 10065
+    },
+    "runtime/colibri/c/tools/make_clef_ref.py": {
+      "mode": 420,
+      "sha256": "4e3065af610f2a56a8eef260b634d45aa2c3d40309407176b9d0459e68cd9308",
+      "size_bytes": 18473
+    },
+    "runtime/colibri/c/tools/make_clef_tiny.py": {
+      "mode": 420,
+      "sha256": "761b06c65ba9eb8f50f1df29fc90028f04b6b547a07fd48b177890e6275637da",
+      "size_bytes": 19867
+    },
+    "runtime/colibri/c/tools/make_deepseek_tok_fixture.py": {
+      "mode": 420,
+      "sha256": "858a2c932f172b24ee9764563327dad8fc252106a727386d2bb63cbdcde3088d",
+      "size_bytes": 5579
+    },
+    "runtime/colibri/c/tools/make_deepseek_v4_oracle.py": {
+      "mode": 420,
+      "sha256": "832e8a8ca65d421ce80b52033d4d0ca1c28037b5211bd922e4736e2b94de8d8b",
+      "size_bytes": 6218
+    },
+    "runtime/colibri/c/tools/make_deepseek_v4_tiny.py": {
+      "mode": 420,
+      "sha256": "8f4d7ea415c3c042308d681ae763505a8f8ca7c946da9e8e8d2c18f53023e79f",
+      "size_bytes": 22283
+    },
+    "runtime/colibri/c/tools/make_dsv41_tiny.py": {
+      "mode": 420,
+      "sha256": "1d76119c6da49cb4001c38bc5b48b35fb7dfd44c198a1d771dfd164fea0b7325",
+      "size_bytes": 27436
+    },
+    "runtime/colibri/c/tools/make_e8_fixture.py": {
+      "mode": 420,
+      "sha256": "8db748cfab56163a655e33b7556b22b1cdbcb0465dead53eaa66614420c8fc43",
+      "size_bytes": 2180
+    },
+    "runtime/colibri/c/tools/make_edge_tiny_tokenizer.py": {
+      "mode": 420,
+      "sha256": "555c42c9a60de84052c66a9645784203ccb92f4a8dce1be54c1fdb6fa02d7698",
+      "size_bytes": 2801
+    },
+    "runtime/colibri/c/tools/make_gliner_decide_ref.py": {
+      "mode": 420,
+      "sha256": "1acbd1aefb2fd25dcea9b0ceebb491e917c23037d55b404a9b5e8c193d0aa37c",
+      "size_bytes": 19752
+    },
+    "runtime/colibri/c/tools/make_gliner_decide_tiny.py": {
+      "mode": 420,
+      "sha256": "fa8501c0f75ba9d6a99124e6eda8f6b085a34d0cb869665c8f4fa320f43dfa8e",
+      "size_bytes": 18501
+    },
+    "runtime/colibri/c/tools/make_glm53_multimodal_tiny.py": {
+      "mode": 420,
+      "sha256": "9970f1ace69af2b2a62ef69c868cfc1cde2b5853e9bb07162c837a90da92ec23",
+      "size_bytes": 16283
+    },
+    "runtime/colibri/c/tools/make_glm53_streaming_pair.py": {
+      "mode": 420,
+      "sha256": "b80d9be567c7f260b59c7fef9c077167df57ec608fc7637693b08223765199b3",
+      "size_bytes": 4422
+    },
+    "runtime/colibri/c/tools/make_glm53_tiny.py": {
+      "mode": 420,
+      "sha256": "dff4bbd1c1c2ce444d6e56d301ce4627c5f807308c3b0bdbf04354aca9f7cfab",
+      "size_bytes": 30444
+    },
+    "runtime/colibri/c/tools/make_glm53_tokenizer.py": {
+      "mode": 420,
+      "sha256": "7709ed8367fd5a68b669abf95b132bb1cdc534728cf9201dda86758f33299236",
+      "size_bytes": 3827
+    },
+    "runtime/colibri/c/tools/make_glm53_vision_tiny.py": {
+      "mode": 420,
+      "sha256": "12781cac01a49c8477a2ea5e4e9b8541364fdfcf1a7c282819929063045f2879",
+      "size_bytes": 5052
+    },
+    "runtime/colibri/c/tools/make_glm_bench_model.py": {
+      "mode": 420,
+      "sha256": "6689ee06530e0ec27ee0ca172e67a6c52a70d953d5c03abf81cd06165d8103db",
+      "size_bytes": 5309
+    },
+    "runtime/colibri/c/tools/make_glm_mtp_tiny.py": {
+      "mode": 420,
+      "sha256": "be165ec4dac204854d16e1f323591c71dd58b93f121d18ca60311837ad3a22c4",
+      "size_bytes": 2393
+    },
+    "runtime/colibri/c/tools/make_glm_oracle.py": {
+      "mode": 420,
+      "sha256": "7864aadbfe886385a87e051932e98732c58a45c4c17f4ea7f0ba9c43e730ab6a",
+      "size_bytes": 16465
+    },
+    "runtime/colibri/c/tools/make_kimi_k3_ref.py": {
+      "mode": 420,
+      "sha256": "d47ce019c5f59924ef8749fb171976be6b6445593a4badcdf800d50fe7bbd82f",
+      "size_bytes": 15868
+    },
+    "runtime/colibri/c/tools/make_kimi_k3_tiny.py": {
+      "mode": 420,
+      "sha256": "63bb904e69648baa81e19f13a0734ae41f4eba86fd5e147fa471d5ba999827e6",
+      "size_bytes": 12540
+    },
+    "runtime/colibri/c/tools/make_laya_ref.py": {
+      "mode": 420,
+      "sha256": "18713d74c28e22e476e84d45c900e9a6fad148ed9a49d0a1d0e9df74d50dc24d",
+      "size_bytes": 15799
+    },
+    "runtime/colibri/c/tools/make_laya_tiny.py": {
+      "mode": 420,
+      "sha256": "3bf6e9c9db14aa50ba49b26ca000e2e6322f52a633282c8b511ec30ed5f3441b",
+      "size_bytes": 15838
+    },
+    "runtime/colibri/c/tools/make_mimo_ref.py": {
+      "mode": 420,
+      "sha256": "b7fdbd335e9934422b485649565c60da37011296fc584991d7a459519c0e1bde",
+      "size_bytes": 22166
+    },
+    "runtime/colibri/c/tools/make_mimo_tiny.py": {
+      "mode": 420,
+      "sha256": "864594913b5a3897a4e6ba1a518834a4bb4afd88b33b43cf64ee87265cb3952e",
+      "size_bytes": 18156
+    },
+    "runtime/colibri/c/tools/make_olmoe_real_oracle.py": {
+      "mode": 420,
+      "sha256": "adf15c743db965a73f9af863946530c1e72655ca27729982d4065de26f05b0c4",
+      "size_bytes": 2038
+    },
+    "runtime/colibri/c/tools/make_olmoe_tiny.py": {
+      "mode": 420,
+      "sha256": "c5351fddc9526bb2396d1eca54c0db80dc474b9c8298bb02a5a565fd2e795817",
+      "size_bytes": 1895
+    },
+    "runtime/colibri/c/tools/make_qwen36_oracle.py": {
+      "mode": 420,
+      "sha256": "75b9abe647b7f2174337219f64ac31eb2970c7c2eb68dee300b99ca043fbc9af",
+      "size_bytes": 5260
+    },
+    "runtime/colibri/c/tools/make_qwen36_qpack_snap.py": {
+      "mode": 420,
+      "sha256": "7cff8d013ed88b5fb107c298a63fed6273c356bcb5b08c7fe3c2e7e48d8b1c60",
+      "size_bytes": 11221
+    },
+    "runtime/colibri/c/tools/make_qwen36_tiny.py": {
+      "mode": 420,
+      "sha256": "4c8aed45711e0af0cad7566912cd167fc05678cfd4b458884d77830a2c71c07f",
+      "size_bytes": 18774
+    },
+    "runtime/colibri/c/tools/make_qwen36_vl_tiny.py": {
+      "mode": 420,
+      "sha256": "41f95490bf5c5bcd61bb336f0571d48390ee1be82ef36eebd84d97334926cdb1",
+      "size_bytes": 6478
+    },
+    "runtime/colibri/c/tools/make_qwen38_multimodal_tiny.py": {
+      "mode": 420,
+      "sha256": "2a0a18810bcb188d07a91d459af2fdd907e125e9b3c95be666e59cb39653a193",
+      "size_bytes": 3884
+    },
+    "runtime/colibri/c/tools/make_qwen38_oracle.py": {
+      "mode": 420,
+      "sha256": "02888fafa290110381fe7ae268150ab9a96785b49e6d032d65ce61b00ffaeeb7",
+      "size_bytes": 6544
+    },
+    "runtime/colibri/c/tools/make_qwen38_tiny.py": {
+      "mode": 420,
+      "sha256": "becd54899a55074da175eda8195a538e8223330af06c77d52d48ca289768c9b9",
+      "size_bytes": 23525
+    },
+    "runtime/colibri/c/tools/make_qwen38_vision_tiny.py": {
+      "mode": 420,
+      "sha256": "767dd9745283b41a1d8496039e909accd40fa3e3d7c696775619af7815b0ba06",
+      "size_bytes": 4719
+    },
+    "runtime/colibri/c/tools/make_qwenimage_tiny.py": {
+      "mode": 420,
+      "sha256": "be67700be0848109a945bee30a787b3a997ffff9dfe8e601ad92f4ae7eb16e6a",
+      "size_bytes": 24495
+    },
+    "runtime/colibri/c/tools/make_qwenimage_vae_tiny.py": {
+      "mode": 420,
+      "sha256": "1fd5c7cc2e12523062d73de06121a7563dd9314ce9b50430998da97bf00d8301",
+      "size_bytes": 4859
+    },
+    "runtime/colibri/c/tools/make_tiny_inkling.py": {
+      "mode": 420,
+      "sha256": "ba3eb7e5fd41ff86c7ea00f883bc2e5456365c9208708027a5a9461a3e37b1af",
+      "size_bytes": 4115
+    },
+    "runtime/colibri/c/tools/make_tiny_inkling_audio.py": {
+      "mode": 420,
+      "sha256": "9a299b87d67571c10c7699914dc8427f84606d2b359f4bfa6afe0056a8435533",
+      "size_bytes": 4148
+    },
+    "runtime/colibri/c/tools/mimo_real_check.py": {
+      "mode": 420,
+      "sha256": "b9ff50fb4b8627b03c5cf014ec924caa217a35aadef56606023d3464d125f7df",
+      "size_bytes": 15923
+    },
+    "runtime/colibri/c/tools/mirror_plan.py": {
+      "mode": 420,
+      "sha256": "79c7c1aa928e41e77c8df88e2465a98c9d151036021a964eda34d1cb0b7aed50",
+      "size_bytes": 18156
+    },
+    "runtime/colibri/c/tools/mw_ur3_raw_adapter.py": {
+      "mode": 420,
+      "sha256": "f585e32aa19bd4f278b9fa2d2989873c1e79a76ff25c26e1e4cacea640fd0076",
+      "size_bytes": 68995
+    },
+    "runtime/colibri/c/tools/oracle-requirements.txt": {
+      "mode": 420,
+      "sha256": "191f57ba855ab140e6d05d5003b83580a87c15cb0f6cee813070aa5ce8bc71a1",
+      "size_bytes": 438
+    },
+    "runtime/colibri/c/tools/pack_python.py": {
+      "mode": 420,
+      "sha256": "0ab7126c5f9a13d4854c1832eb6fa675b030dca5aeeb778cbc4a4f5f26469a48",
+      "size_bytes": 9489
+    },
+    "runtime/colibri/c/tools/placement_balance.py": {
+      "mode": 420,
+      "sha256": "251b72ff513960b0e24dff9f204b2f3e5207119863e2ee14fa0ed960b69b6694",
+      "size_bytes": 5197
+    },
+    "runtime/colibri/c/tools/placement_crossval.py": {
+      "mode": 420,
+      "sha256": "68ce7da84e21cedf72f4110f15b43ebddcc71f385220692f5618f972bd8c7c26",
+      "size_bytes": 5837
+    },
+    "runtime/colibri/c/tools/prepare_dsv41.py": {
+      "mode": 420,
+      "sha256": "7111b800e63eb39bda0a958f991504a1c71a33f387814e173dbeb0d7e024b8a2",
+      "size_bytes": 6732
+    },
+    "runtime/colibri/c/tools/qpack_http_install.py": {
+      "mode": 420,
+      "sha256": "5c9996b8610529d0aae787f02948bf3f070cf3af46ac3f83a9b8689665d37e24",
+      "size_bytes": 52289
+    },
+    "runtime/colibri/c/tools/qpack_install_policy.py": {
+      "mode": 420,
+      "sha256": "a6ae48c170f4d6c88de4c54b469a26961e468c1cbb435284f9fca948b6a447d6",
+      "size_bytes": 20559
+    },
+    "runtime/colibri/c/tools/qpack_mirror_install.py": {
+      "mode": 420,
+      "sha256": "86c12290d37b152d75db7116d9446036b383cb9e4e83be509dac44bd924734af",
+      "size_bytes": 2656
+    },
+    "runtime/colibri/c/tools/quant_ablation.py": {
+      "mode": 420,
+      "sha256": "3b25dfebc2479bd85bf50131cec1b14a16d69ce9af66fa19153a919ddf136d7e",
+      "size_bytes": 23472
+    },
+    "runtime/colibri/c/tools/qwen36_tensor_kinds.py": {
+      "mode": 420,
+      "sha256": "496dc9af8a00f3d13ce2b8e235e3e68b12feba04f9f347bd2b08c35921caebe4",
+      "size_bytes": 5031
+    },
+    "runtime/colibri/c/tools/qwen38_image.py": {
+      "mode": 420,
+      "sha256": "20af76e64edba37aaec15772510c1dfdc16336e4a165a56d6e3f2b010bdff8ae",
+      "size_bytes": 10294
+    },
+    "runtime/colibri/c/tools/qwen38_mtp_ref.py": {
+      "mode": 420,
+      "sha256": "d8cff1555426fad50435bf4f544b7f2f3fa70533f0158e6aa4f8ee121c690a12",
+      "size_bytes": 10323
+    },
+    "runtime/colibri/c/tools/qwenimage_fit_preview.py": {
+      "mode": 420,
+      "sha256": "f41c6967074b6b90bb5a1a84ac7bb18a92fa322ffcc25712376937800973b525",
+      "size_bytes": 2456
+    },
+    "runtime/colibri/c/tools/qwenimage_ref.py": {
+      "mode": 420,
+      "sha256": "1de09ec4e4eee9b1051947031f2cf6e8f739c7988e10895f0cf13930a3e67747",
+      "size_bytes": 43578
+    },
+    "runtime/colibri/c/tools/qwenimage_stub.py": {
+      "mode": 420,
+      "sha256": "f384076971ea829aedfe4e90661d4e319be0ff9bd271428027823f4341a4a6f4",
+      "size_bytes": 15947
+    },
+    "runtime/colibri/c/tools/rans_ctypes.c": {
+      "mode": 420,
+      "sha256": "5612512ded8462383dd9254a4f2611e85f492940bd28d29b5ab6b9d4b6c68ba2",
+      "size_bytes": 5117
+    },
+    "runtime/colibri/c/tools/rans_format.py": {
+      "mode": 420,
+      "sha256": "184d9969dbd063780879fca573dc66c8e14219b520104f4e295bab0ab6b22dfc",
+      "size_bytes": 25930
+    },
+    "runtime/colibri/c/tools/rans_verify.py": {
+      "mode": 420,
+      "sha256": "0bca552ea7ba6ac01c6cc4b321e86aff7a39b12a0beed3d92514dd9772c99796",
+      "size_bytes": 16134
+    },
+    "runtime/colibri/c/tools/repack_fp8_passthrough.py": {
+      "mode": 420,
+      "sha256": "1bf9cd97f453e2567cd9ee6a3a15685679a6ed51bc4492fb76704d6c41dfc4ec",
+      "size_bytes": 69281
+    },
+    "runtime/colibri/c/tools/repack_rans.py": {
+      "mode": 420,
+      "sha256": "bda58e9976b5cd61687da7da866433386d07cf40fe84ef932af121e15789d6e4",
+      "size_bytes": 25812
+    },
+    "runtime/colibri/c/tools/repair_mtp_int8.py": {
+      "mode": 420,
+      "sha256": "e7f26915ccd68816e9f2df0ff1fa14e5221b4aa7acef9b19601474447111630e",
+      "size_bytes": 10250
+    },
+    "runtime/colibri/c/tools/requirements-deepseek-v4-tiny.txt": {
+      "mode": 420,
+      "sha256": "d9d91cb9c217cdf079aa54a432286589d21d4081655fa5b89119f7dc62addc62",
+      "size_bytes": 401
+    },
+    "runtime/colibri/c/tools/requirements-gguf.txt": {
+      "mode": 420,
+      "sha256": "933df132ea6b175f865db3b2885d3bcb698f1f98a593f2bb203d4a708703c4af",
+      "size_bytes": 775
+    },
+    "runtime/colibri/c/tools/requirements-glm53-tiny.txt": {
+      "mode": 420,
+      "sha256": "d6f73395ebffaf45f3208ca887fcbd3149f000496ac34dc70b9fd27e4f76409f",
+      "size_bytes": 179
+    },
+    "runtime/colibri/c/tools/requirements-jev-sdk.txt": {
+      "mode": 420,
+      "sha256": "2d9691cd9cfa178f8f6b8122fc1a7d69310549231f8ae6c8a543e4e309ac5c26",
+      "size_bytes": 491
+    },
+    "runtime/colibri/c/tools/requirements-kimi-k3-ref.txt": {
+      "mode": 420,
+      "sha256": "a1c062a7e39a8b822ce212ec8fdf63e521f03ea67664c58a06be2bc1ba66224d",
+      "size_bytes": 307
+    },
+    "runtime/colibri/c/tools/requirements-kimi-k3-tiny.txt": {
+      "mode": 420,
+      "sha256": "5248332eefefb39377bbcd44f5ec3efb0fc40a755a5b172f97e60ab462172180",
+      "size_bytes": 80
+    },
+    "runtime/colibri/c/tools/requirements-mimo-tiny.txt": {
+      "mode": 420,
+      "sha256": "50387ff3b038578a016a75040357360b5d2ae13ec152f8d27f5220b206bec2e7",
+      "size_bytes": 193
+    },
+    "runtime/colibri/c/tools/requirements-qwen38-tiny.txt": {
+      "mode": 420,
+      "sha256": "e5e61e276580d650a9aebf912efc907cf58330eccb009a9f19c86644a82eee6c",
+      "size_bytes": 333
+    },
+    "runtime/colibri/c/tools/requirements-qwenimage-tiny.txt": {
+      "mode": 420,
+      "sha256": "98da3b9ff7d83616047040180bdfdd4fd8c7aef9bfa79545e80233078282470d",
+      "size_bytes": 649
+    },
+    "runtime/colibri/c/tools/requirements.txt": {
+      "mode": 420,
+      "sha256": "37a90a95c2c45db11513a7549d45da222328aa41188c1150001a73631efabd8f",
+      "size_bytes": 1353
+    },
+    "runtime/colibri/c/tools/residency_sim.py": {
+      "mode": 420,
+      "sha256": "e1c96d24994ce3b75a6089cb3a84a9f5f3731f72e4350659b1917543d5a47784",
+      "size_bytes": 52274
+    },
+    "runtime/colibri/c/tools/route_coupling_report.py": {
+      "mode": 420,
+      "sha256": "9bd2660e941dd205166c0c9cc7af7f371e94826a0ad26684e29a264ede28e10a",
+      "size_bytes": 5471
+    },
+    "runtime/colibri/c/tools/route_pairs.py": {
+      "mode": 420,
+      "sha256": "dda186a405059c04511600636b1eca822b94f5ffa98e1b5bfabde37fa87a40be",
+      "size_bytes": 2606
+    },
+    "runtime/colibri/c/tools/run_f8_bench.sh": {
+      "mode": 493,
+      "sha256": "128a36dac290ad8e775ead336882d1e32d664671bc8608644de5dc53079acce3",
+      "size_bytes": 1267
+    },
+    "runtime/colibri/c/tools/run_tests.py": {
+      "mode": 420,
+      "sha256": "18c0e869baf6bfe0a6315b5071aa532003c485f6ae6cec9b1e417da4fa711c40",
+      "size_bytes": 537
+    },
+    "runtime/colibri/c/tools/test_olmoe_real.py": {
+      "mode": 420,
+      "sha256": "60da4cb885314980287be7e7dff15f20b91fd48600fa6f6ac21da05bab0f7799",
+      "size_bytes": 3608
+    },
+    "runtime/colibri/c/tools/try_tool_calling.py": {
+      "mode": 420,
+      "sha256": "f43372dfa175605feb24059dcd9fcc1fa659e3ff97579ebd4d63d05fabbcd718",
+      "size_bytes": 6227
+    },
+    "runtime/colibri/c/tools/verify_fp8_decode.c": {
+      "mode": 420,
+      "sha256": "525e7e57730f6a3febceb82c3c50a215d0831c658a87aae012681971c74cdadd",
+      "size_bytes": 2879
+    },
+    "runtime/colibri/c/uring.h": {
+      "mode": 420,
+      "sha256": "c2af7fa490e0e3dca17f6a651107fcfc33d0cc0fa962dfec3964ef3712275a88",
+      "size_bytes": 5689
+    },
+    "runtime/colibri/c/v41_dsml.py": {
+      "mode": 420,
+      "sha256": "448b46d2e54793da0cef21aadf10557acd9021e36ae8a8a3ab00110c8e7f4f2f",
+      "size_bytes": 15226
+    },
+    "runtime/colibri/c/v4_dsml.py": {
+      "mode": 420,
+      "sha256": "e89ba2935458802a3e869e547d0b5911e7aef0a84814a232d35272e8efbcf74d",
+      "size_bytes": 10657
+    },
+    "runtime/colibri/c/version.py": {
+      "mode": 420,
+      "sha256": "b73068e2cb251f37d557a25f88a49fd8d5f5512587dad259f068e41cc4a28918",
+      "size_bytes": 84
+    },
+    "runtime/colibri/c/vision_tower.h": {
+      "mode": 420,
+      "sha256": "ea44132825d476eec81da46a4bb05995f14c6b3336369b8b343cb30e132a2e53",
+      "size_bytes": 16349
+    },
+    "runtime/colibri/c/vk_alloc.h": {
+      "mode": 420,
+      "sha256": "436bc5eed3632455459d1ce8f62a1c06d2d5c177eda871031922384cade36a36",
+      "size_bytes": 9352
+    },
+    "runtime/colibri/c/vk_chain.c": {
+      "mode": 420,
+      "sha256": "acd8817e91f46857418727ac3f29f826e07ba138877aa70dc9c7903cfe6d2ee7",
+      "size_bytes": 111546
+    },
+    "runtime/colibri/c/vk_chain.h": {
+      "mode": 420,
+      "sha256": "427aa5d9a7afcc4e1444bee2c834138f02bba5662757fbc8301841c12c288b11",
+      "size_bytes": 53044
+    },
+    "runtime/colibri/c/vk_kvsplit.h": {
+      "mode": 420,
+      "sha256": "0efe6daac5724d220a9c666595d80644cfe17c6ea579c3846254d56d2b76c338",
+      "size_bytes": 71949
+    },
+    "runtime/colibri/c/vk_load.h": {
+      "mode": 420,
+      "sha256": "cbe7c57e9dd034277e8b9872fcb24636df9f2e0c651a5ee4c00df99352345da7",
+      "size_bytes": 6439
+    },
+    "runtime/colibri/c/vk_tier.c": {
+      "mode": 420,
+      "sha256": "f574aadc9dfe5d5e363d24943a07e57d8a08987f4a615bf36587d815912b5bab",
+      "size_bytes": 93486
+    },
+    "runtime/colibri/c/vk_tier.h": {
+      "mode": 420,
+      "sha256": "5ce63a31ef278c3a14c86831e9cd2daf096758f4c2151235b41718aa62c62984",
+      "size_bytes": 18821
+    },
+    "runtime/colibri/c/warmup.ps1": {
+      "mode": 420,
+      "sha256": "0bda0d27933fae6ebfeda2c64def0209f61a065fcbec39dfa92034c6d970dc6b",
+      "size_bytes": 8480
+    },
+    "scripts/convert_colibri.py": {
+      "mode": 420,
+      "sha256": "e9c1055341287346ac41f9e87a97ee0de28547ae2490366e88efd3aa9b7545ae",
+      "size_bytes": 1886
+    },
+    "scripts/package_core.py": {
+      "mode": 420,
+      "sha256": "4ec80c4ff097afa0694593d0f9f9416b4a574cc7af94c3ebdfbc2534a6e389d1",
+      "size_bytes": 1015
+    },
+    "scripts/package_source.py": {
+      "mode": 420,
+      "sha256": "585a415885553150e685bc6617da51da2d3aa718cb967dfc6729b32b44989d7c",
+      "size_bytes": 13324
+    },
+    "src/chat_ai_assistant/__init__.py": {
+      "mode": 420,
+      "sha256": "89de2438dbe666b8ce112a701c89faf82ef9afec7c7a61c9ec1bbfc9da5192e1",
+      "size_bytes": 109
+    },
+    "src/chat_ai_assistant/clarifications.py": {
+      "mode": 420,
+      "sha256": "e5cb817facdb8e440538cc0ed9b252ff127f6d8e470bb630574e5530e7a31a7d",
+      "size_bytes": 2947
+    },
+    "src/chat_ai_assistant/contracts.py": {
+      "mode": 420,
+      "sha256": "ab31f8ff3f2f20b776ca412436e0730dc8fa00e892801772e863400bab4b6fa3",
+      "size_bytes": 2195
+    },
+    "src/chat_ai_assistant/orchestrator.py": {
+      "mode": 420,
+      "sha256": "3b416c67e637ab27ed1dcc19c21ec3a734cf7f5a55e5bd0362caee15a1ca6cfa",
+      "size_bytes": 7181
+    },
+    "src/chat_ai_assistant/presentation.py": {
+      "mode": 420,
+      "sha256": "21e6ac7828f15164c88d8cdd40a558863d091d03eb4b1d7baa0e66e8a682dad4",
+      "size_bytes": 2242
+    },
+    "src/chat_ai_assistant/provider.py": {
+      "mode": 420,
+      "sha256": "f5a65cf7ed046dcce5b21697ac69866fa8f6ba8a6601eeff70d2819d8414e86e",
+      "size_bytes": 7173
+    },
+    "src/chat_ai_assistant/routing.py": {
+      "mode": 420,
+      "sha256": "ce83349ece6145baf1f8fcb449860123417d3a046001685d843d2ee8915214ae",
+      "size_bytes": 3026
+    },
+    "training/configs/server-requirements.lock": {
+      "mode": 420,
+      "sha256": "f0528236ba3d67740113e6e9ceb3c4529d0debd777184f8a69b30313d233841f",
+      "size_bytes": 714
+    },
+    "training/datasets/facturation-acceptance-en-fr/manifest.json": {
+      "mode": 420,
+      "sha256": "162130086e36966e16c3cf600c21526e864328838d34d28e8648c0b0730fbead",
+      "size_bytes": 5795
+    },
+    "training/datasets/facturation-acceptance-en-fr/preflight-before-router-fix/manifest.json": {
+      "mode": 420,
+      "sha256": "3cdc6e87f891920392a8c95f15394cacf49f4b57659ece42939c605af70752e2",
+      "size_bytes": 5599
+    },
+    "training/datasets/facturation-acceptance-en-fr/preflight-before-router-fix/test.eval.jsonl": {
+      "mode": 420,
+      "sha256": "a060127a4068a4901861980e40acba08be7215817c8831008ef2ef5c7a931808",
+      "size_bytes": 633010
+    },
+    "training/datasets/facturation-acceptance-en-fr/preflight-before-router-fix/tool-schemas.json": {
+      "mode": 420,
+      "sha256": "4319de5c2f849444171077495315724bc233a475bd83c7212d82821d1b0f97f0",
+      "size_bytes": 26326
+    },
+    "training/datasets/facturation-acceptance-en-fr/test.eval.jsonl": {
+      "mode": 420,
+      "sha256": "91ca4ad072df31a651c8a87ea51dd9349d0f937f2701bcab3da868d01cfa479a",
+      "size_bytes": 635968
+    },
+    "training/datasets/facturation-acceptance-en-fr/tool-schemas.json": {
+      "mode": 420,
+      "sha256": "4319de5c2f849444171077495315724bc233a475bd83c7212d82821d1b0f97f0",
+      "size_bytes": 26326
+    },
+    "training/datasets/facturation-v2-preflight/manifest.json": {
+      "mode": 420,
+      "sha256": "437a80bb1571b66fbfad2ed3f6e78474a0b1cc43265f13265a01536a99532f7c",
+      "size_bytes": 1842
+    },
+    "training/datasets/facturation-v2-preflight/test.eval.jsonl": {
+      "mode": 420,
+      "sha256": "2d6f912e9bc38c61cd9d94370451e117e93a562ff6b35c3c930cf654d11f35fc",
+      "size_bytes": 338789
+    },
+    "training/datasets/facturation-v2-preflight/test.jsonl": {
+      "mode": 420,
+      "sha256": "52b7a532a33eea87dacd0943b2fc163cef991d6606a1999ee193dd7c072ce353",
+      "size_bytes": 838735
+    },
+    "training/datasets/facturation-v2-preflight/tool-schemas.json": {
+      "mode": 420,
+      "sha256": "e12b0d64122cf0e3d981d256cb5b0589f9ef1ef43da7cf03df49e08700dbdb6a",
+      "size_bytes": 26325
+    },
+    "training/datasets/facturation-v2-preflight/train.eval.jsonl": {
+      "mode": 420,
+      "sha256": "478810b97934b18d201d88bdeef1bd95b0c636162571cdd15560d4b2b4c41283",
+      "size_bytes": 491426
+    },
+    "training/datasets/facturation-v2-preflight/train.jsonl": {
+      "mode": 420,
+      "sha256": "6795240359de2ca76a6bb06c540a533442cb7a7db0bc499eede304bdb0ac35da",
+      "size_bytes": 1230689
+    },
+    "training/datasets/facturation-v2-preflight/valid.eval.jsonl": {
+      "mode": 420,
+      "sha256": "5ca090145ff021cb4d5cf8720da2b3bd5d6f957bba6c328f8f9e1764781af2c7",
+      "size_bytes": 117721
+    },
+    "training/datasets/facturation-v2-preflight/valid.jsonl": {
+      "mode": 420,
+      "sha256": "4135986cc056482868a1e4c7433753dd9402d262a63aaac218bc8c54eba2f6b8",
+      "size_bytes": 334910
+    },
+    "training/datasets/facturation-v2/manifest.json": {
+      "mode": 420,
+      "sha256": "fcf3b2adcf484c885b6f64e5760580418bb0558d54583eafa17388c3413878a3",
+      "size_bytes": 1489
+    },
+    "training/datasets/facturation-v2/test.eval.jsonl": {
+      "mode": 420,
+      "sha256": "e178e6dddae252a068f79a4204fe6a6ef6848b436c41080a0c2210a95e51bde1",
+      "size_bytes": 340650
+    },
+    "training/datasets/facturation-v2/test.jsonl": {
+      "mode": 420,
+      "sha256": "f967d9ddc8aa52184356adc7cc44390e71f048fca4a363ca08e8255eb00ce526",
+      "size_bytes": 949260
+    },
+    "training/datasets/facturation-v2/tool-schemas.json": {
+      "mode": 420,
+      "sha256": "e12b0d64122cf0e3d981d256cb5b0589f9ef1ef43da7cf03df49e08700dbdb6a",
+      "size_bytes": 26325
+    },
+    "training/datasets/facturation-v2/train.eval.jsonl": {
+      "mode": 420,
+      "sha256": "171585a4e71cbf130cff0132461a7433f3aec2ac9a6fdf70b2e751d676c23c32",
+      "size_bytes": 493666
+    },
+    "training/datasets/facturation-v2/train.jsonl": {
+      "mode": 420,
+      "sha256": "679f0cf185951eba56deb2b8e5cfc8778117cf45813c12e63a6ec53887b65c8b",
+      "size_bytes": 1364084
+    },
+    "training/datasets/facturation-v2/valid.eval.jsonl": {
+      "mode": 420,
+      "sha256": "80d06a52b6d5ca8109b75e80a92b7bc1e53636abb56cc5d5757cb512d45bb78e",
+      "size_bytes": 118218
+    },
+    "training/datasets/facturation-v2/valid.jsonl": {
+      "mode": 420,
+      "sha256": "1a3e65e2293c39276314043846c84b7229ca02caca127f8c0aa4c22335d4b0db",
+      "size_bytes": 361989
+    },
+    "training/datasets/facturation-v3-en-fr/manifest.json": {
+      "mode": 420,
+      "sha256": "eedae40b1e68be4192e426654c5f79c16e8a5bebc557f3bb372a4d5a1658c94f",
+      "size_bytes": 1542
+    },
+    "training/datasets/facturation-v3-en-fr/test.eval.jsonl": {
+      "mode": 420,
+      "sha256": "543aabec9ee5849177593c6cf4d442d25ea35d1a2b86a70fc9b79cb49729dc32",
+      "size_bytes": 174161
+    },
+    "training/datasets/facturation-v3-en-fr/test.jsonl": {
+      "mode": 420,
+      "sha256": "e0f22600e60e60608758e5dc54bc9a417c7ed0beb6f1b353d6dc7271c071cc92",
+      "size_bytes": 471127
+    },
+    "training/datasets/facturation-v3-en-fr/tool-schemas.json": {
+      "mode": 420,
+      "sha256": "e12b0d64122cf0e3d981d256cb5b0589f9ef1ef43da7cf03df49e08700dbdb6a",
+      "size_bytes": 26325
+    },
+    "training/datasets/facturation-v3-en-fr/train.eval.jsonl": {
+      "mode": 420,
+      "sha256": "a2df3182694752caca34611adaf2aa4ffa3a47d70c8e9d00e8b9930991926980",
+      "size_bytes": 252147
+    },
+    "training/datasets/facturation-v3-en-fr/train.jsonl": {
+      "mode": 420,
+      "sha256": "00d80486559b3db3b31c659038c2cc65996b54902e7b902f1f5b941e6cb5efbc",
+      "size_bytes": 663999
+    },
+    "training/datasets/facturation-v3-en-fr/valid.eval.jsonl": {
+      "mode": 420,
+      "sha256": "1cb2f7cfce04f34c06532e5d55981fa278f0453a9ce0cec38b8fb719e6961cb6",
+      "size_bytes": 60012
+    },
+    "training/datasets/facturation-v3-en-fr/valid.jsonl": {
+      "mode": 420,
+      "sha256": "a7bcf10a68aa79f8e99b0e10fe893c8c197a27f43c08f1e333932be84d6b821b",
+      "size_bytes": 161914
+    },
+    "training/datasets/facturation-v4-en-fr/capability-schemas.json": {
+      "mode": 420,
+      "sha256": "4cb6ba3dadbc5805ad96712c7e69b0c046155fa434b8f2003f3f9e4c2edc5836",
+      "size_bytes": 134235
+    },
+    "training/datasets/facturation-v4-en-fr/coverage.json": {
+      "mode": 420,
+      "sha256": "d61ff75ffd700d3ef94eeab609515d99bc5773d6c7e28fd96dd690edf19f8bfb",
+      "size_bytes": 1588
+    },
+    "training/datasets/facturation-v4-en-fr/manifest.json": {
+      "mode": 420,
+      "sha256": "446e52fb3f2ac431a6bcf50c4679738a8dd84c5169178980d3ae5f0a34f248cb",
+      "size_bytes": 4501
+    },
+    "training/datasets/facturation-v4-en-fr/tool-schemas.json": {
+      "mode": 420,
+      "sha256": "9699ddfea76317f96eec5a89ff17a3418220d371e850fffca261f7fcbcf7bfe4",
+      "size_bytes": 26326
+    },
+    "training/datasets/facturation-v4-en-fr/train.eval.jsonl": {
+      "mode": 420,
+      "sha256": "902a288fede3e94c63176ec25647e742af58ebe789cbdc358278e830f19c3b35",
+      "size_bytes": 3264986
+    },
+    "training/datasets/facturation-v4-en-fr/train.jsonl": {
+      "mode": 420,
+      "sha256": "2279c822c34b4e18ec1ee3a5d5e92c076b221becd7ec0e2bc65a4bafb2ad47dc",
+      "size_bytes": 3386348
+    },
+    "training/datasets/facturation-v4-en-fr/valid.eval.jsonl": {
+      "mode": 420,
+      "sha256": "b8c604ca98bde0c70b8d07d800d3984c6a3538e60a092e93a3c432f96fc3fa1a",
+      "size_bytes": 676237
+    },
+    "training/datasets/facturation-v4-en-fr/valid.jsonl": {
+      "mode": 420,
+      "sha256": "1f476c825b9467ad79ad4c6b3bd9f2ed18237d532ea492f5c6c9089e0de75881",
+      "size_bytes": 700913
+    },
+    "training/datasets/facturation/manifest.json": {
+      "mode": 420,
+      "sha256": "81f63994e8579b122ed411f0e7b4246a2e3824941b3d557520c594fbd5a6b579",
+      "size_bytes": 1252
+    },
+    "training/datasets/facturation/test.eval.jsonl": {
+      "mode": 420,
+      "sha256": "81d1b202b0a404183436b1febada5c322ac33a0e270442ff64223592d9edb5f2",
+      "size_bytes": 95735
+    },
+    "training/datasets/facturation/test.jsonl": {
+      "mode": 420,
+      "sha256": "3dfcb8f05d5f562cca76aea8bae5c784439da7bb4a607f68329d47dc24734c20",
+      "size_bytes": 375570
+    },
+    "training/datasets/facturation/train.eval.jsonl": {
+      "mode": 420,
+      "sha256": "8dfb1814df420a7beac2f2622e1db4a71fe49dedf181df23b5b46add13531649",
+      "size_bytes": 189266
+    },
+    "training/datasets/facturation/train.jsonl": {
+      "mode": 420,
+      "sha256": "ceb941913d83a7b36d4e93141d8f2bee243f8f345926716429b8b31c5376896f",
+      "size_bytes": 748457
+    },
+    "training/datasets/facturation/valid.eval.jsonl": {
+      "mode": 420,
+      "sha256": "059d3cc6a9d2ff74290675414b6013b9095d6b08b73d1da76e929d49f6c60b26",
+      "size_bytes": 32094
+    },
+    "training/datasets/facturation/valid.jsonl": {
+      "mode": 420,
+      "sha256": "ce5f3c73ab93b0a28923e22c9a516e2c6b95372c0c683d40264e4109380efdb0",
+      "size_bytes": 125085
+    },
+    "training/reports/backend-container-validation.json": {
+      "mode": 420,
+      "sha256": "38453de5b3e5ab98b766e8f504bf7e60a904e7bbe6582583c383c126d79361aa",
+      "size_bytes": 508
+    },
+    "training/reports/docker-validation.json": {
+      "mode": 420,
+      "sha256": "fe12199bd3df0e6dc15b5e6ce70690cf5281350f87aa667c04b2e0d4ce5f0829",
+      "size_bytes": 486
+    },
+    "training/reports/qwen08-base-en-fr-manifest.json": {
+      "mode": 420,
+      "sha256": "273e8c8ecd7f308459fb8f4ec31a6b035c13f55633db120f01d8dc9ce5960a71",
+      "size_bytes": 32278
+    },
+    "training/reports/qwen08-base-en-fr-server/cases.jsonl": {
+      "mode": 420,
+      "sha256": "b84c7040a5d03714b61143e6de985138dcf2e4bd7039722b2f63b6914a551c7b",
+      "size_bytes": 27033
+    },
+    "training/reports/qwen08-base-en-fr-server/run.json": {
+      "mode": 420,
+      "sha256": "73fca4b65b4c1547b611aa2941fb09326b32e076058f9077347576f50f8a5f9c",
+      "size_bytes": 34619
+    },
+    "training/reports/qwen08-base-en-fr-server/summary.json": {
+      "mode": 420,
+      "sha256": "a67aa840df70445d666f01bd7ac33c17c84eeb4dee74db9009f371c7106636cc",
+      "size_bytes": 46167
+    },
+    "training/reports/qwen08-base-independent-en-fr/cases.jsonl": {
+      "mode": 420,
+      "sha256": "dbcf5656cc4c0028b3f4f2449c0f1120fc9cac2cb38b96a81e7f65470bb117e2",
+      "size_bytes": 46757
+    },
+    "training/reports/qwen08-base-independent-en-fr/run.json": {
+      "mode": 420,
+      "sha256": "755536c25f05e2233a866864ebb91f711ce803ce372e45c5a0ea0e988cb9ac21",
+      "size_bytes": 34619
+    },
+    "training/reports/qwen08-base-independent-en-fr/summary.json": {
+      "mode": 420,
+      "sha256": "83bec1b709411b6b51824093b9d820b6213e5662a2ad036227cc099f7749ad47",
+      "size_bytes": 46353
+    },
+    "training/reports/qwen08-v3-en-fr-manifest.json": {
+      "mode": 420,
+      "sha256": "2f0c2881e381be9a489310a1c0351fd59edf8d6526c61385d7972181e0226082",
+      "size_bytes": 32291
+    },
+    "training/reports/qwen08-v3-en-fr-server/cases.jsonl": {
+      "mode": 420,
+      "sha256": "4e0708c648b7be2aae0cc85397777dae23285958f943a39444755df71b5a6fc7",
+      "size_bytes": 29470
+    },
+    "training/reports/qwen08-v3-en-fr-server/run.json": {
+      "mode": 420,
+      "sha256": "2f0e137af59e1abcc34d02e8e38c78b065ee74fbb5ac24e988d122df4550dea2",
+      "size_bytes": 34632
+    },
+    "training/reports/qwen08-v3-en-fr-server/summary.json": {
+      "mode": 420,
+      "sha256": "eeb4bb33d9e93a98255d9fd7adf3b40e89f430a347a74afdde28dfc0f7709ba9",
+      "size_bytes": 46013
+    },
+    "training/reports/server-performance-v2-4threads.json": {
+      "mode": 420,
+      "sha256": "4ac5c2b1fd267705cbf79b3dccc0b497ba51a16011c35b703a535aafdbe97903",
+      "size_bytes": 7857
+    },
+    "training/reports/server-training-0.8b-v3-en-fr.json": {
+      "mode": 420,
+      "sha256": "7621e3d67584744ae71335e74fa0250d79d3c0748799c02e16bbca99f57a0e23",
+      "size_bytes": 28789
+    },
+    "training/scripts/attest_colibri.py": {
+      "mode": 420,
+      "sha256": "0f17fcb624839a3b38658733490d159b8d76aaba0b800cfc296f690cc6908f09",
+      "size_bytes": 3126
+    },
+    "training/scripts/benchmark_server.py": {
+      "mode": 420,
+      "sha256": "76e5474745ae66c50d03879ab87a9700632262234cbc689fa8cea03d085f3c60",
+      "size_bytes": 6739
+    },
+    "training/scripts/build_acceptance_en_fr.py": {
+      "mode": 420,
+      "sha256": "1c2ddb9da8499af88c1fca276f476e5cfa023df016ea569b656aaeca2a9a07a9",
+      "size_bytes": 25848
+    },
+    "training/scripts/build_dataset.py": {
+      "mode": 420,
+      "sha256": "ba8c9aa04cebf06d042584151b36cb664a41a082e4b2a206473de44e5e2607a0",
+      "size_bytes": 15038
+    },
+    "training/scripts/build_dataset_v2.py": {
+      "mode": 420,
+      "sha256": "bc686a5883889a8dabe6ee1a88b005a4d3b3f6dc3979cf29f03f4a8fea812ac0",
+      "size_bytes": 16078
+    },
+    "training/scripts/build_dataset_v3.py": {
+      "mode": 420,
+      "sha256": "01f65854e603f75d6266eebe9924c02075ba0ffa0bd76e1dfbee621c8ae38453",
+      "size_bytes": 5283
+    },
+    "training/scripts/build_dataset_v4.py": {
+      "mode": 420,
+      "sha256": "f5f4deb354557d007f13ea23721577ca666aecf492f662bf3233ac6f4db34476",
+      "size_bytes": 57443
+    },
+    "training/scripts/download_model.py": {
+      "mode": 420,
+      "sha256": "bd8f5b96cd40fb1bd23e4b3aaf8ddef6f6f3d20637261f0d8f9d6c94fa7ba0c6",
+      "size_bytes": 730
+    },
+    "training/scripts/evaluate.py": {
+      "mode": 420,
+      "sha256": "8015e384258f5adc327a70d788f9f52a31b929a0c46a1c0f049911b4d22558cb",
+      "size_bytes": 5049
+    },
+    "training/scripts/evaluate_v2.py": {
+      "mode": 420,
+      "sha256": "672242f36b487603c10a9250747ea60fcd55c8f81c78c0389988c4d8fac37b3d",
+      "size_bytes": 11866
+    },
+    "training/scripts/export_adapter.py": {
+      "mode": 420,
+      "sha256": "75f9b3f32acd703086df42928f601ffe0db80d9ec791e84444ec32f6ea51600b",
+      "size_bytes": 1282
+    },
+    "training/scripts/train_cpu.py": {
+      "mode": 420,
+      "sha256": "5d1d178d3a2fc1cb275ab5ebca79483966645206ed2eb6f46f525fec53ca2f34",
+      "size_bytes": 11272
+    }
+  },
+  "format_version": 1,
+  "managed_by": "chat-ai-assistant-source-snapshot",
+  "tree_sha256": "369c569e5ea87f723af093bb19294f8365bdfdc848a1558a5e2edb621735102d"
+}

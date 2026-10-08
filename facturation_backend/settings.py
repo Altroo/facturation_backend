@@ -41,6 +41,7 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 # Application definition
 
 INSTALLED_APPS = [
+    "chat_ai",
     "ai_assistant",
     "django.contrib.admin",
     "django.contrib.auth",
@@ -366,3 +367,13 @@ AI_ASSISTANT_TIMEOUT_SECONDS = config(
 AI_PDF_TRANSLATION_ENABLED = config(
     "AI_PDF_TRANSLATION_ENABLED", default=AI_ASSISTANT_ENABLED, cast=bool
 )
+
+# Chat AI Assistant: separate from prose correction; disabled until deployment approval.
+CHAT_AI_ASSISTANT_ENABLED = config("CHAT_AI_ASSISTANT_ENABLED", default=False, cast=bool)
+CHAT_AI_MODEL_URL = config("CHAT_AI_MODEL_URL", default="http://127.0.0.1:18090/v1")
+CHAT_AI_MODEL_ID = config("CHAT_AI_MODEL_ID", default="chat-ai-facturation")
+CHAT_AI_MODEL_KEY = config("CHAT_AI_MODEL_KEY", default="")
+CHAT_AI_MODEL_TIMEOUT = config("CHAT_AI_MODEL_TIMEOUT", default=90, cast=int)
+CHAT_AI_MODEL_MAX_TOKENS = config("CHAT_AI_MODEL_MAX_TOKENS", default=512, cast=int)
+CHAT_AI_RETENTION_DAYS = config("CHAT_AI_RETENTION_DAYS", default=30, cast=int)
+CHAT_AI_KNOWLEDGE_PATH = config("CHAT_AI_KNOWLEDGE_PATH", default=str(BASE_DIR / "chat_ai" / "knowledge"))

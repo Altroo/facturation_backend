@@ -1,0 +1,33 @@
+# Prepared configuration; not deployed. Model acceptance and approval are required.
+services:
+  chat-ai-model:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.colibri
+    image: chat-ai-colibri:qwen-cpu-v1
+    restart: unless-stopped
+    environment:
+      COLI_MODEL_ID: ${CHAT_AI_MODEL_ID:?Set the immutable model release identifier}
+      COLI_API_KEY: ${CHAT_AI_MODEL_KEY:?Set a dedicated assistant inference key}
+      OMP_NUM_THREADS: ${CHAT_AI_CPU_THREADS:-4}
+    volumes:
+      - ${CHAT_AI_MODEL_PATH:?Set the accepted converted model directory}:/model:ro
+    networks: [chat-ai-internal]
+    # No host ports. Only Facturation's backend joins this private network.
+    cpus: ${CHAT_AI_CPU_LIMIT:-4.0}
+    mem_limit: ${CHAT_AI_MEMORY_LIMIT:-6g}
+    pids_limit: 128
+    read_only: true
+    tmpfs: ['/tmp:rw,nosuid,noexec,size=64m']
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:18090/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      start_period: 60s
+      retries: 3
+networks:
+  chat-ai-internal:
+    name: chat-ai-facturation-internal
+    internal: true
