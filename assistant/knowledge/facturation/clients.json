@@ -29,6 +29,21 @@
       "facturation/facturation_frontend/src/components/pages/dashboard/clients/clients-form.tsx:449",
       "facturation/facturation_frontend/src/translations/fr.ts:393"
     ],
-    "notes": "Client types and displayed-name selection checked against the model and visible client form labels."
+    "notes": "Client types and displayed-name selection checked against the model and visible client form labels.",
+    "localized_content_review": {
+      "locales": [
+        "fr",
+        "en"
+      ],
+      "basis": "Verified existing workflow and native French/English form captions; reviewed excerpts, not model-generated answers.",
+      "sources": [
+        "facturation/facturation_frontend/src/translations/fr.ts",
+        "facturation/facturation_frontend/src/translations/en.ts"
+      ]
+    }
+  },
+  "localized_content": {
+    "fr": "Les clients appartiennent à une société. Sélectionnez la société concernée, puis consultez la liste des clients ou demandez une recherche par nom à l’assistant.\nLe « Type de client » peut être « Personne morale », « Personne physique » ou « Client Divers ». Le nom affiché provient de « Raison sociale » ou de « Nom » et « Prénom », selon ce type.\nLes listes et fiches respectent vos droits d’accès à la société. Changer l’onglet société change le périmètre de consultation; cela ne donne pas accès à une société non autorisée.",
+    "en": "Clients belong to a company. Select the relevant company, then open the clients list or ask the assistant to search by name.\n“Client type” can be “Legal entity”, “Individual” or “Client Divers”. The displayed name comes from “Company name” or from “Last name” and “First name”, depending on that type.\nLists and details follow your company access permissions. Changing the company tab changes the consultation scope; it does not grant access to an unauthorized company."
   }
 }

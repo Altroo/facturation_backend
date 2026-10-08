@@ -4,6 +4,30 @@ from collections import Counter
 import unicodedata
 from django.db.models import Q
 from .models import KnowledgeDocument
+from .security import SECRET
+
+
+LOCALIZED_CONTENT_LIMIT = 6000
+
+
+def validate_localized_content(value):
+    """Validate reviewed excerpts, without accepting arbitrary locale metadata."""
+    if not isinstance(value, dict) or set(value) != {'fr', 'en'}:
+        raise ValueError('Expected exactly French and English excerpts.')
+    for text in value.values():
+        if (not isinstance(text, str) or not text.strip()
+                or len(text) > LOCALIZED_CONTENT_LIMIT or '\x00' in text
+                or SECRET.search(text)):
+            raise ValueError('Invalid or sensitive localized excerpt.')
+    return dict(value)
+
+
+def localized_content_for_retrieval(value):
+    # Legacy documents use {}. Invalid direct database edits must not be served.
+    try:
+        return validate_localized_content(value)
+    except ValueError:
+        return {}
 
 
 # Function words and generic question scaffolding carry no workflow identity.
@@ -88,5 +112,6 @@ class ChatAIKnowledgeService:
                         for word, weight in weights.items())
             if score:
                 hits.append((score, {'document_id': doc.document_id, 'version': doc.document_version,
-                                     'title': doc.title, 'content': doc.content[:3500]}))
+                                     'title': doc.title, 'content': doc.content[:3500],
+                                     'localized_content': localized_content_for_retrieval(doc.localized_content)}))
         return [item for _, item in sorted(hits, key=lambda x: -x[0])[:3]]

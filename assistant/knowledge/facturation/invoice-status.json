@@ -29,6 +29,21 @@
       "facturation/facturation_backend/facture_client/serializers.py:39",
       "facturation/facturation_frontend/src/translations/fr.ts:550"
     ],
-    "notes": "Verified native document statuses and authoritative payment-status/balance calculation; payment and document states remain distinct."
+    "notes": "Verified native document statuses and authoritative payment-status/balance calculation; payment and document states remain distinct.",
+    "localized_content_review": {
+      "locales": [
+        "fr",
+        "en"
+      ],
+      "basis": "Verified existing workflow and native French/English form captions; reviewed excerpts, not model-generated answers.",
+      "sources": [
+        "facturation/facturation_frontend/src/translations/fr.ts",
+        "facturation/facturation_frontend/src/translations/en.ts"
+      ]
+    }
+  },
+  "localized_content": {
+    "fr": "Le statut du document et le statut de paiement sont différents.\nLes statuts documentaires sont « Brouillon », « Envoyé », « Accepté », « Refusé », « Annulé » et « Expiré ».\n\nLe statut de paiement est calculé par l’application :\n- « Payée » : le solde restant est inférieur ou égal à zéro.\n- « Partiellement payée » : le total des règlements valides est positif et un solde reste à payer.\n- « Non payée » : les autres cas.\n\nLe solde correspond au TTC après remise, moins les avoirs actifs et les règlements au statut « Valide ». Une facture « Accepté » peut donc rester « Non payée ».",
+    "en": "Document status and payment status are different.\nDocument statuses are “Draft”, “Sent”, “Accepted”, “Refused”, “Cancelled” and “Expired”. Some selectors still display their French labels: “Brouillon”, “Envoyé”, “Accepté”, “Refusé”, “Annulé” and “Expiré”.\n\nThe application calculates payment status:\n- “Paid”: the remaining balance is zero or negative.\n- “Partially paid”: valid payments total more than zero and a balance remains.\n- “Unpaid”: all other cases.\n\nThe balance is the total including tax after discounts, less active credit notes and payments with the “Valide” status (“Valid” in English). An accepted invoice can therefore still be unpaid."
   }
 }

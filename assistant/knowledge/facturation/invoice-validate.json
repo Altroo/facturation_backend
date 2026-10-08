@@ -29,6 +29,21 @@
       "facturation/facturation_frontend/src/components/pages/dashboard/facture-client/facture-client-form.tsx:125",
       "facturation/facturation_backend/facture_client/views.py:193"
     ],
-    "notes": "Visible permission captions checked in both interface languages; invoice validation requires both flags. Inline payment controls require an accepted invoice and the existing cashier/commercial roles."
+    "notes": "Visible permission captions checked in both interface languages; invoice validation requires both flags. Inline payment controls require an accepted invoice and the existing cashier/commercial roles.",
+    "localized_content_review": {
+      "locales": [
+        "fr",
+        "en"
+      ],
+      "basis": "Verified existing workflow and native French/English form captions; reviewed excerpts, not model-generated answers.",
+      "sources": [
+        "facturation/facturation_frontend/src/translations/fr.ts",
+        "facturation/facturation_frontend/src/translations/en.ts"
+      ]
+    }
+  },
+  "localized_content": {
+    "fr": "Sur la fiche de facture client, « Valider » fait passer la facture au statut « Accepté ».\nCette action exige les deux autorisations de la société :\n- « Validation factures client »;\n- « Changement statut document ».\n\nL’application vérifie ces autorisations avant la validation. Le droit de consulter une facture ne donne pas le droit de la valider. Les règlements intégrés à la fiche et au formulaire sont gérables par les rôles « Caissier » ou « Commercial » lorsque la facture est « Accepté ».\nIl s’agit des actions de l’application; l’assistant ne propose pas d’action de validation ni de modification des règlements.",
+    "en": "On the client invoice details page, “Validate” changes the invoice status to “Accepted”.\nThis action requires both company permissions:\n- “Client invoice validation”;\n- “Document status change”.\n\nThe application checks both permissions before validation. Being allowed to view an invoice does not grant permission to validate it. The “Caissier” and “Commercial” roles can manage payments within the invoice details page and form when the invoice is accepted.\nThese are application actions; the assistant does not offer invoice validation or payment editing."
   }
 }

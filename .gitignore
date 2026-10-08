@@ -183,3 +183,60 @@ cython_debug/
 .docs/*
 .github
 .github/*
+
+# Runtime credentials stay local; only reviewed templates are versioned.
+.env*
+*.env
+!/.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+/credentials*.json
+/secrets*.json
+
+# Authenticated browser state and raw verification artifacts may contain private data.
+/.auth/
+/playwright/.auth/
+/.playwright-mcp/
+/playwright-report/
+/test-results/
+/browser-reports/
+/browser-artifacts/
+/test-artifacts/
+/screenshots/
+/storage-state*.json
+/storageState*.json
+/auth-state*.json
+*.har
+
+
+# Reproducible assistant source and curated reports remain versioned.
+# Runtime weights, training outputs and raw evaluations do not.
+!/assistant/deploy/example.env
+.venv*/
+*.safetensors
+*.gguf
+*.ggml
+*.qpack
+*.ckpt
+*.pt
+*.pth
+*.bin
+**/training/checkpoints/
+**/training/adapters/
+**/training/evaluations/
+/assistant/models/
+/assistant/adapters/
+/assistant/checkpoints/
+/assistant/runtime/colibri/c/colibri
+/assistant/runtime/colibri/c/qpack
+/assistant/runtime/colibri/c/iobench
+/assistant/runtime/colibri/c/*.o
+/assistant/runtime/colibri/c/*.dylib
+
+# Database exports are private runtime artifacts.
+*.sqlite
+*.sqlite3
+*.dump
+*.sql.gz

@@ -30,6 +30,21 @@
       "facturation/facturation_frontend/src/translations/fr.ts:1473",
       "facturation/facturation_frontend/src/translations/en.ts:1459"
     ],
-    "notes": "Visible labels and company-dependent fields checked against shared document forms and current translations; supported assistant changes are unchanged."
+    "notes": "Visible labels and company-dependent fields checked against shared document forms and current translations; supported assistant changes are unchanged.",
+    "localized_content_review": {
+      "locales": [
+        "fr",
+        "en"
+      ],
+      "basis": "Verified existing workflow and native French/English form captions; reviewed excerpts, not model-generated answers.",
+      "sources": [
+        "facturation/facturation_frontend/src/translations/fr.ts",
+        "facturation/facturation_frontend/src/translations/en.ts"
+      ]
+    }
+  },
+  "localized_content": {
+    "fr": "Les champs portent les libellés de vos formulaires :\n- Facture client et facture pro forma : « Remarque », « Termes de paiement » et « Date d'échéance », selon les champs affichés pour la société.\n- Devis et bon de livraison : pas de champ « Termes de paiement ».\n- Facture d’avoir : « Remarque ».\n- Dans les formulaires de documents partagés, « Date d'échéance » est affichée pour Nectar et « Remarque » pour les autres sociétés.\n- Fiche client : « Raison sociale » pour une personne morale, « Nom » et « Prénom » pour une personne physique. La présence de « Adresse » dépend du type de client.\n\nL’assistant utilise ces libellés visibles et ne doit pas vous demander de connaître les noms techniques des champs.",
+    "en": "Fields use the labels shown in your forms:\n- Client invoice and pro-forma invoice: “Remark”, “Payment terms” and “Due date”, according to the fields displayed for the company.\n- Quote and delivery note: no “Payment terms” field.\n- Credit note: “Remark”.\n- In the shared document forms, “Due date” is displayed for Nectar and “Remark” for other companies.\n- Client details: “Company name” for a legal entity, “Last name” and “First name” for an individual. Whether “Address” is displayed depends on the client type.\n\nThe assistant uses these visible labels; you do not need to know internal field names."
   }
 }

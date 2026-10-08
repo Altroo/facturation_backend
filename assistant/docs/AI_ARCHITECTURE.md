@@ -38,3 +38,6 @@ The backend vendors a wheel built from the central core using `scripts/package_c
 ## Explicit limits
 
 Writes currently cover bounded document/client metadata and confirmed deletion of supported documents/clients. Stock/logistics lifecycle changes, account administration writes, price changes and payment mutations are not exposed. The existing forms/services remain authoritative. Model accuracy, server inference performance, full production image validation and final deployment acceptance remain open; see `AI_PROGRESS.md`.
+
+
+Explicit general workflow/help questions route directly through the authorized knowledge tool and reviewed bilingual excerpts. Exact ordinal references route through the same authorized previous-results executor. Specific-record questions and business searches still use the local model; backend authorization and financial results never depend on generated prose. This reduces CPU work and prevents small-model generation failures from corrupting documented procedures or saved result identities.

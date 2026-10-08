@@ -35,6 +35,21 @@
       "facturation/facturation_frontend/src/translations/en.ts:280",
       "facturation/facturation_frontend/src/translations/en.ts:293"
     ],
-    "notes": "Verified assistant delegation to existing dashboard calculations, valid-payment date basis, separate currencies and unsupported profit distinction."
+    "notes": "Verified assistant delegation to existing dashboard calculations, valid-payment date basis, separate currencies and unsupported profit distinction.",
+    "localized_content_review": {
+      "locales": [
+        "fr",
+        "en"
+      ],
+      "basis": "Verified existing workflow and native French/English form captions; reviewed excerpts, not model-generated answers.",
+      "sources": [
+        "facturation/facturation_frontend/src/translations/fr.ts",
+        "facturation/facturation_frontend/src/translations/en.ts"
+      ]
+    }
+  },
+  "localized_content": {
+    "fr": "Les indicateurs financiers ne désignent pas tous la même chose :\n- Montant facturé : facturation TTC nette des avoirs actifs, selon les calculs existants. Ces calculs incluent tous les statuts de factures.\n- Encaissements : règlements au statut « Valide », pris en compte selon leur date de règlement.\n- Créances : soldes des factures après prise en compte des règlements et des avoirs.\n\nCes montants ne représentent pas le bénéfice. Calculer un bénéfice nécessiterait une définition précise et les charges correspondantes. Pour « combien avons-nous gagné ? », précisez si vous souhaitez le montant facturé ou les encaissements.\nLes montants en MAD, EUR et USD restent séparés, sans conversion automatique.\nHT signifie hors taxes. TVA signifie taxe sur la valeur ajoutée. TTC signifie toutes taxes comprises. Les montants réels sont calculés par l’application pour la société, la période et la devise autorisées.",
+    "en": "Financial indicators describe different things:\n- Invoiced amount: invoicing including tax, net of active credit notes, using the existing application calculations. Those calculations include every invoice status.\n- Collected payments: payments with the “Valide” status (“Valid” in English), counted by their payment date.\n- Outstanding balance: invoice balances after payments and credit notes.\n\nThese amounts do not represent profit. Profit would require an agreed definition and the corresponding expenses. For “How much did we earn?”, specify whether you mean the invoiced amount or collected payments.\nMAD, EUR and USD amounts remain separate; there is no automatic currency conversion.\nHT means excluding tax. TVA means value-added tax (VAT). TTC means including tax. Actual amounts come from the application for the authorized company, period and currency."
   }
 }

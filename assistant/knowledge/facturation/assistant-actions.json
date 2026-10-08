@@ -32,6 +32,21 @@
       "facturation/facturation_backend/chat_ai/actions.py:66",
       "facturation/facturation_backend/chat_ai/actions.py:86"
     ],
-    "notes": "Verified existing shortcut intent, confirmation, permission recheck and protected-relation handling. No permission or mutation scope changed."
+    "notes": "Verified existing shortcut intent, confirmation, permission recheck and protected-relation handling. No permission or mutation scope changed.",
+    "localized_content_review": {
+      "locales": [
+        "fr",
+        "en"
+      ],
+      "basis": "Verified existing workflow and native French/English form captions; reviewed excerpts, not model-generated answers.",
+      "sources": [
+        "facturation/facturation_frontend/src/translations/fr.ts",
+        "facturation/facturation_frontend/src/translations/en.ts"
+      ]
+    }
+  },
+  "localized_content": {
+    "fr": "Pour les actions qu’il prend en charge, l’assistant respecte vos droits existants de lecture, modification, suppression et impression. Les commandes disponibles dépendent de ces droits.\nPour modifier ou supprimer un document :\n1. Décrivez le document recherché; vous n’avez pas besoin de connaître son identifiant technique.\n2. Choisissez le bon résultat si plusieurs documents correspondent.\n3. Vérifiez le document exact et les changements proposés dans l’aperçu.\n4. Confirmez explicitement l’action pour l’exécuter.\n\nLes permissions et le document sont vérifiés à nouveau lors de la confirmation. Une relation protégée peut empêcher une suppression. Les modifications et suppressions confirmées conservent la trace de l’utilisateur qui les a demandées. Les données de facturation et les conversations privées ne servent pas automatiquement à entraîner le modèle.",
+    "en": "For supported actions, the assistant follows your existing read, edit, delete and print permissions. Available commands depend on those permissions.\nTo edit or delete a document:\n1. Describe the document you are looking for; you do not need its internal identifier.\n2. Select the correct result if several documents match.\n3. Check the exact document and proposed changes in the preview.\n4. Explicitly confirm the action to execute it.\n\nPermissions and the document are checked again at confirmation. A protected relationship can prevent deletion. Confirmed edits and deletions retain a record of the user who requested them. Billing data and private conversations are not automatically used to train the model."
   }
 }

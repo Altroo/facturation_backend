@@ -63,8 +63,8 @@
     },
     "docs/AI_ARCHITECTURE.md": {
       "mode": 420,
-      "sha256": "b56801c814a5cd252673951055dfd46e0544274634137ca7aed4b85fc866cf52",
-      "size_bytes": 3852
+      "sha256": "84bad87838b669001308efb6fb4bf727342df9a30adb25282acd868e4794d5bc",
+      "size_bytes": 4352
     },
     "docs/AI_AUDIT_HISTORY.md": {
       "mode": 420,
@@ -73,38 +73,43 @@
     },
     "docs/AI_DEPLOYMENT.md": {
       "mode": 420,
-      "sha256": "09c43aa3024772ae5ec0816151b7948b6af3d0a1835d534d84b6386d8aca09bd",
-      "size_bytes": 6064
+      "sha256": "c8fcec880e0a79fa54dd96e6858e99a5426ca1cf8e2d5340f947c0c244c01fcf",
+      "size_bytes": 6790
     },
     "docs/AI_FINE_TUNING.md": {
       "mode": 420,
-      "sha256": "b066420d060d400123478e550a62013a4fcbde488306529d898656953d8aa5ac",
-      "size_bytes": 9650
+      "sha256": "cbbbdaabcf95b6fd25ce1020bf4bfd38b431d3add39cf4c839dbeca9a594c379",
+      "size_bytes": 10807
     },
     "docs/AI_FRONTEND.md": {
       "mode": 420,
-      "sha256": "93791c4b7a11b0c440b809a729c4fc87f22e9f9a3c5b472db11f374816a590dc",
-      "size_bytes": 15252
+      "sha256": "fc83e523444981c51002117668fa1a459e662d65d20a45098904ef52dbabda11",
+      "size_bytes": 15715
     },
     "docs/AI_KNOWLEDGE.md": {
       "mode": 420,
-      "sha256": "9877121ac9501ff6d2d7500171136d3fc13c2505e1fd6cc7b16afd2bd17b96ce",
-      "size_bytes": 3928
+      "sha256": "78b331f8f90b42eb9a4723038169aed1dcacc48c114152433ada6942c8261514",
+      "size_bytes": 4819
     },
     "docs/AI_PROGRESS.md": {
+      "mode": 420,
+      "sha256": "83aa020d42451bd84e57c1711ff85bb9ae741f128b6c8405f57ffc4e90a6c49a",
+      "size_bytes": 3711
+    },
+    "docs/AI_PROGRESS_HISTORY.md": {
       "mode": 420,
       "sha256": "be62f53246836155130e6713c656e04d5d346a22b27145d2725cc040534c2d6c",
       "size_bytes": 17631
     },
     "docs/AI_SECURITY.md": {
       "mode": 420,
-      "sha256": "b4281840eed3a8d85eb79a9b82b8f7f45486d43ba0b3ee82a3589bd61d7ac375",
-      "size_bytes": 14865
+      "sha256": "c46af27973cd41ac74c8a3e03c3b7f812ad17e142acc9a7b86ef5153dd93f07b",
+      "size_bytes": 15160
     },
     "docs/AI_TESTING.md": {
       "mode": 420,
-      "sha256": "369725f1204cf8989975a650611a3a23d678dc37c6f884fde1eecf6b23e4d02e",
-      "size_bytes": 6424
+      "sha256": "26c5a562a69fc081f9fa6874e78c5b5c685218347ada080e2168f80a7f210fe8",
+      "size_bytes": 7501
     },
     "docs/AI_TOOLS.md": {
       "mode": 420,
@@ -113,8 +118,8 @@
     },
     "docs/implementation-files.json": {
       "mode": 420,
-      "sha256": "6f9225ea760b7f68c8408482408ef09ce7f3bd7b9f3657446152eef3e97ce40f",
-      "size_bytes": 5214
+      "sha256": "51de16e50fd55ce407084c95ec3f3907a551ace4cd923f266b32e926269999c2",
+      "size_bytes": 5684
     },
     "docs/source_inventory.json": {
       "mode": 420,
@@ -123,63 +128,63 @@
     },
     "knowledge/facturation/articles-find.json": {
       "mode": 420,
-      "sha256": "7211f115bccc6e1361b12047a31f0d06795009f7f5400bc7e6a2e3c7795b3d98",
-      "size_bytes": 1935
+      "sha256": "b93a9ab770e39f971c2e0316846b40bcb1c93ac6f094d38c44dddf78842df24f",
+      "size_bytes": 3718
     },
     "knowledge/facturation/assistant-actions.json": {
       "mode": 420,
-      "sha256": "76b2031a0d2ca52aa654453d52fee663208835d2dacdc8aaddaf5cd74e4a9e58",
-      "size_bytes": 1399
+      "sha256": "fcf451ea4389fe178b74e9da3332a3d49f3a0db69f99e36be0c4ca1882d0a5e1",
+      "size_bytes": 3472
     },
     "knowledge/facturation/clients.json": {
       "mode": 420,
-      "sha256": "f6fe1839a394215faaf3a150585d366cc25221791be6a88d9757c0f0a437642a",
-      "size_bytes": 1297
+      "sha256": "bb272f8dcef280911e0e285d3041a548b021fbace04c764480bb34f71d19abaf",
+      "size_bytes": 2816
     },
     "knowledge/facturation/financial-definitions.json": {
       "mode": 420,
-      "sha256": "0b7d51d5dd1e79195135878bff0827d2fdde5cdc0f4b1d2327283007775f9c2c",
-      "size_bytes": 1808
+      "sha256": "5db7655e499b165e8cc70cab4a53454d77eb9c88604a8d57cf8e7146e8a1fd62",
+      "size_bytes": 4090
     },
     "knowledge/facturation/form-labels.json": {
       "mode": 420,
-      "sha256": "29e57288ce00ad7b6035548634d19496bf3ce78d38f1c9a328afcc590cd460bf",
-      "size_bytes": 1831
+      "sha256": "147e4b7834bc0d63695bf76de2943a04698717954eed8f69d1b98edd0336b8c6",
+      "size_bytes": 3693
     },
     "knowledge/facturation/invoice-create.json": {
       "mode": 420,
-      "sha256": "75af7364b0abdcded6261a0ce1f015310562925863d2415f254dc3eacb443cce",
-      "size_bytes": 2777
+      "sha256": "f4469b175f496883e511e6fa2802a3afed2d5cddbc400ae8ad2d598bad912cf1",
+      "size_bytes": 5364
     },
     "knowledge/facturation/invoice-find.json": {
       "mode": 420,
-      "sha256": "cc48b45ff2bbb70c67c8c3fff5dd88b4a8e6970a9baf7598b65b9dfebfa42f6e",
-      "size_bytes": 1457
+      "sha256": "b633138e0a85ef800d84f2a18e81c4da91141825144bbc7e353df396d373ee0e",
+      "size_bytes": 3199
     },
     "knowledge/facturation/invoice-status.json": {
       "mode": 420,
-      "sha256": "80b0875bc8195a0ef5212651f6e9bf74f68fe834dfcc1275d06f6acc2c7acccc",
-      "size_bytes": 1312
+      "sha256": "c85c53051ce15cfedc35b3abd2f4be192a10c84bdf6316629c42d99266fdc056",
+      "size_bytes": 3130
     },
     "knowledge/facturation/invoice-validate.json": {
       "mode": 420,
-      "sha256": "ea92d4181174d6abd0c747cb5a66e01786bde52bb9d988d292ba06b7d26502ff",
-      "size_bytes": 1816
+      "sha256": "9b350fa9580811284e5b0ace122447c5949dc05a1152ec6e9cb60679d06429a5",
+      "size_bytes": 3512
     },
     "knowledge/facturation/logistics-find.json": {
       "mode": 420,
-      "sha256": "aa4f1c2e7217b10b4a5007705748d3d0ee2a7c535d6d024b115e748263560e8a",
-      "size_bytes": 1397
+      "sha256": "fce5fc0d3319e0c25c5b22cb4c5be4c0f53bbdd5b36fbc84cd58ce8a70dfaed4",
+      "size_bytes": 2947
     },
     "knowledge/facturation/stock-quantities.json": {
       "mode": 420,
-      "sha256": "869de1c4de7f811749ca07042cbe5ce94ab55121577beb105390cf100b9fa270",
-      "size_bytes": 1895
+      "sha256": "1018c618a6316b3c864f509202e657f700e8c65d1147df022f115b026d8533ff",
+      "size_bytes": 4986
     },
     "knowledge/facturation/users-find.json": {
       "mode": 420,
-      "sha256": "3433e26dfe09e8d7a9b25c1f21e892753559580c77b13850bdadc58e333d0e59",
-      "size_bytes": 1632
+      "sha256": "c11b74adaabc2a8ba697c3186e416e658924163ce23c3da5fde4945cd69a729e",
+      "size_bytes": 3081
     },
     "pyproject.toml": {
       "mode": 420,
@@ -2108,8 +2113,8 @@
     },
     "src/chat_ai_assistant/orchestrator.py": {
       "mode": 420,
-      "sha256": "3b416c67e637ab27ed1dcc19c21ec3a734cf7f5a55e5bd0362caee15a1ca6cfa",
-      "size_bytes": 7181
+      "sha256": "c464870c1878da6791b2ad4537dbdaa26ec37d77128ade440a4c2798d861f498",
+      "size_bytes": 8286
     },
     "src/chat_ai_assistant/presentation.py": {
       "mode": 420,
@@ -2123,8 +2128,8 @@
     },
     "src/chat_ai_assistant/routing.py": {
       "mode": 420,
-      "sha256": "ce83349ece6145baf1f8fcb449860123417d3a046001685d843d2ee8915214ae",
-      "size_bytes": 3026
+      "sha256": "dd4b6d4a9972714d7f9ad3b663264136dac12dff7692501432d8fbe4b70063c0",
+      "size_bytes": 3017
     },
     "training/configs/server-requirements.lock": {
       "mode": 420,
@@ -2356,6 +2361,11 @@
       "sha256": "ce5f3c73ab93b0a28923e22c9a516e2c6b95372c0c683d40264e4109380efdb0",
       "size_bytes": 125085
     },
+    "training/reports/application-release-tests.json": {
+      "mode": 420,
+      "sha256": "d0931918e3ed69882b1ac077a57eb16ed313d20dbc352ec061884cf59586a583",
+      "size_bytes": 993
+    },
     "training/reports/backend-container-validation.json": {
       "mode": 420,
       "sha256": "38453de5b3e5ab98b766e8f504bf7e60a904e7bbe6582583c383c126d79361aa",
@@ -2421,15 +2431,45 @@
       "sha256": "eeb4bb33d9e93a98255d9fd7adf3b40e89f430a347a74afdde28dfc0f7709ba9",
       "size_bytes": 46013
     },
+    "training/reports/qwen08-v4-en-fr-manifest.json": {
+      "mode": 420,
+      "sha256": "c92bfc5dd9de3e8ab331e893fbdc56b3aa67addaa16456bb47c80a41d13e77a1",
+      "size_bytes": 32231
+    },
+    "training/reports/qwen08-v4-independent-en-fr/failure-analysis.json": {
+      "mode": 420,
+      "sha256": "b4ce969c43322c69dacac3b75506dcf3f5a65f7712aeb4cf64a1ad1bd542e3f8",
+      "size_bytes": 48106
+    },
+    "training/reports/qwen08-v4-independent-en-fr/summary.json": {
+      "mode": 420,
+      "sha256": "f573c1319e3214a3e7d4193ae63ab07ec05a54b190f7f9ec980ca4a9ede8bcad",
+      "size_bytes": 11428
+    },
     "training/reports/server-performance-v2-4threads.json": {
       "mode": 420,
       "sha256": "4ac5c2b1fd267705cbf79b3dccc0b497ba51a16011c35b703a535aafdbe97903",
       "size_bytes": 7857
     },
+    "training/reports/server-performance-v4-en-fr-4threads.json": {
+      "mode": 420,
+      "sha256": "3bfb170ea7d5ae0f3bb7a9ded3bd4061a6a733c9fb6fc892e5baf7121e221302",
+      "size_bytes": 4526
+    },
+    "training/reports/server-thread-benchmark-v4.json": {
+      "mode": 420,
+      "sha256": "540ab71c9e41cef692102404149ca1a2131460897a3d8fe67563b4a52bb8c69d",
+      "size_bytes": 3923
+    },
     "training/reports/server-training-0.8b-v3-en-fr.json": {
       "mode": 420,
       "sha256": "7621e3d67584744ae71335e74fa0250d79d3c0748799c02e16bbca99f57a0e23",
       "size_bytes": 28789
+    },
+    "training/reports/server-training-0.8b-v4-en-fr.json": {
+      "mode": 420,
+      "sha256": "734fc170ab518abd310685a2e13c985ea495dae7f41619336b5f0ddfd4fcfd3c",
+      "size_bytes": 5215
     },
     "training/scripts/attest_colibri.py": {
       "mode": 420,
@@ -2494,5 +2534,5 @@
   },
   "format_version": 1,
   "managed_by": "chat-ai-assistant-source-snapshot",
-  "tree_sha256": "369c569e5ea87f723af093bb19294f8365bdfdc848a1558a5e2edb621735102d"
+  "tree_sha256": "5d92349693b57d29ad9b491c74ea8b6ef657e4f9c0aa91b95d328b3ba9d3eb4d"
 }

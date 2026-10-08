@@ -35,7 +35,7 @@ def shortlist(text, permitted_tools, context=None):
         matches -= {'search_clients', 'search_articles'}
         if matches & {'search_documents', 'search_quotes'}:
             matches.discard('search_invoices')
-        if any(term in words for term in ('client de', 'customer of')):
+        if re.search(r'\b(?:client de|customer of)\b', words):
             matches.add('search_clients')
     if not matches:
         return list(permitted_tools)

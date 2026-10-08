@@ -37,6 +37,21 @@
       "facturation/facturation_frontend/src/translations/en.ts:280",
       "facturation/facturation_frontend/src/translations/en.ts:293"
     ],
-    "notes": "Verified the two-step create-then-edit flow and native French/English button/form labels. This describes the existing application workflow, not an assistant creation tool."
+    "notes": "Verified the two-step create-then-edit flow and native French/English button/form labels. This describes the existing application workflow, not an assistant creation tool.",
+    "localized_content_review": {
+      "locales": [
+        "fr",
+        "en"
+      ],
+      "basis": "Verified existing workflow and native French/English form captions; reviewed excerpts, not model-generated answers.",
+      "sources": [
+        "facturation/facturation_frontend/src/translations/fr.ts",
+        "facturation/facturation_frontend/src/translations/en.ts"
+      ]
+    }
+  },
+  "localized_content": {
+    "fr": "Pour créer une facture client dans l’application :\n1. Ouvrez « Factures clients », accédez à la liste et sélectionnez la société concernée.\n2. Cliquez sur « Nouvelle facture client ».\n3. Choisissez le client de cette société, renseignez « Date de la facture » et complétez les autres informations nécessaires.\n4. Cliquez sur « Ajouter des articles ». Cette première étape crée la facture et ouvre son formulaire de modification.\n5. Dans « Lignes de la facture », cliquez sur « Ajouter article », choisissez les articles puis renseignez les quantités et les prix autorisés.\n6. Vérifiez les montants calculés par l’application, puis cliquez sur « Mettre à jour » pour enregistrer les lignes.\n\nHT signifie hors taxes. TVA signifie taxe sur la valeur ajoutée. TTC signifie toutes taxes comprises. L’application calcule les totaux et applique ses règles de TVA et de remise.\nLa création, la modification et la validation restent soumises à vos droits existants. Créer la facture ne remplace pas sa validation. Cette procédure décrit le formulaire de l’application; l’assistant ne crée pas lui-même une facture.",
+    "en": "To create a client invoice in the application:\n1. Open “Client Invoices”, go to the list and select the relevant company.\n2. Click “New client invoice”.\n3. Select a client belonging to that company, fill in “Invoice date” and complete the other required information.\n4. Click “Add items”. This first step creates the invoice and opens its edit form.\n5. In “Invoice lines”, click “Add article”, select the articles and enter the quantities and prices you are allowed to change.\n6. Check the amounts calculated by the application, then click “Update” to save the lines.\n\nHT means excluding tax. TVA means value-added tax (VAT). TTC means including tax. The application calculates the totals using its VAT and discount rules.\nCreation, editing and validation remain subject to your existing permissions. Creating the invoice does not validate it. These steps describe the application's form; the assistant does not create an invoice itself."
   }
 }

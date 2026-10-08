@@ -14,5 +14,14 @@ coverage.xml
 tmp/
 
 # Runtime configuration is injected by Compose, never copied into image layers.
-.env
-.env.*
+.env*
+*.env
+*.key
+*.pem
+*.p12
+*.pfx
+*.dump
+*.sql.gz
+.auth/
+playwright/.auth/
+**/training/evaluations/

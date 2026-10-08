@@ -13,7 +13,7 @@ from .security import authorization_stamp, validate_text
 from .tools import ChatAIToolExecutor, registry
 from .labels import FIELD_LABELS, selected_action_text
 from chat_ai_assistant.presentation import labelled_text
-from .shortcuts import shortcut_action
+from .shortcuts import shortcut_action, reference_action, knowledge_action
 
 
 def get_conversation(user_id, id):
@@ -128,6 +128,13 @@ def stored_action(result, language='fr'):
     return {} if action.get('tool')=='prepare_change' else action
 
 
+class _DeferredKnowledgeModel:
+    # Reviewed excerpts need no inference connection. Legacy approved documents
+    # still load the normal private provider when they require generation.
+    def stream(self, *args, **kwargs):
+        return get_model().stream(*args, **kwargs)
+
+
 class ChatAIConversationService:
     def run(self,user_id,conversation_id,text,request_id,context,emit,cancel):
         close_old_connections()
@@ -159,8 +166,9 @@ class ChatAIConversationService:
                      'previous_result_type':conv.references.get('resource'),
                      'previous_result_count':len(conv.references.get('ids',[]))}
             if context.get('invoice_id'):executor.invoice(context['invoice_id'])
-            forced=shortcut_action(text)
-            result=ChatAIOrchestrator(None if forced else get_model(),registry(),executor).run(text,context=trusted,forced_action=forced,
+            forced=shortcut_action(text) or reference_action(text, conv.references) or knowledge_action(text)
+            model = _DeferredKnowledgeModel() if forced and forced['tool'] == 'knowledge' else (None if forced else get_model())
+            result=ChatAIOrchestrator(model,registry(),executor).run(text,context=trusted,forced_action=forced,
                 history=[{'role':'user','content':m.text} for m in reversed(history)],emit=emit,cancel=cancel)
             if cancel.is_set():raise ChatAIError('CANCELLED')
             # Recheck immediately before persistence/delivery for JSON and SSE alike.

@@ -31,6 +31,21 @@
       "facturation/facturation_backend/core/filters.py:297",
       "facturation/facturation_backend/facture_client/filters.py:6"
     ],
-    "notes": "Verified invoice list route, document-number/client search and date filters; no arbitrary route or record identifier added."
+    "notes": "Verified invoice list route, document-number/client search and date filters; no arbitrary route or record identifier added.",
+    "localized_content_review": {
+      "locales": [
+        "fr",
+        "en"
+      ],
+      "basis": "Verified existing workflow and native French/English form captions; reviewed excerpts, not model-generated answers.",
+      "sources": [
+        "facturation/facturation_frontend/src/translations/fr.ts",
+        "facturation/facturation_frontend/src/translations/en.ts"
+      ]
+    }
+  },
+  "localized_content": {
+    "fr": "Pour retrouver une facture client :\n1. Ouvrez la liste dans « Factures clients » et sélectionnez la société concernée.\n2. Recherchez par numéro de facture ou par client; utilisez les filtres de date pour limiter la période.\n3. Ouvrez la fiche du résultat choisi.\n\nLes numéros sont ceux enregistrés dans l’application, souvent au format 0001/25. Vous pouvez aussi demander à l’assistant une recherche avec le nom du client et une période; connaître l’identifiant technique n’est pas nécessaire. En cas de plusieurs résultats, précisez le client, le numéro complet ou la période avec l’année. Seules les factures de la société auxquelles vous avez accès sont consultables.",
+    "en": "To find a client invoice:\n1. Open the list under “Client Invoices” and select the relevant company.\n2. Search by invoice number or client; use the date filters to narrow the period.\n3. Open the selected result.\n\nUse the invoice number stored in the application, often in the form 0001/25. You can also ask the assistant to search by client name and period; you do not need to know an internal identifier. If several results match, specify the client, the full invoice number or the period including its year. Only invoices within your authorized company access can be consulted."
   }
 }

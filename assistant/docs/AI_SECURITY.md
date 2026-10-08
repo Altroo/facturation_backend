@@ -102,3 +102,5 @@ Production readiness remains incomplete: final base/tuned model acceptance, prod
 - [Views and delivery](../../facturation/facturation_backend/chat_ai/views.py), [conversation service](../../facturation/facturation_backend/chat_ai/services.py), [knowledge](../../facturation/facturation_backend/chat_ai/knowledge.py).
 - [Confirmed actions](../../facturation/facturation_backend/chat_ai/actions.py), [history/audit models](../../facturation/facturation_backend/chat_ai/models.py), [audit admin](../../facturation/facturation_backend/chat_ai/admin.py).
 - [Provider](../src/chat_ai_assistant/provider.py), [orchestrator](../src/chat_ai_assistant/orchestrator.py), [label guard](../src/chat_ai_assistant/presentation.py).
+
+Final regression gate:2,272backend tests plus30subtests passed. Reviewed bilingual excerpts are subject to exact-version source checks before each delivery chunk and final persistence;45new localization tests cover strict languages, secret/size rejection, synchronization and scoped retrieval.

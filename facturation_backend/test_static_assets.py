@@ -60,7 +60,7 @@ def test_docker_keeps_build_time_assets_outside_host_bind_mounts():
     dockerfile = (root / "Dockerfile").read_text()
     assert re.search(r"^RUN (?:[^\n]+ )?python manage\.py collectstatic --noinput$", dockerfile, re.M)
     ignored = (root / ".dockerignore").read_text().splitlines()
-    assert ".env" in ignored and ".env.*" in ignored
+    assert ".env*" in ignored and "*.key" in ignored
     compose = (root / "docker-compose.yml").read_text()
     assert ":/app/static" not in compose
     assert "./media:/app/media" in compose

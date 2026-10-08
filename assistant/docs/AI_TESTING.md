@@ -4,7 +4,7 @@ All application tests use controlled fixtures in the isolated local PostgreSQL d
 
 ## Backend
 
-The latest assistant/stock/delivery suite passed **816 tests** in `backend-final-ai-stock.log` (47.44seconds), including native stock reversal, confirmation history and permission-filtered knowledge retrieval. The complete backend suite then passed **2,217 tests and 30 subtests** in76.04seconds. Seven initial async-task failures came from the demo settings overriding eager mode; restoring the inherited isolated-test behavior fixed them. The static-asset guard was updated for build-only non-secret environment assignments. Standalone vendored Colibri command-line diagnostics are explicitly excluded from Django pytest discovery.
+The latest assistant/stock/delivery suite passed **816 tests** in `backend-final-ai-stock.log` (47.44seconds), including native stock reversal, confirmation history and permission-filtered knowledge retrieval. The complete backend suite then passed **2,272 tests and 30 subtests** in78.67seconds after the final routing and bilingual-knowledge fixes. Seven initial async-task failures came from the demo settings overriding eager mode; restoring the inherited isolated-test behavior fixed them. The static-asset guard was updated for build-only non-secret environment assignments. Standalone vendored Colibri command-line diagnostics are explicitly excluded from Django pytest discovery.
 
 Coverage includes anonymous/disabled access, existing roles, company and related-record consistency, global staff-user lookup, native stock-only superuser access, unsupported schemas, bounded search/detail/navigation, read-only stock/logistics services, financial calculations, revoked permissions, stale references, JSON/SSE/cached history delivery, prompt-like record data, knowledge-source revocation, split-token human labels, and single-use confirmed mutation with durable actor audit.
 
@@ -59,3 +59,9 @@ Still required: v4 held-out scores and failure analysis, model knowledge factual
 Latest scope correction: English/French only.275 affected backend tests and101 chat frontend tests passed after runtime schema/fallback/context changes. Language detection checks cover both switch directions and validated interface fallback. Completed language-scope model results are recorded in AI_FINE_TUNING.md; v4 remains unfinished.
 
 Final dummy UI confirmation replay was verified before and after execution. The invoice remark, native history actor and durable AI actor ID match the authenticated `ai-editor@example.invalid`. Production business mutations are excluded from smoke testing.
+
+
+Final local browser retests passed invoice/client-and-product search, quote search, invoice/quote detail-to-list navigation, history restoration, company switching without old-scope content, and verified English workflow followed by French status explanations. Confirmed dummy edit replay preserves its native/durable actor history. The v3 model's ambiguous handling of an explicit collected-payments question and incorrect positional follow-up remain recorded failures pending v4 retesting; no blanket model acceptance is claimed.
+
+
+Exact English/French positional follow-ups now resolve through stored conversation references and the same authorized `previous_results` tool. Twenty-eight new tests cover normal positions, negation, extra conditions, mismatched resource names, foreign records, expired state, revoked membership and out-of-range indexes. The complete assistant suite passed747tests after this change. This is application-side reference resolution; it does not change frozen raw-model evaluation scores.

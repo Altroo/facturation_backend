@@ -32,6 +32,21 @@
       "facturation/facturation_backend/core/permissions.py:92",
       "facturation/facturation_backend/chat_ai/catalog.py:94"
     ],
-    "notes": "Verified Nectar price captions/hidden purchase row and existing commercial-role restriction. Assistant remains read-only for articles."
+    "notes": "Verified Nectar price captions/hidden purchase row and existing commercial-role restriction. Assistant remains read-only for articles.",
+    "localized_content_review": {
+      "locales": [
+        "fr",
+        "en"
+      ],
+      "basis": "Verified existing workflow and native French/English form captions; reviewed excerpts, not model-generated answers.",
+      "sources": [
+        "facturation/facturation_frontend/src/translations/fr.ts",
+        "facturation/facturation_frontend/src/translations/en.ts"
+      ]
+    }
+  },
+  "localized_content": {
+    "fr": "Dans « Articles », recherchez par référence ou désignation. La liste distingue « Produit » et « Service » et reste liée à la société sélectionnée.\nPour les sociétés autres que Nectar, la fiche affiche « Prix d'achat » et « Prix de vente », avec leurs devises respectives.\nPour Nectar, le prix de vente est présenté sous « Prix H.T. »; le prix d’achat n’est pas affiché. « Prix T.T.C. » est calculé avec la TVA.\nLes droits existants restent appliqués : un « Commercial » ne peut pas modifier le prix de vente. L’assistant permet de rechercher, consulter et ouvrir les articles; il ne modifie pas leurs prix ni directement leurs quantités de stock.",
+    "en": "In “Articles”, search by reference or description. The list distinguishes “Product” and “Service” and belongs to the selected company.\nFor companies other than Nectar, details show “Purchase price” and “Selling price”, with their respective currencies.\nFor Nectar, the selling price is labelled “Price excl. tax”; purchase price is not displayed. “Price incl. tax” is calculated using VAT.\nExisting permissions still apply: a user with the “Commercial” role cannot change the selling price. The assistant can search, view and open articles; it does not change their prices or directly edit their stock quantities."
   }
 }

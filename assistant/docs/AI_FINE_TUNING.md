@@ -9,7 +9,7 @@ User correction on2026-10-08 supersedes the original four-language specification
 
 `build_dataset_v3.py` creates the language-scope baseline: **76 training,18 validation,52 held-out rows**. Server-only training completed192steps in1,312.50seconds; validation loss0.145492→0.093479. Same-server, same-frozen52-case results: base31/52tools,15/50arguments,36/52valid; tuned42/52tools,27/50arguments,51/52valid. These remain below95/95/99targets. Measurements overlapped other server work, so they are not dedicated performance acceptance.
 
-The current development dataset is `facturation-v4-en-fr`: **410training/86validation examples**, all17registered tools plus clarification, capability-filtered schemas and multi-turn cases. Split families are separated and labels validated; no private business data. V4 server training is IN PROGRESS, not deployed. An independently authored, frozen80-case English/French evaluation set covers40 paired scenarios and four capability profiles; no test rows are provided to training. Its base0.8B result is44/80tools,18/76exact arguments,61/80valid structure. Four knowledge-query paraphrases are excluded from argument scoring. Base inference stopped after evaluation to avoid training contention. Versioned evidence is curated under `training/reports/`.
+The current development dataset is `facturation-v4-en-fr`: **410training/86validation examples**, all17registered tools plus clarification, capability-filtered schemas and multi-turn cases. Split families are separated and labels validated; no private business data. V4 server training completed410steps on CPU: validation loss0.117782→0.068355,593,920 trainable parameters, peak training RSS11.16GiB. Its total4339.35seconds includes earlier contention and a documented diagnostic pause. An independently authored, frozen80-case English/French evaluation set covers40 paired scenarios and four capability profiles; no test rows are provided to training. Its base0.8B result is44/80tools,18/76exact arguments,61/80valid structure. Four knowledge-query paraphrases are excluded from argument scoring. Base inference stopped after evaluation to avoid training contention. Versioned evidence is curated under `training/reports/`.
 
 The earlier results below are historical four-language runs. Do not use their aggregate scores as the new two-language acceptance result.
 
@@ -17,7 +17,7 @@ The earlier results below are historical four-language runs. Do not use their ag
 
 Qwen3.5-0.8B and Qwen3.5-2B are Apache-2.0 open-weight candidates; pinned revisions and source file manifests are in `training/evaluations/model-manifest.json`. Converted models use the checked-out Colibri Qwen CPU engine, eight-bit conversion and dense int8 runtime loading. The conversion helper losslessly materializes tied output embeddings required by this runtime. It does not change application authorization.
 
-Pilot local load measurements: 0.8B about 1.92 GiB RSS; 2B about 3.58 GiB; tuned v1 about 1.94 GiB and 2.9 seconds load. These are local M4 CPU measurements, not production-server figures. No model is accepted for deployment yet.
+Pilot local load measurements: 0.8B about 1.92 GiB RSS; 2B about 3.58 GiB; tuned v1 about 1.94 GiB and 2.9 seconds load. These are local M4 CPU measurements, not production-server figures. V4 is selected for the requested production verification of bounded basic workflows; broad model-quality acceptance remains incomplete.
 
 ## Completed pilot v1
 
@@ -75,3 +75,10 @@ Tuning improved this planning pilot but **does not meet95/95/99 targets**. Darij
 Server tuned inference mean10.948s, P9525.826s, four CPU threads. Runtime decode-only rate54.05tokens/s from the exact104 Colibri profile turns; prompt prefill is excluded from that rate. End-to-end throughput is much lower because tool schemas/prompt prefill dominate. Baseline ran on localM4, so baseline/tuned latency must not be presented as a hardware-controlled speed comparison. Isolated image build overlapped a few server cases; the dedicated performance probe is recorded separately.
 
 Next quality work: expand independently written compositional/multi-turn training scenarios and permission-filtered schema variants, evaluate on a newly held-out scenario set, then compare a small stronger candidate if the0.8B capability ceiling remains. Do not copy these held-out failures into training or deploy based on training loss.
+
+
+## Final independent English/French comparison
+
+The frozen80-case set and scoring were unchanged. V4 scored50/80tools (62.5%),24/76exact arguments (31.58%) and73/80schema-valid outputs (91.25%); base scored44/80 (55%),18/76 (23.68%) and61/80 (76.25%). All95/95/99targets remain unmet. Dataset and weights hashes, failure categories and public-safe measurements are in training/reports. Historical raw evidence remains local; no private browser payload is published.
+
+Measured basic UI flows passed separately. General workflow help and exact positional references use trusted application handlers and are not counted as model successes. Missing filters/limits, wrong operations and malformed generation remain model limitations. A larger CPU-compatible candidate and further independently evaluated training are possible future improvements; no unrun experiment is claimed successful.

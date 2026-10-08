@@ -1,17 +1,5 @@
 {
   "facturation_backend": {
-    "modified": [
-      ".dockerignore",
-      "Dockerfile",
-      "bon_de_livraison/views.py",
-      "facturation_backend/celery_conf.py",
-      "facturation_backend/settings.py",
-      "facturation_backend/test_static_assets.py",
-      "facturation_backend/urls.py",
-      "pytest.ini",
-      "requirements.txt",
-      "stock/services.py"
-    ],
     "created": [
       "bon_de_livraison/test_stock_deletion.py",
       "chat_ai/__init__.py",
@@ -44,6 +32,7 @@
       "chat_ai/migrations/0002_pendingaction.py",
       "chat_ai/migrations/0003_auditevent_actor_id_auditevent_actor_label_and_more.py",
       "chat_ai/migrations/0004_auditevent_instruction_id_and_more.py",
+      "chat_ai/migrations/0005_knowledgedocument_localized_content.py",
       "chat_ai/migrations/__init__.py",
       "chat_ai/models.py",
       "chat_ai/navigation.py",
@@ -57,8 +46,10 @@
       "chat_ai/test_document_actions.py",
       "chat_ai/test_documents.py",
       "chat_ai/test_knowledge_retrieval.py",
+      "chat_ai/test_localized_knowledge.py",
       "chat_ai/test_module_integration.py",
       "chat_ai/test_operations.py",
+      "chat_ai/test_reference_followups.py",
       "chat_ai/test_response_language.py",
       "chat_ai/test_review_regressions.py",
       "chat_ai/test_routing.py",
@@ -67,15 +58,45 @@
       "chat_ai/tools.py",
       "chat_ai/urls.py",
       "chat_ai/views.py",
+      "docker-compose.assistant.yml",
       "facturation_backend/settings_ai_test.py",
       "vendor/chat-ai-core-manifest.json",
       "vendor/chat_ai_assistant-0.1.0-py3-none-any.whl"
     ],
-    "snapshot": "assistant/SOURCE_MANIFEST.json"
+    "modified": [
+      ".dockerignore",
+      ".gitignore",
+      "Dockerfile",
+      "bon_de_livraison/views.py",
+      "facturation_backend/celery_conf.py",
+      "facturation_backend/settings.py",
+      "facturation_backend/test_static_assets.py",
+      "facturation_backend/urls.py",
+      "pytest.ini",
+      "requirements.txt",
+      "stock/services.py"
+    ],
+    "deleted": []
   },
   "facturation_frontend": {
+    "created": [
+      "AGENTS.md",
+      "CLAUDE.md",
+      "src/components/chat-ai/ChatAIAssistant.test.tsx",
+      "src/components/chat-ai/ChatAIAssistant.tsx",
+      "src/components/chat-ai/ChatAIResults.tsx",
+      "src/components/chat-ai/ChatAIShortcuts.tsx",
+      "src/components/chat-ai/api.test.ts",
+      "src/components/chat-ai/api.ts",
+      "src/components/chat-ai/chat-ai.module.sass",
+      "src/components/chat-ai/company-context.ts",
+      "src/components/chat-ai/types.ts"
+    ],
     "modified": [
+      ".gitignore",
       "src/app/dashboard/layout.tsx",
+      "src/components/layouts/navigationBar/navigationBar.test.tsx",
+      "src/components/layouts/navigationBar/navigationBar.tsx",
       "src/components/pages/dashboard/articles/articles-view.test.tsx",
       "src/components/pages/dashboard/articles/articles-view.tsx",
       "src/components/pages/dashboard/bon-de-livraison/bon-de-livraison-view.test.tsx",
@@ -101,19 +122,7 @@
       "src/components/pages/dashboard/users/users-view.tsx",
       "src/store/services/logistique.test.ts"
     ],
-    "created": [
-      "AGENTS.md",
-      "CLAUDE.md",
-      "src/components/chat-ai/ChatAIAssistant.test.tsx",
-      "src/components/chat-ai/ChatAIAssistant.tsx",
-      "src/components/chat-ai/ChatAIResults.tsx",
-      "src/components/chat-ai/ChatAIShortcuts.tsx",
-      "src/components/chat-ai/api.test.ts",
-      "src/components/chat-ai/api.ts",
-      "src/components/chat-ai/chat-ai.module.sass",
-      "src/components/chat-ai/company-context.ts",
-      "src/components/chat-ai/types.ts"
-    ],
-    "snapshot": null
-  }
+    "deleted": []
+  },
+  "generated_assistant_source": "See facturation_backend/assistant/SOURCE_MANIFEST.json for the curated central-source snapshot."
 }

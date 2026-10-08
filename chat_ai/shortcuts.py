@@ -84,3 +84,67 @@ def shortcut_action(text):
             return clarify(USAGE[command])
         return action('financial_summary', metric=metrics[fields[0]], period=periods[fields[1]], currency=fields[2].upper() if len(fields) == 3 else 'MAD')
     return clarify('Commande inconnue. Envoyez /aide pour afficher les raccourcis disponibles et leur utilisation.')
+
+
+
+def reference_action(text, references):
+    """Resolve only exact positional requests against existing conversation state.
+
+    This selects the existing authorized tool, never an identifier or queryset.
+    Additional predicates, resource names, negation and compound requests stay
+    with the planner instead of silently losing part of the user's instruction.
+    """
+    if not references.get('ids'):
+        return None
+    from chat_ai_assistant.routing import normalized
+    words = re.sub(r"\s+", ' ', normalized(text)).strip().rstrip('.!?').strip()
+    ordinals = {
+        'first': 1, 'second': 2, 'third': 3, 'fourth': 4, 'fifth': 5,
+        'sixth': 6, 'seventh': 7, 'eighth': 8, 'ninth': 9, 'tenth': 10,
+        'premier': 1, 'premiere': 1, 'deuxieme': 2, 'troisieme': 3,
+        'quatrieme': 4, 'cinquieme': 5, 'sixieme': 6, 'septieme': 7,
+        'huitieme': 8, 'neuvieme': 9, 'dixieme': 10,
+    }
+    order = '|'.join(ordinals) + r'|10(?:th|e)?|[1-9](?:st|nd|rd|th|er|re|e)?'
+    patterns = (
+        rf'(?:please )?open (?:the )?({order})(?: result| one)(?: please)?',
+        rf'(?:please )?open (?:the )?result ({order})(?: please)?',
+        rf'(?:ouvre|ouvrez) (?:le|la) ({order})(?: resultat)?(?: svp)?',
+        rf'(?:ouvre|ouvrez) (?:le )?resultat ({order})(?: svp)?',
+    )
+    for pattern in patterns:
+        match = re.fullmatch(pattern, words)
+        if match:
+            ordinal = match.group(1)
+            index = ordinals[ordinal] if ordinal in ordinals else int(re.match(r'\d+', ordinal).group())
+            return {'tool': 'previous_results', 'arguments': {'operation': 'open', 'index': index}}
+    if references.get('resource') == 'invoice' and words in {
+        'which ones are unpaid', 'which of these are unpaid',
+        'lesquelles sont impayees', 'lesquels sont impayes',
+        'quelles sont les impayees',
+    }:
+        return {'tool': 'previous_results', 'arguments': {'operation': 'unpaid'}}
+    return None
+
+
+
+def knowledge_action(text):
+    """Route explicit general help to approved retrieval without a planning pass.
+
+    Business-data questions, specific record references and compound actions stay
+    with the model. Knowledge retrieval still enforces the current user's rights.
+    """
+    from chat_ai_assistant.routing import normalized
+    words = re.sub(r"\s+", ' ', normalized(text)).strip().rstrip('.!?').strip()
+    if (len(text) > 300 or re.search(r'\d', words)
+            or re.search(r"\b(?:then|puis|ensuite|ignore|oublie|and|et|this|that|these|those|its|their|cette|cet|ce|ces|son|sa|ses|celle|celui|celles|ceux|current|selected)\b|[;\n]|\b\w+['’]s\b", text.casefold())):
+        return None
+    procedure = re.match(r'^(?:please )?(?:how do (?:i|we) |how to |comment (?:creer|trouver|rechercher|valider|modifier|supprimer|utiliser|ouvrir)\b)', words)
+    definition = re.fullmatch(r'(?:please )?what does .+ mean|que signifie .+|que veut dire .+', words)
+    general_words = set('please explain explique expliquez the a an of for le la les un une des de du d invoice invoices facture factures client clients customer customers document documents payment payments paiement paiements stock form forms formulaire formulaires status statuses statut statuts field fields champ champs label labels libelle libelles workflow workflows procedure procedures ht tva ttc vat'.split())
+    explanation = (set(re.findall(r'[a-z]+', words)) <= general_words
+                   and re.match(r'^(?:please )?(?:explain|explique|expliquez)\b', words)
+                   and re.search(r'\b(?:statuses|status|statut|statuts|fields|field|champ|champs|labels|label|libelle|libelles|workflow|workflows|procedure|procedures|ht|tva|ttc|vat)\b', words))
+    if procedure or definition or explanation:
+        return {'tool': 'knowledge', 'arguments': {'query': text.strip()}}
+    return None

@@ -1,0 +1,144 @@
+{
+  "model": "chat-ai-facturation-qwen08-v4-en-fr-20261008",
+  "logical_cpus": 16,
+  "threads_env": "4",
+  "cpu_quota_systemd": "4s",
+  "sequential": {
+    "count": 4,
+    "mean_latency_s": 8.339090606197715,
+    "p95_latency_s": 9.737339748069644,
+    "errors": 0
+  },
+  "concurrency_two": {
+    "count": 4,
+    "mean_latency_s": 12.291305631864816,
+    "p95_latency_s": 17.661075035110116,
+    "errors": 0
+  },
+  "cases": [
+    {
+      "id": "valid-invoice-after-en",
+      "language": "en",
+      "latency_s": 9.737339748069644,
+      "first_visible_event_s": 9.737237896770239,
+      "usage": {
+        "prompt_tokens": 2292,
+        "completion_tokens": 73,
+        "total_tokens": 2365
+      },
+      "finish_reason": "tool_calls",
+      "error": null
+    },
+    {
+      "id": "valid-invoice-after-fr",
+      "language": "fr",
+      "latency_s": 7.824783027172089,
+      "first_visible_event_s": 7.824645891785622,
+      "usage": {
+        "prompt_tokens": 1916,
+        "completion_tokens": 52,
+        "total_tokens": 1968
+      },
+      "finish_reason": "tool_calls",
+      "error": null
+    },
+    {
+      "id": "valid-invoice-product_before-en",
+      "language": "en",
+      "latency_s": 7.881255643442273,
+      "first_visible_event_s": 7.8811349384486675,
+      "usage": {
+        "prompt_tokens": 1915,
+        "completion_tokens": 53,
+        "total_tokens": 1968
+      },
+      "finish_reason": "tool_calls",
+      "error": null
+    },
+    {
+      "id": "valid-invoice-product_before-fr",
+      "language": "fr",
+      "latency_s": 7.9129840061068535,
+      "first_visible_event_s": 7.912898046895862,
+      "usage": {
+        "prompt_tokens": 1919,
+        "completion_tokens": 53,
+        "total_tokens": 1972
+      },
+      "finish_reason": "tool_calls",
+      "error": null
+    },
+    {
+      "id": "valid-invoice-after-en",
+      "language": "en",
+      "latency_s": 17.661075035110116,
+      "first_visible_event_s": 17.660996068269014,
+      "usage": {
+        "prompt_tokens": 2292,
+        "completion_tokens": 73,
+        "total_tokens": 2365
+      },
+      "finish_reason": "tool_calls",
+      "error": null
+    },
+    {
+      "id": "valid-invoice-after-fr",
+      "language": "fr",
+      "latency_s": 7.8790168389678,
+      "first_visible_event_s": 7.878934355452657,
+      "usage": {
+        "prompt_tokens": 1916,
+        "completion_tokens": 52,
+        "total_tokens": 1968
+      },
+      "finish_reason": "tool_calls",
+      "error": null
+    },
+    {
+      "id": "valid-invoice-product_before-en",
+      "language": "en",
+      "latency_s": 7.868895636871457,
+      "first_visible_event_s": 7.868799384683371,
+      "usage": {
+        "prompt_tokens": 1915,
+        "completion_tokens": 53,
+        "total_tokens": 1968
+      },
+      "finish_reason": "tool_calls",
+      "error": null
+    },
+    {
+      "id": "valid-invoice-product_before-fr",
+      "language": "fr",
+      "latency_s": 15.75623501650989,
+      "first_visible_event_s": 15.75614950619638,
+      "usage": {
+        "prompt_tokens": 1919,
+        "completion_tokens": 53,
+        "total_tokens": 1972
+      },
+      "finish_reason": "tool_calls",
+      "error": null
+    }
+  ],
+  "wall_s": 66.7749100215733,
+  "process_cpu_seconds": 266.8899999999999,
+  "average_busy_cpu_cores": 3.9968604961620224,
+  "host_cpu_capacity_percent": 24.980378101012636,
+  "rss_initial_bytes": 2772000768,
+  "rss_peak_bytes": 2772205568,
+  "host_memory_available_bytes": 38525718528,
+  "weighted_decode_tokens_per_second": 56.938687755507736,
+  "profile_attributed": true,
+  "limitations": [
+    "Four synthetic validation prompts repeated sequentially then with concurrency two: small performance probe, not capacity certification. Concurrent pass runs second; model and prefix caches may be warm.",
+    "Runtime profile wall_s starts after prefill (qwen36.c q36_prepare); decode rate excludes prompt processing.",
+    "First visible event for native tool calls is buffered, not first generated token.",
+    "Tests inference directly; application serializes model requests with a database lease.",
+    "Existing production services were not stopped. No application business operations executed."
+  ],
+  "public_copy": true,
+  "source_report_sha256": "71903664ed832bae3031ac7aa876c449b3ce3af5dc56f29341e9bb5ce717c944",
+  "inference_manifest_sha256": "c6fafe827bd25b7c8fa495ed358f7a215082d9c88001672ef36d07c3432c9ba3",
+  "scope": "Eight synthetic validation requests; no business operations, private records, or external commercial AI calls."
+}

@@ -39,6 +39,7 @@ class KnowledgeDocument(models.Model):
     document_version = models.CharField(max_length=64)
     title = models.CharField(max_length=200)
     content = models.TextField()
+    localized_content = models.JSONField(default=dict, blank=True)
     keywords = models.JSONField(default=list)
     category = models.CharField(max_length=40)
     sensitivity = models.CharField(max_length=20, default="member")

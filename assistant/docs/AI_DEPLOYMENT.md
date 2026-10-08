@@ -1,4 +1,4 @@
-# Deployment preparation — not deployed
+# Facturation deployment and verification
 
 The user has explicitly authorized completion, testing, pushes to all three remotes, deployment and production verification. Release remains gated on resolving critical test failures; Phase 2 is not authorized. Existing development, translation and grammar model services have not been changed. The assistant would be the fifth installed model and fourth normal active model according to the user's inventory; isolated training/evaluation processes are not a production rollout.
 
@@ -18,7 +18,7 @@ The Colibri Linux image build and isolated startup were executed successfully: d
 2. Build/package reviewed backend and frontend revisions. Set the frontend `NEXT_PUBLIC_CHAT_AI_ASSISTANT_ENABLED` flag at build time. Keep backend flag false until checks pass.
 3. Mount the accepted converted model read-only. The converter sets artifact files to 0644/directories 0755 so the dedicated container UID can read them. Generate a dedicated random assistant inference key through normal secret management; use the same value for Colibri and Django. Set the same immutable `CHAT_AI_MODEL_ID` in both so tool audit events identify the actual model release. Never put it in source control, browser configuration or logs.
 4. Start the private model network/container and verify `/health` plus one authenticated structured call from the backend network. Reject unauthenticated inference.
-5. Apply only the four `chat_ai` migrations after reviewing a database backup. Run `sync_ai_knowledge` with approved sources.
+5. Apply only the five `chat_ai` migrations after reviewing a database backup. Run `sync_ai_knowledge` with approved sources.
 6. Enable only Facturation's backend/frontend flags. Verify real login, company switching, invoice search/navigation, denied reads, one approved controlled action and actor history, cancellation, streaming and model unavailability.
 7. The existing Celery Beat schedule invokes `chat_ai.purge_history` daily at03:20 in the application timezone. It calls `purge_ai_history`, including when inference is disabled; confirmed write audit events are retained independently.
 
@@ -38,3 +38,10 @@ Build safety: `.env` and `.env.*` are excluded from the backend build context. S
 
 ## Service-scoped release hooks
 Reviewed hooks in `deploy/hooks/` build images before service replacement, fail on errors, and verify health. The backend hook migrates and synchronizes approved knowledge before replacing web/workers. The frontend hook replaces only its web service and gracefully reloads the existing proxy to refresh upstream DNS. Neither runs `compose down` or recreates shared Nginx. Both hooks were backed up and installed on2026-10-08; their SHA256 values match the reviewed files. The database backup (7,218,880bytes) passed pg_restore listing, and previous application images have explicit rollback tags. No application containers have been replaced yet.
+
+
+## Public repository boundary
+
+Application source and the non-secret docker-compose.assistant.yml override are maintained locally and reach the server through Git pushes. Secrets remain in ignored runtime environment files and the restricted release directory. Model weights, adapters, raw browser/API evidence and DB backups are not Git inputs. The model-release environment file is0600 and never appears in source or tool output. No shared application source is edited directly on the server.
+
+V4 broad model targets are unmet; the authorized release is being verified against the bounded basic workflows described in AI_PROGRESS.md. Production verification must not be presented as certification of broad model accuracy.

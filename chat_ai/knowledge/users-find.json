@@ -30,6 +30,21 @@
       "facturation/facturation_frontend/src/translations/en.ts:1093",
       "facturation/facturation_backend/chat_ai/catalog.py:81"
     ],
-    "notes": "Verified staff-only global list excludes current user, and exact native list captions. No permissions or user-management actions changed."
+    "notes": "Verified staff-only global list excludes current user, and exact native list captions. No permissions or user-management actions changed.",
+    "localized_content_review": {
+      "locales": [
+        "fr",
+        "en"
+      ],
+      "basis": "Verified existing workflow and native French/English form captions; reviewed excerpts, not model-generated answers.",
+      "sources": [
+        "facturation/facturation_frontend/src/translations/fr.ts",
+        "facturation/facturation_frontend/src/translations/en.ts"
+      ]
+    }
+  },
+  "localized_content": {
+    "fr": "L’administration des utilisateurs est réservée aux comptes autorisés par l’application à accéder à cette administration.\nCette liste globale présente les autres comptes avec « Nom », « Prénom », « Email », « Active » et « Admin ». Elle n’est pas limitée à une seule société. Le compte connecté dispose d’une page de profil distincte.\nL’assistant peut uniquement rechercher, consulter et ouvrir les comptes auxquels vous avez accès. Il n’attribue pas de rôle, ne change pas de permission et ne crée pas d’invitation.",
+    "en": "User administration is available only to accounts authorized by the application to access it.\nThis global list shows other accounts with “Last Name”, “First Name”, “Email”, “Active” and “Admin”. It is not limited to one company. Your own account has a separate profile page.\nThe assistant can only search, view and open accounts you are allowed to access. It does not assign roles, change permissions or create invitations."
   }
 }

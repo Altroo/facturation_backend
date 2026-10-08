@@ -1,0 +1,1791 @@
+{
+  "method": "Descriptive failure tags only; frozen exact-argument scores are unchanged. Tags may overlap within a failed case. Alternative fields are not assumed semantically equivalent.",
+  "case_count": 80,
+  "independent_semantic_scenario_groups": 40,
+  "languages": [
+    "en",
+    "fr"
+  ],
+  "raw_model_only": true,
+  "scope_limit": "The frozen planner evaluation does not execute business tools, latest trusted follow-up/navigation handlers, or UI flows; evaluate those separately.",
+  "tag_counts": {
+    "alternative_search_field_choice": 3,
+    "changed_requested_value": 7,
+    "clarification_intent_or_language": 2,
+    "explicit_argument_or_filter_omission": 12,
+    "no_valid_structured_action": 7,
+    "requested_result_limit_or_offset": 2,
+    "unrequested_extra_argument": 4,
+    "wrong_operation": 23
+  },
+  "failures": [
+    {
+      "id": "acceptance-invoice_combined-en",
+      "category": "document_filters",
+      "language": "en",
+      "expected": {
+        "tool": "search_invoices",
+        "arguments": {
+          "client_name": "Syn Liseron",
+          "product_name": "SYN-JOINT-17",
+          "unpaid": true,
+          "date_from": "2026-08-12",
+          "date_to": "2026-08-24",
+          "limit": 3
+        }
+      },
+      "tool_correct": true,
+      "arguments_correct": false,
+      "structured_valid": true,
+      "actual": {
+        "tool": "search_invoices",
+        "arguments": {
+          "client_name": "Syn Liseron",
+          "product_name": "SYN-JOINT-17",
+          "date_from": "2026-08-12",
+          "date_to": "2026-08-24",
+          "unpaid": true
+        }
+      },
+      "missing_expected_arguments": [
+        "limit"
+      ],
+      "unexpected_arguments": [],
+      "changed_arguments": [],
+      "normalized_actual_arguments": {
+        "client_name": "Syn Liseron",
+        "product_name": "SYN-JOINT-17",
+        "date_from": "2026-08-12",
+        "date_to": "2026-08-24",
+        "unpaid": true
+      },
+      "failure_tags": [
+        "requested_result_limit_or_offset"
+      ]
+    },
+    {
+      "id": "acceptance-invoice_combined-fr",
+      "category": "document_filters",
+      "language": "fr",
+      "expected": {
+        "tool": "search_invoices",
+        "arguments": {
+          "client_name": "Syn Liseron",
+          "product_name": "SYN-JOINT-17",
+          "unpaid": true,
+          "date_from": "2026-08-12",
+          "date_to": "2026-08-24",
+          "limit": 3
+        }
+      },
+      "tool_correct": true,
+      "arguments_correct": false,
+      "structured_valid": true,
+      "actual": {
+        "tool": "search_invoices",
+        "arguments": {
+          "client_name": "SYN Liseron",
+          "product_name": "SYN-JOINT-17",
+          "date_from": "2026-08-12",
+          "date_to": "2026-08-24",
+          "unpaid": true
+        }
+      },
+      "missing_expected_arguments": [
+        "limit"
+      ],
+      "unexpected_arguments": [],
+      "changed_arguments": [
+        "client_name"
+      ],
+      "normalized_actual_arguments": {
+        "client_name": "SYN Liseron",
+        "product_name": "SYN-JOINT-17",
+        "date_from": "2026-08-12",
+        "date_to": "2026-08-24",
+        "unpaid": true
+      },
+      "failure_tags": [
+        "requested_result_limit_or_offset",
+        "changed_requested_value"
+      ]
+    },
+    {
+      "id": "acceptance-invoice_number-en",
+      "category": "exact_reference",
+      "language": "en",
+      "expected": {
+        "tool": "search_invoices",
+        "arguments": {
+          "invoice_number": "0783/26"
+        }
+      },
+      "tool_correct": false,
+      "arguments_correct": false,
+      "structured_valid": true,
+      "actual": {
+        "tool": "get_invoice",
+        "arguments": {}
+      },
+      "failure_tags": [
+        "wrong_operation"
+      ]
+    },
+    {
+      "id": "acceptance-invoice_number-fr",
+      "category": "exact_reference",
+      "language": "fr",
+      "expected": {
+        "tool": "search_invoices",
+        "arguments": {
+          "invoice_number": "0783/26"
+        }
+      },
+      "tool_correct": false,
+      "arguments_correct": false,
+      "structured_valid": true,
+      "actual": {
+        "tool": "get_invoice",
+        "arguments": {}
+      },
+      "failure_tags": [
+        "wrong_operation"
+      ]
+    },
+    {
+      "id": "acceptance-quote_combined-en",
+      "category": "document_filters",
+      "language": "en",
+      "expected": {
+        "tool": "search_quotes",
+        "arguments": {
+          "client_name": "Syn Vermeil",
+          "product_name": "SYN-FLEX-6",
+          "date_from": "2026-06-03",
+          "date_to": "2026-06-18"
+        }
+      },
+      "tool_correct": true,
+      "arguments_correct": false,
+      "structured_valid": true,
+      "actual": {
+        "tool": "search_quotes",
+        "arguments": {
+          "product_name": "SYN-FLEX-6",
+          "date_from": "2026-06-03",
+          "date_to": "2026-06-18"
+        }
+      },
+      "missing_expected_arguments": [
+        "client_name"
+      ],
+      "unexpected_arguments": [],
+      "changed_arguments": [],
+      "normalized_actual_arguments": {
+        "product_name": "SYN-FLEX-6",
+        "date_from": "2026-06-03",
+        "date_to": "2026-06-18"
+      },
+      "failure_tags": [
+        "explicit_argument_or_filter_omission"
+      ]
+    },
+    {
+      "id": "acceptance-proforma_delete_search-en",
+      "category": "mutation_target_discovery",
+      "language": "en",
+      "expected": {
+        "tool": "search_documents",
+        "arguments": {
+          "resource": "proforma",
+          "client_name": "Syn Brume",
+          "product_name": "SYN-TUILE-9"
+        }
+      },
+      "tool_correct": true,
+      "arguments_correct": false,
+      "structured_valid": true,
+      "actual": {
+        "tool": "search_documents",
+        "arguments": {
+          "resource": "proforma",
+          "product_name": "SYN-TUILE-9"
+        }
+      },
+      "missing_expected_arguments": [
+        "client_name"
+      ],
+      "unexpected_arguments": [],
+      "changed_arguments": [],
+      "normalized_actual_arguments": {
+        "resource": "proforma",
+        "product_name": "SYN-TUILE-9"
+      },
+      "failure_tags": [
+        "explicit_argument_or_filter_omission"
+      ]
+    },
+    {
+      "id": "acceptance-proforma_delete_search-fr",
+      "category": "mutation_target_discovery",
+      "language": "fr",
+      "expected": {
+        "tool": "search_documents",
+        "arguments": {
+          "resource": "proforma",
+          "client_name": "Syn Brume",
+          "product_name": "SYN-TUILE-9"
+        }
+      },
+      "tool_correct": true,
+      "arguments_correct": false,
+      "structured_valid": true,
+      "actual": {
+        "tool": "search_documents",
+        "arguments": {
+          "resource": "proforma",
+          "product_name": "SYN-TUILE-9"
+        }
+      },
+      "missing_expected_arguments": [
+        "client_name"
+      ],
+      "unexpected_arguments": [],
+      "changed_arguments": [],
+      "normalized_actual_arguments": {
+        "resource": "proforma",
+        "product_name": "SYN-TUILE-9"
+      },
+      "failure_tags": [
+        "explicit_argument_or_filter_omission"
+      ]
+    },
+    {
+      "id": "acceptance-delivery_relative_dates-en",
+      "category": "relative_search_dates",
+      "language": "en",
+      "expected": {
+        "tool": "search_documents",
+        "arguments": {
+          "resource": "delivery_note",
+          "client_name": "Syn Opaline",
+          "product_name": "SYN-CERAM-4",
+          "date_from": "2026-09-01",
+          "date_to": "2026-10-07"
+        }
+      },
+      "tool_correct": true,
+      "arguments_correct": false,
+      "structured_valid": true,
+      "actual": {
+        "tool": "search_documents",
+        "arguments": {
+          "resource": "delivery_note",
+          "client_name": "Syn Opaline",
+          "product_name": "SYN-CERAM-4",
+          "date_from": "2026-09-01",
+          "date_to": "2026-09-28"
+        }
+      },
+      "missing_expected_arguments": [],
+      "unexpected_arguments": [],
+      "changed_arguments": [
+        "date_to"
+      ],
+      "normalized_actual_arguments": {
+        "resource": "delivery_note",
+        "client_name": "Syn Opaline",
+        "product_name": "SYN-CERAM-4",
+        "date_from": "2026-09-01",
+        "date_to": "2026-09-28"
+      },
+      "failure_tags": [
+        "changed_requested_value"
+      ]
+    },
+    {
+      "id": "acceptance-delivery_relative_dates-fr",
+      "category": "relative_search_dates",
+      "language": "fr",
+      "expected": {
+        "tool": "search_documents",
+        "arguments": {
+          "resource": "delivery_note",
+          "client_name": "Syn Opaline",
+          "product_name": "SYN-CERAM-4",
+          "date_from": "2026-09-01",
+          "date_to": "2026-10-07"
+        }
+      },
+      "tool_correct": true,
+      "arguments_correct": false,
+      "structured_valid": true,
+      "actual": {
+        "tool": "search_documents",
+        "arguments": {
+          "resource": "delivery_note",
+          "client_name": "Syn Opaline",
+          "product_name": "SYN-CERAM-4",
+          "date_from": "2026-09-01",
+          "date_to": "2026-10-08"
+        }
+      },
+      "missing_expected_arguments": [],
+      "unexpected_arguments": [],
+      "changed_arguments": [
+        "date_to"
+      ],
+      "normalized_actual_arguments": {
+        "resource": "delivery_note",
+        "client_name": "Syn Opaline",
+        "product_name": "SYN-CERAM-4",
+        "date_from": "2026-09-01",
+        "date_to": "2026-10-08"
+      },
+      "failure_tags": [
+        "changed_requested_value"
+      ]
+    },
+    {
+      "id": "acceptance-article_reference-fr",
+      "category": "catalog_filters",
+      "language": "fr",
+      "expected": {
+        "tool": "search_articles",
+        "arguments": {
+          "reference": "SYN-ACIER-51",
+          "archived": false
+        }
+      },
+      "tool_correct": true,
+      "arguments_correct": false,
+      "structured_valid": true,
+      "actual": {
+        "tool": "search_articles",
+        "arguments": {
+          "reference": "SYN-ACIER-51"
+        }
+      },
+      "missing_expected_arguments": [
+        "archived"
+      ],
+      "unexpected_arguments": [],
+      "changed_arguments": [],
+      "normalized_actual_arguments": {
+        "reference": "SYN-ACIER-51"
+      },
+      "failure_tags": [
+        "explicit_argument_or_filter_omission"
+      ]
+    },
+    {
+      "id": "acceptance-archived_service-en",
+      "category": "catalog_filters",
+      "language": "en",
+      "expected": {
+        "tool": "search_articles",
+        "arguments": {
+          "product_name": "SYN-DIAGNOSTIC",
+          "type_article": "Service",
+          "archived": true
+        }
+      },
+      "tool_correct": true,
+      "arguments_correct": false,
+      "structured_valid": true,
+      "actual": {
+        "tool": "search_articles",
+        "arguments": {
+          "type_article": "Service",
+          "archived": true,
+          "query": "SYN-DIAGNOSTIC"
+        }
+      },
+      "missing_expected_arguments": [
+        "product_name"
+      ],
+      "unexpected_arguments": [
+        "query"
+      ],
+      "changed_arguments": [],
+      "normalized_actual_arguments": {
+        "type_article": "Service",
+        "archived": true,
+        "query": "SYN-DIAGNOSTIC"
+      },
+      "alternative_search_fields": [
+        {
+          "expected_field": "product_name",
+          "actual_field": "query",
+          "value": "SYN-DIAGNOSTIC"
+        }
+      ],
+      "failure_tags": [
+        "alternative_search_field_choice"
+      ]
+    },
+    {
+      "id": "acceptance-archived_service-fr",
+      "category": "catalog_filters",
+      "language": "fr",
+      "expected": {
+        "tool": "search_articles",
+        "arguments": {
+          "product_name": "SYN-DIAGNOSTIC",
+          "type_article": "Service",
+          "archived": true
+        }
+      },
+      "tool_correct": true,
+      "arguments_correct": false,
+      "structured_valid": true,
+      "actual": {
+        "tool": "search_articles",
+        "arguments": {
+          "type_article": "Service",
+          "archived": true,
+          "query": "SYN-DIAGNOSTIC"
+        }
+      },
+      "missing_expected_arguments": [
+        "product_name"
+      ],
+      "unexpected_arguments": [
+        "query"
+      ],
+      "changed_arguments": [],
+      "normalized_actual_arguments": {
+        "type_article": "Service",
+        "archived": true,
+        "query": "SYN-DIAGNOSTIC"
+      },
+      "alternative_search_fields": [
+        {
+          "expected_field": "product_name",
+          "actual_field": "query",
+          "value": "SYN-DIAGNOSTIC"
+        }
+      ],
+      "failure_tags": [
+        "alternative_search_field_choice"
+      ]
+    },
+    {
+      "id": "acceptance-valid_payment-en",
+      "category": "payment_filters",
+      "language": "en",
+      "expected": {
+        "tool": "search_payments",
+        "arguments": {
+          "invoice_number": "0619/26",
+          "client_name": "Syn Nacre",
+          "product_name": "SYN-RAIL-2",
+          "status": "Valide",
+          "date_from": "2026-07-09",
+          "date_to": "2026-07-22"
+        }
+      },
+      "tool_correct": true,
+      "arguments_correct": false,
+      "structured_valid": true,
+      "actual": {
+        "tool": "search_payments",
+        "arguments": {
+          "invoice_number": "0619/26",
+          "client_name": "Syn Nacre",
+          "product_name": "SYN-RAIL-2",
+          "date_from": "2026-07-09",
+          "date_to": "2026-07-22"
+        }
+      },
+      "missing_expected_arguments": [
+        "status"
+      ],
+      "unexpected_arguments": [],
+      "changed_arguments": [],
+      "normalized_actual_arguments": {
+        "invoice_number": "0619/26",
+        "client_name": "Syn Nacre",
+        "product_name": "SYN-RAIL-2",
+        "date_from": "2026-07-09",
+        "date_to": "2026-07-22"
+      },
+      "failure_tags": [
+        "explicit_argument_or_filter_omission"
+      ]
+    },
+    {
+      "id": "acceptance-valid_payment-fr",
+      "category": "payment_filters",
+      "language": "fr",
+      "expected": {
+        "tool": "search_payments",
+        "arguments": {
+          "invoice_number": "0619/26",
+          "client_name": "Syn Nacre",
+          "product_name": "SYN-RAIL-2",
+          "status": "Valide",
+          "date_from": "2026-07-09",
+          "date_to": "2026-07-22"
+        }
+      },
+      "tool_correct": true,
+      "arguments_correct": false,
+      "structured_valid": true,
+      "actual": {
+        "tool": "search_payments",
+        "arguments": {
+          "invoice_number": "0619/26",
+          "status": "Valide",
+          "date_from": "2026-07-09",
+          "date_to": "2026-07-22"
+        }
+      },
+      "missing_expected_arguments": [
+        "client_name",
+        "product_name"
+      ],
+      "unexpected_arguments": [],
+      "changed_arguments": [],
+      "normalized_actual_arguments": {
+        "invoice_number": "0619/26",
+        "status": "Valide",
+        "date_from": "2026-07-09",
+        "date_to": "2026-07-22"
+      },
+      "failure_tags": [
+        "explicit_argument_or_filter_omission"
+      ]
+    },
+    {
+      "id": "acceptance-cancelled_payments-en",
+      "category": "payment_filters",
+      "language": "en",
+      "expected": {
+        "tool": "search_payments",
+        "arguments": {
+          "client_name": "Syn Cobalt",
+          "status": "Annulé",
+          "date_from": "2026-05-01",
+          "date_to": "2026-05-31"
+        }
+      },
+      "tool_correct": true,
+      "arguments_correct": false,
+      "structured_valid": true,
+      "actual": {
+        "tool": "search_payments",
+        "arguments": {
+          "client_name": "Syn Cobalt",
+          "product_name": "Syn Cobalt",
+          "status": "Annulé",
+          "date_from": "2026-05-01",
+          "date_to": "2026-05-31"
+        }
+      },
+      "missing_expected_arguments": [],
+      "unexpected_arguments": [
+        "product_name"
+      ],
+      "changed_arguments": [],
+      "normalized_actual_arguments": {
+        "client_name": "Syn Cobalt",
+        "product_name": "Syn Cobalt",
+        "status": "Annulé",
+        "date_from": "2026-05-01",
+        "date_to": "2026-05-31"
+      },
+      "failure_tags": [
+        "unrequested_extra_argument"
+      ]
+    },
+    {
+      "id": "acceptance-cancelled_payments-fr",
+      "category": "payment_filters",
+      "language": "fr",
+      "expected": {
+        "tool": "search_payments",
+        "arguments": {
+          "client_name": "Syn Cobalt",
+          "status": "Annulé",
+          "date_from": "2026-05-01",
+          "date_to": "2026-05-31"
+        }
+      },
+      "tool_correct": true,
+      "arguments_correct": false,
+      "structured_valid": true,
+      "actual": {
+        "tool": "search_payments",
+        "arguments": {
+          "client_name": "Syn Cobalt",
+          "product_name": "Syn Cobalt",
+          "status": "Annulé",
+          "date_from": "2026-05-01",
+          "date_to": "2026-05-31"
+        }
+      },
+      "missing_expected_arguments": [],
+      "unexpected_arguments": [
+        "product_name"
+      ],
+      "changed_arguments": [],
+      "normalized_actual_arguments": {
+        "client_name": "Syn Cobalt",
+        "product_name": "Syn Cobalt",
+        "status": "Annulé",
+        "date_from": "2026-05-01",
+        "date_to": "2026-05-31"
+      },
+      "failure_tags": [
+        "unrequested_extra_argument"
+      ]
+    },
+    {
+      "id": "acceptance-staff_accounts-en",
+      "category": "staff_lookup",
+      "language": "en",
+      "expected": {
+        "tool": "search_users",
+        "arguments": {
+          "name": "Syn Marielle",
+          "is_active": false,
+          "date_from": "2026-02-01",
+          "date_to": "2026-04-30"
+        }
+      },
+      "tool_correct": true,
+      "arguments_correct": false,
+      "structured_valid": true,
+      "actual": {
+        "tool": "search_users",
+        "arguments": {
+          "name": "Syn Marielle",
+          "date_from": "2026-02-01",
+          "date_to": "2026-04-30"
+        }
+      },
+      "missing_expected_arguments": [
+        "is_active"
+      ],
+      "unexpected_arguments": [],
+      "changed_arguments": [],
+      "normalized_actual_arguments": {
+        "name": "Syn Marielle",
+        "date_from": "2026-02-01",
+        "date_to": "2026-04-30"
+      },
+      "failure_tags": [
+        "explicit_argument_or_filter_omission"
+      ]
+    },
+    {
+      "id": "acceptance-staff_accounts-fr",
+      "category": "staff_lookup",
+      "language": "fr",
+      "expected": {
+        "tool": "search_users",
+        "arguments": {
+          "name": "Syn Marielle",
+          "is_active": false,
+          "date_from": "2026-02-01",
+          "date_to": "2026-04-30"
+        }
+      },
+      "tool_correct": true,
+      "arguments_correct": false,
+      "structured_valid": true,
+      "actual": {
+        "tool": "search_users",
+        "arguments": {
+          "name": "Syn Marielle",
+          "date_from": "2026-02-01",
+          "date_to": "2026-04-30"
+        }
+      },
+      "missing_expected_arguments": [
+        "is_active"
+      ],
+      "unexpected_arguments": [],
+      "changed_arguments": [],
+      "normalized_actual_arguments": {
+        "name": "Syn Marielle",
+        "date_from": "2026-02-01",
+        "date_to": "2026-04-30"
+      },
+      "failure_tags": [
+        "explicit_argument_or_filter_omission"
+      ]
+    },
+    {
+      "id": "acceptance-stock_minimum-en",
+      "category": "operational_filters",
+      "language": "en",
+      "expected": {
+        "tool": "search_operations",
+        "arguments": {
+          "resource": "stock_balance",
+          "reference": "SYN-ECROU-28",
+          "location_name": "Syn Quai Est",
+          "status": "minimum"
+        }
+      },
+      "tool_correct": true,
+      "arguments_correct": false,
+      "structured_valid": true,
+      "actual": {
+        "tool": "search_operations",
+        "arguments": {
+          "resource": "stock_balance",
+          "product_name": "SYN-ECROU-28",
+          "location_name": "Syn Quai Est",
+          "status": "minimum"
+        }
+      },
+      "missing_expected_arguments": [
+        "reference"
+      ],
+      "unexpected_arguments": [
+        "product_name"
+      ],
+      "changed_arguments": [],
+      "normalized_actual_arguments": {
+        "resource": "stock_balance",
+        "product_name": "SYN-ECROU-28",
+        "location_name": "Syn Quai Est",
+        "status": "minimum"
+      },
+      "alternative_search_fields": [
+        {
+          "expected_field": "reference",
+          "actual_field": "product_name",
+          "value": "SYN-ECROU-28"
+        }
+      ],
+      "failure_tags": [
+        "alternative_search_field_choice"
+      ]
+    },
+    {
+      "id": "acceptance-stock_minimum-fr",
+      "category": "operational_filters",
+      "language": "fr",
+      "expected": {
+        "tool": "search_operations",
+        "arguments": {
+          "resource": "stock_balance",
+          "reference": "SYN-ECROU-28",
+          "location_name": "Syn Quai Est",
+          "status": "minimum"
+        }
+      },
+      "tool_correct": false,
+      "arguments_correct": false,
+      "structured_valid": false,
+      "actual": null,
+      "error": "INVALID_MODEL_OUTPUT",
+      "failure_tags": [
+        "no_valid_structured_action"
+      ]
+    },
+    {
+      "id": "acceptance-stock_reversal-en",
+      "category": "operational_filters",
+      "language": "en",
+      "expected": {
+        "tool": "search_operations",
+        "arguments": {
+          "resource": "stock_movement",
+          "product_name": "SYN-TUBE-8",
+          "location_name": "Syn Annexe",
+          "status": "reversal",
+          "date_from": "2026-04-06",
+          "date_to": "2026-04-20"
+        }
+      },
+      "tool_correct": true,
+      "arguments_correct": false,
+      "structured_valid": true,
+      "actual": {
+        "tool": "search_operations",
+        "arguments": {
+          "resource": "stock_movement",
+          "location_name": "Syn Annexe",
+          "product_name": "SYN-TUBE-8",
+          "reference": "SYN-TUBE-8",
+          "status": "reversal",
+          "date_from": "2026-04-06",
+          "date_to": "2026-04-20"
+        }
+      },
+      "missing_expected_arguments": [],
+      "unexpected_arguments": [
+        "reference"
+      ],
+      "changed_arguments": [],
+      "normalized_actual_arguments": {
+        "resource": "stock_movement",
+        "location_name": "Syn Annexe",
+        "product_name": "SYN-TUBE-8",
+        "reference": "SYN-TUBE-8",
+        "status": "reversal",
+        "date_from": "2026-04-06",
+        "date_to": "2026-04-20"
+      },
+      "failure_tags": [
+        "unrequested_extra_argument"
+      ]
+    },
+    {
+      "id": "acceptance-stock_reversal-fr",
+      "category": "operational_filters",
+      "language": "fr",
+      "expected": {
+        "tool": "search_operations",
+        "arguments": {
+          "resource": "stock_movement",
+          "product_name": "SYN-TUBE-8",
+          "location_name": "Syn Annexe",
+          "status": "reversal",
+          "date_from": "2026-04-06",
+          "date_to": "2026-04-20"
+        }
+      },
+      "tool_correct": true,
+      "arguments_correct": false,
+      "structured_valid": true,
+      "actual": {
+        "tool": "search_operations",
+        "arguments": {
+          "resource": "stock_movement",
+          "product_name": "SYN-TUBE-8",
+          "location_name": "Syn Annexe",
+          "status": "adjustment",
+          "date_from": "2026-04-06",
+          "date_to": "2026-04-20"
+        }
+      },
+      "missing_expected_arguments": [],
+      "unexpected_arguments": [],
+      "changed_arguments": [
+        "status"
+      ],
+      "normalized_actual_arguments": {
+        "resource": "stock_movement",
+        "product_name": "SYN-TUBE-8",
+        "location_name": "Syn Annexe",
+        "status": "adjustment",
+        "date_from": "2026-04-06",
+        "date_to": "2026-04-20"
+      },
+      "failure_tags": [
+        "changed_requested_value"
+      ]
+    },
+    {
+      "id": "acceptance-stock_receipt-fr",
+      "category": "operational_filters",
+      "language": "fr",
+      "expected": {
+        "tool": "search_operations",
+        "arguments": {
+          "resource": "stock_receipt",
+          "supplier_name": "Syn Source",
+          "client_name": "Syn Aubier",
+          "product_name": "SYN-PANNEAU-3",
+          "status": "validated"
+        }
+      },
+      "tool_correct": true,
+      "arguments_correct": false,
+      "structured_valid": true,
+      "actual": {
+        "tool": "search_operations",
+        "arguments": {
+          "resource": "stock_receipt",
+          "client_name": "Syn Aubier",
+          "product_name": "SYN-PANNEAU-3",
+          "status": "validated"
+        }
+      },
+      "missing_expected_arguments": [
+        "supplier_name"
+      ],
+      "unexpected_arguments": [],
+      "changed_arguments": [],
+      "normalized_actual_arguments": {
+        "resource": "stock_receipt",
+        "client_name": "Syn Aubier",
+        "product_name": "SYN-PANNEAU-3",
+        "status": "validated"
+      },
+      "failure_tags": [
+        "explicit_argument_or_filter_omission"
+      ]
+    },
+    {
+      "id": "acceptance-stock_inventory-en",
+      "category": "operational_filters",
+      "language": "en",
+      "expected": {
+        "tool": "search_operations",
+        "arguments": {
+          "resource": "stock_inventory",
+          "location_name": "Syn Dépôt Sud",
+          "status": "draft",
+          "date_from": "2026-03-01",
+          "date_to": "2026-03-31"
+        }
+      },
+      "tool_correct": false,
+      "arguments_correct": false,
+      "structured_valid": false,
+      "actual": null,
+      "error": "INVALID_MODEL_OUTPUT",
+      "failure_tags": [
+        "no_valid_structured_action"
+      ]
+    },
+    {
+      "id": "acceptance-stock_inventory-fr",
+      "category": "operational_filters",
+      "language": "fr",
+      "expected": {
+        "tool": "search_operations",
+        "arguments": {
+          "resource": "stock_inventory",
+          "location_name": "Syn Dépôt Sud",
+          "status": "draft",
+          "date_from": "2026-03-01",
+          "date_to": "2026-03-31"
+        }
+      },
+      "tool_correct": true,
+      "arguments_correct": false,
+      "structured_valid": true,
+      "actual": {
+        "tool": "search_operations",
+        "arguments": {
+          "resource": "stock_inventory",
+          "location_name": "Syn Dépôt Sud",
+          "product_name": "Brouillon",
+          "date_from": "2026-03-01",
+          "date_to": "2026-03-31"
+        }
+      },
+      "missing_expected_arguments": [
+        "status"
+      ],
+      "unexpected_arguments": [
+        "product_name"
+      ],
+      "changed_arguments": [],
+      "normalized_actual_arguments": {
+        "resource": "stock_inventory",
+        "location_name": "Syn Dépôt Sud",
+        "product_name": "Brouillon",
+        "date_from": "2026-03-01",
+        "date_to": "2026-03-31"
+      },
+      "failure_tags": [
+        "explicit_argument_or_filter_omission",
+        "unrequested_extra_argument"
+      ]
+    },
+    {
+      "id": "acceptance-logistics_transit-en",
+      "category": "operational_filters",
+      "language": "en",
+      "expected": {
+        "tool": "search_operations",
+        "arguments": {
+          "resource": "logistics_order",
+          "supplier_name": "Syn Transitex",
+          "client_name": "Syn Azurine",
+          "product_name": "SYN-VANNE-12",
+          "status": "Transit"
+        }
+      },
+      "tool_correct": false,
+      "arguments_correct": false,
+      "structured_valid": false,
+      "actual": null,
+      "error": "INCOMPLETE_RESPONSE",
+      "failure_tags": [
+        "no_valid_structured_action"
+      ]
+    },
+    {
+      "id": "acceptance-logistics_transit-fr",
+      "category": "operational_filters",
+      "language": "fr",
+      "expected": {
+        "tool": "search_operations",
+        "arguments": {
+          "resource": "logistics_order",
+          "supplier_name": "Syn Transitex",
+          "client_name": "Syn Azurine",
+          "product_name": "SYN-VANNE-12",
+          "status": "Transit"
+        }
+      },
+      "tool_correct": false,
+      "arguments_correct": false,
+      "structured_valid": false,
+      "actual": null,
+      "error": "INVALID_MODEL_OUTPUT",
+      "failure_tags": [
+        "no_valid_structured_action"
+      ]
+    },
+    {
+      "id": "acceptance-current_invoice_customer-en",
+      "category": "page_context",
+      "language": "en",
+      "expected": {
+        "tool": "search_clients",
+        "arguments": {
+          "related_invoice": true
+        }
+      },
+      "tool_correct": false,
+      "arguments_correct": false,
+      "structured_valid": true,
+      "actual": {
+        "tool": "get_invoice",
+        "arguments": {}
+      },
+      "failure_tags": [
+        "wrong_operation"
+      ]
+    },
+    {
+      "id": "acceptance-current_invoice_customer-fr",
+      "category": "page_context",
+      "language": "fr",
+      "expected": {
+        "tool": "search_clients",
+        "arguments": {
+          "related_invoice": true
+        }
+      },
+      "tool_correct": false,
+      "arguments_correct": false,
+      "structured_valid": true,
+      "actual": {
+        "tool": "get_invoice",
+        "arguments": {}
+      },
+      "failure_tags": [
+        "wrong_operation"
+      ]
+    },
+    {
+      "id": "acceptance-previous_unpaid-en",
+      "category": "structured_memory",
+      "language": "en",
+      "expected": {
+        "tool": "previous_results",
+        "arguments": {
+          "operation": "unpaid"
+        }
+      },
+      "tool_correct": false,
+      "arguments_correct": false,
+      "structured_valid": true,
+      "actual": {
+        "tool": "search_invoices",
+        "arguments": {
+          "client_name": "Syn Grenat",
+          "date_from": "2026-08-10",
+          "date_to": "2026-08-19"
+        }
+      },
+      "failure_tags": [
+        "wrong_operation"
+      ]
+    },
+    {
+      "id": "acceptance-previous_unpaid-fr",
+      "category": "structured_memory",
+      "language": "fr",
+      "expected": {
+        "tool": "previous_results",
+        "arguments": {
+          "operation": "unpaid"
+        }
+      },
+      "tool_correct": false,
+      "arguments_correct": false,
+      "structured_valid": true,
+      "actual": {
+        "tool": "search_invoices",
+        "arguments": {
+          "client_name": "Syn Grenat",
+          "date_from": "2026-08-10",
+          "date_to": "2026-08-19"
+        }
+      },
+      "failure_tags": [
+        "wrong_operation"
+      ]
+    },
+    {
+      "id": "acceptance-previous_articles-en",
+      "category": "structured_memory",
+      "language": "en",
+      "expected": {
+        "tool": "previous_results",
+        "arguments": {
+          "operation": "show"
+        }
+      },
+      "tool_correct": false,
+      "arguments_correct": false,
+      "structured_valid": true,
+      "actual": {
+        "tool": "search_articles",
+        "arguments": {
+          "reference": "SYN-BROSSE-22"
+        }
+      },
+      "failure_tags": [
+        "wrong_operation"
+      ]
+    },
+    {
+      "id": "acceptance-previous_articles-fr",
+      "category": "structured_memory",
+      "language": "fr",
+      "expected": {
+        "tool": "previous_results",
+        "arguments": {
+          "operation": "show"
+        }
+      },
+      "tool_correct": false,
+      "arguments_correct": false,
+      "structured_valid": true,
+      "actual": {
+        "tool": "search_articles",
+        "arguments": {
+          "reference": "SYN-BROSSE-22"
+        }
+      },
+      "failure_tags": [
+        "wrong_operation"
+      ]
+    },
+    {
+      "id": "acceptance-invoiced_year-fr",
+      "category": "financial_metric",
+      "language": "fr",
+      "expected": {
+        "tool": "financial_summary",
+        "arguments": {
+          "metric": "invoiced_net_ttc",
+          "period": "current_year",
+          "currency": "EUR"
+        }
+      },
+      "tool_correct": true,
+      "arguments_correct": false,
+      "structured_valid": true,
+      "actual": {
+        "tool": "financial_summary",
+        "arguments": {
+          "metric": "collected",
+          "period": "current_year",
+          "currency": "EUR"
+        }
+      },
+      "missing_expected_arguments": [],
+      "unexpected_arguments": [],
+      "changed_arguments": [
+        "metric"
+      ],
+      "normalized_actual_arguments": {
+        "metric": "collected",
+        "period": "current_year",
+        "currency": "EUR"
+      },
+      "failure_tags": [
+        "changed_requested_value"
+      ]
+    },
+    {
+      "id": "acceptance-collected_previous_month-fr",
+      "category": "financial_metric",
+      "language": "fr",
+      "expected": {
+        "tool": "financial_summary",
+        "arguments": {
+          "metric": "collected",
+          "period": "previous_month",
+          "currency": "USD"
+        }
+      },
+      "tool_correct": false,
+      "arguments_correct": false,
+      "structured_valid": true,
+      "actual": {
+        "tool": "clarify",
+        "message": "Do you mean the invoiced amount, collected payments, or outstanding balance? For which period? Profit is not an available calculation here."
+      },
+      "failure_tags": [
+        "wrong_operation"
+      ]
+    },
+    {
+      "id": "acceptance-global_users_navigation-en",
+      "category": "navigation",
+      "language": "en",
+      "expected": {
+        "tool": "navigate",
+        "arguments": {
+          "resource": "users"
+        }
+      },
+      "tool_correct": false,
+      "arguments_correct": false,
+      "structured_valid": true,
+      "actual": {
+        "tool": "search_users",
+        "arguments": {
+          "name": "Explorateur"
+        }
+      },
+      "failure_tags": [
+        "wrong_operation"
+      ]
+    },
+    {
+      "id": "acceptance-global_users_navigation-fr",
+      "category": "navigation",
+      "language": "fr",
+      "expected": {
+        "tool": "navigate",
+        "arguments": {
+          "resource": "users"
+        }
+      },
+      "tool_correct": false,
+      "arguments_correct": false,
+      "structured_valid": true,
+      "actual": {
+        "tool": "search_users",
+        "arguments": {
+          "name": "Exploration"
+        }
+      },
+      "failure_tags": [
+        "wrong_operation"
+      ]
+    },
+    {
+      "id": "acceptance-payments_navigation-en",
+      "category": "navigation",
+      "language": "en",
+      "expected": {
+        "tool": "navigate",
+        "arguments": {
+          "resource": "payments"
+        }
+      },
+      "tool_correct": false,
+      "arguments_correct": false,
+      "structured_valid": true,
+      "actual": {
+        "tool": "list_payments",
+        "arguments": {}
+      },
+      "failure_tags": [
+        "wrong_operation"
+      ]
+    },
+    {
+      "id": "acceptance-payments_navigation-fr",
+      "category": "navigation",
+      "language": "fr",
+      "expected": {
+        "tool": "navigate",
+        "arguments": {
+          "resource": "payments"
+        }
+      },
+      "tool_correct": false,
+      "arguments_correct": false,
+      "structured_valid": true,
+      "actual": {
+        "tool": "list_payments",
+        "arguments": {}
+      },
+      "failure_tags": [
+        "wrong_operation"
+      ]
+    },
+    {
+      "id": "acceptance-latest_valid_payments-fr",
+      "category": "payment_listing",
+      "language": "fr",
+      "expected": {
+        "tool": "list_payments",
+        "arguments": {
+          "date_from": "2026-09-11",
+          "date_to": "2026-09-23"
+        }
+      },
+      "tool_correct": false,
+      "arguments_correct": false,
+      "structured_valid": true,
+      "actual": {
+        "tool": "search_payments",
+        "arguments": {
+          "date_from": "2026-09-11",
+          "date_to": "2026-09-23"
+        }
+      },
+      "failure_tags": [
+        "wrong_operation"
+      ]
+    },
+    {
+      "id": "acceptance-create_workflow-en",
+      "category": "workflow_knowledge",
+      "language": "en",
+      "expected": {
+        "tool": "knowledge",
+        "arguments": {
+          "query": "Explain the two steps for creating a client invoice and then adding its articles. Do not create one for me."
+        }
+      },
+      "tool_correct": false,
+      "arguments_correct": null,
+      "structured_valid": true,
+      "actual": {
+        "tool": "clarify",
+        "message": "Please specify the document, customer, product, or reporting period (including the year)."
+      },
+      "failure_tags": [
+        "wrong_operation"
+      ]
+    },
+    {
+      "id": "acceptance-create_workflow-fr",
+      "category": "workflow_knowledge",
+      "language": "fr",
+      "expected": {
+        "tool": "knowledge",
+        "arguments": {
+          "query": "Explique les deux étapes pour créer une facture client puis ajouter ses articles. N’en crée pas pour moi."
+        }
+      },
+      "tool_correct": false,
+      "arguments_correct": null,
+      "structured_valid": true,
+      "actual": {
+        "tool": "clarify",
+        "message": "Please specify the document, customer, product, or reporting period (including the year)."
+      },
+      "failure_tags": [
+        "wrong_operation"
+      ]
+    },
+    {
+      "id": "acceptance-status_workflow-en",
+      "category": "workflow_knowledge",
+      "language": "en",
+      "expected": {
+        "tool": "knowledge",
+        "arguments": {
+          "query": "Why can an invoice be Accepted but still Unpaid? Explain the two statuses, without looking up a record."
+        }
+      },
+      "tool_correct": false,
+      "arguments_correct": null,
+      "structured_valid": false,
+      "actual": null,
+      "error": "INCOMPLETE_RESPONSE",
+      "failure_tags": [
+        "no_valid_structured_action"
+      ]
+    },
+    {
+      "id": "acceptance-status_workflow-fr",
+      "category": "workflow_knowledge",
+      "language": "fr",
+      "expected": {
+        "tool": "knowledge",
+        "arguments": {
+          "query": "Pourquoi une facture peut-elle être Accepté mais encore Non payée ? Explique les deux statuts sans chercher une fiche."
+        }
+      },
+      "tool_correct": false,
+      "arguments_correct": null,
+      "structured_valid": true,
+      "actual": {
+        "tool": "clarify",
+        "message": "This request is not available in the assistant with your current access. I can help find authorized records or explain documented invoicing workflows."
+      },
+      "failure_tags": [
+        "wrong_operation"
+      ]
+    },
+    {
+      "id": "acceptance-edit_invoice_labels-en",
+      "category": "confirmed_mutation_proposal",
+      "language": "en",
+      "expected": {
+        "tool": "prepare_change",
+        "arguments": {
+          "resource": "invoice",
+          "invoice_number": "0927/26",
+          "operation": "update",
+          "changes": {
+            "termes_paiement": "45 jours fin de mois",
+            "date_echeance": "2026-12-18"
+          }
+        }
+      },
+      "tool_correct": true,
+      "arguments_correct": false,
+      "structured_valid": true,
+      "actual": {
+        "tool": "prepare_change",
+        "arguments": {
+          "resource": "invoice",
+          "operation": "update",
+          "changes": {
+            "termes_paiement": "45 jours fin de mois",
+            "date_echeance": "18 December 2026"
+          }
+        }
+      },
+      "missing_expected_arguments": [
+        "invoice_number"
+      ],
+      "unexpected_arguments": [],
+      "changed_arguments": [
+        "changes.date_echeance"
+      ],
+      "normalized_actual_arguments": {
+        "resource": "invoice",
+        "operation": "update",
+        "changes": {
+          "termes_paiement": "45 jours fin de mois",
+          "date_echeance": "18 December 2026"
+        }
+      },
+      "failure_tags": [
+        "explicit_argument_or_filter_omission",
+        "changed_requested_value"
+      ]
+    },
+    {
+      "id": "acceptance-edit_invoice_labels-fr",
+      "category": "confirmed_mutation_proposal",
+      "language": "fr",
+      "expected": {
+        "tool": "prepare_change",
+        "arguments": {
+          "resource": "invoice",
+          "invoice_number": "0927/26",
+          "operation": "update",
+          "changes": {
+            "termes_paiement": "45 jours fin de mois",
+            "date_echeance": "2026-12-18"
+          }
+        }
+      },
+      "tool_correct": true,
+      "arguments_correct": false,
+      "structured_valid": true,
+      "actual": {
+        "tool": "prepare_change",
+        "arguments": {
+          "resource": "invoice",
+          "operation": "update",
+          "changes": {
+            "termes_paiement": "45 jours fin de mois",
+            "date_echeance": "18 décembre 2026"
+          }
+        }
+      },
+      "missing_expected_arguments": [
+        "invoice_number"
+      ],
+      "unexpected_arguments": [],
+      "changed_arguments": [
+        "changes.date_echeance"
+      ],
+      "normalized_actual_arguments": {
+        "resource": "invoice",
+        "operation": "update",
+        "changes": {
+          "termes_paiement": "45 jours fin de mois",
+          "date_echeance": "18 décembre 2026"
+        }
+      },
+      "failure_tags": [
+        "explicit_argument_or_filter_omission",
+        "changed_requested_value"
+      ]
+    },
+    {
+      "id": "acceptance-unavailable_user_lookup-en",
+      "category": "capability_boundary",
+      "language": "en",
+      "expected": {
+        "tool": "clarify",
+        "arguments": {
+          "reason": "unsupported",
+          "language": "en"
+        }
+      },
+      "tool_correct": false,
+      "arguments_correct": false,
+      "structured_valid": true,
+      "actual": {
+        "tool": "navigate",
+        "arguments": {
+          "resource": "clients",
+          "identifier": 1
+        }
+      },
+      "failure_tags": [
+        "wrong_operation"
+      ]
+    },
+    {
+      "id": "acceptance-unavailable_user_lookup-fr",
+      "category": "capability_boundary",
+      "language": "fr",
+      "expected": {
+        "tool": "clarify",
+        "arguments": {
+          "reason": "unsupported",
+          "language": "fr"
+        }
+      },
+      "tool_correct": true,
+      "arguments_correct": false,
+      "structured_valid": true,
+      "actual": {
+        "tool": "clarify",
+        "message": "Please specify the document, customer, product, or reporting period (including the year)."
+      },
+      "missing_expected_arguments": [],
+      "unexpected_arguments": [],
+      "changed_arguments": [
+        "language",
+        "reason"
+      ],
+      "normalized_actual_arguments": {
+        "reason": "missing_details",
+        "language": "en"
+      },
+      "failure_tags": [
+        "clarification_intent_or_language"
+      ]
+    },
+    {
+      "id": "acceptance-stock_only_finance_denied-en",
+      "category": "capability_boundary",
+      "language": "en",
+      "expected": {
+        "tool": "clarify",
+        "arguments": {
+          "reason": "unsupported",
+          "language": "en"
+        }
+      },
+      "tool_correct": false,
+      "arguments_correct": false,
+      "structured_valid": true,
+      "actual": {
+        "tool": "knowledge",
+        "arguments": {
+          "query": "Expliquez la différence entre les paiements collectés et les paiements non collectés."
+        }
+      },
+      "failure_tags": [
+        "wrong_operation"
+      ]
+    },
+    {
+      "id": "acceptance-stock_only_finance_denied-fr",
+      "category": "capability_boundary",
+      "language": "fr",
+      "expected": {
+        "tool": "clarify",
+        "arguments": {
+          "reason": "unsupported",
+          "language": "fr"
+        }
+      },
+      "tool_correct": true,
+      "arguments_correct": false,
+      "structured_valid": true,
+      "actual": {
+        "tool": "clarify",
+        "message": "This request is not available in the assistant with your current access. I can help find authorized records or explain documented invoicing workflows."
+      },
+      "missing_expected_arguments": [],
+      "unexpected_arguments": [],
+      "changed_arguments": [
+        "language"
+      ],
+      "normalized_actual_arguments": {
+        "reason": "unsupported",
+        "language": "en"
+      },
+      "failure_tags": [
+        "clarification_intent_or_language"
+      ]
+    },
+    {
+      "id": "acceptance-ambiguous_income_switch-en",
+      "category": "language_switch_clarification",
+      "language": "en",
+      "expected": {
+        "tool": "clarify",
+        "arguments": {
+          "reason": "ambiguous_metric",
+          "language": "en"
+        }
+      },
+      "tool_correct": false,
+      "arguments_correct": false,
+      "structured_valid": true,
+      "actual": {
+        "tool": "financial_summary",
+        "arguments": {
+          "metric": "invoiced_net_ttc",
+          "period": "current_year",
+          "currency": "MAD"
+        }
+      },
+      "failure_tags": [
+        "wrong_operation"
+      ]
+    },
+    {
+      "id": "acceptance-ambiguous_income_switch-fr",
+      "category": "language_switch_clarification",
+      "language": "fr",
+      "expected": {
+        "tool": "clarify",
+        "arguments": {
+          "reason": "ambiguous_metric",
+          "language": "fr"
+        }
+      },
+      "tool_correct": false,
+      "arguments_correct": false,
+      "structured_valid": true,
+      "actual": {
+        "tool": "financial_summary",
+        "arguments": {
+          "metric": "collected",
+          "period": "current_year",
+          "currency": "MAD"
+        }
+      },
+      "failure_tags": [
+        "wrong_operation"
+      ]
+    },
+    {
+      "id": "acceptance-missing_year_switch-en",
+      "category": "language_switch_clarification",
+      "language": "en",
+      "expected": {
+        "tool": "clarify",
+        "arguments": {
+          "reason": "missing_details",
+          "language": "en"
+        }
+      },
+      "tool_correct": false,
+      "arguments_correct": false,
+      "structured_valid": true,
+      "actual": {
+        "tool": "search_invoices",
+        "arguments": {
+          "client_name": "Syn Myrte",
+          "date_from": "2024-04-01",
+          "date_to": "2024-04-30"
+        }
+      },
+      "failure_tags": [
+        "wrong_operation"
+      ]
+    },
+    {
+      "id": "acceptance-missing_year_switch-fr",
+      "category": "language_switch_clarification",
+      "language": "fr",
+      "expected": {
+        "tool": "clarify",
+        "arguments": {
+          "reason": "missing_details",
+          "language": "fr"
+        }
+      },
+      "tool_correct": false,
+      "arguments_correct": false,
+      "structured_valid": true,
+      "actual": {
+        "tool": "search_invoices",
+        "arguments": {
+          "client_name": "Syn Myrte",
+          "date_from": "2024-04-01",
+          "date_to": "2024-04-30"
+        }
+      },
+      "failure_tags": [
+        "wrong_operation"
+      ]
+    },
+    {
+      "id": "acceptance-unsupported_stock_write-en",
+      "category": "unsupported_operation",
+      "language": "en",
+      "expected": {
+        "tool": "clarify",
+        "arguments": {
+          "reason": "unsupported",
+          "language": "en"
+        }
+      },
+      "tool_correct": false,
+      "arguments_correct": false,
+      "structured_valid": false,
+      "actual": null,
+      "error": "INVALID_MODEL_OUTPUT",
+      "failure_tags": [
+        "no_valid_structured_action"
+      ]
+    },
+    {
+      "id": "acceptance-unsupported_stock_write-fr",
+      "category": "unsupported_operation",
+      "language": "fr",
+      "expected": {
+        "tool": "clarify",
+        "arguments": {
+          "reason": "unsupported",
+          "language": "fr"
+        }
+      },
+      "tool_correct": false,
+      "arguments_correct": false,
+      "structured_valid": false,
+      "actual": null,
+      "error": "INVALID_MODEL_OUTPUT",
+      "failure_tags": [
+        "no_valid_structured_action"
+      ]
+    }
+  ]
+}

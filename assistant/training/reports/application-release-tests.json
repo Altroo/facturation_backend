@@ -1,0 +1,36 @@
+{
+  "date": "2026-10-08",
+  "scope": "facturation only",
+  "backend": {
+    "passed": 2272,
+    "subtests_passed": 30,
+    "seconds": 78.67,
+    "settings": "facturation_backend.settings_ai_test",
+    "production_data": false,
+    "assistant_after_reference_fix": {
+      "passed": 747,
+      "seconds": 39.07,
+      "new_reference_regressions": 28
+    },
+    "assistant_after_help_routing": {
+      "passed": 765,
+      "seconds": 39.13,
+      "focused_after_review": 52,
+      "docker_assets_passed": 4
+    }
+  },
+  "frontend_final_changes": {
+    "component_tests_passed": 75,
+    "typescript": "passed",
+    "eslint": "passed",
+    "production_build": "passed",
+    "mobile_drawer_browser": "passed"
+  },
+  "knowledge_browser": {
+    "english_invoice_workflow": "passed",
+    "french_status_followup": "passed",
+    "method": "approved bilingual retrieval; separate from raw model planning"
+  },
+  "production": "not yet deployed",
+  "model_v4": "completed; broad quality targets unmet"
+}

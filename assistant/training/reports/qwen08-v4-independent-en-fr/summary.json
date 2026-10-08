@@ -1,0 +1,508 @@
+{
+  "model_id": "chat-ai-facturation-qwen08-v4-en-fr-20261008",
+  "scope": "Raw model-only planning on 80 frozen English/French cases representing 40 independent semantic scenarios; current trusted application handlers and UI flows are separate evidence.",
+  "dataset_sha256": "91ca4ad072df31a651c8a87ea51dd9349d0f937f2701bcab3da868d01cfa479a",
+  "schemas_sha256": "4319de5c2f849444171077495315724bc233a475bd83c7212d82821d1b0f97f0",
+  "provider_sha256": "f5a65cf7ed046dcce5b21697ac69866fa8f6ba8a6601eeff70d2819d8414e86e",
+  "evaluator_sha256": "672242f36b487603c10a9250747ea60fcd55c8f81c78c0389988c4d8fac37b3d",
+  "thinking": false,
+  "max_tokens": 512,
+  "timeout_seconds": 120,
+  "base_metrics": {
+    "count": 80,
+    "tool_correct": {
+      "passed": 44,
+      "scored": 80,
+      "percent": 55.0
+    },
+    "arguments_correct": {
+      "passed": 18,
+      "scored": 76,
+      "percent": 23.68
+    },
+    "structured_valid": {
+      "passed": 61,
+      "scored": 80,
+      "percent": 76.25
+    }
+  },
+  "v4_metrics": {
+    "count": 80,
+    "tool_correct": {
+      "passed": 50,
+      "scored": 80,
+      "percent": 62.5
+    },
+    "arguments_correct": {
+      "passed": 24,
+      "scored": 76,
+      "percent": 31.58
+    },
+    "structured_valid": {
+      "passed": 73,
+      "scored": 80,
+      "percent": 91.25
+    }
+  },
+  "v4_by_language": {
+    "en": {
+      "count": 40,
+      "tool_correct": {
+        "passed": 25,
+        "scored": 40,
+        "percent": 62.5
+      },
+      "arguments_correct": {
+        "passed": 14,
+        "scored": 38,
+        "percent": 36.84
+      },
+      "structured_valid": {
+        "passed": 36,
+        "scored": 40,
+        "percent": 90.0
+      }
+    },
+    "fr": {
+      "count": 40,
+      "tool_correct": {
+        "passed": 25,
+        "scored": 40,
+        "percent": 62.5
+      },
+      "arguments_correct": {
+        "passed": 10,
+        "scored": 38,
+        "percent": 26.32
+      },
+      "structured_valid": {
+        "passed": 37,
+        "scored": 40,
+        "percent": 92.5
+      }
+    }
+  },
+  "v4_by_category": {
+    "capability_boundary": {
+      "count": 4,
+      "tool_correct": {
+        "passed": 2,
+        "scored": 4,
+        "percent": 50.0
+      },
+      "arguments_correct": {
+        "passed": 0,
+        "scored": 4,
+        "percent": 0.0
+      },
+      "structured_valid": {
+        "passed": 4,
+        "scored": 4,
+        "percent": 100.0
+      }
+    },
+    "catalog_filters": {
+      "count": 4,
+      "tool_correct": {
+        "passed": 4,
+        "scored": 4,
+        "percent": 100.0
+      },
+      "arguments_correct": {
+        "passed": 1,
+        "scored": 4,
+        "percent": 25.0
+      },
+      "structured_valid": {
+        "passed": 4,
+        "scored": 4,
+        "percent": 100.0
+      }
+    },
+    "confirmed_mutation_proposal": {
+      "count": 4,
+      "tool_correct": {
+        "passed": 4,
+        "scored": 4,
+        "percent": 100.0
+      },
+      "arguments_correct": {
+        "passed": 2,
+        "scored": 4,
+        "percent": 50.0
+      },
+      "structured_valid": {
+        "passed": 4,
+        "scored": 4,
+        "percent": 100.0
+      }
+    },
+    "customer_lookup": {
+      "count": 2,
+      "tool_correct": {
+        "passed": 2,
+        "scored": 2,
+        "percent": 100.0
+      },
+      "arguments_correct": {
+        "passed": 2,
+        "scored": 2,
+        "percent": 100.0
+      },
+      "structured_valid": {
+        "passed": 2,
+        "scored": 2,
+        "percent": 100.0
+      }
+    },
+    "document_filters": {
+      "count": 4,
+      "tool_correct": {
+        "passed": 4,
+        "scored": 4,
+        "percent": 100.0
+      },
+      "arguments_correct": {
+        "passed": 1,
+        "scored": 4,
+        "percent": 25.0
+      },
+      "structured_valid": {
+        "passed": 4,
+        "scored": 4,
+        "percent": 100.0
+      }
+    },
+    "exact_reference": {
+      "count": 4,
+      "tool_correct": {
+        "passed": 2,
+        "scored": 4,
+        "percent": 50.0
+      },
+      "arguments_correct": {
+        "passed": 2,
+        "scored": 4,
+        "percent": 50.0
+      },
+      "structured_valid": {
+        "passed": 4,
+        "scored": 4,
+        "percent": 100.0
+      }
+    },
+    "explicit_record_reference": {
+      "count": 2,
+      "tool_correct": {
+        "passed": 2,
+        "scored": 2,
+        "percent": 100.0
+      },
+      "arguments_correct": {
+        "passed": 2,
+        "scored": 2,
+        "percent": 100.0
+      },
+      "structured_valid": {
+        "passed": 2,
+        "scored": 2,
+        "percent": 100.0
+      }
+    },
+    "financial_metric": {
+      "count": 8,
+      "tool_correct": {
+        "passed": 7,
+        "scored": 8,
+        "percent": 87.5
+      },
+      "arguments_correct": {
+        "passed": 6,
+        "scored": 8,
+        "percent": 75.0
+      },
+      "structured_valid": {
+        "passed": 8,
+        "scored": 8,
+        "percent": 100.0
+      }
+    },
+    "language_switch_clarification": {
+      "count": 4,
+      "tool_correct": {
+        "passed": 0,
+        "scored": 4,
+        "percent": 0.0
+      },
+      "arguments_correct": {
+        "passed": 0,
+        "scored": 4,
+        "percent": 0.0
+      },
+      "structured_valid": {
+        "passed": 4,
+        "scored": 4,
+        "percent": 100.0
+      }
+    },
+    "mutation_target_discovery": {
+      "count": 2,
+      "tool_correct": {
+        "passed": 2,
+        "scored": 2,
+        "percent": 100.0
+      },
+      "arguments_correct": {
+        "passed": 0,
+        "scored": 2,
+        "percent": 0.0
+      },
+      "structured_valid": {
+        "passed": 2,
+        "scored": 2,
+        "percent": 100.0
+      }
+    },
+    "navigation": {
+      "count": 4,
+      "tool_correct": {
+        "passed": 0,
+        "scored": 4,
+        "percent": 0.0
+      },
+      "arguments_correct": {
+        "passed": 0,
+        "scored": 4,
+        "percent": 0.0
+      },
+      "structured_valid": {
+        "passed": 4,
+        "scored": 4,
+        "percent": 100.0
+      }
+    },
+    "operational_filters": {
+      "count": 10,
+      "tool_correct": {
+        "passed": 6,
+        "scored": 10,
+        "percent": 60.0
+      },
+      "arguments_correct": {
+        "passed": 1,
+        "scored": 10,
+        "percent": 10.0
+      },
+      "structured_valid": {
+        "passed": 6,
+        "scored": 10,
+        "percent": 60.0
+      }
+    },
+    "page_context": {
+      "count": 4,
+      "tool_correct": {
+        "passed": 2,
+        "scored": 4,
+        "percent": 50.0
+      },
+      "arguments_correct": {
+        "passed": 2,
+        "scored": 4,
+        "percent": 50.0
+      },
+      "structured_valid": {
+        "passed": 4,
+        "scored": 4,
+        "percent": 100.0
+      }
+    },
+    "payment_filters": {
+      "count": 4,
+      "tool_correct": {
+        "passed": 4,
+        "scored": 4,
+        "percent": 100.0
+      },
+      "arguments_correct": {
+        "passed": 0,
+        "scored": 4,
+        "percent": 0.0
+      },
+      "structured_valid": {
+        "passed": 4,
+        "scored": 4,
+        "percent": 100.0
+      }
+    },
+    "payment_listing": {
+      "count": 2,
+      "tool_correct": {
+        "passed": 1,
+        "scored": 2,
+        "percent": 50.0
+      },
+      "arguments_correct": {
+        "passed": 1,
+        "scored": 2,
+        "percent": 50.0
+      },
+      "structured_valid": {
+        "passed": 2,
+        "scored": 2,
+        "percent": 100.0
+      }
+    },
+    "printing": {
+      "count": 2,
+      "tool_correct": {
+        "passed": 2,
+        "scored": 2,
+        "percent": 100.0
+      },
+      "arguments_correct": {
+        "passed": 2,
+        "scored": 2,
+        "percent": 100.0
+      },
+      "structured_valid": {
+        "passed": 2,
+        "scored": 2,
+        "percent": 100.0
+      }
+    },
+    "relative_search_dates": {
+      "count": 2,
+      "tool_correct": {
+        "passed": 2,
+        "scored": 2,
+        "percent": 100.0
+      },
+      "arguments_correct": {
+        "passed": 0,
+        "scored": 2,
+        "percent": 0.0
+      },
+      "structured_valid": {
+        "passed": 2,
+        "scored": 2,
+        "percent": 100.0
+      }
+    },
+    "staff_lookup": {
+      "count": 2,
+      "tool_correct": {
+        "passed": 2,
+        "scored": 2,
+        "percent": 100.0
+      },
+      "arguments_correct": {
+        "passed": 0,
+        "scored": 2,
+        "percent": 0.0
+      },
+      "structured_valid": {
+        "passed": 2,
+        "scored": 2,
+        "percent": 100.0
+      }
+    },
+    "structured_memory": {
+      "count": 6,
+      "tool_correct": {
+        "passed": 2,
+        "scored": 6,
+        "percent": 33.33
+      },
+      "arguments_correct": {
+        "passed": 2,
+        "scored": 6,
+        "percent": 33.33
+      },
+      "structured_valid": {
+        "passed": 6,
+        "scored": 6,
+        "percent": 100.0
+      }
+    },
+    "unsupported_operation": {
+      "count": 2,
+      "tool_correct": {
+        "passed": 0,
+        "scored": 2,
+        "percent": 0.0
+      },
+      "arguments_correct": {
+        "passed": 0,
+        "scored": 2,
+        "percent": 0.0
+      },
+      "structured_valid": {
+        "passed": 0,
+        "scored": 2,
+        "percent": 0.0
+      }
+    },
+    "workflow_knowledge": {
+      "count": 4,
+      "tool_correct": {
+        "passed": 0,
+        "scored": 4,
+        "percent": 0.0
+      },
+      "arguments_correct": {
+        "passed": 0,
+        "scored": 0,
+        "percent": null
+      },
+      "structured_valid": {
+        "passed": 3,
+        "scored": 4,
+        "percent": 75.0
+      }
+    }
+  },
+  "failure_tag_counts": {
+    "alternative_search_field_choice": 3,
+    "changed_requested_value": 7,
+    "clarification_intent_or_language": 2,
+    "explicit_argument_or_filter_omission": 12,
+    "no_valid_structured_action": 7,
+    "requested_result_limit_or_offset": 2,
+    "unrequested_extra_argument": 4,
+    "wrong_operation": 23
+  },
+  "acceptance_targets": {
+    "tool_percent": 95,
+    "arguments_percent": 95,
+    "structured_percent": 99
+  },
+  "acceptance_status": "UNMET",
+  "training_executed": true,
+  "full_inference_manifest_sha256": "c6fafe827bd25b7c8fa495ed358f7a215082d9c88001672ef36d07c3432c9ba3",
+  "performance": {
+    "sequential": {
+      "count": 4,
+      "mean_latency_s": 8.339090606197715,
+      "p95_latency_s": 9.737339748069644,
+      "errors": 0
+    },
+    "concurrency_two": {
+      "count": 4,
+      "mean_latency_s": 12.291305631864816,
+      "p95_latency_s": 17.661075035110116,
+      "errors": 0
+    },
+    "average_busy_cpu_cores": 3.9968604961620224,
+    "rss_peak_bytes": 2772205568,
+    "weighted_decode_tokens_per_second": 56.938687755507736
+  },
+  "limitations": [
+    "Frozen dataset and exact-argument scoring were not changed after observing outputs.",
+    "Knowledge search paraphrase arguments are unscored: exact argument denominator76, not80.",
+    "Alternative search fields are described but not assumed equivalent or rescored.",
+    "Raw planner failures do not measure the separately verified trusted backend handlers; successful basic UI flows do not establish broad 95 percent model accuracy.",
+    "Base evaluation overlapped active training; do not interpret its latency difference as isolated fine-tuning speedup.",
+    "Public derivatives omit infrastructure hostnames and absolute file paths; complete immutable evidence is retained separately."
+  ]
+}

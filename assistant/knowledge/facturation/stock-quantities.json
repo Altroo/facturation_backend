@@ -22,7 +22,7 @@
     "réception",
     "receipt"
   ],
-  "content": "La page Stock affiche Physique, Réservé, Disponible, Entrant, Projeté et Minimum. Disponible correspond au Physique moins le Réservé. Projeté ajoute les quantités entrantes restantes des dossiers logistiques lancés selon les règles de l’application. Les états affichés sont Disponible, Stock minimum et À approvisionner. Les mouvements distinguent Stock initial, Ajustement, Réception, Livraison, Inventaire et Annulation. Le stock après mouvement fait partie de l’historique. Les réceptions ont les états Brouillon, Validée ou Annulée; les inventaires ont les états Brouillon, Validé ou Annulé. Ces libellés de stock restent en français dans l’interface actuelle. L’assistant consulte les calculs existants; il ne modifie ni le registre des mouvements ni les quantités.",
+  "content": "La page Stock affiche Physique, Réservé, Disponible, Entrant, Projeté et Minimum. Disponible correspond au Physique moins le Réservé. Projeté ajoute les quantités entrantes restantes des dossiers logistiques lancés selon les règles de l’application. Les états affichés sont Disponible, Stock minimum et À approvisionner. Les mouvements distinguent Stock initial, Ajustement, Réception, Livraison, Inventaire et Annulation. Le stock après mouvement fait partie de l’historique. Les réceptions ont les états Brouillon, Validée ou Annulée; les inventaires ont les états Brouillon, Validé ou Annulé. Ces libellés de stock restent en français dans l’interface actuelle. Les outils de consultation du stock réutilisent les calculs existants sans saisie directe de mouvements ou de quantités. La suppression autorisée et confirmée d’un bon de livraison applique les annulations de stock prévues par l’application.",
   "required_capabilities": [
     "stock_read"
   ],
@@ -33,8 +33,27 @@
       "facturation/facturation_frontend/src/utils/rawData.ts:266",
       "facturation/facturation_frontend/src/utils/rawData.ts:278",
       "facturation/facturation_backend/stock/services.py:172",
-      "facturation/facturation_backend/chat_ai/operations.py"
+      "facturation/facturation_backend/chat_ai/operations.py",
+      "facturation/facturation_backend/stock/services.py:783",
+      "facturation/facturation_backend/chat_ai/actions.py"
     ],
-    "notes": "Verified quantity formulas and distinct native receipt/inventory state captions; stock UI currently keeps French labels in both interface languages."
+    "notes": "Verified quantity formulas and distinct native receipt/inventory state captions; stock UI currently keeps French labels in both interface languages.",
+    "localized_content_review": {
+      "locales": [
+        "fr",
+        "en"
+      ],
+      "basis": "Verified existing workflow and native French/English form captions; reviewed excerpts, not model-generated answers.",
+      "sources": [
+        "facturation/facturation_frontend/src/translations/fr.ts",
+        "facturation/facturation_frontend/src/translations/en.ts",
+        "facturation/facturation_frontend/src/utils/rawData.ts:248",
+        "facturation/facturation_frontend/src/components/pages/dashboard/stock/stock-view.tsx:265"
+      ]
+    }
+  },
+  "localized_content": {
+    "fr": "La page « Stock » présente « Physique », « Réservé », « Disponible », « Entrant », « Projeté » et « Minimum ».\n- « Disponible » correspond au « Physique » moins le « Réservé ».\n- « Projeté » correspond au « Disponible » plus les quantités entrantes restantes des dossiers logistiques lancés, selon les règles de l’application.\n\nLes états sont « Disponible », « Stock minimum » et « À approvisionner ». Les mouvements distinguent « Stock initial », « Ajustement », « Réception », « Livraison », « Inventaire » et « Annulation »; l’historique indique le stock après mouvement.\nLes réceptions peuvent être « Brouillon », « Validée » ou « Annulée ». Les inventaires peuvent être « Brouillon », « Validé » ou « Annulé ». Ces libellés restent en français dans l’interface actuelle.\nLes outils de consultation du stock réutilisent les calculs existants et ne permettent pas de saisir directement des mouvements ou des quantités. La suppression autorisée et confirmée d’un bon de livraison applique toutefois les annulations de stock prévues par l’application.",
+    "en": "The “Stock” page displays French labels in the current interface: “Physique” (physical), “Réservé” (reserved), “Disponible” (available), “Entrant” (incoming), “Projeté” (projected) and “Minimum”.\n- “Disponible” is physical stock minus reserved stock.\n- “Projeté” adds remaining incoming quantities from launched logistics files to available stock, following the application's rules.\n\nStock states are “Disponible”, “Stock minimum” and “À approvisionner”. Movement types are “Stock initial”, “Ajustement”, “Réception”, “Livraison”, “Inventaire” and “Annulation”; history includes the balance after each movement.\nReceipt states are “Brouillon”, “Validée” and “Annulée”. Inventory states are “Brouillon”, “Validé” and “Annulé”.\nStock consultation tools reuse the existing calculations and do not allow direct entry of movements or quantities. An authorized, confirmed delivery-note deletion does apply the stock reversals required by the application."
   }
 }

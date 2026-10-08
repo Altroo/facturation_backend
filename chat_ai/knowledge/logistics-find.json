@@ -30,6 +30,21 @@
       "facturation/facturation_frontend/src/translations/fr.ts:817",
       "facturation/facturation_backend/chat_ai/operations.py"
     ],
-    "notes": "Existing logistics labels and bounded assistant read/search adapter verified; no workflow execution added."
+    "notes": "Existing logistics labels and bounded assistant read/search adapter verified; no workflow execution added.",
+    "localized_content_review": {
+      "locales": [
+        "fr",
+        "en"
+      ],
+      "basis": "Verified existing workflow and native French/English form captions; reviewed excerpts, not model-generated answers.",
+      "sources": [
+        "facturation/facturation_frontend/src/translations/fr.ts",
+        "facturation/facturation_frontend/src/translations/en.ts"
+      ]
+    }
+  },
+  "localized_content": {
+    "fr": "Dans « Logistique », retrouvez un dossier par son numéro, son fournisseur, un client ou un article de ses lignes.\nLa fiche présente notamment « Phase du dossier », le statut global calculé selon l’avancement, « Date prévue » et « Date réelle ». Les lignes présentent l’article, le client, la quantité et « Reçu ».\nLes étapes opérationnelles, les paiements et les transmissions comptables passent par les actions existantes de l’application et leurs responsables autorisés. L’assistant permet de rechercher, consulter et ouvrir les dossiers; il ne déclenche pas ces étapes.",
+    "en": "In “Logistics Tracking”, find a file by its reference, supplier, a client or an article in its lines.\nDetails include “File phase”, the calculated global status based on progress, “Planned date” and “Actual date”. Lines show the article, client, quantity and “Received”.\nOperational steps, payments and accounting handovers use the application's existing actions and authorized responsible users. The assistant can search, view and open files; it does not trigger those steps."
   }
 }
