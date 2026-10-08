@@ -2,21 +2,12 @@
 import re
 
 NUMBER = re.compile(r"^\d{1,10}/\d{2,4}$")
-USAGE = {
-    '/voir': '/voir — Rechercher un document\nDécrivez le type de document, le client, le produit ou la période. Vous pourrez choisir parmi les résultats. Aucun identifiant technique à retenir.\nExemple : /voir devis du client Atlas avec peinture',
-    '/factures': '/factures — Retrouver des factures\nVoici les factures récentes de la société active. Ajoutez un client, un produit ou une période pour préciser la recherche.\nExemple : /factures du client Atlas en septembre 2026',
-    '/clients': '/clients — Rechercher un client\nVoici les premiers clients accessibles. Ajoutez un nom ou une raison sociale pour trouver un client précis.\nExemple : /clients Atlas',
-    '/impayees': '/impayees — Voir les factures impayées\nCette commande affiche les factures de la société active avec un solde restant. Elle ne nécessite aucun argument.\nExemple de recherche plus précise : /voir factures impayées du client Atlas',
-    '/paiements': '/paiements — Consulter les règlements\nCette commande affiche les derniers paiements validés de la société active. Elle ne nécessite aucun argument.\nExemple de question plus précise : Quels paiements avons-nous reçus en septembre 2026 ?',
-    '/pdf': '/pdf — Télécharger un document\nDécrivez le document recherché, puis choisissez le bouton PDF du résultat. Le téléchargement dépend de vos droits d’impression.\nExemple : /pdf facture du client Atlas',
-    '/modifier': '/modifier — Modifier un document\nDécrivez le document recherché, puis sélectionnez le résultat à modifier. Vos droits seront vérifiés.\nExemple : /modifier devis du client Atlas avec peinture',
-    '/supprimer': '/supprimer — Supprimer un document\nDécrivez le document recherché, sélectionnez le résultat, puis confirmez sa suppression. Aucune suppression sans confirmation et sans les droits correspondants.\nExemple : /supprimer devis du client Atlas avec peinture',
-    '/bilan': '/bilan — Consulter une synthèse\nPrécisez la mesure et la période. Mesures : facture (TTC net des avoirs), encaissements, solde, nombre. Périodes : mois, annee, mois-precedent, annee-precedente. Devise facultative : MAD, EUR ou USD.\nExemple : /bilan encaissements mois MAD',
-}
-ALIASES = {'/chercher': '/voir', '/impayées': '/impayees'}
+from .shortcut_catalog import ALIASES, MODULES, permitted_commands, shortcut_catalog, usage
+
+USAGE = {item['command']: usage(item['command']) for item in shortcut_catalog()}
 
 
-def shortcut_action(text):
+def shortcut_action(text, executor=None, interface_language='fr'):
     if not text.startswith('/'):
         return None
     parts = text.split(maxsplit=1)
@@ -32,22 +23,30 @@ def shortcut_action(text):
     def clarify(message):
         return {'tool': 'clarify', 'message': message}
 
-    if command in ('/aide', '/help'):
-        return clarify('Les raccourcis indiquent ce que vous voulez faire. Vous pouvez aussi écrire normalement.\n'
-            '/voir : rechercher un document\n/factures : retrouver des factures\n/clients : rechercher un client\n'
-            '/impayees : voir les factures impayées\n/paiements : consulter les règlements\n'
-            '/pdf : télécharger un document\n/modifier : modifier un document\n/supprimer : supprimer avec confirmation\n'
-            '/bilan : consulter une synthèse\nEnvoyez une commande seule pour voir son utilisation et un exemple. Les actions dépendent de vos droits.')
+    from chat_ai_assistant.clarifications import message_language
+    language = message_language(text, interface_language)
+    if command not in permitted_commands(executor):
+        if command in USAGE:
+            from chat_ai_assistant.contracts import ChatAIError
+            raise ChatAIError('PERMISSION_DENIED')
+        return clarify('Unknown command. Send /help to see available shortcuts.' if language == 'en' else 'Commande inconnue. Envoyez /aide pour afficher les raccourcis disponibles.')
+    command_usage = usage(command, executor, language) if command != '/help' else ''
+    if command == '/help':
+        intro = ('Shortcuts describe what you want to do. You can also write normally.\n' if language == 'en' else 'Les raccourcis indiquent ce que vous voulez faire. Vous pouvez aussi écrire normalement.\n')
+        return clarify(intro + '\n'.join(f"{item['command']} : {item['title']}" for item in shortcut_catalog(executor, language)) + ('\nSend a command alone for usage and an example.' if language == 'en' else '\nEnvoyez une commande seule pour voir son utilisation et un exemple.'))
+    for module in MODULES:
+        if command == module[0] and command not in ('/clients', '/factures', '/paiements'):
+            return None if argument else action(module[3], usage=command_usage, **module[4])
     if not argument and command in ('/voir', '/pdf', '/modifier', '/supprimer', '/bilan'):
-        return clarify(USAGE[command])
+        return clarify(command_usage)
     if command == '/factures':
-        return None if argument else action('search_invoices', usage=USAGE[command])
+        return None if argument else action('search_invoices', usage=command_usage)
     if command == '/impayees':
-        return None if argument else action('search_invoices', usage=USAGE[command], unpaid=True)
+        return None if argument else action('search_invoices', usage=command_usage, unpaid=True)
     if command == '/clients':
-        return action('search_clients', usage=USAGE[command] if not argument else None, query=argument)
+        return action('search_clients', usage=command_usage if not argument else None, query=argument)
     if command == '/paiements':
-        return None if argument else action('list_payments', usage=USAGE[command])
+        return None if argument else action('list_payments', usage=command_usage)
     if command == '/voir':
         return action('search_invoices', invoice_number=argument) if NUMBER.fullmatch(argument) else None
     if command == '/pdf':
@@ -81,7 +80,7 @@ def shortcut_action(text):
         metrics = {'facture': 'invoiced_net_ttc', 'encaissements': 'collected', 'solde': 'outstanding', 'nombre': 'invoice_count'}
         periods = {'mois': 'current_month', 'année': 'current_year', 'annee': 'current_year', 'mois-precedent': 'previous_month', 'annee-precedente': 'previous_year'}
         if len(fields) not in (2, 3) or fields[0] not in metrics or fields[1] not in periods:
-            return clarify(USAGE[command])
+            return clarify(command_usage)
         return action('financial_summary', metric=metrics[fields[0]], period=periods[fields[1]], currency=fields[2].upper() if len(fields) == 3 else 'MAD')
     return clarify('Commande inconnue. Envoyez /aide pour afficher les raccourcis disponibles et leur utilisation.')
 

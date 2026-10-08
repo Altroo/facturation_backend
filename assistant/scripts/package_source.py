@@ -34,6 +34,13 @@ SECRET_PATTERNS = {
     "API credential": re.compile(r"\bsk-[A-Za-z0-9_-]{24,}\b"),
     "credential URL": re.compile(r"[a-z][a-z0-9+.-]*://[^/\s:@]+:[^/@\s]+@", re.I),
 }
+# Operator configuration belongs outside published source and reports.
+PUBLICATION_PATTERNS = {
+    "SSH connection": re.compile(r"(?:ssh" r"://[^\s]+|git@github-(?:company|personal):)"),
+    "deployment filesystem path": re.compile(r"/(?:var/www|var/repo)/[^\s]+"),
+    "personal filesystem path": re.compile(r"/(?:Users|home)/[^/\s]+/(?:Desktop|\.ssh)(?:/|\b)"),
+    "operator hostname": re.compile(r"\b[\w.-]+\.elbouazzatiholding(?:\.ma)?\b"),
+}
 SNAPSHOT_GUIDE = """# Versioned Chat AI Assistant source
 
 This directory is a generated, reviewable source snapshot. The canonical working
@@ -63,7 +70,7 @@ Colibri LICENSE, NOTICE and THIRD_PARTY_NOTICES.md are preserved.
 
 Included: reusable Python source, project metadata, approved knowledge, docs,
 deployment drafts, packaging/training scripts, dependency configuration and
-synthetic training datasets, explicitly curated JSON/JSONL evidence from
+synthetic training datasets, explicitly curated JSON/JSONL/Markdown evidence from
 training/reports, plus Colibri C/Python/build sources.
 
 Excluded: model weights/tokenizers, adapters/checkpoints, environments, credentials,
@@ -96,12 +103,14 @@ def allowed(relative: Path) -> bool:
         return suffix in {".py", ".sh"}
     if parts[:2] == ("training", "configs"):
         return suffix in {".lock", ".json", ".yaml", ".yml", ".toml", ".txt"}
+    if relative.as_posix() == "training/tool-schemas.json":
+        return True
     if parts[:2] == ("training", "reports"):
         # Only explicitly curated synthetic evaluation/provenance evidence.
         # Raw evaluation directories and logs remain excluded.
-        return suffix in {".json", ".jsonl"}
-    if parts[:2] == ("training", "datasets"):
         return suffix in {".json", ".jsonl", ".md"}
+    if parts[:2] == ("training", "datasets"):
+        return suffix in {".json", ".jsonl", ".md", ".py"}
     if parts[:1] == ("docs",):
         return suffix in {".md", ".json"}
     if parts[:1] == ("knowledge",):
@@ -153,6 +162,10 @@ def collect(root: Path) -> tuple[dict, dict]:
             if any(match.group() not in PUBLIC_DOCUMENTATION_EXAMPLES
                    for match in pattern.finditer(content)):
                 raise ValueError(f"Potential {label}; review source: {relative}")
+        if relative.parts[:1] != ("runtime",):
+            for label, pattern in PUBLICATION_PATTERNS.items():
+                if pattern.search(content):
+                    raise ValueError(f"Private {label}; keep operator configuration outside source: {relative}")
         mode = 0o755 if path.name == "coli" or path.suffix in {".sh", ".post-receive"} else 0o644
         files[relative.as_posix()] = (data, mode)
     required = {

@@ -1,0 +1,366 @@
+[
+  {
+    "type": "function",
+    "function": {
+      "name": "search_invoices",
+      "description": "Search invoices by exact number, client name, date interval or unpaid balance. Dates ISO. No guessed year.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "invoice_number": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "client_name": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "date_from": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "date_to": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "unpaid": {
+            "type": "boolean"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "get_invoice",
+      "description": "Get a specific authorized invoice. Omit invoice_id only when current page is an invoice.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "invoice_id": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "search_clients",
+      "description": "Search client name or exact client ID; use related_invoice for the current invoice client.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "client_id": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "related_invoice": {
+            "type": "boolean"
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "financial_summary",
+      "description": "Existing dashboard metric: invoiced_net_ttc = invoices TTC minus active credits, collected = valid payments, outstanding = invoice balance, invoice_count = issued records. Not profit. Currency required.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "metric": {
+            "enum": [
+              "invoiced_net_ttc",
+              "collected",
+              "outstanding",
+              "invoice_count"
+            ]
+          },
+          "period": {
+            "type": "string",
+            "enum": [
+              "current_month",
+              "previous_month",
+              "current_year",
+              "previous_year",
+              "custom"
+            ]
+          },
+          "currency": {
+            "enum": [
+              "MAD",
+              "EUR",
+              "USD"
+            ]
+          },
+          "date_from": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "date_to": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          }
+        },
+        "required": [
+          "metric",
+          "period",
+          "currency"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "list_payments",
+      "description": "Latest valid payments in the current company; optional date range.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "date_from": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "date_to": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "navigate",
+      "description": "Explicit request to open an authorized page or a specific invoice/client. Supply ID or invoice_number. Never a URL.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "resource": {
+            "enum": [
+              "invoices",
+              "invoice",
+              "invoice_edit",
+              "clients",
+              "client",
+              "client_edit",
+              "payments",
+              "dashboard"
+            ]
+          },
+          "identifier": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "invoice_number": {
+            "type": "string",
+            "maxLength": 120
+          }
+        },
+        "required": [
+          "resource"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "previous_results",
+      "description": "Operate on the previous invoice/client results only: open a 1-based index, show them, or filter unpaid invoices.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "operation": {
+            "enum": [
+              "show",
+              "unpaid",
+              "open"
+            ]
+          },
+          "index": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10
+          }
+        },
+        "required": [
+          "operation"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "prepare_change",
+      "description": "Prepare an edit or deletion of ONE invoice/client for human confirmation. Never executes it. Changes: invoice remarque/termes_paiement/date_echeance; client raison_sociale/nom/prenom/adresse. Other edits use the existing form.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "resource": {
+            "enum": [
+              "invoice",
+              "client"
+            ]
+          },
+          "identifier": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "invoice_number": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "operation": {
+            "enum": [
+              "update",
+              "delete"
+            ]
+          },
+          "changes": {
+            "type": "object",
+            "properties": {
+              "remarque": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 2000
+              },
+              "termes_paiement": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 2000
+              },
+              "date_echeance": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 2000
+              },
+              "raison_sociale": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 2000
+              },
+              "nom": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 2000
+              },
+              "prenom": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 2000
+              },
+              "adresse": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 2000
+              }
+            },
+            "required": [],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "resource",
+          "operation"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "invoice_pdf",
+      "description": "Offer a PDF of an invoice only with existing print rights; requires invoice_id.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "invoice_id": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "invoice_number": {
+            "type": "string",
+            "maxLength": 120
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "knowledge",
+      "description": "Retrieve approved instructions, invoice creation workflow, payment/status meanings or financial definitions.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 300
+          }
+        },
+        "required": [
+          "query"
+        ],
+        "additionalProperties": false
+      }
+    }
+  }
+]

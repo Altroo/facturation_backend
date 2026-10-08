@@ -29,7 +29,9 @@ class ChatAIOrchestrator:
 
     def run(self, text, *, context, history=(), forced_action=None, emit=lambda event, data: None, cancel=None):
         (getattr(self.executor, "authorize_context", self.executor.authorize))()
-        tools = shortlist(text, self.registry.permitted(self.executor.capabilities()), context)
+        # Trusted adapter hint selects relevant schemas without changing the user
+        # message or its language. Browser context cannot supply this hint.
+        tools = shortlist(context.get('shortcut_search_hint') or text, self.registry.permitted(self.executor.capabilities()), context)
         # Small, bounded tool catalog; never send application model or API schemas.
         messages = [{"role": "system", "content": SYSTEM + '\nTrusted context: ' + json.dumps(context, ensure_ascii=False)}]
         messages.extend(history[-6:])

@@ -10,6 +10,12 @@ Each `ChatAITool` declares its name, description, application, strict input sche
 
 The planner chooses one tool or the provider's separate `clarify` function. `clarify` is **not** an eighteenth backend business tool: it accepts only `reason=missing_details|ambiguous_metric|unsupported` and `language=fr|en`; the backend writes its text. Bare slash commands can return usage without invoking a model. Natural descriptions such as a client plus a product are valid search inputs; internal record IDs are not required from users.
 
+## Module shortcuts and access questions
+
+`chat_ai/shortcut_catalog.py` is the single source of permitted module commands, English/French labels and examples. The capabilities API returns the filtered catalogue for each authorized company; the frontend renders it. It mirrors the existing read, stock-superuser, staff-user, edit, delete and print policies. Selecting a shortcut does not grant any permission, and every actual tool invocation still reauthorizes.
+
+Bare module commands select existing read tools: invoices, quotes, pro formas, credit notes, delivery notes, clients, articles, payments, stock balances/movements/receipts/inventories, logistics and staff-only users. Descriptive arguments remain available to the planner; the module prefix supplies a trusted shortlist hint while the original user message, language and every supplied filter remain unchanged. Exact module-access questions return verified access and usage only, with no model call or business query. Compound requests are not treated as capability questions. These handlers are application behavior and do not change the frozen raw-model score.
+
 ## Registered tools
 
 Common search limits, where exposed: `limit` 1–10, `offset` 0–1000, ISO `date_from`/`date_to`. Unsupported fields are rejected. Company/user identity is never a tool argument.
@@ -87,7 +93,7 @@ The model can only propose a change. Human confirmation is a separate authentica
 | `quote` | `remarque`, `date_echeance` | Same |
 | `proforma` | `remarque`, `termes_paiement`, `date_echeance` | Same; protected stock reservations can block deletion |
 | `credit_note` | `remarque`, through existing **Brouillon-only** serializer | Existing delete policy; no new draft-only delete rule is invented |
-| `delivery_note` | `remarque`, `date_echeance` | Existing delete policy; accepted-delivery stock-reversal risk remains unresolved |
+| `delivery_note` | `remarque`, `date_echeance` | Existing delete policy; shared native transactional stock reversal, ownership checks and exact-once locking |
 | `client` | `raison_sociale` (Raison sociale), `nom` (Nom), `prenom` (Prénom), `adresse` (Adresse) | Existing `can_delete` and native database protections |
 
 These limits are deliberate: other edits open an existing authorized form where available. Users, articles, payments, logistics and all stock resources are read-only through this assistant. Creation, document status changes, line/price/quantity changes, payment edits, role changes and bulk deletions are not implemented. Credit-note partial updates reject the legacy null-payment-mode case that would silently change another field.
@@ -123,7 +129,7 @@ The API maps not-found/authentication/permission/unavailable/busy/expired-contex
 
 ## Verification and extension rules
 
-Focused synthetic database tests exercise document, catalog and operations adapters, confirmed writes, native permission exceptions, stale references, delivery revalidation and schema rejection. Independent module integration tests passed 188 cases; the affected history/integration suites passed 253 after the stream revocation-order fix. The full combined rerun is pending at this revision. Final base/tuned model acceptance, production-server benchmarks and full browser workflows remain incomplete; no model selection or production-readiness claim follows from these backend tests.
+Focused synthetic database tests exercise document, catalog and operations adapters, confirmed writes, native permission exceptions, stale references, delivery revalidation and schema rejection. Independent module integration tests passed 188 cases; the affected history/integration suites passed 253 after the stream revocation-order fix. The full backend rerun passed2,272tests and30subtests; the later assistant run passed765tests followed by52targeted review regressions. Server v4 evaluation and performance measurements are complete, while broad model-quality acceptance remains below target. Actual local invoice/quote/article/financial and navigation workflows passed. Production evidence is tracked in the Phase1 report; these backend tests alone are not a production-readiness claim.
 
 To add a tool/resource, inspect its actual native permission and serializer/service path, add fixed metadata and strict schemas, add scoped read/proposal execution, visible labels and verified navigation, then add denial/revocation and workflow tests. Update this table and the multilingual held-out dataset. Do not register any other ecosystem application until Phase 2 receives explicit approval.
 

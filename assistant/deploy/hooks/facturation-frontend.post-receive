@@ -3,8 +3,9 @@ set -Eeuo pipefail
 trap 'printf "Deployment failed at line %s. Inspect running services; Git receipt is not deployment success.\n" "$LINENO" >&2' ERR
 # Draft: build-time public flags must be set in the server .env.production.
 # Never stop/recreate the shared nginx service; reload only to refresh upstream DNS.
-target=/var/www/facturation_frontend
-repo=/var/repo/facturation_frontend.git
+target="$(git config --get chatAI.sourceWorkTree)"
+repo="$(git rev-parse --absolute-git-dir)"
+[[ -n "$target" && "$target" == /* && -d "$target" ]] || { printf "Configure chatAI.sourceWorkTree before installing this hook.\n" >&2; exit 1; }
 exec 9>"$repo/deploy.lock"
 flock 9
 while read -r oldrev newrev ref; do
@@ -20,6 +21,8 @@ while read -r oldrev newrev ref; do
   "${compose[@]}" up --no-deps --no-build --wait --wait-timeout 180 web
   docker exec nginx nginx -t
   docker exec nginx nginx -s reload
-  curl --fail --silent --show-error --output /dev/null https://facturation.elbouazzatiholding.ma/
+  health_url="$(git --git-dir="$repo" config --get chatAI.healthURL)"
+  [[ "$health_url" == https://* ]] || { printf "Configure an HTTPS chatAI.healthURL.\n" >&2; exit 1; }
+  curl --fail --silent --show-error --output /dev/null "$health_url"
   printf 'Frontend deployment verified: %s\n' "$newrev"
 done

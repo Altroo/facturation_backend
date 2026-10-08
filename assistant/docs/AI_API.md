@@ -18,7 +18,7 @@ Paths below are relative to `/api/ai/v1/`.
 
 | Method/path | Request | Success |
 | --- | --- | --- |
-| `GET capabilities/` | No body. | 200: application, companies/capabilities/suggestions, languages, model identifier, `read_only: false`. |
+| `GET capabilities/?language=fr` | No body; optional native UI language `fr`/`en`. | 200: application, companies/capabilities/suggestions, languages, model identifier, `read_only: false`. |
 | `POST conversations/` | `{"company_id": 7}` | 201: `{"id":"<uuid>","company_id":7}`. |
 | `GET conversations/?company_id=7` | Required positive company identifier; other query keys are rejected. | 200: up to 30 current-user conversations, newest first. |
 | `GET conversations/<uuid>/` | No body. | 200: conversation identifier/company, refreshed messages, `results_refreshed: true`. |
@@ -28,7 +28,7 @@ Paths below are relative to `/api/ai/v1/`.
 | `POST actions/<uuid>/confirm/` | `{"confirmed":true}` | 200: success, operation, resource, record identifier. |
 | `POST feedback/` | `{"message_id":"<uuid>","helpful":true}` | 200: `{"saved":true}`; updates this user's feedback. |
 
-Capabilities company entries include `id`, `name`, `can_update`, `can_delete`, `can_create`, `can_print`, and `suggestions`. Superuser companies without membership additionally set `can_read_business: false` and disable mutation/print flags. Languages are advertised as `fr`, `en`; this declaration is not an accuracy measurement. `read_only: false` means the adapter has explicitly confirmed bounded writes, not that every module supports mutation.
+Capabilities company entries include `id`, `name`, `can_update`, `can_delete`, `can_create`, `can_print`, and `suggestions`, plus a permission-filtered `shortcuts` array with `command`, `title`, `help` and `example`. The optional `language` query parameter localizes catalogue captions; it grants no authority and is not a conversation-language selector. Superuser companies without membership additionally set `can_read_business: false` and disable mutation/print flags. Languages are advertised as `fr`, `en`; this declaration is not an accuracy measurement. `read_only: false` means the adapter has explicitly confirmed bounded writes, not that every module supports mutation.
 
 Conversation list rows have `id`, `created_at`, `updated_at`, and `title`: the first user message truncated to 120 characters, or “Nouvelle conversation”. Listing requires a matching current authorization stamp and unexpired conversation. A user may have at most 100 unexpired conversations. Default expiration is 30 days through `CHAT_AI_RETENTION_DAYS`; it is set at creation, not extended by every message. `python manage.py purge_ai_history` removes expired history/pending actions and old non-confirmation audit events. Successful write audits are excluded from that cleanup.
 
@@ -155,6 +155,6 @@ DRF authentication, serializer, and throttle errors still use the application's 
 
 The focused frontend run on 2026-10-08 passed **100/100 tests** and `tsc --noEmit --incremental false`, covering route substitutions, global user routes, fixed authenticated PDF endpoints/names, Unicode/incomplete streams, card projections, confirmation rejection, request/history races, and write cache behavior. These are automated client/component checks, not a claim of live model acceptance. Backend security/integration test results are maintained separately in the project progress/testing evidence.
 
-Latest expanded-module real-browser QA remains pending with the main session; the delegated Playwright reviewer encountered profile ownership contention before accessing any tab. Physical mobile keyboard behavior has not been tested. The feedback API exists without a frontend feedback control. Production reverse-proxy streaming, resource behavior under production load, complete multilingual model accuracy, and Phase 1 acceptance are not certified by this document.
+Actual local browser checks passed invoice, quote and article searches, follow-up selection, navigation, company isolation, history and bilingual workflow delivery. Broad per-module model quality remains below the acceptance targets. Physical mobile keyboard behavior has not been tested. The feedback API exists without a frontend feedback control. Production reverse-proxy streaming, resource behavior under production load, complete multilingual model accuracy, and Phase 1 acceptance are not certified by this document.
 
 Optional message context `interface_language` accepts only `fr` or `en` and is read automatically from the existing application language. It selects visible form labels; it does not set the conversation language or grant authority. Generated answer language follows the current message. Article results may include `sale_label: "price_excl_tax"` to select the native Nectar caption; omitted purchase values are not displayed.

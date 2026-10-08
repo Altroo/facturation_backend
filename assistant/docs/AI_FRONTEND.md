@@ -1,6 +1,6 @@
 # Chat AI Assistant — Facturation frontend
 
-Status at 2026-10-08: IMPLEMENTED and verified by the focused component/API tests and TypeScript check. Latest catalog/stock/logistics card browser verification is pending. This document does not certify Phase 1 completion or production readiness. No production deployment or integration of another application is included.
+Status at 2026-10-08: IMPLEMENTED, tested and deployed to Facturation through Git. Production inspection confirmed one bottom-right FAB and opening panel. The Phase1 report records the completed live workflows and remaining model/acceptance limits. No other application is integrated.
 
 ## Source and integration
 
@@ -94,7 +94,9 @@ The stop button aborts the current fetch and invalidates its request generation.
 
 The message list follows new content only while the reader is within 64px of the bottom. Scrolling up stops forced movement. A new message or opening a conversation resumes following. History has first-message titles, secondary timestamps, an active-conversation marker, and deletion bound to the exact row. Deleting another history item preserves the current conversation. History is user/company scoped, and reopening refreshes authorized business cards rather than trusting a saved private-data snapshot.
 
-Slash assistance lists `/voir`, `/factures`, `/clients`, `/impayees`, `/paiements`, `/bilan`, `/pdf`, `/modifier`, and `/supprimer`, filtered by the applicable mutation/print flags. Each entry explains its purpose and example. A slash prefix selects intent; descriptions can include client, product, and period without an internal record ID. The help drawer appears only while typing the command prefix, disappears after a space/prose, shrinks within 35% of the panel, and leaves the composer fixed. The backend returns usage for bare commands; `/factures`, `/clients`, `/impayees`, and `/paiements` can also return their bounded default results. `/aide` and `/help` return text help.
+Slash assistance uses the backend-provided, per-company `shortcuts` catalogue instead of a separate fixed frontend list. It covers `/factures`, `/devis`, `/proformas`, `/avoirs`, `/livraisons`, `/clients`, `/articles`, `/paiements`, `/stock`, `/mouvements`, `/receptions`, `/inventaires`, and `/logistique`. `/utilisateurs` appears only for native staff account access. General actions remain `/voir`, `/impayees`, `/bilan`, `/pdf`, `/modifier`, and `/supprimer`; print/edit/delete entries require the corresponding existing permission. Labels and examples follow the native English/French UI language. This catalogue describes supported assistant tools, not every possible native write operation.
+
+Each entry explains its purpose and example. A slash prefix selects intent; descriptions can include client, product and period without an internal record ID. The scrollable help appears only while typing the command prefix, disappears after a space/prose and stays within 35% of the panel, leaving the composer fixed. Bare module commands return usage plus bounded authorized records without model inference. `/aide` and `/help` list only permitted commands. Exact module-access questions such as “do you have access to logistics?” receive a trusted permission-derived answer without querying business records. Stock/logistics help explicitly states read/navigation coverage.
 
 ## Verification and remaining limits
 

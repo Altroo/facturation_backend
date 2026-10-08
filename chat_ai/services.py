@@ -14,6 +14,7 @@ from .tools import ChatAIToolExecutor, registry
 from .labels import FIELD_LABELS, selected_action_text
 from chat_ai_assistant.presentation import labelled_text
 from .shortcuts import shortcut_action, reference_action, knowledge_action
+from .shortcut_catalog import module_access_action, shortcut_search_hint
 
 
 def get_conversation(user_id, id):
@@ -165,8 +166,10 @@ class ChatAIConversationService:
                      'current_invoice_id':context.get('invoice_id'),
                      'previous_result_type':conv.references.get('resource'),
                      'previous_result_count':len(conv.references.get('ids',[]))}
+            if shortcut_search_hint(text) != text:
+                trusted['shortcut_search_hint'] = shortcut_search_hint(text)
             if context.get('invoice_id'):executor.invoice(context['invoice_id'])
-            forced=shortcut_action(text) or reference_action(text, conv.references) or knowledge_action(text)
+            forced=shortcut_action(text, executor, trusted['interface_language']) or module_access_action(text, executor, trusted['interface_language']) or reference_action(text, conv.references) or knowledge_action(text)
             model = _DeferredKnowledgeModel() if forced and forced['tool'] == 'knowledge' else (None if forced else get_model())
             result=ChatAIOrchestrator(model,registry(),executor).run(text,context=trusted,forced_action=forced,
                 history=[{'role':'user','content':m.text} for m in reversed(history)],emit=emit,cancel=cancel)

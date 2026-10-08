@@ -1,10 +1,6 @@
 {
   "model_id": "chat-ai-facturation",
-  "model_path": "/var/www/chat-ai-assistant-training/models/Qwen3.5-0.8B-base-colibri",
-  "runtime_path": "/var/www/chat-ai-assistant-training/runtime/colibri",
-  "service_unit": "chat-ai-eval-base-20261008",
   "inference_platform": "Linux-6.8.0-117-generic-x86_64-with-glibc2.39",
-  "host": "server1.elbouazzatiholding",
   "ctx": 8192,
   "max_tokens": 512,
   "thinking": false,
@@ -764,5 +760,6 @@
   "weights_sha256": "450fadcb3669fd78be91e1ccbb7180696316ccd969e3fe2c35c8ee5a07e5fdba",
   "tokenizer_sha256": "e1ec43fe2dcc284daf83e451abb63065846b0c9c906bc413df2729ae77f5514d",
   "config_sha256": "e6e790ce659970ff3adce2091060fe49e4884c64152b363f38a4383eaede0af0",
-  "runtime_sha256": "e4c2fdd82767454df567176533f2547fe9ba9e5099b87afe19396f6453ecd746"
+  "runtime_sha256": "e4c2fdd82767454df567176533f2547fe9ba9e5099b87afe19396f6453ecd746",
+  "publication_note": "Infrastructure identifiers omitted; original evidence retained privately. Measurements and artifact hashes are unchanged."
 }

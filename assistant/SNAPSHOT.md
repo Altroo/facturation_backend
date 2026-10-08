@@ -27,7 +27,7 @@ Colibri LICENSE, NOTICE and THIRD_PARTY_NOTICES.md are preserved.
 
 Included: reusable Python source, project metadata, approved knowledge, docs,
 deployment drafts, packaging/training scripts, dependency configuration and
-synthetic training datasets, explicitly curated JSON/JSONL evidence from
+synthetic training datasets, explicitly curated JSON/JSONL/Markdown evidence from
 training/reports, plus Colibri C/Python/build sources.
 
 Excluded: model weights/tokenizers, adapters/checkpoints, environments, credentials,

@@ -17,6 +17,14 @@
       "seconds": 39.13,
       "focused_after_review": 52,
       "docker_assets_passed": 4
+    },
+    "module_shortcuts": {
+      "passed": 819,
+      "seconds": 44.16,
+      "review_findings_fixed": [
+        "Original user message and language preserved",
+        "Validated-payment help explicit"
+      ]
     }
   },
   "frontend_final_changes": {
@@ -31,6 +39,13 @@
     "french_status_followup": "passed",
     "method": "approved bilingual retrieval; separate from raw model planning"
   },
-  "production": "not yet deployed",
-  "model_v4": "completed; broad quality targets unmet"
+  "production": "Deployed; prepared authenticated browser checklist 12/12 passed. Module shortcut follow-up release in progress.",
+  "model_v4": "completed; broad quality targets unmet",
+  "frontend_module_shortcuts": {
+    "passed": 112,
+    "seconds": 7.734,
+    "typescript": "passed",
+    "eslint": "passed",
+    "production_build": "passed"
+  }
 }

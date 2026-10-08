@@ -1,0 +1,176 @@
+{
+  "updated_at": "2026-10-08T17:40:52.941964+00:00",
+  "status": "PREPARED_PRODUCTION_UI_CHECKLIST_PASSED",
+  "method": "Actual MCP Playwright browser and native UI flows. Authorized existing production login; read-only business operations; no network stubs, authentication bypass, account creation, direct API replays or business edit/delete.",
+  "privacy": "Only booleans, safe semantic descriptions and durations stored. No customer/company names, document numbers, record identifiers, financial amounts, credentials, tokens, private prompts or production screenshots.",
+  "evidence_continuity": "The original file remained a predeployment checklist because the review was interrupted before saving. Earlier verified observations are transcribed from actual MCP tool results in this session. Only the missing mobile/login cases were executed after resume; prior business flows were not repeated.",
+  "cases": [
+    {
+      "id": "authenticated_root_fab",
+      "status": "PASS",
+      "check": "One theme-matching FAB across authenticated routes; absent on public login via separate anonymous context if main requests.",
+      "observed": "Exactly one fixed FAB across authenticated dashboard, invoice and article routes. 56x56px, 24px desktop offsets, approved light-blue background and white icon. Panel opens.",
+      "measurements": {
+        "width_px": 56,
+        "height_px": 56,
+        "right_px": 24,
+        "bottom_px": 24,
+        "fab_count": 1
+      },
+      "evidence_phase": "Observed before interruption; retained from actual MCP tool results in the same review session."
+    },
+    {
+      "id": "active_company",
+      "status": "PASS",
+      "check": "Assistant scope matches the selected authorized native company tab.",
+      "observed": "Assistant company scope matches the selected authorized native company tab.",
+      "scope_matches": true,
+      "evidence_phase": "Observed before interruption; retained from actual MCP tool results in the same review session."
+    },
+    {
+      "id": "slash_help",
+      "status": "PASS",
+      "check": "Bare /voir explains natural descriptions and selection, without requiring an internal identifier.",
+      "observed": "Bare /voir explains usage and natural descriptions; does not require an internal identifier.",
+      "measured_elapsed_ms": 854,
+      "evidence_phase": "Observed before interruption; retained from actual MCP tool results in the same review session."
+    },
+    {
+      "id": "natural_french_invoice",
+      "status": "PASS",
+      "check": "Use a client already visible in authorized native UI; request its invoices naturally in French; verify actual invoice card, not customer card. Keep prompt business values out of report.",
+      "observed": "Natural French query using a client visible in the native list returned an invoice card matching both the native client and invoice. No private prompt or values retained.",
+      "measured_elapsed_ms": 9982,
+      "native_invoice_matches": true,
+      "native_client_matches": true,
+      "evidence_phase": "Observed before interruption; retained from actual MCP tool results in the same review session."
+    },
+    {
+      "id": "invoice_navigation",
+      "status": "PASS",
+      "check": "Card opens authorized detail; native explicit list button returns to invoice list with matching company, preserving assistant.",
+      "observed": "Result action opens the authorized invoice detail; native explicit list button returns to the invoice list with matching company, preserved conversation and one FAB.",
+      "company_query_preserved": true,
+      "company_tab_preserved": true,
+      "conversation_preserved": true,
+      "evidence_phase": "Observed before interruption; retained from actual MCP tool results in the same review session."
+    },
+    {
+      "id": "workflow_language_switch",
+      "status": "PASS",
+      "check": "English verified invoice-creation workflow then French follow-up in the same conversation; actual buttons/order and HT/TVA/TTC meanings correct.",
+      "observed": "English invoice-creation question returns reviewed native-button order and correct HT/TVA/TTC meanings. French status follow-up in the same conversation switches to the reviewed French document/payment explanation.",
+      "english_elapsed_ms": 3889,
+      "french_elapsed_ms": 1350,
+      "native_sequence_correct": true,
+      "tax_meanings_correct": true,
+      "language_switch_correct": true,
+      "method_note": "General-help application routing with permission-filtered reviewed knowledge; not a raw-model accuracy success.",
+      "evidence_phase": "Observed before interruption; retained from actual MCP tool results in the same review session."
+    },
+    {
+      "id": "financial_current_month",
+      "status": "PASS",
+      "check": "Natural collected/current-month request uses that metric/period; compare with corresponding native dashboard value, store equality only.",
+      "observed": "French and English requests select validated collections for the current month. Both values equal the native dashboard response under identical company, currency and date filters. The native UI displays its empty-state treatment for this period; numeric equality was checked against the actual dashboard response, without new direct API requests or exposing values.",
+      "french_elapsed_ms": 7931,
+      "english_elapsed_ms": 7445,
+      "correct_metric": true,
+      "correct_period": true,
+      "native_response_equality_fr": true,
+      "native_response_equality_en": true,
+      "evidence_phase": "Observed before interruption; retained from actual MCP tool results in the same review session."
+    },
+    {
+      "id": "history",
+      "status": "PASS",
+      "check": "Reopen own conversation and refresh authorized cards without losing context.",
+      "observed": "Own conversation reopened through History; authorized financial card refreshed and remained available after returning to the original company.",
+      "history_refreshed": true,
+      "restored_after_company_return": true,
+      "evidence_phase": "Observed before interruption; retained from actual MCP tool results in the same review session."
+    },
+    {
+      "id": "company_isolation",
+      "status": "PASS",
+      "check": "Switch company using native tab; prior-company messages do not remain; histories stay scoped. Return restores only selected authorized history.",
+      "observed": "Native company switch updated assistant scope and cleared previous-company messages. Other-company history excluded the original conversation. Returning restored the original authorized history.",
+      "messages_cleared": true,
+      "scope_updated": true,
+      "history_isolated": true,
+      "evidence_phase": "Observed before interruption; retained from actual MCP tool results in the same review session."
+    },
+    {
+      "id": "read_only_secondary_resource",
+      "status": "PASS",
+      "check": "One authorized article or quote lookup, matching visible native records; no business mutations.",
+      "observed": "Natural French article query using a native visible designation returned a matching article/reference and Voir only, without mutation actions. No private prompt or values retained.",
+      "resource": "article",
+      "measured_elapsed_ms": 7459,
+      "native_reference_matches": true,
+      "native_designation_matches": true,
+      "mutation_actions": 0,
+      "evidence_phase": "Observed before interruption; retained from actual MCP tool results in the same review session."
+    },
+    {
+      "id": "mobile_layout",
+      "status": "PASS",
+      "evidence_phase": "Completed after review resumed.",
+      "observed": "At390x844 the panel and composer remain inside the viewport; no document horizontal overflow, aria-hidden ancestor or stale mobile Drawer. One FAB and the existing article conversation persist. Returned to an accessible1121x994 desktop viewport.",
+      "viewport_width_px": 390,
+      "viewport_height_px": 844,
+      "panel_width_px": 390,
+      "panel_height_px": 844,
+      "panel_inside_viewport": true,
+      "composer_visible": true,
+      "horizontal_overflow": false,
+      "aria_hidden_ancestor": false,
+      "stale_drawer_modal_count": 0,
+      "conversation_preserved": true,
+      "desktop_accessible": true
+    },
+    {
+      "id": "anonymous_login_visibility",
+      "status": "PASS",
+      "evidence_phase": "Completed after review resumed.",
+      "observed": "Separate anonymous browser context shows the native login form with no assistant FAB, panel or title. Only the temporary anonymous context was closed; original authenticated session remained intact.",
+      "fab_count": 0,
+      "chat_panel_count": 0,
+      "original_authenticated_session_preserved": true
+    }
+  ],
+  "summary": {
+    "passed": 12,
+    "failed": 0,
+    "unperformed_prepared_cases": 0,
+    "full_phase1_acceptance_claimed": false,
+    "model_accuracy_claimed": false
+  },
+  "latency_method": "Single observed browser send-to-final-state wall times, including UI/network/backend; not controlled throughput, TTFT, sustained-load or p95 benchmarks.",
+  "not_performed": [
+    "Physical mobile keyboard and real-device testing",
+    "Comprehensive screen-reader/assistive-technology certification",
+    "Production business edit/delete or payment mutation",
+    "Exhaustive real-model coverage of every module and complex filter",
+    "Combined client-and-product invoice filtering in production (verified locally only)",
+    "Sustained production load/concurrency certification"
+  ],
+  "model_quality": {
+    "tool_selection": "50/80",
+    "exact_arguments": "24/76",
+    "broad_acceptance_targets": "UNMET",
+    "application_checks_do_not_replace_frozen_model_evaluation": true
+  },
+  "session": {
+    "production_tab": 1,
+    "authenticated_session_preserved": true,
+    "production_business_mutations_performed": false,
+    "test_chat_conversations_created": true,
+    "temporary_anonymous_context_closed": true,
+    "final_desktop_viewport": {
+      "width": 1121,
+      "height": 994
+    }
+  },
+  "source_changes_made": false
+}

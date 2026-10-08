@@ -1,11 +1,11 @@
 {
   "file": "chat_ai_assistant-0.1.0-py3-none-any.whl",
-  "sha256": "47668aaca2b6e5b29d7584b6b84e03b9ccd781e347839208f5eb87710845f158",
+  "sha256": "4df4c4b8631c87566602f195848f5cacbf557517645dacab5ddf4be124b3b652",
   "source_files": {
     "src/chat_ai_assistant/__init__.py": "89de2438dbe666b8ce112a701c89faf82ef9afec7c7a61c9ec1bbfc9da5192e1",
     "src/chat_ai_assistant/clarifications.py": "e5cb817facdb8e440538cc0ed9b252ff127f6d8e470bb630574e5530e7a31a7d",
     "src/chat_ai_assistant/contracts.py": "ab31f8ff3f2f20b776ca412436e0730dc8fa00e892801772e863400bab4b6fa3",
-    "src/chat_ai_assistant/orchestrator.py": "c464870c1878da6791b2ad4537dbdaa26ec37d77128ade440a4c2798d861f498",
+    "src/chat_ai_assistant/orchestrator.py": "eb88daad55dbc52d9d2b4fc9adbbdfff43fb761475a9ae4e6c2a87812101e05e",
     "src/chat_ai_assistant/presentation.py": "21e6ac7828f15164c88d8cdd40a558863d091d03eb4b1d7baa0e66e8a682dad4",
     "src/chat_ai_assistant/provider.py": "f5a65cf7ed046dcce5b21697ac69866fa8f6ba8a6601eeff70d2819d8414e86e",
     "src/chat_ai_assistant/routing.py": "dd4b6d4a9972714d7f9ad3b663264136dac12dff7692501432d8fbe4b70063c0"

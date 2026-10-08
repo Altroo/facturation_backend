@@ -4,8 +4,9 @@ trap 'printf "Deployment failed at line %s. Inspect running services; Git receip
 # Draft: back up the database and current images before installing this hook.
 # Start the private assistant network first if the assistant override is present.
 # Keep the assistant feature disabled until model/application acceptance passes.
-target=/var/www/facturation_backend
-repo=/var/repo/facturation_backend.git
+target="$(git config --get chatAI.sourceWorkTree)"
+repo="$(git rev-parse --absolute-git-dir)"
+[[ -n "$target" && "$target" == /* && -d "$target" ]] || { printf "Configure chatAI.sourceWorkTree before installing this hook.\n" >&2; exit 1; }
 exec 9>"$repo/deploy.lock"
 flock 9
 while read -r oldrev newrev ref; do

@@ -8,8 +8,6 @@
     "runtime_sha256": "abbe8902ab7db126019b780521fb14b163798a1354904cdb2b7f8620da5cb2ff",
     "inference_platform": "Linux x86_64; AMD Ryzen 7 7700; 16 logical CPUs; CPU inference 4 threads",
     "runtime": "Colibri Qwen engine x86-64-v3, dense int8; pinned source 4a4f7a73",
-    "model_path": "/var/www/chat-ai-assistant-training/models/Qwen3.5-0.8B-facturation-v2-colibri",
-    "service_unit": "chat-ai-eval-model-v2-20261008",
     "ctx": 8192,
     "max_tokens": 512,
     "thinking": false,
@@ -19,7 +17,6 @@
   },
   "profile_attributed": true,
   "logical_cpus": 16,
-  "unit": "chat-ai-eval-model-v2-20261008",
   "threads_env": "4",
   "cpu_quota_systemd": "4s",
   "model": "chat-ai-facturation",
@@ -271,5 +268,6 @@
     "First visible event for native tool calls is buffered, not first generated token.",
     "Tests inference directly; application serializes model requests with a database lease.",
     "Existing production services were not stopped. No application business operations executed."
-  ]
+  ],
+  "publication_note": "Infrastructure identifiers omitted; original evidence retained privately. Measurements and artifact hashes are unchanged."
 }

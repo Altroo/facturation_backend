@@ -1,5 +1,4 @@
 {
-  "host": "server1.elbouazzatiholding",
   "platform": "Linux-6.8.0-117-generic-x86_64-with-glibc2.39",
   "device": "cpu",
   "dtype": "bfloat16",
@@ -10,7 +9,6 @@
   "lora_alpha": 16,
   "target_regex": ".*language_model\\.layers\\.(20|21|22|23)\\.(mlp\\.(up_proj|down_proj)|self_attn\\.(q_proj|v_proj)|linear_attn\\.(in_proj_qkv|out_proj))",
   "trainable_parameters": 593920,
-  "model_path": "models/Qwen3.5-0.8B",
   "dataset_sha256": "00d80486559b3db3b31c659038c2cc65996b54902e7b902f1f5b941e6cb5efbc",
   "validation_sha256": "a7bcf10a68aa79f8e99b0e10fe893c8c197a27f43c08f1e333932be84d6b821b",
   "baseline_validation_loss": 0.1454920222879284,
@@ -1277,9 +1275,6 @@
     "typing_extensions": "4.16.0"
   },
   "training_config": {
-    "model_path": "/var/www/chat-ai-assistant-training/models/Qwen3.5-0.8B",
-    "data_path": "/var/www/chat-ai-assistant-training/datasets/facturation-v3-en-fr",
-    "output_path": "/var/www/chat-ai-assistant-training/adapters/facturation-qwen08-v3-en-fr",
     "steps": 192,
     "threads": 14,
     "interop_threads": 1,
@@ -1321,5 +1316,6 @@
       "task_type": "CAUSAL_LM",
       "target_regex": ".*language_model\\.layers\\.(20|21|22|23)\\.(mlp\\.(up_proj|down_proj)|self_attn\\.(q_proj|v_proj)|linear_attn\\.(in_proj_qkv|out_proj))"
     }
-  }
+  },
+  "publication_note": "Infrastructure identifiers omitted; original evidence retained privately. Measurements and artifact hashes are unchanged."
 }

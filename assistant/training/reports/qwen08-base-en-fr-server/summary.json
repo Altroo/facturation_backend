@@ -12,11 +12,7 @@
   "model_manifest_sha256": "273e8c8ecd7f308459fb8f4ec31a6b035c13f55633db120f01d8dc9ce5960a71",
   "model_manifest": {
     "model_id": "chat-ai-facturation",
-    "model_path": "/var/www/chat-ai-assistant-training/models/Qwen3.5-0.8B-base-colibri",
-    "runtime_path": "/var/www/chat-ai-assistant-training/runtime/colibri",
-    "service_unit": "chat-ai-eval-base-20261008",
     "inference_platform": "Linux-6.8.0-117-generic-x86_64-with-glibc2.39",
-    "host": "server1.elbouazzatiholding",
     "ctx": 8192,
     "max_tokens": 512,
     "thinking": false,
@@ -1355,5 +1351,6 @@
     "Tool calls are buffered by Colibri; visible-event latency is not time to first generated token.",
     "Performance applies only to the attested inference platform and runtime configuration.",
     "Model provenance is operator-attested; this client cannot verify remote loaded weights."
-  ]
+  ],
+  "publication_note": "Infrastructure identifiers omitted; original evidence retained privately. Measurements and artifact hashes are unchanged."
 }
