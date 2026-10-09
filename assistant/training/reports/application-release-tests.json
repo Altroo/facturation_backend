@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-08",
+  "date": "2026-10-09",
   "scope": "facturation only",
   "backend": {
     "passed": 2272,
@@ -39,7 +39,7 @@
     "french_status_followup": "passed",
     "method": "approved bilingual retrieval; separate from raw model planning"
   },
-  "production": "Deployed; prepared authenticated browser checklist 12/12 passed. Module shortcut follow-up release in progress.",
+  "production": "Deployed; prior12/12 prepared checks and new9/9 module checks passed. No business mutations performed.",
   "model_v4": "completed; broad quality targets unmet",
   "frontend_module_shortcuts": {
     "passed": 112,
@@ -47,5 +47,10 @@
     "typescript": "passed",
     "eslint": "passed",
     "production_build": "passed"
+  },
+  "production_module_checks": {
+    "passed": 9,
+    "failed": 0,
+    "report": "production-module-shortcuts-checks.json"
   }
 }

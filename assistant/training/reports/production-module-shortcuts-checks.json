@@ -1,0 +1,168 @@
+{
+  "updated_at": "2026-10-09T09:06:40.748997+00:00",
+  "status": "REQUESTED_PRODUCTION_MODULE_CHECKS_PASSED",
+  "release": {
+    "backend": "2a3986e",
+    "frontend": "13048e1",
+    "model_changed": false,
+    "commit_evidence": "Deployment identifiers supplied by release owner; actual browser behavior independently observed after frontend reload."
+  },
+  "method": "Actual MCP Playwright authenticated production UI; native navigation and submitted chat messages, no network stubs, direct API replays, account creation or business record mutations. Native capabilities response read only to compare catalogue/flags.",
+  "privacy": "No customer/company names, record references/identifiers, financial values, credentials, tokens, private prompts or production screenshots retained.",
+  "cases": [
+    {
+      "id": "backend_derived_catalogue",
+      "status": "PASS",
+      "observed": "Visible slash entries exactly match the active-company backend catalogue. All14 supported modules are present for the current native-staff user, plus6 permitted actions. Users entry agrees with the native staff administration menu; edit/delete/PDF entries agree with native capability flags.",
+      "module_count": 14,
+      "action_count": 6,
+      "catalogue_matches_backend": true,
+      "native_staff_menu_matches": true,
+      "action_permissions_match": true,
+      "active_company_matches": true
+    },
+    {
+      "id": "exact_english_logistics_access",
+      "status": "PASS",
+      "prompt": "do you have access to logistics?",
+      "elapsed_ms": 833,
+      "observed": "Safe English authorization-dependent guidance names the logistics shortcut, read/navigation-only scope and example. No business results are retrieved by this application capability handler.",
+      "english_guidance": true,
+      "read_only_scope_explicit": true,
+      "generic_unavailable": false,
+      "business_card_actions": 0,
+      "tested_technical_keys_visible": false,
+      "method": "Trusted permission-derived handler, not a raw-model accuracy result."
+    },
+    {
+      "id": "french_logistics_access_same_conversation",
+      "status": "PASS",
+      "prompt": "As-tu acc\u00e8s \u00e0 la logistique ?",
+      "elapsed_ms": 845,
+      "observed": "Same conversation changes to the correct French authorization-dependent guidance and example.",
+      "french_guidance": true,
+      "read_only_scope_explicit": true,
+      "generic_unavailable": false,
+      "tested_technical_keys_visible": false,
+      "method": "Trusted permission-derived handler, not a raw-model accuracy result."
+    },
+    {
+      "id": "bare_stock",
+      "status": "PASS",
+      "prompt": "/stock",
+      "elapsed_ms": 1859,
+      "observed": "Usage and example plus nonempty bounded authorized stock cards; read/navigation-only scope explicit.",
+      "has_cards": true,
+      "at_most_ten_cards": true,
+      "mutation_buttons": 0,
+      "generic_unavailable": false,
+      "tested_technical_keys_visible": false,
+      "company_scope_matches": true,
+      "method": "Trusted registered read tool without model planning."
+    },
+    {
+      "id": "bare_logistics",
+      "status": "PASS",
+      "prompt": "/logistique",
+      "elapsed_ms": 824,
+      "observed": "Usage and example plus nonempty bounded authorized logistics cards; read/navigation-only scope explicit.",
+      "has_cards": true,
+      "at_most_ten_cards": true,
+      "mutation_buttons": 0,
+      "generic_unavailable": false,
+      "tested_technical_keys_visible": false,
+      "method": "Trusted registered read tool without model planning."
+    },
+    {
+      "id": "bare_articles",
+      "status": "PASS",
+      "prompt": "/articles",
+      "elapsed_ms": 834,
+      "observed": "Usage and example plus nonempty bounded authorized article cards with read actions only.",
+      "has_cards": true,
+      "at_most_ten_cards": true,
+      "mutation_buttons": 0,
+      "generic_unavailable": false,
+      "tested_technical_keys_visible": false,
+      "method": "Trusted registered read tool without model planning."
+    },
+    {
+      "id": "described_article_search",
+      "status": "PASS",
+      "prompt": "Private native-visible designation supplied after /articles; exact prompt deliberately omitted.",
+      "elapsed_ms": 7908,
+      "observed": "Real model-planned described search returned an article matching both the native visible designation and reference. No private names/reference values retained.",
+      "native_designation_matches": true,
+      "native_reference_matches": true,
+      "at_most_ten_cards": true,
+      "generic_unavailable": false,
+      "interpretation_error": false,
+      "tested_technical_keys_visible": false
+    },
+    {
+      "id": "desktop_shortcut_layout",
+      "status": "PASS",
+      "viewport": {
+        "width": 1121,
+        "height": 1050
+      },
+      "observed": "The catalogue has a scroll container, reaches the final permitted action and keeps composer/panel inside the viewport.",
+      "scrollable": true,
+      "last_command_reachable": true,
+      "composer_visible": true,
+      "panel_inside_viewport": true,
+      "horizontal_document_overflow": false,
+      "aria_hidden_ancestor": false
+    },
+    {
+      "id": "mobile_shortcut_layout",
+      "status": "PASS",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "observed": "The catalogue remains scrollable to its final action with visible composer and panel fully inside the viewport; original desktop viewport and conversation restored afterward.",
+      "scrollable": true,
+      "last_command_reachable": true,
+      "composer_visible": true,
+      "panel_inside_viewport": true,
+      "horizontal_document_overflow": false,
+      "aria_hidden_ancestor": false,
+      "desktop_restored": true,
+      "conversation_preserved": true
+    }
+  ],
+  "summary": {
+    "passed": 9,
+    "failed": 0,
+    "broad_model_acceptance_claimed": false
+  },
+  "previous_failure": {
+    "prompt": "do you have access to logistics?",
+    "http_status": 200,
+    "elapsed_ms": 11611,
+    "observed": "Generic unavailable/retry warning on previous release; SSE error code was not observable. Preserved separately from this successful retest."
+  },
+  "limits": [
+    "Only the current authorized native-staff production account was exercised; non-staff/revoked permission variants are covered by backend tests, not impersonated in this browser run.",
+    "Catalogue presence was checked for all14 modules; actual bare reads were exercised only for stock, logistics and articles.",
+    "One described article query is not exhaustive multilingual/filter model certification.",
+    "Physical mobile keyboard, comprehensive assistive technology and sustained load were not tested.",
+    "No production business edit/delete/payment operation was executed."
+  ],
+  "latency_method": "One observed browser send-to-final-state wall time per prompt, not TTFT, p95 or a controlled performance benchmark.",
+  "model_quality": {
+    "tool_selection": "50/80",
+    "exact_arguments": "24/76",
+    "broad_targets": "UNMET",
+    "trusted_handlers_not_raw_model_successes": true
+  },
+  "session": {
+    "authenticated_session_preserved": true,
+    "tab_index": 1,
+    "desktop_viewport_restored": true,
+    "production_business_mutations": false,
+    "chat_test_conversations_created": true
+  },
+  "source_edits": false
+}

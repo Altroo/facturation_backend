@@ -58,8 +58,8 @@
     },
     "docs/AI_API.md": {
       "mode": 420,
-      "sha256": "320d47bc7a5155816cc37ea250a2718a5906148e259f3e7592ea425a376fe337",
-      "size_bytes": 17958
+      "sha256": "291df0eb86299ff5ec0724276423c81120ee5bc98963b2fc4ab1fec5b3b6d4a3",
+      "size_bytes": 18448
     },
     "docs/AI_APPLICATION_DISCOVERY.md": {
       "mode": 420,
@@ -88,8 +88,8 @@
     },
     "docs/AI_FRONTEND.md": {
       "mode": 420,
-      "sha256": "b58f3c1bd657ab703ccf15b8d141d866ed2eb4c5897009327a0321b073130bbc",
-      "size_bytes": 16371
+      "sha256": "5cca6f8f28fadef9ae1172844e9b69804a848c5202e61fcc3cf9045015c66d12",
+      "size_bytes": 16855
     },
     "docs/AI_KNOWLEDGE.md": {
       "mode": 420,
@@ -98,13 +98,13 @@
     },
     "docs/AI_PHASE1_REPORT.md": {
       "mode": 420,
-      "sha256": "944f542283881b63b8e59ef0107c749fc69d367f7e2261fdba0a979e16538ffe",
-      "size_bytes": 12110
+      "sha256": "bfa11b57783476ae4498aefae27b0c77b8b96581500feaf8ec43e07e25427df1",
+      "size_bytes": 13181
     },
     "docs/AI_PROGRESS.md": {
       "mode": 420,
-      "sha256": "0b3cc5f2c44ca0d70c2fea399c922da07b4fa2c5a2275844b8c031dbc4910f72",
-      "size_bytes": 4107
+      "sha256": "7c11cca8a31b20ce9b1e3b4085c383f6b3d3650b98ac92d8c5360d70c09408a8",
+      "size_bytes": 4549
     },
     "docs/AI_PROGRESS_HISTORY.md": {
       "mode": 420,
@@ -118,8 +118,8 @@
     },
     "docs/AI_TESTING.md": {
       "mode": 420,
-      "sha256": "be27a16c522a37e4df2dd31cf5128d076c2837975c6794982550c9c934c1a29a",
-      "size_bytes": 9636
+      "sha256": "68486368ac95eb2270ee172bc04c59f6e5c8323d9a7b692376bdc8bb21b892ce",
+      "size_bytes": 11778
     },
     "docs/AI_TOOLS.md": {
       "mode": 420,
@@ -2378,8 +2378,8 @@
     },
     "training/reports/application-release-tests.json": {
       "mode": 420,
-      "sha256": "f639d4f142894fb368617e114da48befb0db6d59d287c5c769c30a1f81c328b2",
-      "size_bytes": 1469
+      "sha256": "97ca3d5346bfe6c077654a6b55f7bf02d5eab639651f8a367d865ba85dfaabcd",
+      "size_bytes": 1587
     },
     "training/reports/backend-container-validation.json": {
       "mode": 420,
@@ -2391,10 +2391,15 @@
       "sha256": "fe12199bd3df0e6dc15b5e6ce70690cf5281350f87aa667c04b2e0d4ce5f0829",
       "size_bytes": 486
     },
+    "training/reports/production-module-shortcuts-checks.json": {
+      "mode": 420,
+      "sha256": "ffd418dd07103f3af9b3cba044d53883adcd978d955e33b56497c6618536d740",
+      "size_bytes": 7363
+    },
     "training/reports/production-release-checks.json": {
       "mode": 420,
-      "sha256": "ef28c3962be4a8d7c7f0517e9292bef063de0a401e9b42248b757bb5577f3aad",
-      "size_bytes": 1462
+      "sha256": "501d9870795bd85513ae8e46f54d687d57818dc6e3b00df2e438133c3c3a82a8",
+      "size_bytes": 2315
     },
     "training/reports/production-ui-checks.json": {
       "mode": 420,
@@ -2569,5 +2574,5 @@
   },
   "format_version": 1,
   "managed_by": "chat-ai-assistant-source-snapshot",
-  "tree_sha256": "f6cbe1e8e037482b887377bc932b042ee69184eaa95cc3c160d9ed82962cb363"
+  "tree_sha256": "a0378520b091ca7bf211c93e44b68034b4396d089e244def83fad6493928556c"
 }

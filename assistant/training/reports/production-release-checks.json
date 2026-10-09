@@ -1,11 +1,12 @@
 {
-  "date": "2026-10-08",
+  "date": "2026-10-09",
   "scope": "facturation only",
   "release_source": {
-    "backend": "b3fe9747248ddaa0604c2e95cf36bd4faa03a32c",
-    "frontend": "27942a2efb1e609c441e14866246f2860ef15b68"
+    "backend": "2a3986e3ada7632de8768fd0d25592394fbe297d",
+    "frontend": "13048e1fe7562601356177abd7bd598183424c7c",
+    "shared_core_source": "c1a5c7972f3f4d4d2de7149bcd2d1bfe4b8a9cdb"
   },
-  "delivery": "Local source commits pushed normally to company, personal and production; all six remote heads verified",
+  "delivery": "Local source commits pushed normally to company, personal and production; all nine remote heads verified after the interrupted release was resumed.",
   "backend": {
     "linux_image_build": "passed",
     "django_check": "passed",
@@ -29,11 +30,37 @@
     "host_ports_published": false,
     "internal_network_only_facturation": true,
     "nonroot": true,
-    "readonly_root_and_model": true
+    "readonly_root_and_model": true,
+    "unchanged_since_original_release": true
   },
   "public_anonymous_capabilities_status": 401,
   "production_business_mutations_in_tests": false,
   "existing_ai_services_replaced": false,
   "model_quality_acceptance": "UNMET; see frozen model evaluation",
-  "authenticated_browser_review": "Prepared checklist 12/12 passed; no business mutations. Additional module-shortcut verification follows its release."
+  "authenticated_browser_review": {
+    "original_checklist": {
+      "passed": 12,
+      "failed": 0,
+      "report": "production-ui-checks.json"
+    },
+    "module_followup": {
+      "passed": 9,
+      "failed": 0,
+      "report": "production-module-shortcuts-checks.json"
+    }
+  },
+  "language_scope": {
+    "runtime": "English/French only; installed schema checked",
+    "current_dataset_manifests": [
+      "en",
+      "fr"
+    ],
+    "deployed_fine_tuning_guide": "current English/French results only"
+  },
+  "native_http_checks": {
+    "backend_registered_health": 200,
+    "frontend_login": 200
+  },
+  "shared_core_wheel_sha256": "4df4c4b8631c87566602f195848f5cacbf557517645dacab5ddf4be124b3b652",
+  "release_source_note": "Application code commits are identified above; later documentation-only commits preserve the reviewed behavior."
 }

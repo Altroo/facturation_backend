@@ -1,6 +1,6 @@
 # Chat AI Assistant — Facturation API
 
-Status at 2026-10-08: implemented contracts inspected in the current checkout. The focused frontend client/component run passed 100 tests and TypeScript. This document is not a production deployment or complete model/end-to-end acceptance report. Only `facturation` is integrated.
+Status at 2026-10-09: implemented contracts inspected in the current checkout. The latest chat frontend client/component run passed 112 tests, TypeScript and a production build. This document is not a production deployment or complete model/end-to-end acceptance report. Only `facturation` is integrated.
 
 ## Location, authentication, and scope
 
@@ -153,8 +153,11 @@ DRF authentication, serializer, and throttle errors still use the application's 
 
 ## Verification boundary
 
-The focused frontend run on 2026-10-08 passed **100/100 tests** and `tsc --noEmit --incremental false`, covering route substitutions, global user routes, fixed authenticated PDF endpoints/names, Unicode/incomplete streams, card projections, confirmation rejection, request/history races, and write cache behavior. These are automated client/component checks, not a claim of live model acceptance. Backend security/integration test results are maintained separately in the project progress/testing evidence.
+The earlier focused frontend run on 2026-10-08 passed **100/100 tests** and `tsc --noEmit --incremental false`, covering route substitutions, global user routes, fixed authenticated PDF endpoints/names, Unicode/incomplete streams, card projections, confirmation rejection, request/history races, and write cache behavior. These are automated client/component checks, not a claim of live model acceptance. Backend security/integration test results are maintained separately in the project progress/testing evidence.
 
 Actual local browser checks passed invoice, quote and article searches, follow-up selection, navigation, company isolation, history and bilingual workflow delivery. Broad per-module model quality remains below the acceptance targets. Physical mobile keyboard behavior has not been tested. The feedback API exists without a frontend feedback control. Production reverse-proxy streaming, resource behavior under production load, complete multilingual model accuracy, and Phase 1 acceptance are not certified by this document.
 
 Optional message context `interface_language` accepts only `fr` or `en` and is read automatically from the existing application language. It selects visible form labels; it does not set the conversation language or grant authority. Generated answer language follows the current message. Article results may include `sale_label: "price_excl_tax"` to select the native Nectar caption; omitted purchase values are not displayed.
+
+
+The module-catalogue release passed 112 chat UI/client tests and 819 assistant/backend tests. On 2026-10-09, nine production browser checks verified catalogue/permission parity, English/French capability answers, bounded module cards, a described article search and responsive menu behavior. Streaming final responses worked for those observed flows; exhaustive proxy disconnect behavior and sustained load remain outside this evidence. See AI_TESTING.md.
