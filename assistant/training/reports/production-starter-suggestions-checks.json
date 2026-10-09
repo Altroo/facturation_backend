@@ -1,0 +1,244 @@
+{
+  "date": "2026-10-09",
+  "status": "FINAL_STARTER_BUTTON_RETESTS_PASSED",
+  "functional_releases": {
+    "frontend": "72073fb7",
+    "backend": "251a9da",
+    "central_core": "f4115a2",
+    "model_changed": false,
+    "provenance": "Deployment owner supplied Git/runtime identity; actual UI independently reviewed after reload."
+  },
+  "method": "Actual authenticated MCP Playwright production UI. New conversation then exactly one starter-button click for each case; no Send click. Native request metadata compared internally with selected company, no direct API replay/stubs/auth bypass. Native history UI reopened to validate structured response when SSE body was unavailable.",
+  "summary": {
+    "passed": 10,
+    "failed": 0,
+    "french": 5,
+    "english": 5,
+    "all_exact_single_click_requests": true,
+    "all_selected_company_scope_checks": true,
+    "no_business_mutations": true,
+    "no_technical_keys_observed": true
+  },
+  "cases": [
+    {
+      "id": "fr_unpaid",
+      "question": "Affiche les factures impayées.",
+      "language": "fr",
+      "elapsed_ms": 9946,
+      "exactly_one_message_request": true,
+      "exact_question": true,
+      "interface_language_matches": true,
+      "company_scope_matches": true,
+      "assistant_completed": true,
+      "card_types": [
+        "record_list"
+      ],
+      "resources": [
+        "invoice"
+      ],
+      "status": "PASS"
+    },
+    {
+      "id": "fr_quotes",
+      "question": "Montre les derniers devis.",
+      "language": "fr",
+      "elapsed_ms": 9444,
+      "exactly_one_message_request": true,
+      "exact_question": true,
+      "interface_language_matches": true,
+      "company_scope_matches": true,
+      "assistant_completed": true,
+      "card_types": [
+        "record_list"
+      ],
+      "resources": [
+        "quote"
+      ],
+      "status": "PASS"
+    },
+    {
+      "id": "fr_logistics",
+      "question": "Montre les dernières commandes logistiques.",
+      "language": "fr",
+      "elapsed_ms": 10961,
+      "exactly_one_message_request": true,
+      "exact_question": true,
+      "interface_language_matches": true,
+      "company_scope_matches": true,
+      "assistant_completed": true,
+      "card_types": [
+        "record_list"
+      ],
+      "resources": [
+        "logistics_order"
+      ],
+      "status": "PASS"
+    },
+    {
+      "id": "fr_stock",
+      "question": "Affiche le stock à l’état « Stock minimum ».",
+      "language": "fr",
+      "elapsed_ms": 11436,
+      "exactly_one_message_request": true,
+      "exact_question": true,
+      "interface_language_matches": true,
+      "company_scope_matches": true,
+      "assistant_completed": true,
+      "card_types": [
+        "record_list"
+      ],
+      "resources": [
+        "stock_balance"
+      ],
+      "status": "PASS"
+    },
+    {
+      "id": "fr_workflow",
+      "question": "Comment créer une facture client ?",
+      "language": "fr",
+      "elapsed_ms": 1334,
+      "exactly_one_message_request": true,
+      "exact_question": true,
+      "interface_language_matches": true,
+      "company_scope_matches": true,
+      "assistant_completed": true,
+      "card_types": [
+        "knowledge"
+      ],
+      "resources": [],
+      "status": "PASS"
+    },
+    {
+      "id": "en_unpaid",
+      "question": "Show unpaid customer invoices.",
+      "language": "en",
+      "elapsed_ms": 9928,
+      "exactly_one_message_request": true,
+      "exact_question": true,
+      "interface_language_matches": true,
+      "company_scope_matches": true,
+      "assistant_completed": true,
+      "card_types": [
+        "record_list"
+      ],
+      "resources": [
+        "invoice"
+      ],
+      "status": "PASS"
+    },
+    {
+      "id": "en_quotes",
+      "question": "Show the latest quotes.",
+      "language": "en",
+      "elapsed_ms": 9416,
+      "exactly_one_message_request": true,
+      "exact_question": true,
+      "interface_language_matches": true,
+      "company_scope_matches": true,
+      "assistant_completed": true,
+      "card_types": [
+        "record_list"
+      ],
+      "resources": [
+        "quote"
+      ],
+      "status": "PASS"
+    },
+    {
+      "id": "en_logistics",
+      "question": "Show the latest logistics orders.",
+      "language": "en",
+      "elapsed_ms": 11421,
+      "exactly_one_message_request": true,
+      "exact_question": true,
+      "interface_language_matches": true,
+      "company_scope_matches": true,
+      "assistant_completed": true,
+      "card_types": [
+        "record_list"
+      ],
+      "resources": [
+        "logistics_order"
+      ],
+      "status": "PASS"
+    },
+    {
+      "id": "en_stock",
+      "question": "Show stock with the “Stock minimum” status.",
+      "language": "en",
+      "elapsed_ms": 11416,
+      "exactly_one_message_request": true,
+      "exact_question": true,
+      "interface_language_matches": true,
+      "company_scope_matches": true,
+      "assistant_completed": true,
+      "card_types": [
+        "record_list"
+      ],
+      "resources": [
+        "stock_balance"
+      ],
+      "status": "PASS"
+    },
+    {
+      "id": "en_workflow",
+      "question": "How do I create a customer invoice?",
+      "language": "en",
+      "elapsed_ms": 1850,
+      "exactly_one_message_request": true,
+      "exact_question": true,
+      "interface_language_matches": true,
+      "company_scope_matches": true,
+      "assistant_completed": true,
+      "card_types": [
+        "knowledge"
+      ],
+      "resources": [],
+      "status": "PASS"
+    }
+  ],
+  "stock_filter_probes": [
+    {
+      "language": "fr",
+      "tool": "search_operations",
+      "resource": "stock_balance",
+      "status": "minimum",
+      "mode": "actual private provider plan only; no business operation"
+    },
+    {
+      "language": "en",
+      "tool": "search_operations",
+      "resource": "stock_balance",
+      "status": "minimum",
+      "mode": "actual private provider plan only; no business operation"
+    }
+  ],
+  "prior_failures": [
+    {
+      "question": "Montre les dossiers logistiques récents.",
+      "error": "INVALID_MODEL_OUTPUT",
+      "correction": "Replace with separately verified latest-logistics wording in both languages."
+    },
+    {
+      "question": "Show unpaid customer invoices.",
+      "error": "CONTEXT_EXPIRED",
+      "correction": "Exclude the prior-results tool when trusted history has no nonempty results; authorization was unchanged."
+    }
+  ],
+  "failure_accounting": "Prior failures remain recorded as failures; the ten final passes belong to a later corrective release.",
+  "automated_tests": {
+    "assistant_backend_security_passed": 831,
+    "chat_frontend_passed": 115,
+    "types": "passed",
+    "lint": "passed",
+    "frontend_production_build": "passed"
+  },
+  "limits": [
+    "Current authorized account has invoice-creation workflow access; read-only payment fallback and stock-only account suggestions covered by backend tests, not production impersonation.",
+    "Stock results were empty in both languages; no live card quantities existed to independently validate thresholds.",
+    "Earlier desktop/mobile/slash-drafting checks remain separate evidence for the unchanged frontend.",
+    "Selected starter successes do not meet or replace broad frozen model acceptance; tool50/80 and args24/76 targets remain unmet.",
+    "No physical-keyboard, comprehensive screen-reader or sustained-load certification."
+  ],
+  "privacy": "No real account/company names, record identifiers, values, credentials, URLs, hostnames or screenshots. Question text and semantic tool names come from published source."
+}

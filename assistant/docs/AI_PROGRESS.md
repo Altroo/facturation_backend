@@ -1,6 +1,6 @@
 # Phase 1 progress — facturation
 
-Current step: starter-question click behavior, model-tool availability correction and production verification; Phase 1 implementation report remains available for user review. Other applications remain untouched. Broad model-quality acceptance is incomplete; do not interpret successful basic workflows as a 95% accuracy result.
+Current step: corrected starter-question release deployed and verified; Phase 1 implementation report remains available for user review. Other applications remain untouched. Broad model-quality acceptance is incomplete; do not interpret successful basic workflows as a 95% accuracy result.
 
 ## IMPLEMENTED and verified
 - Reusable Python provider/orchestrator/registry, Django integration,17 typed tools, native permissions, company/object checks, bounded read results, safe navigation and financial calculations reused from Facturation.
@@ -19,6 +19,7 @@ Current step: starter-question click behavior, model-tool availability correctio
 - Validation: 831 assistant backend/security tests and 115 chat frontend tests passed; TypeScript, ESLint, production frontend build and source/wheel checks passed. The single reviewer found no unresolved code issues.
 - Initial production UI release: each of the five questions sent exactly once in the active company. Unpaid invoices, recent quotes, stock and invoice workflow completed safely; desktop/mobile fit, native English metadata and slash drafting passed.
 - Preserved failures: original logistics wording returned INVALID_MODEL_OUTPUT; its clearer French/English replacement completed successfully as separate normal chat requests. An English fresh-conversation unpaid search incorrectly selected the previous-results tool; audit confirmed CONTEXT_EXPIRED from that unavailable tool, with unchanged user authorization. The corrected catalogue omits this tool until a nonempty result set exists. A private provider probe then selected the correct unpaid-invoice search. The stock probe confirmed the native minimum-status filter; empty production cards alone were not treated as filter evidence.
+- Final corrected release: 10/10 actual production button-click checks passed (five French, five English), with one exact request per click and correct company scope. Both final stock questions independently selected the native minimum-status filter in private provider probes. Source heads and installed wheel were verified, services healthy, model unchanged. Observed production stock lists were empty; no live threshold values were inferred. Evidence: [sanitized starter checks](../training/reports/production-starter-suggestions-checks.json).
 - These targeted checks do not replace the held-out model evaluation, whose last recorded scores remain below target. The catalogue correction has not been rescored against that dataset.
 
 ## Measured model limits
