@@ -88,8 +88,8 @@
     },
     "docs/AI_FRONTEND.md": {
       "mode": 420,
-      "sha256": "3b7f7e8ee62684cfe54b770fd27b1e7b6e6927d6669b47a13579af25798e1fec",
-      "size_bytes": 17516
+      "sha256": "0b5c8b735923d7d8c52bd13a70cafdba2faba044c1694521a3ab0081109748b4",
+      "size_bytes": 17678
     },
     "docs/AI_KNOWLEDGE.md": {
       "mode": 420,
@@ -103,8 +103,8 @@
     },
     "docs/AI_PROGRESS.md": {
       "mode": 420,
-      "sha256": "2c4b3defb4ebe4b607f7dd59ea13860a10db3de3ed5dd12c569e009d7f6a30e6",
-      "size_bytes": 5047
+      "sha256": "3d0bd11ed73806366a4662f572f47b8f585c993d55f23977fb79d302fa67e752",
+      "size_bytes": 6151
     },
     "docs/AI_PROGRESS_HISTORY.md": {
       "mode": 420,
@@ -2138,8 +2138,8 @@
     },
     "src/chat_ai_assistant/routing.py": {
       "mode": 420,
-      "sha256": "dd4b6d4a9972714d7f9ad3b663264136dac12dff7692501432d8fbe4b70063c0",
-      "size_bytes": 3017
+      "sha256": "1640f46741e967711c7af246d0766b89992c4dc63d48c7a697ef775890d4a811",
+      "size_bytes": 3390
     },
     "training/configs/server-requirements.lock": {
       "mode": 420,
@@ -2574,5 +2574,5 @@
   },
   "format_version": 1,
   "managed_by": "chat-ai-assistant-source-snapshot",
-  "tree_sha256": "a55141d06201e6dda60bcd2a45c65a6ae90ef353980e91b74ada48870702a163"
+  "tree_sha256": "6993f3e90183b8411a3e5f41f4ad45d6d4e891d09aa71e5dc3ee6d3a33c06eaa"
 }

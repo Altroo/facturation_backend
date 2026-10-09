@@ -130,7 +130,7 @@ def test_suggestions_are_complete_localized_and_use_native_permissions(setup, la
     assert len(questions) == 5 and len(set(questions)) == 5
     assert expected in questions
     assert ('Show unpaid customer invoices.' if language == 'en' else 'Affiche les factures impayées.') in questions
-    assert ('Show recent logistics dossiers.' if language == 'en' else 'Montre les dossiers logistiques récents.') in questions
+    assert ('Show the latest logistics orders.' if language == 'en' else 'Montre les dernières commandes logistiques.') in questions
     assert all('Atlas' not in question and not question.startswith('/') for question in questions)
     if role.name == 'Lecture':
         assert 'Comment créer une facture client ?' not in questions

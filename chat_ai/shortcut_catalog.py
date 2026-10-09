@@ -91,7 +91,7 @@ def suggestion_catalog(executor, language='fr'):
     candidates = (
         ('/impayees', 'Affiche les factures impayées.', 'Show unpaid customer invoices.'),
         ('/devis', 'Montre les derniers devis.', 'Show the latest quotes.'),
-        ('/logistique', 'Montre les dossiers logistiques récents.', 'Show recent logistics dossiers.'),
+        ('/logistique', 'Montre les dernières commandes logistiques.', 'Show the latest logistics orders.'),
         ('/stock', 'Affiche le stock à l’état « Stock minimum ».', 'Show stock with the “Stock minimum” status.'),
     )
     questions = [english if en else fr for command, fr, english in candidates if command in allowed]

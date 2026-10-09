@@ -1,6 +1,6 @@
 """Small English/French tool shortlist; authorization always remains in the registry.
 
-An unrecognized request retains the full permitted catalogue. This is prompt-size
+An unrecognized request retains all context-available permitted tools. This is prompt-size
 selection, never a permission decision and never an inferred database operation.
 """
 import re
@@ -26,6 +26,10 @@ COMMON = {'knowledge', 'navigate', 'previous_results'}
 
 
 def shortlist(text, permitted_tools, context=None):
+    # A follow-up has no valid target before the first nonempty result set.
+    # Do not let a new search select a tool that can only report expired context.
+    if not ((context or {}).get('previous_result_type') and (context or {}).get('previous_result_count', 0)):
+        permitted_tools = [tool for tool in permitted_tools if tool.name != 'previous_results']
     words = normalized(text)
     matches = {name for name, terms in FAMILIES.items() if any(normalized(term) in words for term in terms)}
     # A customer/product qualifying a document query does not need a separate
