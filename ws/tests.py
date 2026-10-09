@@ -88,7 +88,7 @@ def test_get_maintenance_view_is_public_and_not_throttled(settings):
     responses = [client.get("/api/ws/maintenance/") for _ in range(3)]
 
     assert [response.status_code for response in responses] == [200, 200, 200]
-    assert responses[-1].data == {"maintenance": True}
+    assert responses[-1].data == {"maintenance": True, "version": "0.1.0"}
 
 
 class TestAwaitableUserExtra:

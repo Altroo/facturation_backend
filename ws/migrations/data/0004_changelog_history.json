@@ -1,0 +1,2414 @@
+[
+  {
+    "date": "2025-10-24",
+    "version": "0.1.0",
+    "title_fr": "Les débuts de Facturation",
+    "title_en": "Facturation begins",
+    "changes_fr": [
+      "Création de l’application, de ses comptes et des premiers écrans ; validation des formulaires et gestion des traitements en arrière-plan.",
+      "Harmonisation et entretien du fonctionnement interne de l’application."
+    ],
+    "changes_en": [
+      "Created the application, accounts and initial screens, with form validation and background processing.",
+      "Aligned and maintained internal application behavior."
+    ]
+  },
+  {
+    "date": "2025-10-25",
+    "version": "0.2.0",
+    "title_fr": "Identité et connexion en temps réel",
+    "title_en": "Identity and real-time connection",
+    "changes_fr": [
+      "Mise en place de l’identité Facturation, des connexions en temps réel authentifiées et de l’environnement d’exécution.",
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Entretien de l’hébergement, de la configuration et de la distribution de l’application.",
+      "Harmonisation et entretien du fonctionnement interne de l’application."
+    ],
+    "changes_en": [
+      "Introduced the Facturation identity, authenticated real-time connections and runtime environment.",
+      "Updated application dependencies and compatibility.",
+      "Maintained application hosting, configuration and delivery.",
+      "Aligned and maintained internal application behavior."
+    ]
+  },
+  {
+    "date": "2025-10-28",
+    "version": "0.3.0",
+    "title_fr": "Premiers écrans de connexion",
+    "title_en": "First sign-in screens",
+    "changes_fr": [
+      "Ajout des pages de connexion et de récupération du mot de passe."
+    ],
+    "changes_en": [
+      "Added sign-in and password recovery pages."
+    ]
+  },
+  {
+    "date": "2025-10-29",
+    "version": "0.3.1",
+    "title_fr": "Connexion et récupération du mot de passe",
+    "title_en": "Sign-in and password recovery",
+    "changes_fr": [
+      "Redirection selon l’état de connexion, nettoyage des cookies et affichage de l’interface en français.",
+      "Validation des mots de passe et codes de récupération, saisie facilitée et messages d’erreur plus précis.",
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Entretien de l’hébergement, de la configuration et de la distribution de l’application."
+    ],
+    "changes_en": [
+      "Added redirects based on sign-in state, cookie cleanup and a French interface.",
+      "Improved password and recovery-code validation, keyboard entry and error messages.",
+      "Updated application dependencies and compatibility.",
+      "Maintained application hosting, configuration and delivery."
+    ]
+  },
+  {
+    "date": "2025-10-30",
+    "version": "0.4.0",
+    "title_fr": "Gestion du profil",
+    "title_en": "Profile management",
+    "changes_fr": [
+      "Consultation et modification du profil avec prise en compte de la session utilisateur."
+    ],
+    "changes_en": [
+      "Added profile viewing and editing tied to the signed-in session."
+    ]
+  },
+  {
+    "date": "2025-10-31",
+    "version": "0.4.1",
+    "title_fr": "Photos et mots de passe",
+    "title_en": "Photos and passwords",
+    "changes_fr": [
+      "Traitement des photos de profil, amélioration de la modification du mot de passe et normalisation du genre.",
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Entretien de l’hébergement, de la configuration et de la distribution de l’application."
+    ],
+    "changes_en": [
+      "Added profile photo processing and improved password changes and gender handling.",
+      "Updated application dependencies and compatibility.",
+      "Maintained application hosting, configuration and delivery."
+    ]
+  },
+  {
+    "date": "2025-11-01",
+    "version": "0.4.2",
+    "title_fr": "Avatars et comptes administrateurs",
+    "title_en": "Avatars and administrator accounts",
+    "changes_fr": [
+      "Affichage de l’avatar et prise en compte des comptes administrateurs dans la gestion des utilisateurs.",
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Harmonisation et entretien du fonctionnement interne de l’application."
+    ],
+    "changes_en": [
+      "Added avatar information and administrator status to user management.",
+      "Updated application dependencies and compatibility.",
+      "Aligned and maintained internal application behavior."
+    ]
+  },
+  {
+    "date": "2025-11-03",
+    "version": "0.4.3",
+    "title_fr": "Profil et navigation",
+    "title_en": "Profile and navigation",
+    "changes_fr": [
+      "Amélioration du chargement des photos, de la navigation et de l’accès au profil après connexion.",
+      "Ajout du genre dans la gestion des comptes et amélioration de la génération des mots de passe.",
+      "Harmonisation et entretien du fonctionnement interne de l’application."
+    ],
+    "changes_en": [
+      "Improved photo loading, navigation and profile access after sign-in.",
+      "Added gender to account management and improved password generation.",
+      "Aligned and maintained internal application behavior."
+    ]
+  },
+  {
+    "date": "2025-11-04",
+    "version": "0.5.0",
+    "title_fr": "Identité visuelle et groupes",
+    "title_en": "Visual identity and groups",
+    "changes_fr": [
+      "Ajout des icônes de l’application, harmonisation du thème et chargement des groupes disponibles.",
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Harmonisation et entretien du fonctionnement interne de l’application."
+    ],
+    "changes_en": [
+      "Added application icons, aligned the visual theme and loaded available user groups.",
+      "Updated application dependencies and compatibility.",
+      "Aligned and maintained internal application behavior."
+    ]
+  },
+  {
+    "date": "2025-11-05",
+    "version": "0.6.0",
+    "title_fr": "Gestion des sociétés",
+    "title_en": "Company management",
+    "changes_fr": [
+      "Création, consultation, modification et suppression des sociétés, avec filtres et liste paginée."
+    ],
+    "changes_en": [
+      "Added company creation, viewing, editing and deletion with filters and pagination."
+    ]
+  },
+  {
+    "date": "2025-11-07",
+    "version": "0.6.1",
+    "title_fr": "Sociétés et confirmations",
+    "title_en": "Companies and confirmations",
+    "changes_fr": [
+      "Confirmation avant suppression et notifications de résultat ; correction du passage entre les pages des listes.",
+      "Renforcement des permissions de création des sociétés et gestion des rôles facultatifs.",
+      "Extension et entretien des vérifications automatisées.",
+      "Entretien de l’hébergement, de la configuration et de la distribution de l’application.",
+      "Harmonisation et entretien du fonctionnement interne de l’application.",
+      "Mise à jour de la documentation et des outils de maintenance."
+    ],
+    "changes_en": [
+      "Added deletion confirmation and result notifications, and corrected list pagination.",
+      "Improved company creation permissions and optional role handling.",
+      "Expanded and maintained automated checks.",
+      "Maintained application hosting, configuration and delivery.",
+      "Aligned and maintained internal application behavior.",
+      "Updated documentation and maintenance tools."
+    ]
+  },
+  {
+    "date": "2025-11-08",
+    "version": "0.6.2",
+    "title_fr": "Fiches des sociétés",
+    "title_en": "Company details",
+    "changes_fr": [
+      "Ajout des fiches et formulaires de modification des sociétés, avec navigation active et droits d’accès corrigés."
+    ],
+    "changes_en": [
+      "Added company detail and edit screens, active navigation and corrected access permissions."
+    ]
+  },
+  {
+    "date": "2025-11-10",
+    "version": "0.7.0",
+    "title_fr": "Logos, cachets et responsables",
+    "title_en": "Logos, stamps and managers",
+    "changes_fr": [
+      "Ajout et recadrage du logo et du cachet ; amélioration des fiches sociétés et de leurs responsables.",
+      "Harmonisation et entretien du fonctionnement interne de l’application."
+    ],
+    "changes_en": [
+      "Added logo and stamp cropping and improved company details and manager assignment.",
+      "Aligned and maintained internal application behavior."
+    ]
+  },
+  {
+    "date": "2025-11-11",
+    "version": "0.8.0",
+    "title_fr": "Création et administration des sociétés",
+    "title_en": "Company creation and administration",
+    "changes_fr": [
+      "Création d’une société avec recherche de ses responsables, gestion des administrateurs et retours de formulaire corrigés.",
+      "Traduction des libellés et corrections de la modification du profil.",
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Harmonisation et entretien du fonctionnement interne de l’application."
+    ],
+    "changes_en": [
+      "Added company creation with manager search, administrator assignment and corrected form feedback.",
+      "Translated labels and corrected profile updates.",
+      "Updated application dependencies and compatibility.",
+      "Aligned and maintained internal application behavior."
+    ]
+  },
+  {
+    "date": "2025-11-12",
+    "version": "0.8.1",
+    "title_fr": "Formulaires et images",
+    "title_en": "Forms and images",
+    "changes_fr": [
+      "Harmonisation de la création et de la modification des sociétés ; possibilité de retirer les images enregistrées.",
+      "Amélioration des miniatures et des informations renvoyées pour les utilisateurs."
+    ],
+    "changes_en": [
+      "Unified company creation and editing and allowed saved images to be removed.",
+      "Improved thumbnails and user information."
+    ]
+  },
+  {
+    "date": "2025-11-13",
+    "version": "0.9.0",
+    "title_fr": "Gestion des utilisateurs",
+    "title_en": "User management",
+    "changes_fr": [
+      "Liste paginée des utilisateurs, fiches, création, modification et suppression avec contrôle des accès administrateurs.",
+      "Traitement des avatars en arrière-plan et prise en charge de plusieurs formats d’envoi d’images.",
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Harmonisation et entretien du fonctionnement interne de l’application."
+    ],
+    "changes_en": [
+      "Added paginated user lists, details, creation, editing and deletion with administrator access checks.",
+      "Added background avatar processing and support for multiple image upload formats.",
+      "Updated application dependencies and compatibility.",
+      "Aligned and maintained internal application behavior."
+    ]
+  },
+  {
+    "date": "2025-11-14",
+    "version": "0.9.1",
+    "title_fr": "Filtres et fiches utilisateurs",
+    "title_en": "User filters and details",
+    "changes_fr": [
+      "Amélioration des listes utilisateurs et sociétés, des filtres et du traitement des images absentes."
+    ],
+    "changes_en": [
+      "Improved user and company lists, filtering and missing-image handling."
+    ]
+  },
+  {
+    "date": "2025-11-15",
+    "version": "0.10.0",
+    "title_fr": "Utilisateurs et sociétés sur mobile",
+    "title_en": "Users and companies on mobile",
+    "changes_fr": [
+      "Ajout des formulaires utilisateurs et amélioration des fiches sur mobile ; gestion partagée des responsables de sociétés."
+    ],
+    "changes_en": [
+      "Added user forms and improved mobile detail screens and company manager assignment."
+    ]
+  },
+  {
+    "date": "2025-11-17",
+    "version": "0.11.0",
+    "title_fr": "Clients et paramètres",
+    "title_en": "Clients and reference data",
+    "changes_fr": [
+      "Ajout des premiers services de gestion des clients et paramètres, accompagnés de vérifications automatisées.",
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Extension et entretien des vérifications automatisées."
+    ],
+    "changes_en": [
+      "Added initial client and reference-data services with automated checks.",
+      "Updated application dependencies and compatibility.",
+      "Expanded and maintained automated checks."
+    ]
+  },
+  {
+    "date": "2025-11-19",
+    "version": "0.11.1",
+    "title_fr": "Accès aux clients par société",
+    "title_en": "Company-scoped client access",
+    "changes_fr": [
+      "Correction des droits et du filtrage pour consulter les clients de la société choisie."
+    ],
+    "changes_en": [
+      "Corrected permissions and filtering for the selected company’s clients."
+    ]
+  },
+  {
+    "date": "2025-11-20",
+    "version": "0.11.2",
+    "title_fr": "Informations de société dans les clients",
+    "title_en": "Company information in client lists",
+    "changes_fr": [
+      "Affichage du nom de la société dans les données des clients et vérification des appartenances.",
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Extension et entretien des vérifications automatisées."
+    ],
+    "changes_en": [
+      "Added company names to client information and checked company memberships.",
+      "Updated application dependencies and compatibility.",
+      "Expanded and maintained automated checks."
+    ]
+  },
+  {
+    "date": "2025-11-21",
+    "version": "0.11.3",
+    "title_fr": "Préparation des écrans clients",
+    "title_en": "Client screen foundations",
+    "changes_fr": [
+      "Ajout des échanges nécessaires à la gestion des clients et extension des vérifications de l’application.",
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Extension et entretien des vérifications automatisées."
+    ],
+    "changes_en": [
+      "Added client data integration and expanded application checks.",
+      "Updated application dependencies and compatibility.",
+      "Expanded and maintained automated checks."
+    ]
+  },
+  {
+    "date": "2025-11-22",
+    "version": "0.12.0",
+    "title_fr": "Villes des clients",
+    "title_en": "Client cities",
+    "changes_fr": [
+      "Ajout du chargement et de la gestion des villes utilisées dans les fiches clients.",
+      "Extension et entretien des vérifications automatisées.",
+      "Harmonisation et entretien du fonctionnement interne de l’application."
+    ],
+    "changes_en": [
+      "Added loading and management of cities used in client details.",
+      "Expanded and maintained automated checks.",
+      "Aligned and maintained internal application behavior."
+    ]
+  },
+  {
+    "date": "2025-11-24",
+    "version": "0.13.0",
+    "title_fr": "Gestion complète des clients",
+    "title_en": "Client management screens",
+    "changes_fr": [
+      "Ajout des listes, fiches et formulaires clients, des archives et du choix des sociétés accessibles.",
+      "Affichage du nom de la ville dans les fiches et listes."
+    ],
+    "changes_en": [
+      "Added client lists, details, forms, archives and accessible company selection.",
+      "Displayed city names in client details and lists."
+    ]
+  },
+  {
+    "date": "2025-11-25",
+    "version": "0.13.1",
+    "title_fr": "Actions selon les droits",
+    "title_en": "Actions based on permissions",
+    "changes_fr": [
+      "Adaptation des actions aux rôles administrateur et lecture, vérification des liens et amélioration de l’affichage mobile.",
+      "Invitation à créer une société lorsque la liste est vide pour un administrateur.",
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Extension et entretien des vérifications automatisées."
+    ],
+    "changes_en": [
+      "Adapted actions to administrator and read-only roles, checked links and improved mobile layouts.",
+      "Added a create-company prompt for administrators with no companies.",
+      "Updated application dependencies and compatibility.",
+      "Expanded and maintained automated checks."
+    ]
+  },
+  {
+    "date": "2025-11-26",
+    "version": "0.13.2",
+    "title_fr": "Recherche, filtres et validation",
+    "title_en": "Search, filters and validation",
+    "changes_fr": [
+      "Correction de la recherche, des filtres personnes physiques et morales, et de l’actualisation des listes.",
+      "Identification des champs obligatoires et affichage des erreurs de formulaire ; stabilisation des écrans et des fenêtres.",
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Extension et entretien des vérifications automatisées."
+    ],
+    "changes_en": [
+      "Corrected search, individual and business client filters, and list refreshes.",
+      "Marked required fields, displayed form errors and stabilized screens and dialogs.",
+      "Updated application dependencies and compatibility.",
+      "Expanded and maintained automated checks."
+    ]
+  },
+  {
+    "date": "2025-11-27",
+    "version": "0.14.0",
+    "title_fr": "Articles et paramètres du catalogue",
+    "title_en": "Articles and catalogue reference data",
+    "changes_fr": [
+      "Ajout de la gestion des articles et des paramètres manquants ; correction de la pagination et du chargement des sociétés.",
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Extension et entretien des vérifications automatisées.",
+      "Harmonisation et entretien du fonctionnement interne de l’application."
+    ],
+    "changes_en": [
+      "Added article management and missing reference data, and corrected pagination and company loading.",
+      "Updated application dependencies and compatibility.",
+      "Expanded and maintained automated checks.",
+      "Aligned and maintained internal application behavior."
+    ]
+  },
+  {
+    "date": "2025-11-28",
+    "version": "0.14.1",
+    "title_fr": "Chargement et mises à jour du profil",
+    "title_en": "Loading and profile updates",
+    "changes_fr": [
+      "Amélioration de l’initialisation de l’application et correction des événements de mise à jour du profil.",
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Extension et entretien des vérifications automatisées."
+    ],
+    "changes_en": [
+      "Improved application initialization and corrected profile update events.",
+      "Updated application dependencies and compatibility.",
+      "Expanded and maintained automated checks."
+    ]
+  },
+  {
+    "date": "2025-11-29",
+    "version": "0.14.2",
+    "title_fr": "Accès aux paramètres",
+    "title_en": "Reference-data access",
+    "changes_fr": [
+      "Connexion des paramètres aux formulaires et correction de la transmission de l’authentification dans les requêtes."
+    ],
+    "changes_en": [
+      "Connected reference data to forms and corrected request authentication."
+    ]
+  },
+  {
+    "date": "2025-12-01",
+    "version": "0.15.0",
+    "title_fr": "Catalogue des articles",
+    "title_en": "Article catalogue",
+    "changes_fr": [
+      "Ajout des écrans articles et de leurs champs, avec initialisation partagée de l’application.",
+      "Extension et entretien des vérifications automatisées."
+    ],
+    "changes_en": [
+      "Added article screens and fields with shared application initialization.",
+      "Expanded and maintained automated checks."
+    ]
+  },
+  {
+    "date": "2025-12-02",
+    "version": "0.15.1",
+    "title_fr": "Maintenance et améliorations",
+    "title_en": "Maintenance and improvements",
+    "changes_fr": [
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Extension et entretien des vérifications automatisées."
+    ],
+    "changes_en": [
+      "Updated application dependencies and compatibility.",
+      "Expanded and maintained automated checks."
+    ]
+  },
+  {
+    "date": "2025-12-03",
+    "version": "0.16.0",
+    "title_fr": "Premiers devis",
+    "title_en": "First quotes",
+    "changes_fr": [
+      "Création des devis et de leurs lignes, numérotation, filtres, statuts et administration.",
+      "Modification des articles et clients avec vérification des droits sur la société.",
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Extension et entretien des vérifications automatisées.",
+      "Harmonisation et entretien du fonctionnement interne de l’application."
+    ],
+    "changes_en": [
+      "Added quotes and quote lines, numbering, filters, statuses and administration.",
+      "Enabled article and client updates with company permission checks.",
+      "Updated application dependencies and compatibility.",
+      "Expanded and maintained automated checks.",
+      "Aligned and maintained internal application behavior."
+    ]
+  },
+  {
+    "date": "2025-12-04",
+    "version": "0.17.0",
+    "title_fr": "Remises et modes de paiement",
+    "title_en": "Discounts and payment methods",
+    "changes_fr": [
+      "Ajout des modes de paiement et des remises par ligne ou sur le devis, avec calcul des totaux.",
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Extension et entretien des vérifications automatisées."
+    ],
+    "changes_en": [
+      "Added payment methods and line or quote discounts with calculated totals.",
+      "Updated application dependencies and compatibility.",
+      "Expanded and maintained automated checks."
+    ]
+  },
+  {
+    "date": "2025-12-05",
+    "version": "0.17.1",
+    "title_fr": "Totaux des devis",
+    "title_en": "Quote totals",
+    "changes_fr": [
+      "Calcul de la TVA, des montants TTC et des totaux après remise ; gestion des devis depuis l’interface.",
+      "Amélioration de l’affichage des erreurs de saisie.",
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Harmonisation et entretien du fonctionnement interne de l’application."
+    ],
+    "changes_en": [
+      "Calculated VAT, tax-inclusive amounts and discounted totals, and connected quote management to the interface.",
+      "Improved entry error messages.",
+      "Updated application dependencies and compatibility.",
+      "Aligned and maintained internal application behavior."
+    ]
+  },
+  {
+    "date": "2025-12-06",
+    "version": "0.18.0",
+    "title_fr": "Saisie des devis",
+    "title_en": "Quote entry",
+    "changes_fr": [
+      "Ajout du formulaire de devis avec validation des lignes et des types de remise."
+    ],
+    "changes_en": [
+      "Added the quote form with line and discount-type validation."
+    ]
+  },
+  {
+    "date": "2025-12-08",
+    "version": "0.18.1",
+    "title_fr": "Création des devis",
+    "title_en": "Quote creation",
+    "changes_fr": [
+      "Réorganisation du formulaire de création des devis pour faciliter la saisie et les contrôles.",
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Extension et entretien des vérifications automatisées.",
+      "Harmonisation et entretien du fonctionnement interne de l’application."
+    ],
+    "changes_en": [
+      "Reworked quote creation to simplify entry and validation.",
+      "Updated application dependencies and compatibility.",
+      "Expanded and maintained automated checks.",
+      "Aligned and maintained internal application behavior."
+    ]
+  },
+  {
+    "date": "2025-12-09",
+    "version": "0.19.0",
+    "title_fr": "Articles dans les devis",
+    "title_en": "Articles in quotes",
+    "changes_fr": [
+      "Ajout d’articles depuis une fenêtre, consultation détaillée du devis et actions de remise plus claires.",
+      "Amélioration des confirmations, des erreurs et des contrôles sur les liens de documents.",
+      "Extension et entretien des vérifications automatisées.",
+      "Harmonisation et entretien du fonctionnement interne de l’application."
+    ],
+    "changes_en": [
+      "Added articles through a dialog, detailed quote viewing and clearer discount actions.",
+      "Improved confirmations, errors and document-link validation.",
+      "Expanded and maintained automated checks.",
+      "Aligned and maintained internal application behavior."
+    ]
+  },
+  {
+    "date": "2025-12-10",
+    "version": "0.19.1",
+    "title_fr": "Recherche et retours de formulaire",
+    "title_en": "Search and form feedback",
+    "changes_fr": [
+      "Recherche étendue sur les sociétés, clients et devis ; harmonisation des notifications et des paramètres du profil sur mobile.",
+      "Extension et entretien des vérifications automatisées.",
+      "Harmonisation et entretien du fonctionnement interne de l’application."
+    ],
+    "changes_en": [
+      "Expanded company, client and quote search and aligned notifications and mobile profile settings.",
+      "Expanded and maintained automated checks.",
+      "Aligned and maintained internal application behavior."
+    ]
+  },
+  {
+    "date": "2025-12-11",
+    "version": "0.20.0",
+    "title_fr": "Factures pro forma et remises",
+    "title_en": "Pro forma invoices and discounts",
+    "changes_fr": [
+      "Ajout du module de factures pro forma et de son accès dans le menu.",
+      "Validation des remises, arrondis cohérents et modes de paiement facultatifs ; actions limitées selon le rôle.",
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Extension et entretien des vérifications automatisées.",
+      "Harmonisation et entretien du fonctionnement interne de l’application."
+    ],
+    "changes_en": [
+      "Added the pro forma invoice module and its menu entry.",
+      "Validated discounts, aligned rounding, made payment methods optional and restricted actions by role.",
+      "Updated application dependencies and compatibility.",
+      "Expanded and maintained automated checks.",
+      "Aligned and maintained internal application behavior."
+    ]
+  },
+  {
+    "date": "2025-12-12",
+    "version": "0.20.1",
+    "title_fr": "Lignes et totaux des documents",
+    "title_en": "Document lines and totals",
+    "changes_fr": [
+      "Présentation commune des totaux HT, TVA, TTC et remises ; amélioration du tableau des lignes et des formulaires.",
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Extension et entretien des vérifications automatisées.",
+      "Harmonisation et entretien du fonctionnement interne de l’application."
+    ],
+    "changes_en": [
+      "Unified subtotal, VAT, total and discount displays and improved line tables and forms.",
+      "Updated application dependencies and compatibility.",
+      "Expanded and maintained automated checks.",
+      "Aligned and maintained internal application behavior."
+    ]
+  },
+  {
+    "date": "2025-12-13",
+    "version": "0.20.2",
+    "title_fr": "Maintenance et améliorations",
+    "title_en": "Maintenance and improvements",
+    "changes_fr": [
+      "Mise à jour des composants techniques et de leur compatibilité."
+    ],
+    "changes_en": [
+      "Updated application dependencies and compatibility."
+    ]
+  },
+  {
+    "date": "2025-12-15",
+    "version": "0.21.0",
+    "title_fr": "Listes pro forma et saisie des montants",
+    "title_en": "Pro forma lists and amount entry",
+    "changes_fr": [
+      "Liste paginée des factures pro forma avec suppression, référence de commande client et actions clarifiées.",
+      "Amélioration de la saisie des nombres, de la validation des prix et des remises et de la précision des calculs.",
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Extension et entretien des vérifications automatisées.",
+      "Harmonisation et entretien du fonctionnement interne de l’application."
+    ],
+    "changes_en": [
+      "Added paginated pro forma lists with deletion, client order references and clearer actions.",
+      "Improved numeric entry, price and discount validation and calculation precision.",
+      "Updated application dependencies and compatibility.",
+      "Expanded and maintained automated checks.",
+      "Aligned and maintained internal application behavior."
+    ]
+  },
+  {
+    "date": "2025-12-16",
+    "version": "0.22.0",
+    "title_fr": "Du devis à la facture pro forma",
+    "title_en": "From quote to pro forma invoice",
+    "changes_fr": [
+      "Conversion d’un devis en facture pro forma avec reprise des lignes et numérotation propre.",
+      "Ajout de la fiche pro forma et de statuts repérables par couleur.",
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Extension et entretien des vérifications automatisées.",
+      "Harmonisation et entretien du fonctionnement interne de l’application."
+    ],
+    "changes_en": [
+      "Converted quotes to pro forma invoices with copied lines and their own numbering.",
+      "Added pro forma details and color-coded statuses.",
+      "Updated application dependencies and compatibility.",
+      "Expanded and maintained automated checks.",
+      "Aligned and maintained internal application behavior."
+    ]
+  },
+  {
+    "date": "2025-12-17",
+    "version": "0.23.0",
+    "title_fr": "Factures clients",
+    "title_en": "Client invoices",
+    "changes_fr": [
+      "Ajout des listes, fiches, formulaires et droits d’accès aux factures clients.",
+      "Conversion des factures pro forma en factures clients avec leurs lignes.",
+      "Extension et entretien des vérifications automatisées.",
+      "Entretien de l’hébergement, de la configuration et de la distribution de l’application.",
+      "Harmonisation et entretien du fonctionnement interne de l’application.",
+      "Mise à jour de la documentation et des outils de maintenance."
+    ],
+    "changes_en": [
+      "Added client invoice lists, details, forms and access controls.",
+      "Converted pro forma invoices to client invoices with their lines.",
+      "Expanded and maintained automated checks.",
+      "Maintained application hosting, configuration and delivery.",
+      "Aligned and maintained internal application behavior.",
+      "Updated documentation and maintenance tools."
+    ]
+  },
+  {
+    "date": "2025-12-18",
+    "version": "0.24.0",
+    "title_fr": "Conversions et filtres des documents",
+    "title_en": "Document conversions and filters",
+    "changes_fr": [
+      "Conversion directe d’un devis en facture client et correction de la fermeture des fenêtres de conversion.",
+      "Amélioration des filtres, des images, des liens clients et de la lisibilité des fiches.",
+      "Extension et entretien des vérifications automatisées.",
+      "Harmonisation et entretien du fonctionnement interne de l’application."
+    ],
+    "changes_en": [
+      "Enabled direct quote-to-invoice conversion and corrected conversion dialog closing.",
+      "Improved filters, images, client links and detail readability.",
+      "Expanded and maintained automated checks.",
+      "Aligned and maintained internal application behavior."
+    ]
+  },
+  {
+    "date": "2025-12-19",
+    "version": "0.24.1",
+    "title_fr": "Références et numérotation",
+    "title_en": "References and numbering",
+    "changes_fr": [
+      "Numérotation des devis et factures avec saisie séparée du numéro et de l’année.",
+      "Clarification des personnes physiques, des références clients obligatoires et des modes de paiement facultatifs.",
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Extension et entretien des vérifications automatisées.",
+      "Harmonisation et entretien du fonctionnement interne de l’application."
+    ],
+    "changes_en": [
+      "Separated document number and year entry for quotes and invoices.",
+      "Clarified individual clients, required client references and optional payment methods.",
+      "Updated application dependencies and compatibility.",
+      "Expanded and maintained automated checks.",
+      "Aligned and maintained internal application behavior."
+    ]
+  },
+  {
+    "date": "2025-12-22",
+    "version": "0.24.2",
+    "title_fr": "Précision des montants",
+    "title_en": "Amount precision",
+    "changes_fr": [
+      "Harmonisation des montants décimaux, des remises et des règles communes aux devis et factures.",
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Harmonisation et entretien du fonctionnement interne de l’application."
+    ],
+    "changes_en": [
+      "Aligned decimal amounts, discounts and shared quote and invoice rules.",
+      "Updated application dependencies and compatibility.",
+      "Aligned and maintained internal application behavior."
+    ]
+  },
+  {
+    "date": "2025-12-23",
+    "version": "0.24.3",
+    "title_fr": "Documents par société",
+    "title_en": "Documents by company",
+    "changes_fr": [
+      "Choix de société et présentation des documents harmonisés entre devis, pro forma et factures clients.",
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Extension et entretien des vérifications automatisées.",
+      "Harmonisation et entretien du fonctionnement interne de l’application."
+    ],
+    "changes_en": [
+      "Aligned company selection and document presentation across quotes, pro forma and client invoices.",
+      "Updated application dependencies and compatibility.",
+      "Expanded and maintained automated checks.",
+      "Aligned and maintained internal application behavior."
+    ]
+  },
+  {
+    "date": "2025-12-24",
+    "version": "0.24.4",
+    "title_fr": "Formulaires harmonisés",
+    "title_en": "Consistent forms",
+    "changes_fr": [
+      "Harmonisation des formulaires de documents, articles, clients, sociétés et utilisateurs.",
+      "Correction de l’affichage des valeurs initiales dans la fenêtre de remise globale.",
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Extension et entretien des vérifications automatisées.",
+      "Harmonisation et entretien du fonctionnement interne de l’application."
+    ],
+    "changes_en": [
+      "Aligned document, article, client, company and user forms.",
+      "Corrected initial values in the global discount dialog.",
+      "Updated application dependencies and compatibility.",
+      "Expanded and maintained automated checks.",
+      "Aligned and maintained internal application behavior."
+    ]
+  },
+  {
+    "date": "2025-12-25",
+    "version": "0.24.5",
+    "title_fr": "Validation de la saisie",
+    "title_en": "Entry validation",
+    "changes_fr": [
+      "Contrôle des valeurs négatives et des années, erreurs de numérotation plus claires et champs harmonisés.",
+      "Extension et entretien des vérifications automatisées.",
+      "Harmonisation et entretien du fonctionnement interne de l’application."
+    ],
+    "changes_en": [
+      "Validated negative values and years, clarified numbering errors and aligned fields.",
+      "Expanded and maintained automated checks.",
+      "Aligned and maintained internal application behavior."
+    ]
+  },
+  {
+    "date": "2025-12-26",
+    "version": "0.24.6",
+    "title_fr": "Saisie des documents commerciaux",
+    "title_en": "Business document entry",
+    "changes_fr": [
+      "Regroupement des champs communs pour une saisie cohérente des différents documents commerciaux."
+    ],
+    "changes_en": [
+      "Unified common fields for consistent business document entry."
+    ]
+  },
+  {
+    "date": "2025-12-27",
+    "version": "0.24.7",
+    "title_fr": "Fiabilité des formulaires et prix",
+    "title_en": "Form and price reliability",
+    "changes_fr": [
+      "Harmonisation des prix et remises, avec extension des vérifications des formulaires, listes et accès.",
+      "Extension et entretien des vérifications automatisées.",
+      "Harmonisation et entretien du fonctionnement interne de l’application."
+    ],
+    "changes_en": [
+      "Aligned prices and discounts and expanded checks for forms, lists and access.",
+      "Expanded and maintained automated checks.",
+      "Aligned and maintained internal application behavior."
+    ]
+  },
+  {
+    "date": "2025-12-29",
+    "version": "0.24.8",
+    "title_fr": "Actions des documents et prix articles",
+    "title_en": "Document actions and article prices",
+    "changes_fr": [
+      "Listes communes avec pagination, suppression et conversion ; confirmations de suppression plus claires.",
+      "Validation du prix de vente par rapport au prix d’achat.",
+      "Extension et entretien des vérifications automatisées.",
+      "Harmonisation et entretien du fonctionnement interne de l’application."
+    ],
+    "changes_en": [
+      "Unified paginated lists, deletion and conversion actions and clearer deletion confirmations.",
+      "Validated selling prices against purchase prices.",
+      "Expanded and maintained automated checks.",
+      "Aligned and maintained internal application behavior."
+    ]
+  },
+  {
+    "date": "2025-12-30",
+    "version": "0.25.0",
+    "title_fr": "Bons de livraison",
+    "title_en": "Delivery notes",
+    "changes_fr": [
+      "Ajout des bons de livraison, de leurs listes, fiches et formulaires.",
+      "Conversion d’une facture client en bon de livraison avec reprise des données.",
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Extension et entretien des vérifications automatisées.",
+      "Harmonisation et entretien du fonctionnement interne de l’application."
+    ],
+    "changes_en": [
+      "Added delivery notes with lists, detail screens and forms.",
+      "Converted client invoices to delivery notes with their data.",
+      "Updated application dependencies and compatibility.",
+      "Expanded and maintained automated checks.",
+      "Aligned and maintained internal application behavior."
+    ]
+  },
+  {
+    "date": "2025-12-31",
+    "version": "0.25.1",
+    "title_fr": "Images et erreurs de formulaire",
+    "title_en": "Images and form errors",
+    "changes_fr": [
+      "Conversion des images en WebP, amélioration de leur envoi et de leur mise en cache.",
+      "Harmonisation des écrans de connexion et du profil, correction des libellés et affichage des erreurs de validation.",
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Extension et entretien des vérifications automatisées.",
+      "Harmonisation et entretien du fonctionnement interne de l’application."
+    ],
+    "changes_en": [
+      "Converted images to WebP and improved uploads and caching.",
+      "Aligned sign-in and profile screens, corrected labels and displayed validation errors.",
+      "Updated application dependencies and compatibility.",
+      "Expanded and maintained automated checks.",
+      "Aligned and maintained internal application behavior."
+    ]
+  },
+  {
+    "date": "2026-01-02",
+    "version": "0.25.2",
+    "title_fr": "Montants décimaux et paramètres",
+    "title_en": "Decimal amounts and settings",
+    "changes_fr": [
+      "Saisie et calcul des prix décimaux corrigés, y compris les valeurs vides.",
+      "Accès aux paramètres pour les comptes en lecture et correction du genre dans le profil.",
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Harmonisation et entretien du fonctionnement interne de l’application."
+    ],
+    "changes_en": [
+      "Corrected decimal price entry and calculations, including empty values.",
+      "Restored settings access for read-only accounts and corrected profile gender initialization.",
+      "Updated application dependencies and compatibility.",
+      "Aligned and maintained internal application behavior."
+    ]
+  },
+  {
+    "date": "2026-01-03",
+    "version": "0.26.0",
+    "title_fr": "Règlements",
+    "title_en": "Payments",
+    "changes_fr": [
+      "Ajout des listes, fiches et formulaires de règlements, avec recherche et contrôles d’accès.",
+      "Affichage des dates de création et de modification.",
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Extension et entretien des vérifications automatisées."
+    ],
+    "changes_en": [
+      "Added payment lists, details and forms with search and access checks.",
+      "Displayed creation and last-update dates.",
+      "Updated application dependencies and compatibility.",
+      "Expanded and maintained automated checks."
+    ]
+  },
+  {
+    "date": "2026-01-05",
+    "version": "0.27.0",
+    "title_fr": "Impayés et livraisons non facturées",
+    "title_en": "Unpaid invoices and uninvoiced deliveries",
+    "changes_fr": [
+      "Ajout des listes de factures impayées et de bons de livraison non facturés, ainsi que des statistiques par société.",
+      "Ajout du statut Facturé et amélioration des règlements et de la validation des lignes articles.",
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Extension et entretien des vérifications automatisées.",
+      "Harmonisation et entretien du fonctionnement interne de l’application."
+    ],
+    "changes_en": [
+      "Added unpaid invoice and uninvoiced delivery lists and company statistics.",
+      "Added the Invoiced status and improved payment handling and article-line validation.",
+      "Updated application dependencies and compatibility.",
+      "Expanded and maintained automated checks.",
+      "Aligned and maintained internal application behavior."
+    ]
+  },
+  {
+    "date": "2026-01-06",
+    "version": "0.28.0",
+    "title_fr": "Impression PDF et filtres par date",
+    "title_en": "PDF printing and date filters",
+    "changes_fr": [
+      "Impression des devis, factures, pro forma, bons de livraison et règlements en PDF.",
+      "Filtres par période dans les listes et amélioration de la mise en page des impressions.",
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Harmonisation et entretien du fonctionnement interne de l’application."
+    ],
+    "changes_en": [
+      "Added PDF printing for quotes, invoices, pro forma invoices, delivery notes and payments.",
+      "Added date-range list filters and improved print layouts.",
+      "Updated application dependencies and compatibility.",
+      "Aligned and maintained internal application behavior."
+    ]
+  },
+  {
+    "date": "2026-01-07",
+    "version": "0.28.1",
+    "title_fr": "Dates et informations des PDF",
+    "title_en": "PDF dates and information",
+    "changes_fr": [
+      "Filtres sur les dates d’échéance et de règlement, titres des PDF et identification de leur créateur.",
+      "Extension et entretien des vérifications automatisées.",
+      "Harmonisation et entretien du fonctionnement interne de l’application."
+    ],
+    "changes_en": [
+      "Added due-date and payment-date filters, PDF titles and creator identification.",
+      "Expanded and maintained automated checks.",
+      "Aligned and maintained internal application behavior."
+    ]
+  },
+  {
+    "date": "2026-01-08",
+    "version": "0.29.0",
+    "title_fr": "Tableau de bord",
+    "title_en": "Dashboard",
+    "changes_fr": [
+      "Ajout du tableau de bord financier, commercial, opérationnel et de trésorerie.",
+      "Graphiques, filtres par société et période, avec explications des indicateurs.",
+      "Extension et entretien des vérifications automatisées."
+    ],
+    "changes_en": [
+      "Added financial, sales, operations and cash-flow dashboards.",
+      "Added charts, company and date filters and indicator explanations.",
+      "Expanded and maintained automated checks."
+    ]
+  },
+  {
+    "date": "2026-01-09",
+    "version": "0.29.1",
+    "title_fr": "Recherche dans les tableaux",
+    "title_en": "Table search",
+    "changes_fr": [
+      "Synchronisation des filtres et amélioration de la recherche sur les listes paginées.",
+      "Ajout d’illustrations sur les écrans de connexion.",
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Extension et entretien des vérifications automatisées.",
+      "Harmonisation et entretien du fonctionnement interne de l’application."
+    ],
+    "changes_en": [
+      "Synchronized filters and improved search across paginated lists.",
+      "Added illustrations to sign-in screens.",
+      "Updated application dependencies and compatibility.",
+      "Expanded and maintained automated checks.",
+      "Aligned and maintained internal application behavior."
+    ]
+  },
+  {
+    "date": "2026-01-10",
+    "version": "0.29.2",
+    "title_fr": "Tableaux adaptatifs",
+    "title_en": "Responsive tables",
+    "changes_fr": [
+      "Colonnes plus souples sur les petits écrans et libellés plus clairs dans les formulaires sociétés et utilisateurs.",
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Harmonisation et entretien du fonctionnement interne de l’application."
+    ],
+    "changes_en": [
+      "Made table columns more responsive and clarified company and user form labels.",
+      "Updated application dependencies and compatibility.",
+      "Aligned and maintained internal application behavior."
+    ]
+  },
+  {
+    "date": "2026-01-13",
+    "version": "0.30.0",
+    "title_fr": "Historique et suspension des sociétés",
+    "title_en": "History and company suspension",
+    "changes_fr": [
+      "Suivi des modifications dans l’administration et suspension des sociétés depuis leur liste.",
+      "Clarification des modes de paiement dans les formulaires.",
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Harmonisation et entretien du fonctionnement interne de l’application."
+    ],
+    "changes_en": [
+      "Added administrative change history and company suspension from the list.",
+      "Clarified payment methods in forms.",
+      "Updated application dependencies and compatibility.",
+      "Aligned and maintained internal application behavior."
+    ]
+  },
+  {
+    "date": "2026-01-14",
+    "version": "0.31.0",
+    "title_fr": "Rôles et références",
+    "title_en": "Roles and references",
+    "changes_fr": [
+      "Gestion des droits par rôle et historique consultable dans l’administration.",
+      "Actualisation des numéros de documents, références articles et codes clients depuis les formulaires.",
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Extension et entretien des vérifications automatisées.",
+      "Harmonisation et entretien du fonctionnement interne de l’application."
+    ],
+    "changes_en": [
+      "Added role-based permissions and read-only administrative history.",
+      "Enabled refreshing document numbers, article references and client codes in forms.",
+      "Updated application dependencies and compatibility.",
+      "Expanded and maintained automated checks.",
+      "Aligned and maintained internal application behavior."
+    ]
+  },
+  {
+    "date": "2026-01-15",
+    "version": "0.32.0",
+    "title_fr": "PDF en français ou en anglais",
+    "title_en": "French and English PDFs",
+    "changes_fr": [
+      "Choix de la langue lors de la génération des PDF.",
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Extension et entretien des vérifications automatisées.",
+      "Entretien de l’hébergement, de la configuration et de la distribution de l’application.",
+      "Harmonisation et entretien du fonctionnement interne de l’application.",
+      "Mise à jour de la documentation et des outils de maintenance."
+    ],
+    "changes_en": [
+      "Added language selection for PDF generation.",
+      "Updated application dependencies and compatibility.",
+      "Expanded and maintained automated checks.",
+      "Maintained application hosting, configuration and delivery.",
+      "Aligned and maintained internal application behavior.",
+      "Updated documentation and maintenance tools."
+    ]
+  },
+  {
+    "date": "2026-01-19",
+    "version": "0.33.0",
+    "title_fr": "Choix de langue à l’impression",
+    "title_en": "Print language selection",
+    "changes_fr": [
+      "Fenêtre de choix de langue et traduction anglaise des documents, avec mise en page améliorée.",
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Extension et entretien des vérifications automatisées.",
+      "Harmonisation et entretien du fonctionnement interne de l’application."
+    ],
+    "changes_en": [
+      "Added a print-language dialog and English document translations with improved formatting.",
+      "Updated application dependencies and compatibility.",
+      "Expanded and maintained automated checks.",
+      "Aligned and maintained internal application behavior."
+    ]
+  },
+  {
+    "date": "2026-01-20",
+    "version": "0.33.1",
+    "title_fr": "Maintenance et améliorations",
+    "title_en": "Maintenance and improvements",
+    "changes_fr": [
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Extension et entretien des vérifications automatisées.",
+      "Mise à jour de la documentation et des outils de maintenance."
+    ],
+    "changes_en": [
+      "Updated application dependencies and compatibility.",
+      "Expanded and maintained automated checks.",
+      "Updated documentation and maintenance tools."
+    ]
+  },
+  {
+    "date": "2026-01-21",
+    "version": "0.33.2",
+    "title_fr": "Protection des données et mise en ligne",
+    "title_en": "Data protection and deployment",
+    "changes_fr": [
+      "Protection des clients et articles liés aux documents contre les suppressions incompatibles.",
+      "Amélioration de la validation des adresses email, des images et des erreurs de session ; préparation de la mise en ligne.",
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Extension et entretien des vérifications automatisées.",
+      "Entretien de l’hébergement, de la configuration et de la distribution de l’application."
+    ],
+    "changes_en": [
+      "Protected clients and articles linked to documents from incompatible deletion.",
+      "Improved email and image validation and session errors, and prepared deployment.",
+      "Updated application dependencies and compatibility.",
+      "Expanded and maintained automated checks.",
+      "Maintained application hosting, configuration and delivery."
+    ]
+  },
+  {
+    "date": "2026-01-22",
+    "version": "1.0.0",
+    "title_fr": "Préparation de la production",
+    "title_en": "Production setup",
+    "changes_fr": [
+      "Configuration de l’envoi des emails, du routage de l’application, des fichiers et de l’environnement de production.",
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Entretien de l’hébergement, de la configuration et de la distribution de l’application.",
+      "Harmonisation et entretien du fonctionnement interne de l’application.",
+      "Mise à jour de la documentation et des outils de maintenance."
+    ],
+    "changes_en": [
+      "Configured email delivery, application routing, files and the production environment.",
+      "Updated application dependencies and compatibility.",
+      "Maintained application hosting, configuration and delivery.",
+      "Aligned and maintained internal application behavior.",
+      "Updated documentation and maintenance tools."
+    ]
+  },
+  {
+    "date": "2026-01-23",
+    "version": "1.0.1",
+    "title_fr": "Disponibilité de l’application",
+    "title_en": "Application availability",
+    "changes_fr": [
+      "Corrections du démarrage, des contrôles de disponibilité et de la compression pour l’hébergement.",
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Entretien de l’hébergement, de la configuration et de la distribution de l’application."
+    ],
+    "changes_en": [
+      "Corrected startup, health checks and compression for hosting.",
+      "Updated application dependencies and compatibility.",
+      "Maintained application hosting, configuration and delivery."
+    ]
+  },
+  {
+    "date": "2026-01-24",
+    "version": "1.0.2",
+    "title_fr": "Images et accès administrateurs",
+    "title_en": "Images and administrator access",
+    "changes_fr": [
+      "Corrections d’affichage des images, prise en charge des images plus volumineuses et accès des administrateurs aux sociétés.",
+      "Ajout du retour vers le tableau de bord depuis l’administration et clarification du prix de vente obligatoire.",
+      "Entretien de l’hébergement, de la configuration et de la distribution de l’application."
+    ],
+    "changes_en": [
+      "Corrected image display, supported larger images and fixed administrator company access.",
+      "Added an administration link back to the dashboard and clarified required selling prices.",
+      "Maintained application hosting, configuration and delivery."
+    ]
+  },
+  {
+    "date": "2026-01-26",
+    "version": "1.1.0",
+    "title_fr": "Première connexion et administration",
+    "title_en": "First sign-in and administration",
+    "changes_fr": [
+      "Changement obligatoire du mot de passe initial, avec avertissement et envoi du nouveau mot de passe après modification par un administrateur.",
+      "Accès à l’administration réservé aux comptes concernés, libellés français et historique plus lisible.",
+      "Correction de l’affichage des noms et prénoms dans le profil.",
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Extension et entretien des vérifications automatisées.",
+      "Entretien de l’hébergement, de la configuration et de la distribution de l’application."
+    ],
+    "changes_en": [
+      "Required changing the initial password, with a warning and email after an administrator changes it.",
+      "Restricted administration access to eligible accounts, added French labels and improved history displays.",
+      "Corrected first- and last-name field layout.",
+      "Updated application dependencies and compatibility.",
+      "Expanded and maintained automated checks.",
+      "Maintained application hosting, configuration and delivery."
+    ]
+  },
+  {
+    "date": "2026-01-27",
+    "version": "1.2.0",
+    "title_fr": "Objectifs mensuels",
+    "title_en": "Monthly objectives",
+    "changes_fr": [
+      "Configuration des objectifs mensuels par société depuis les paramètres administrateurs, avec suivi des montants et volumes."
+    ],
+    "changes_en": [
+      "Added company monthly targets in administrator settings with amount and volume tracking."
+    ]
+  },
+  {
+    "date": "2026-02-03",
+    "version": "1.2.1",
+    "title_fr": "Comptes et libellés",
+    "title_en": "Accounts and labels",
+    "changes_fr": [
+      "Amélioration des codes de récupération, du traitement des mots de passe et des avatars.",
+      "Clarification des titres français, demandes de prix et listes sans résultat.",
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Extension et entretien des vérifications automatisées.",
+      "Entretien de l’hébergement, de la configuration et de la distribution de l’application.",
+      "Harmonisation et entretien du fonctionnement interne de l’application."
+    ],
+    "changes_en": [
+      "Improved recovery codes, password handling and avatars.",
+      "Clarified French page titles, price requests and empty search results.",
+      "Updated application dependencies and compatibility.",
+      "Expanded and maintained automated checks.",
+      "Maintained application hosting, configuration and delivery.",
+      "Aligned and maintained internal application behavior."
+    ]
+  },
+  {
+    "date": "2026-02-04",
+    "version": "1.3.0",
+    "title_fr": "Import d’articles et devises d’achat",
+    "title_en": "Article imports and purchase currencies",
+    "changes_fr": [
+      "Import d’articles par CSV avec fichier exemple et affichage des erreurs.",
+      "Choix de la devise du prix d’achat et affichage cohérent des montants en MAD."
+    ],
+    "changes_en": [
+      "Added CSV article imports with a sample file and error reporting.",
+      "Added purchase-price currencies and consistent MAD displays."
+    ]
+  },
+  {
+    "date": "2026-02-05",
+    "version": "1.4.0",
+    "title_fr": "Ventes en devises",
+    "title_en": "Foreign-currency sales",
+    "changes_fr": [
+      "Prise en charge des devises dans les prix de vente, documents et indicateurs de chiffre d’affaires.",
+      "Amélioration du choix de société et accès direct aux lignes après création d’un document.",
+      "Harmonisation et entretien du fonctionnement interne de l’application."
+    ],
+    "changes_en": [
+      "Added currencies to selling prices, documents and revenue indicators.",
+      "Improved company selection and scrolled to lines after document creation.",
+      "Aligned and maintained internal application behavior."
+    ]
+  },
+  {
+    "date": "2026-02-06",
+    "version": "1.5.0",
+    "title_fr": "Saisie, filtres et actions mobiles",
+    "title_en": "Entry, filters and mobile actions",
+    "changes_fr": [
+      "Filtres numériques, nombres au format français et séparation des données de référence par société.",
+      "Menus d’actions sur mobile, navigation latérale améliorée et sélection des paramètres nouvellement créés.",
+      "Envoi par email du modèle CSV et amélioration des erreurs lors de l’ajout de paramètres.",
+      "Extension et entretien des vérifications automatisées.",
+      "Harmonisation et entretien du fonctionnement interne de l’application."
+    ],
+    "changes_en": [
+      "Added numeric filters, French number formatting and company-scoped reference data.",
+      "Added mobile action menus, improved the drawer and selected newly created reference values.",
+      "Enabled emailing the CSV template and improved reference-data creation errors.",
+      "Expanded and maintained automated checks.",
+      "Aligned and maintained internal application behavior."
+    ]
+  },
+  {
+    "date": "2026-02-11",
+    "version": "1.6.0",
+    "title_fr": "Recherche avancée",
+    "title_en": "Advanced search",
+    "changes_fr": [
+      "Filtres supplémentaires sur les textes et nombres, utilisables dans les listes de l’application."
+    ],
+    "changes_en": [
+      "Added text and numeric filters across application lists."
+    ]
+  },
+  {
+    "date": "2026-02-12",
+    "version": "1.7.0",
+    "title_fr": "Filtres à choix multiples",
+    "title_en": "Multiple-choice filters",
+    "changes_fr": [
+      "Sélection de plusieurs valeurs dans les filtres et contrôles de cohérence renforcés pour les données.",
+      "Affichage d’un écran de récupération lorsqu’une erreur empêche le rendu d’une page.",
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Entretien de l’hébergement, de la configuration et de la distribution de l’application."
+    ],
+    "changes_en": [
+      "Added multi-value filtering and stronger data consistency checks.",
+      "Added a recovery screen when a page cannot render.",
+      "Updated application dependencies and compatibility.",
+      "Maintained application hosting, configuration and delivery."
+    ]
+  },
+  {
+    "date": "2026-02-13",
+    "version": "1.7.1",
+    "title_fr": "Stabilité des filtres",
+    "title_en": "Filter stability",
+    "changes_fr": [
+      "Amélioration de la sélection des filtres, de leur initialisation et des vérifications des écrans.",
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Extension et entretien des vérifications automatisées.",
+      "Entretien de l’hébergement, de la configuration et de la distribution de l’application.",
+      "Harmonisation et entretien du fonctionnement interne de l’application."
+    ],
+    "changes_en": [
+      "Improved filter selection, initialization and screen checks.",
+      "Updated application dependencies and compatibility.",
+      "Expanded and maintained automated checks.",
+      "Maintained application hosting, configuration and delivery.",
+      "Aligned and maintained internal application behavior."
+    ]
+  },
+  {
+    "date": "2026-02-14",
+    "version": "1.7.2",
+    "title_fr": "Paramètres et import en cours",
+    "title_en": "Reference data and import progress",
+    "changes_fr": [
+      "Chargement des paramètres par société, prix à deux décimales et association des photos aux articles.",
+      "Indicateurs de progression pour l’import d’articles et l’envoi d’emails.",
+      "Extension et entretien des vérifications automatisées.",
+      "Harmonisation et entretien du fonctionnement interne de l’application."
+    ],
+    "changes_en": [
+      "Loaded company reference data, used two-decimal prices and linked photos to articles.",
+      "Added progress indicators for article imports and email sending.",
+      "Expanded and maintained automated checks.",
+      "Aligned and maintained internal application behavior."
+    ]
+  },
+  {
+    "date": "2026-02-16",
+    "version": "1.7.3",
+    "title_fr": "Permissions et récupération de compte",
+    "title_en": "Permissions and account recovery",
+    "changes_fr": [
+      "Renforcement des droits par société et amélioration des erreurs de connexion et de la récupération du mot de passe."
+    ],
+    "changes_en": [
+      "Strengthened company permissions and improved sign-in errors and password recovery."
+    ]
+  },
+  {
+    "date": "2026-02-17",
+    "version": "1.8.0",
+    "title_fr": "Import Excel",
+    "title_en": "Excel imports",
+    "changes_fr": [
+      "Prise en charge des fichiers Excel et possibilité administrative d’annuler un import et ses photos associées.",
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Harmonisation et entretien du fonctionnement interne de l’application."
+    ],
+    "changes_en": [
+      "Added Excel imports and an administrative operation to undo an import and its associated photos.",
+      "Updated application dependencies and compatibility.",
+      "Aligned and maintained internal application behavior."
+    ]
+  },
+  {
+    "date": "2026-02-18",
+    "version": "1.9.0",
+    "title_fr": "Sécurité des accès et lisibilité",
+    "title_en": "Access security and readability",
+    "changes_fr": [
+      "Protection contre les tentatives répétées de connexion, suivi de l’expiration de session et amélioration des champs mot de passe.",
+      "Affichage des devises dans les PDF, nombres et dates plus lisibles, et chargement des images amélioré.",
+      "Optimisation des listes d’articles et des outils d’association des images.",
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Entretien de l’hébergement, de la configuration et de la distribution de l’application.",
+      "Harmonisation et entretien du fonctionnement interne de l’application.",
+      "Mise à jour de la documentation et des outils de maintenance."
+    ],
+    "changes_en": [
+      "Protected against repeated login attempts, tracked session expiry and improved password fields.",
+      "Displayed currencies in PDFs, improved number and date formatting and refined image loading.",
+      "Optimized article lists and image-linking tools.",
+      "Updated application dependencies and compatibility.",
+      "Maintained application hosting, configuration and delivery.",
+      "Aligned and maintained internal application behavior.",
+      "Updated documentation and maintenance tools."
+    ]
+  },
+  {
+    "date": "2026-02-19",
+    "version": "1.9.1",
+    "title_fr": "Saisie des prix et téléchargements",
+    "title_en": "Price entry and downloads",
+    "changes_fr": [
+      "Amélioration de la validation des prix, de l’authentification des requêtes et des téléchargements PDF.",
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Extension et entretien des vérifications automatisées."
+    ],
+    "changes_en": [
+      "Improved price validation, request authentication and PDF downloads.",
+      "Updated application dependencies and compatibility.",
+      "Expanded and maintained automated checks."
+    ]
+  },
+  {
+    "date": "2026-02-20",
+    "version": "1.10.0",
+    "title_fr": "Suppressions groupées",
+    "title_en": "Bulk deletion",
+    "changes_fr": [
+      "Suppression de plusieurs éléments sélectionnés, avec contrôles adaptés aux utilisateurs, articles et documents."
+    ],
+    "changes_en": [
+      "Enabled deleting multiple selected items with checks for users, articles and documents."
+    ]
+  },
+  {
+    "date": "2026-02-23",
+    "version": "1.10.1",
+    "title_fr": "Confirmation des suppressions",
+    "title_en": "Deletion confirmations",
+    "changes_fr": [
+      "Ajout des confirmations de suppression pour les articles, clients et documents.",
+      "Mise à jour de l’adresse Facturation et correction des références articles concernées.",
+      "Extension et entretien des vérifications automatisées.",
+      "Entretien de l’hébergement, de la configuration et de la distribution de l’application."
+    ],
+    "changes_en": [
+      "Added deletion confirmations for articles, clients and documents.",
+      "Updated the Facturation address and corrected affected article references.",
+      "Expanded and maintained automated checks.",
+      "Maintained application hosting, configuration and delivery."
+    ]
+  },
+  {
+    "date": "2026-02-24",
+    "version": "1.11.0",
+    "title_fr": "Quantités décimales et archives",
+    "title_en": "Decimal quantities and archives",
+    "changes_fr": [
+      "Prise en charge des quantités décimales positives et des articles archivés dans les documents existants.",
+      "Messages d’erreur plus lisibles et amélioration de la pagination des PDF sur plusieurs pages.",
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Extension et entretien des vérifications automatisées."
+    ],
+    "changes_en": [
+      "Supported positive decimal quantities and archived articles in existing documents.",
+      "Clarified error messages and improved multi-page PDF layout.",
+      "Updated application dependencies and compatibility.",
+      "Expanded and maintained automated checks."
+    ]
+  },
+  {
+    "date": "2026-02-25",
+    "version": "1.11.1",
+    "title_fr": "PDF et unités",
+    "title_en": "PDFs and units",
+    "changes_fr": [
+      "Affichage des unités à côté des quantités et tri des lignes par référence à l’impression.",
+      "Meilleure répartition des lignes sur les documents de deux pages et plus.",
+      "Mise à jour des composants techniques et de leur compatibilité."
+    ],
+    "changes_en": [
+      "Displayed units beside quantities and sorted printed lines by reference.",
+      "Improved line distribution across PDFs with two or more pages.",
+      "Updated application dependencies and compatibility."
+    ]
+  },
+  {
+    "date": "2026-02-26",
+    "version": "1.12.0",
+    "title_fr": "Références, performances et suspension",
+    "title_en": "References, performance and suspension",
+    "changes_fr": [
+      "Réutilisation des numéros libres pour les références articles et codes clients.",
+      "Suspension groupée des sociétés, fenêtres refermables et photos de remplacement pour les clients.",
+      "Optimisation du chargement des formulaires et amélioration de la répartition du contenu des PDF.",
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Extension et entretien des vérifications automatisées.",
+      "Harmonisation et entretien du fonctionnement interne de l’application."
+    ],
+    "changes_en": [
+      "Reused available gaps in article references and client codes.",
+      "Added bulk company suspension, dismissible dialogs and client photo fallbacks.",
+      "Optimized form loading and improved PDF content distribution.",
+      "Updated application dependencies and compatibility.",
+      "Expanded and maintained automated checks.",
+      "Aligned and maintained internal application behavior."
+    ]
+  },
+  {
+    "date": "2026-02-27",
+    "version": "1.12.1",
+    "title_fr": "Maintenance et améliorations",
+    "title_en": "Maintenance and improvements",
+    "changes_fr": [
+      "Synchronisation et entretien de l’application."
+    ],
+    "changes_en": [
+      "Synchronized and maintained the application."
+    ]
+  },
+  {
+    "date": "2026-03-03",
+    "version": "1.13.0",
+    "title_fr": "Adresse des clients",
+    "title_en": "Client addresses",
+    "changes_fr": [
+      "Ajout de l’adresse dans le formulaire client et registre de commerce rendu facultatif.",
+      "Extension et entretien des vérifications automatisées.",
+      "Harmonisation et entretien du fonctionnement interne de l’application."
+    ],
+    "changes_en": [
+      "Added client address entry and made the trade register optional.",
+      "Expanded and maintained automated checks.",
+      "Aligned and maintained internal application behavior."
+    ]
+  },
+  {
+    "date": "2026-03-04",
+    "version": "1.13.1",
+    "title_fr": "Modification des emails",
+    "title_en": "Email updates",
+    "changes_fr": [
+      "Amélioration de la validation des adresses email lors de la modification d’un utilisateur."
+    ],
+    "changes_en": [
+      "Improved email validation when updating users."
+    ]
+  },
+  {
+    "date": "2026-03-05",
+    "version": "1.13.2",
+    "title_fr": "Connexions plus stables",
+    "title_en": "More stable connections",
+    "changes_fr": [
+      "Correction de la fermeture des connexions en temps réel en cas de refus d’accès et réglages des connexions aux données.",
+      "Mise à jour des composants techniques et de leur compatibilité."
+    ],
+    "changes_en": [
+      "Corrected real-time connection closure after access rejection and adjusted database connections.",
+      "Updated application dependencies and compatibility."
+    ]
+  },
+  {
+    "date": "2026-03-06",
+    "version": "1.13.3",
+    "title_fr": "Maintenance et améliorations",
+    "title_en": "Maintenance and improvements",
+    "changes_fr": [
+      "Synchronisation et entretien de l’application."
+    ],
+    "changes_en": [
+      "Synchronized and maintained the application."
+    ]
+  },
+  {
+    "date": "2026-03-09",
+    "version": "1.13.4",
+    "title_fr": "Identité E.B.H",
+    "title_en": "E.B.H identity",
+    "changes_fr": [
+      "Ajout du logo sur les écrans de connexion et harmonisation des titres des emails E.B.H.",
+      "Correction des opérations sur les cookies et amélioration des contrôles de disponibilité.",
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Extension et entretien des vérifications automatisées.",
+      "Entretien de l’hébergement, de la configuration et de la distribution de l’application."
+    ],
+    "changes_en": [
+      "Added the logo to sign-in screens and aligned E.B.H email titles.",
+      "Corrected cookie operations and improved health checks.",
+      "Updated application dependencies and compatibility.",
+      "Expanded and maintained automated checks.",
+      "Maintained application hosting, configuration and delivery."
+    ]
+  },
+  {
+    "date": "2026-03-10",
+    "version": "1.13.5",
+    "title_fr": "Présentation de l’application",
+    "title_en": "Application presentation",
+    "changes_fr": [
+      "Amélioration du texte alternatif du logo et de la description de l’application.",
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Extension et entretien des vérifications automatisées.",
+      "Entretien de l’hébergement, de la configuration et de la distribution de l’application."
+    ],
+    "changes_en": [
+      "Improved logo alternative text and the application description.",
+      "Updated application dependencies and compatibility.",
+      "Expanded and maintained automated checks.",
+      "Maintained application hosting, configuration and delivery."
+    ]
+  },
+  {
+    "date": "2026-03-11",
+    "version": "1.13.6",
+    "title_fr": "Dates des règlements",
+    "title_en": "Payment dates",
+    "changes_fr": [
+      "Intégration des sélecteurs de date dans le formulaire de règlement et réorganisation des fiches articles.",
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Entretien de l’hébergement, de la configuration et de la distribution de l’application.",
+      "Harmonisation et entretien du fonctionnement interne de l’application."
+    ],
+    "changes_en": [
+      "Added date pickers to payment forms and reorganized article details.",
+      "Updated application dependencies and compatibility.",
+      "Maintained application hosting, configuration and delivery.",
+      "Aligned and maintained internal application behavior."
+    ]
+  },
+  {
+    "date": "2026-03-14",
+    "version": "1.13.7",
+    "title_fr": "Sessions et emails d’accès",
+    "title_en": "Sessions and access emails",
+    "changes_fr": [
+      "Meilleure gestion de l’expiration et de l’absence de jeton de renouvellement de session.",
+      "Ajout du lien d’accès dans les emails et affichage du bouton d’administration selon les droits."
+    ],
+    "changes_en": [
+      "Improved session expiry and missing refresh-token handling.",
+      "Added application links to emails and showed the administration button according to permissions."
+    ]
+  },
+  {
+    "date": "2026-03-24",
+    "version": "1.14.0",
+    "title_fr": "Mode maintenance",
+    "title_en": "Maintenance mode",
+    "changes_fr": [
+      "Ajout d’un écran de maintenance synchronisé en temps réel et vérification de son état au démarrage.",
+      "Amélioration du fonctionnement du formulaire de règlement.",
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Entretien de l’hébergement, de la configuration et de la distribution de l’application."
+    ],
+    "changes_en": [
+      "Added a real-time maintenance screen and checked maintenance status at startup.",
+      "Improved payment form behavior.",
+      "Updated application dependencies and compatibility.",
+      "Maintained application hosting, configuration and delivery."
+    ]
+  },
+  {
+    "date": "2026-03-25",
+    "version": "1.14.1",
+    "title_fr": "Chargement et maintenance",
+    "title_en": "Loading and maintenance",
+    "changes_fr": [
+      "Correction des règles de mise en cache et harmonisation des libellés de maintenance.",
+      "Entretien de l’hébergement, de la configuration et de la distribution de l’application."
+    ],
+    "changes_en": [
+      "Corrected cache rules and aligned maintenance labels.",
+      "Maintained application hosting, configuration and delivery."
+    ]
+  },
+  {
+    "date": "2026-03-26",
+    "version": "1.14.2",
+    "title_fr": "Authentification des listes",
+    "title_en": "List authentication",
+    "changes_fr": [
+      "Harmonisation de l’authentification des listes et gestion plus souple de la fermeture des connexions en temps réel.",
+      "Harmonisation et entretien du fonctionnement interne de l’application."
+    ],
+    "changes_en": [
+      "Aligned list authentication and improved real-time connection closing.",
+      "Aligned and maintained internal application behavior."
+    ]
+  },
+  {
+    "date": "2026-03-27",
+    "version": "1.14.3",
+    "title_fr": "Renouvellement de session et lignes articles",
+    "title_en": "Session refresh and article lines",
+    "changes_fr": [
+      "Synchronisation du renouvellement de session et nouvelle tentative après expiration des accès.",
+      "Reprise des valeurs existantes dans la fenêtre d’ajout d’article et amélioration de la sélection.",
+      "Extension et entretien des vérifications automatisées.",
+      "Entretien de l’hébergement, de la configuration et de la distribution de l’application.",
+      "Harmonisation et entretien du fonctionnement interne de l’application."
+    ],
+    "changes_en": [
+      "Synchronized session refresh and retried requests after access expiry.",
+      "Preserved existing values in the article dialog and improved selection.",
+      "Expanded and maintained automated checks.",
+      "Maintained application hosting, configuration and delivery.",
+      "Aligned and maintained internal application behavior."
+    ]
+  },
+  {
+    "date": "2026-03-30",
+    "version": "1.14.4",
+    "title_fr": "PDF et chargement de session",
+    "title_en": "PDFs and session loading",
+    "changes_fr": [
+      "Amélioration de l’équilibrage des pages PDF, des marges et des colonnes.",
+      "Simplification du chargement de la session et ajout de l’email aux informations utilisateurs.",
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Harmonisation et entretien du fonctionnement interne de l’application."
+    ],
+    "changes_en": [
+      "Improved PDF page balancing, margins and columns.",
+      "Simplified session loading and added email to user information.",
+      "Updated application dependencies and compatibility.",
+      "Aligned and maintained internal application behavior."
+    ]
+  },
+  {
+    "date": "2026-03-31",
+    "version": "1.14.5",
+    "title_fr": "TVA et remises dans les totaux",
+    "title_en": "VAT and discounts in totals",
+    "changes_fr": [
+      "Correction des totaux avec plusieurs taux de TVA et amélioration du calcul des remises et des libellés PDF.",
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Extension et entretien des vérifications automatisées.",
+      "Harmonisation et entretien du fonctionnement interne de l’application."
+    ],
+    "changes_en": [
+      "Corrected totals with mixed VAT rates and improved discounts and PDF labels.",
+      "Updated application dependencies and compatibility.",
+      "Expanded and maintained automated checks.",
+      "Aligned and maintained internal application behavior."
+    ]
+  },
+  {
+    "date": "2026-04-02",
+    "version": "1.15.0",
+    "title_fr": "Interface bilingue",
+    "title_en": "Bilingual interface",
+    "changes_fr": [
+      "Ajout du sélecteur français/anglais, des traductions des formulaires, filtres, messages et menus.",
+      "Amélioration du menu mobile et du choix de langue."
+    ],
+    "changes_en": [
+      "Added a French/English switcher and translated forms, filters, messages and menus.",
+      "Improved the mobile menu and language selection."
+    ]
+  },
+  {
+    "date": "2026-04-03",
+    "version": "1.15.1",
+    "title_fr": "Maintenance et améliorations",
+    "title_en": "Maintenance and improvements",
+    "changes_fr": [
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Entretien de l’hébergement, de la configuration et de la distribution de l’application."
+    ],
+    "changes_en": [
+      "Updated application dependencies and compatibility.",
+      "Maintained application hosting, configuration and delivery."
+    ]
+  },
+  {
+    "date": "2026-04-04",
+    "version": "1.15.2",
+    "title_fr": "Formulaires de contact simplifiés",
+    "title_en": "Simplified contact forms",
+    "changes_fr": [
+      "Suppression du champ téléphone concerné des validations et des échanges de données.",
+      "Extension et entretien des vérifications automatisées."
+    ],
+    "changes_en": [
+      "Removed the affected phone field from validation and data exchange.",
+      "Expanded and maintained automated checks."
+    ]
+  },
+  {
+    "date": "2026-04-06",
+    "version": "1.15.3",
+    "title_fr": "Langue mémorisée et reconnexion",
+    "title_en": "Remembered language and reconnection",
+    "changes_fr": [
+      "Mémorisation de la langue et reconnexion progressive des mises à jour en temps réel après une interruption.",
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Entretien de l’hébergement, de la configuration et de la distribution de l’application.",
+      "Harmonisation et entretien du fonctionnement interne de l’application."
+    ],
+    "changes_en": [
+      "Remembered the selected language and retried real-time connections progressively after interruptions.",
+      "Updated application dependencies and compatibility.",
+      "Maintained application hosting, configuration and delivery.",
+      "Aligned and maintained internal application behavior."
+    ]
+  },
+  {
+    "date": "2026-04-08",
+    "version": "1.16.0",
+    "title_fr": "Notifications et préférences",
+    "title_en": "Notifications and preferences",
+    "changes_fr": [
+      "Ajout des notifications d’événements en temps réel, du compteur de messages non lus et des préférences de notification."
+    ],
+    "changes_en": [
+      "Added real-time event notifications, an unread count and notification preferences."
+    ]
+  },
+  {
+    "date": "2026-04-09",
+    "version": "1.16.1",
+    "title_fr": "Maintenance et améliorations",
+    "title_en": "Maintenance and improvements",
+    "changes_fr": [
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Extension et entretien des vérifications automatisées."
+    ],
+    "changes_en": [
+      "Updated application dependencies and compatibility.",
+      "Expanded and maintained automated checks."
+    ]
+  },
+  {
+    "date": "2026-04-10",
+    "version": "1.17.0",
+    "title_fr": "Paramètres modifiables depuis les formulaires",
+    "title_en": "Reference data editable from forms",
+    "changes_fr": [
+      "Ajout, modification et suppression des catégories, emplacements, marques et unités depuis les formulaires.",
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Extension et entretien des vérifications automatisées."
+    ],
+    "changes_en": [
+      "Enabled creating, editing and deleting categories, locations, brands and units from forms.",
+      "Updated application dependencies and compatibility.",
+      "Expanded and maintained automated checks."
+    ]
+  },
+  {
+    "date": "2026-04-15",
+    "version": "1.18.0",
+    "title_fr": "Sélection d’articles et indicateurs",
+    "title_en": "Article selection and indicators",
+    "changes_fr": [
+      "Pagination et filtres dans la sélection des articles ; présentation harmonisée des indicateurs du tableau de bord.",
+      "Préparation d’un environnement de démonstration.",
+      "Harmonisation et entretien du fonctionnement interne de l’application."
+    ],
+    "changes_en": [
+      "Added pagination and filters to article selection and aligned dashboard indicators.",
+      "Prepared a demonstration environment.",
+      "Aligned and maintained internal application behavior."
+    ]
+  },
+  {
+    "date": "2026-04-17",
+    "version": "1.18.1",
+    "title_fr": "Authentification des requêtes",
+    "title_en": "Request authentication",
+    "changes_fr": [
+      "Amélioration de la récupération de la session pour les requêtes authentifiées.",
+      "Entretien de l’hébergement, de la configuration et de la distribution de l’application."
+    ],
+    "changes_en": [
+      "Improved session retrieval for authenticated requests.",
+      "Maintained application hosting, configuration and delivery."
+    ]
+  },
+  {
+    "date": "2026-04-30",
+    "version": "1.18.2",
+    "title_fr": "Affichage des composants interactifs",
+    "title_en": "Interactive component rendering",
+    "changes_fr": [
+      "Correction de l’affichage des composants qui nécessitent une exécution dans le navigateur."
+    ],
+    "changes_en": [
+      "Corrected rendering for components that need to run in the browser."
+    ]
+  },
+  {
+    "date": "2026-05-12",
+    "version": "1.18.3",
+    "title_fr": "Pagination des devis PDF",
+    "title_en": "Quote PDF pagination",
+    "changes_fr": [
+      "Stabilisation de la répartition des lignes et des pages des devis PDF."
+    ],
+    "changes_en": [
+      "Stabilized quote PDF line distribution and pagination."
+    ]
+  },
+  {
+    "date": "2026-05-13",
+    "version": "1.19.0",
+    "title_fr": "Factures d’avoir et connexion unique",
+    "title_en": "Credit notes and single sign-on",
+    "changes_fr": [
+      "Ajout des factures d’avoir dans l’application et son administration.",
+      "Prise en charge de la connexion unique et correction de la redirection vers la connexion.",
+      "Extension et entretien des vérifications automatisées."
+    ],
+    "changes_en": [
+      "Added credit notes to the application and administration.",
+      "Added single sign-on and corrected sign-in redirects.",
+      "Expanded and maintained automated checks."
+    ]
+  },
+  {
+    "date": "2026-05-18",
+    "version": "1.19.1",
+    "title_fr": "Évolution de l’hébergement",
+    "title_en": "Hosting updates",
+    "changes_fr": [
+      "Préparation et vérification de l’application sur le nouvel environnement d’hébergement.",
+      "Extension et entretien des vérifications automatisées.",
+      "Entretien de l’hébergement, de la configuration et de la distribution de l’application."
+    ],
+    "changes_en": [
+      "Prepared and checked the application in the new hosting environment.",
+      "Expanded and maintained automated checks.",
+      "Maintained application hosting, configuration and delivery."
+    ]
+  },
+  {
+    "date": "2026-05-20",
+    "version": "1.19.2",
+    "title_fr": "Accès aux sociétés et connexion unique",
+    "title_en": "Company access and single sign-on",
+    "changes_fr": [
+      "Correction de la consultation des sociétés selon les droits des membres et traduction de la section sociétés des utilisateurs.",
+      "Ajout de la vérification des identifiants pour la connexion unique.",
+      "Entretien de l’hébergement, de la configuration et de la distribution de l’application."
+    ],
+    "changes_en": [
+      "Corrected company detail access according to membership permissions and translated the user company section.",
+      "Added credential checks for single sign-on.",
+      "Maintained application hosting, configuration and delivery."
+    ]
+  },
+  {
+    "date": "2026-05-22",
+    "version": "1.20.0",
+    "title_fr": "Documents Nectar",
+    "title_en": "Nectar documents",
+    "changes_fr": [
+      "Ajout des règles et écrans propres aux documents Nectar."
+    ],
+    "changes_en": [
+      "Added rules and screens for Nectar documents."
+    ]
+  },
+  {
+    "date": "2026-06-02",
+    "version": "1.20.1",
+    "title_fr": "Tarifs Nectar et connexion",
+    "title_en": "Nectar pricing and sign-in",
+    "changes_fr": [
+      "Finalisation des tarifs articles Nectar et de leur pied de page PDF.",
+      "Limitation des blocages de connexion au compte concerné.",
+      "Entretien de l’hébergement, de la configuration et de la distribution de l’application."
+    ],
+    "changes_en": [
+      "Completed Nectar article pricing and PDF footers.",
+      "Scoped sign-in lockouts to the affected account.",
+      "Maintained application hosting, configuration and delivery."
+    ]
+  },
+  {
+    "date": "2026-06-09",
+    "version": "1.20.2",
+    "title_fr": "Identité et compatibilité",
+    "title_en": "Identity and compatibility",
+    "changes_fr": [
+      "Mise à jour des logos et adaptation de l’application aux bibliothèques mises à jour.",
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Entretien de l’hébergement, de la configuration et de la distribution de l’application."
+    ],
+    "changes_en": [
+      "Updated logos and adapted the application to updated dependencies.",
+      "Updated application dependencies and compatibility.",
+      "Maintained application hosting, configuration and delivery."
+    ]
+  },
+  {
+    "date": "2026-06-12",
+    "version": "1.20.3",
+    "title_fr": "Maintenance et améliorations",
+    "title_en": "Maintenance and improvements",
+    "changes_fr": [
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Extension et entretien des vérifications automatisées."
+    ],
+    "changes_en": [
+      "Updated application dependencies and compatibility.",
+      "Expanded and maintained automated checks."
+    ]
+  },
+  {
+    "date": "2026-06-13",
+    "version": "1.20.4",
+    "title_fr": "Documentation de Facturation",
+    "title_en": "Facturation documentation",
+    "changes_fr": [
+      "Ajout de la présentation du projet et de captures d’écran documentant l’application.",
+      "Entretien de l’hébergement, de la configuration et de la distribution de l’application.",
+      "Mise à jour de la documentation et des outils de maintenance."
+    ],
+    "changes_en": [
+      "Added project documentation and application screenshots.",
+      "Maintained application hosting, configuration and delivery.",
+      "Updated documentation and maintenance tools."
+    ]
+  },
+  {
+    "date": "2026-06-16",
+    "version": "1.20.5",
+    "title_fr": "Remarques plus longues",
+    "title_en": "Longer remarks",
+    "changes_fr": [
+      "Extension des remarques à 2 000 caractères."
+    ],
+    "changes_en": [
+      "Extended remarks to 2,000 characters."
+    ]
+  },
+  {
+    "date": "2026-06-18",
+    "version": "1.21.0",
+    "title_fr": "Validation des factures et paiements",
+    "title_en": "Invoice validation and payments",
+    "changes_fr": [
+      "Ajout du parcours de validation et de paiement des factures, avec statut et consultation des paiements en modification.",
+      "Historique des avoirs, noms des clients dans les règlements et corrections des fiches documents.",
+      "Contrôles d’impression des brouillons et variantes PDF explicites avec unités."
+    ],
+    "changes_en": [
+      "Added invoice validation and payment workflows with status and payment details while editing.",
+      "Added credit-note history and client names in payments and corrected document details.",
+      "Added draft-printing controls and explicit PDF variants with units."
+    ]
+  },
+  {
+    "date": "2026-06-19",
+    "version": "1.21.1",
+    "title_fr": "Maintenance et améliorations",
+    "title_en": "Maintenance and improvements",
+    "changes_fr": [
+      "Mise à jour des composants techniques et de leur compatibilité."
+    ],
+    "changes_en": [
+      "Updated application dependencies and compatibility."
+    ]
+  },
+  {
+    "date": "2026-06-25",
+    "version": "1.22.0",
+    "title_fr": "Contrôles de facturation et relevés clients",
+    "title_en": "Billing controls and client statements",
+    "changes_fr": [
+      "Ajout de contrôles sur le parcours de facturation et protection des documents commerciaux.",
+      "Mise en page et ordre chronologique des relevés clients."
+    ],
+    "changes_en": [
+      "Added billing workflow controls and business document safeguards.",
+      "Improved client statement layout and chronological ordering."
+    ]
+  },
+  {
+    "date": "2026-06-26",
+    "version": "1.23.0",
+    "title_fr": "Brouillons, droits et notifications",
+    "title_en": "Drafts, permissions and notifications",
+    "changes_fr": [
+      "Renforcement des contrôles et permissions des documents ; impression des brouillons avec filigrane discret.",
+      "Actualisation des notifications à l’ouverture et liens vers le document de la bonne société.",
+      "Recherche de tous les types de clients, messages d’erreur et titres des factures clarifiés.",
+      "Extension et entretien des vérifications automatisées.",
+      "Harmonisation et entretien du fonctionnement interne de l’application."
+    ],
+    "changes_en": [
+      "Strengthened document checks and permissions and printed drafts with a subtle watermark.",
+      "Refreshed notifications on opening and linked to documents in the correct company.",
+      "Enabled searching all client types and clarified invoice errors and page titles.",
+      "Expanded and maintained automated checks.",
+      "Aligned and maintained internal application behavior."
+    ]
+  },
+  {
+    "date": "2026-07-01",
+    "version": "1.24.0",
+    "title_fr": "Total des achats",
+    "title_en": "Purchase totals",
+    "changes_fr": [
+      "Ajout d’un récapitulatif du total d’achat des documents dans la devise correspondante.",
+      "Entretien de l’hébergement, de la configuration et de la distribution de l’application."
+    ],
+    "changes_en": [
+      "Added document purchase totals in the corresponding currency.",
+      "Maintained application hosting, configuration and delivery."
+    ]
+  },
+  {
+    "date": "2026-07-04",
+    "version": "2.0.0",
+    "title_fr": "Suivi logistique",
+    "title_en": "Logistics tracking",
+    "changes_fr": [
+      "Ajout des dossiers logistiques, de leurs écrans de suivi et des données nécessaires au parcours.",
+      "Correction de l’initialisation du mode maintenance."
+    ],
+    "changes_en": [
+      "Added logistics dossiers, tracking screens and supporting workflow data.",
+      "Corrected maintenance initialization."
+    ]
+  },
+  {
+    "date": "2026-07-07",
+    "version": "2.1.0",
+    "title_fr": "Parcours et tableau de bord logistiques",
+    "title_en": "Logistics workflow and dashboard",
+    "changes_fr": [
+      "Compléments du suivi logistique, tableau des dossiers plus large et explications des graphiques."
+    ],
+    "changes_en": [
+      "Completed logistics tracking, widened dossier tables and explained dashboard charts."
+    ]
+  },
+  {
+    "date": "2026-07-08",
+    "version": "2.2.0",
+    "title_fr": "Clients divers et historique logistique",
+    "title_en": "Miscellaneous clients and logistics history",
+    "changes_fr": [
+      "Ajout du type client divers pour Nectar et de l’historique logistique dans l’administration."
+    ],
+    "changes_en": [
+      "Added the miscellaneous client type for Nectar and administrative logistics history."
+    ]
+  },
+  {
+    "date": "2026-07-09",
+    "version": "2.2.1",
+    "title_fr": "Dossiers issus de pro forma",
+    "title_en": "Dossiers from pro forma invoices",
+    "changes_fr": [
+      "Alignement des dossiers logistiques avec leurs documents sources et clarification du parcours pro forma."
+    ],
+    "changes_en": [
+      "Aligned logistics dossiers with their source documents and clarified the pro forma workflow."
+    ]
+  },
+  {
+    "date": "2026-07-29",
+    "version": "2.2.2",
+    "title_fr": "Maintenance et améliorations",
+    "title_en": "Maintenance and improvements",
+    "changes_fr": [
+      "Mise à jour des composants techniques et de leur compatibilité."
+    ],
+    "changes_en": [
+      "Updated application dependencies and compatibility."
+    ]
+  },
+  {
+    "date": "2026-08-08",
+    "version": "2.2.3",
+    "title_fr": "Maintenance et améliorations",
+    "title_en": "Maintenance and improvements",
+    "changes_fr": [
+      "Harmonisation et entretien du fonctionnement interne de l’application."
+    ],
+    "changes_en": [
+      "Aligned and maintained internal application behavior."
+    ]
+  },
+  {
+    "date": "2026-08-18",
+    "version": "2.3.0",
+    "title_fr": "Paiements logistiques et fournisseurs",
+    "title_en": "Logistics payments and suppliers",
+    "changes_fr": [
+      "Ajout du parcours de paiement logistique et de ses écrans de suivi.",
+      "Conservation des informations du fournisseur dans les documents pour préserver leur historique."
+    ],
+    "changes_en": [
+      "Added logistics payment workflows and tracking screens.",
+      "Preserved supplier information in documents to retain their history."
+    ]
+  },
+  {
+    "date": "2026-08-19",
+    "version": "2.3.1",
+    "title_fr": "Libellés des dossiers logistiques",
+    "title_en": "Logistics dossier labels",
+    "changes_fr": [
+      "Clarification des intitulés de dossiers et de la facture pro forma utilisée comme source."
+    ],
+    "changes_en": [
+      "Clarified dossier labels and the source pro forma invoice."
+    ]
+  },
+  {
+    "date": "2026-09-07",
+    "version": "2.3.2",
+    "title_fr": "Fiabilité des formulaires et emails",
+    "title_en": "Form and email reliability",
+    "changes_fr": [
+      "Correction de la mise à jour des champs et adaptation de l’envoi des emails.",
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Extension et entretien des vérifications automatisées."
+    ],
+    "changes_en": [
+      "Corrected field updates and adapted email delivery.",
+      "Updated application dependencies and compatibility.",
+      "Expanded and maintained automated checks."
+    ]
+  },
+  {
+    "date": "2026-09-12",
+    "version": "2.4.0",
+    "title_fr": "Préparation et transmission comptable",
+    "title_en": "Preparation and accounting handoff",
+    "changes_fr": [
+      "Ajout de la transition vers la préparation et déblocage de la transmission à la comptabilité.",
+      "Génération du PDF comptable, fournisseur facultatif et affichage amélioré des responsables et des fiches."
+    ],
+    "changes_en": [
+      "Added the preparation transition and unblocked accounting handoff.",
+      "Added the accounting PDF, optional suppliers and improved manager and detail displays."
+    ]
+  },
+  {
+    "date": "2026-09-19",
+    "version": "3.0.0",
+    "title_fr": "Gestion des stocks",
+    "title_en": "Inventory management",
+    "changes_fr": [
+      "Ajout des états de stock, mouvements, réceptions et inventaires, avec leurs formulaires et contrôles.",
+      "Amélioration de la stabilité des mises à jour en temps réel.",
+      "Entretien de l’hébergement, de la configuration et de la distribution de l’application."
+    ],
+    "changes_en": [
+      "Added stock balances, movements, receipts and inventories with forms and checks.",
+      "Improved real-time update stability.",
+      "Maintained application hosting, configuration and delivery."
+    ]
+  },
+  {
+    "date": "2026-09-21",
+    "version": "3.1.0",
+    "title_fr": "Stocks et parcours des dossiers",
+    "title_en": "Stock and dossier workflows",
+    "changes_fr": [
+      "Révision du parcours des dossiers logistiques et de leurs étapes.",
+      "Amélioration des filtres et de l’état désactivé des stocks ; correction des accès aux données stock et logistique."
+    ],
+    "changes_en": [
+      "Revised logistics dossier workflows and stages.",
+      "Improved stock filters and disabled states and corrected stock and logistics data access."
+    ]
+  },
+  {
+    "date": "2026-09-22",
+    "version": "3.2.0",
+    "title_fr": "Retour aux listes",
+    "title_en": "Returning to lists",
+    "changes_fr": [
+      "Conservation de la pagination dans l’adresse et restauration de l’état des tableaux au retour depuis une fiche."
+    ],
+    "changes_en": [
+      "Preserved pagination in the URL and restored table state when returning from details."
+    ]
+  },
+  {
+    "date": "2026-09-23",
+    "version": "3.2.1",
+    "title_fr": "Désignations et objectifs du mois",
+    "title_en": "Descriptions and monthly targets",
+    "changes_fr": [
+      "Conservation des retours à la ligne dans les désignations des articles et les PDF.",
+      "Correction du début de période des indicateurs mensuels et modernisation de l’interface."
+    ],
+    "changes_en": [
+      "Preserved line breaks in article descriptions and PDFs.",
+      "Corrected monthly indicator start dates and modernized the interface."
+    ]
+  },
+  {
+    "date": "2026-10-03",
+    "version": "3.2.2",
+    "title_fr": "Filtres des stocks",
+    "title_en": "Stock filters",
+    "changes_fr": [
+      "Harmonisation de la largeur des filtres articles dans les listes de stock."
+    ],
+    "changes_en": [
+      "Aligned article filter widths in stock lists."
+    ]
+  },
+  {
+    "date": "2026-10-06",
+    "version": "3.3.0",
+    "title_fr": "Relecture logistique et tri des listes",
+    "title_en": "Logistics review and list sorting",
+    "changes_fr": [
+      "Ajout d’un Gantt de relecture et de champs de révision partagés, avec propositions de champs manquants.",
+      "Libellés, chronologie et explications des dossiers clarifiés.",
+      "Tri des colonnes sur l’ensemble des résultats avant pagination.",
+      "Mise à jour des composants techniques et de leur compatibilité.",
+      "Entretien de l’hébergement, de la configuration et de la distribution de l’application.",
+      "Mise à jour de la documentation et des outils de maintenance."
+    ],
+    "changes_en": [
+      "Added a review Gantt and shared review fields with suggestions for missing fields.",
+      "Clarified dossier labels, timelines and field explanations.",
+      "Sorted columns across all results before pagination.",
+      "Updated application dependencies and compatibility.",
+      "Maintained application hosting, configuration and delivery.",
+      "Updated documentation and maintenance tools."
+    ]
+  },
+  {
+    "date": "2026-10-07",
+    "version": "3.4.0",
+    "title_fr": "Recouvrement, rédaction et réservations",
+    "title_en": "Collections, writing and reservations",
+    "changes_fr": [
+      "Indicateurs du tableau de bord permettant de repérer les priorités de recouvrement et les soldes à traiter.",
+      "Outils de traduction, correction et reformulation des textes, avec aperçu avant application et champs de désignation plus larges.",
+      "Gestion de l’expiration des réservations de stock et simplification des bons de livraison PDF sans prix.",
+      "Amélioration de la fiabilité des traitements de rédaction et de leur reprise après erreur."
+    ],
+    "changes_en": [
+      "Added dashboard indicators for collection priorities and outstanding balances.",
+      "Added text translation, correction and rewriting with preview before applying, and wider description fields.",
+      "Added stock reservation expiry and simplified delivery-note PDFs without prices.",
+      "Improved writing-process reliability and recovery after errors."
+    ]
+  },
+  {
+    "date": "2026-10-08",
+    "version": "3.5.0",
+    "title_fr": "Assistant par société",
+    "title_en": "Company-aware assistant",
+    "changes_fr": [
+      "Ajout d’un assistant tenant compte de la société et des permissions, avec raccourcis vers les modules autorisés.",
+      "Fonctionnement bilingue et accès au chat préservé lors du redimensionnement sur mobile.",
+      "Mise à jour de la documentation et des outils de maintenance."
+    ],
+    "changes_en": [
+      "Added a company- and permission-aware assistant with shortcuts to permitted modules.",
+      "Added bilingual behavior and preserved chat access during mobile resizing.",
+      "Updated documentation and maintenance tools."
+    ]
+  },
+  {
+    "date": "2026-10-09",
+    "version": "3.6.0",
+    "title_fr": "Questions suggérées et nouveautés",
+    "title_en": "Suggested questions and updates",
+    "changes_fr": [
+      "Questions de démarrage adaptées aux modules autorisés, envoyées directement au clic.",
+      "Amélioration du choix des informations utilisées pour répondre aux questions suggérées.",
+      "Ajout du changelog complet et bilingue, accessible directement après Paramètres.",
+      "Une fenêtre signale les nouvelles versions et permet de différer la mise à jour ou de recharger après avoir enregistré son travail.",
+      "Ajout d’un mode sombre mémorisé, avec adaptation des formulaires, tableaux, graphiques et fenêtres.",
+      "Mise à jour de la documentation et des outils de maintenance."
+    ],
+    "changes_en": [
+      "Added starter questions for permitted modules, sent directly when clicked.",
+      "Improved the selection of information used to answer suggested questions.",
+      "Added the complete bilingual changelog, accessible directly after Settings.",
+      "A dialog announces newer versions and lets you defer the update or reload after saving your work.",
+      "Added a remembered dark mode across forms, tables, charts and dialogs.",
+      "Updated documentation and maintenance tools."
+    ]
+  }
+]
