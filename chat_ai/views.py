@@ -109,7 +109,7 @@ class ChatView(APIView):
 class CapabilitiesView(ChatView):
     def get(self,request):
         from core.permissions import can_create, can_update, can_delete, can_print
-        from .shortcut_catalog import shortcut_catalog
+        from .shortcut_catalog import shortcut_catalog, suggestion_catalog
         language = request.query_params.get('language', 'fr')
         companies=[]
         for m in Membership.objects.filter(user=request.user,company__isnull=False).select_related('company','user').order_by('company_id'):
@@ -117,9 +117,9 @@ class CapabilitiesView(ChatView):
             company={'id':m.company_id,'name':m.company.raison_sociale,
                 'can_update':can_update(m.user,m.company_id),'can_delete':can_delete(m.user,m.company_id),
                 'can_print':can_print(m.user,m.company_id),'can_create':can_create(m.user,m.company_id)}
-            company['suggestions']=['Trouver une facture','Affiche les factures impayées','Chercher un client']
-            if company['can_create']:company['suggestions'].append('Comment créer une facture ?')
-            company['shortcuts'] = shortcut_catalog(ChatAIToolExecutor(request.user.pk, m.company_id, uuid.uuid4(), audit=False), language)
+            executor = ChatAIToolExecutor(request.user.pk, m.company_id, uuid.uuid4(), audit=False)
+            company['suggestions'] = suggestion_catalog(executor, language)
+            company['shortcuts'] = shortcut_catalog(executor, language)
             companies.append(company)
         # Stock's native GET policy also permits a superuser without membership.
         # These contexts advertise stock reads only; business tools retain membership checks.
@@ -127,10 +127,11 @@ class CapabilitiesView(ChatView):
             from company.models import Company
             known={company['id'] for company in companies}
             for company in Company.objects.exclude(pk__in=known).order_by('pk'):
+                executor = ChatAIToolExecutor(request.user.pk, company.pk, uuid.uuid4(), audit=False)
                 companies.append({'id':company.pk,'name':company.raison_sociale,
                     'can_update':False,'can_delete':False,'can_print':False,'can_create':False,
-                    'can_read_business':False,'suggestions':['Consulter le stock','Rechercher un mouvement de stock'],
-                    'shortcuts':shortcut_catalog(ChatAIToolExecutor(request.user.pk, company.pk, uuid.uuid4(), audit=False), language)})
+                    'can_read_business':False,'suggestions':suggestion_catalog(executor, language),
+                    'shortcuts':shortcut_catalog(executor, language)})
         return Response({'application':'facturation','read_only':False,'companies':companies,
             'languages':['fr','en'],'model':settings.CHAT_AI_MODEL_ID})
 

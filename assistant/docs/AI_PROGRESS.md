@@ -14,6 +14,10 @@ Current step: reviewed module-shortcut release deployed and verified; Phase 1 im
 - Real local v4 checks passed invoice/client/product search, quote/article search, EN/FR collected-payment summaries, unpaid/ordinal follow-ups, navigation/list return and reviewed EN/FR workflow answers. Original model failures remain recorded separately.
 - Public-repository audit found no actual credentials or private business artifacts in release commits. Runtime environments, keys, browser state, raw reports, weights and checkpoints are ignored. Application code is edited locally and released via Git pushes.
 
+## Suggestion-button update — 2026-10-09
+- IMPLEMENTED locally: complete permission-filtered English/French starter questions, immediate sending on click, active-company isolation and explicit click-to-send instructions. Slash-menu entries remain editable drafts.
+- Verification: 337 focused backend tests and 115 chat frontend tests passed; TypeScript, ESLint and assistant-enabled production build passed before final wording review. Production release/verification of this update is pending.
+
 ## Measured model limits
 Frozen independent80 cases: tool selection50/80 (62.5%); exact arguments24/76 (31.58%); schema73/80 (91.25%). Base:44/80,18/76,61/80. Targets95/95/99 are UNMET. Complex filters, limits, operation choice and malformed calls remain weaknesses. The application's deterministic help/reference handlers are not credited as model accuracy.
 

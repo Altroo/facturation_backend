@@ -113,3 +113,36 @@ def test_shortlist_hint_preserves_original_user_message_and_language(text, tool)
     assert message_language(messages[-1]['content']) == 'fr'
     assert tool in {item.name for item in offered}
     assert {item.name for item in offered} <= {'knowledge','navigate','previous_results',tool,'financial_summary','prepare_change','get_invoice'}
+
+
+@pytest.mark.parametrize('language,role,expected', [
+    ('fr', 'Lecture', 'Montre les derniers règlements validés.'),
+    ('en', 'Lecture', 'Show the latest validated payments.'),
+    ('fr', 'Commercial', 'Comment créer une facture client ?'),
+    ('en', 'Commercial', 'How do I create a customer invoice?'),
+])
+def test_suggestions_are_complete_localized_and_use_native_permissions(setup, language, role, expected):
+    role, _ = Role.objects.get_or_create(name=role)
+    setup.membership.role = role; setup.membership.save()
+    api = APIClient(); api.force_authenticate(setup.user)
+    result = api.get('/api/ai/v1/capabilities/', {'language': language}).json()
+    questions = result['companies'][0]['suggestions']
+    assert len(questions) == 5 and len(set(questions)) == 5
+    assert expected in questions
+    assert ('Show unpaid customer invoices.' if language == 'en' else 'Affiche les factures impayées.') in questions
+    assert ('Show recent logistics dossiers.' if language == 'en' else 'Montre les dossiers logistiques récents.') in questions
+    assert all('Atlas' not in question and not question.startswith('/') for question in questions)
+    if role.name == 'Lecture':
+        assert 'Comment créer une facture client ?' not in questions
+        assert 'How do I create a customer invoice?' not in questions
+
+
+def test_suggestions_for_native_stock_only_scope_exclude_business_questions(setup):
+    setup.user.is_superuser = True; setup.user.save()
+    api = APIClient(); api.force_authenticate(setup.user)
+    result = api.get('/api/ai/v1/capabilities/', {'language': 'en'}).json()
+    questions = next(company['suggestions'] for company in result['companies'] if company['id'] == setup.b.pk)
+    assert questions == [
+        'Show stock with the “Stock minimum” status.',
+        'Show the latest stock movements.',
+    ]

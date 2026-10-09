@@ -88,8 +88,8 @@
     },
     "docs/AI_FRONTEND.md": {
       "mode": 420,
-      "sha256": "5cca6f8f28fadef9ae1172844e9b69804a848c5202e61fcc3cf9045015c66d12",
-      "size_bytes": 16855
+      "sha256": "3b7f7e8ee62684cfe54b770fd27b1e7b6e6927d6669b47a13579af25798e1fec",
+      "size_bytes": 17516
     },
     "docs/AI_KNOWLEDGE.md": {
       "mode": 420,
@@ -103,8 +103,8 @@
     },
     "docs/AI_PROGRESS.md": {
       "mode": 420,
-      "sha256": "7c11cca8a31b20ce9b1e3b4085c383f6b3d3650b98ac92d8c5360d70c09408a8",
-      "size_bytes": 4549
+      "sha256": "2c4b3defb4ebe4b607f7dd59ea13860a10db3de3ed5dd12c569e009d7f6a30e6",
+      "size_bytes": 5047
     },
     "docs/AI_PROGRESS_HISTORY.md": {
       "mode": 420,
@@ -2574,5 +2574,5 @@
   },
   "format_version": 1,
   "managed_by": "chat-ai-assistant-source-snapshot",
-  "tree_sha256": "a0378520b091ca7bf211c93e44b68034b4396d089e244def83fad6493928556c"
+  "tree_sha256": "a55141d06201e6dda60bcd2a45c65a6ae90ef353980e91b74ada48870702a163"
 }

@@ -299,7 +299,7 @@ def test_capabilities_use_current_company_role(setup,role,edit,delete,printable)
     assert len(result['companies'])==1
     company=result['companies'][0]
     assert company['can_update']==edit and company['can_delete']==delete and company['can_print']==printable
-    if not edit:assert 'Comment créer une facture ?' not in company['suggestions']
+    if not edit:assert 'Comment créer une facture client ?' not in company['suggestions']
 
 
 @pytest.mark.django_db(transaction=True)

@@ -84,6 +84,29 @@ def shortcut_catalog(executor=None, language='fr'):
     return items
 
 
+def suggestion_catalog(executor, language='fr'):
+    """Complete read/workflow questions, scoped like the registered tools."""
+    allowed = permitted_commands(executor)
+    en = language == 'en'
+    candidates = (
+        ('/impayees', 'Affiche les factures impayées.', 'Show unpaid customer invoices.'),
+        ('/devis', 'Montre les derniers devis.', 'Show the latest quotes.'),
+        ('/logistique', 'Montre les dossiers logistiques récents.', 'Show recent logistics dossiers.'),
+        ('/stock', 'Affiche le stock à l’état « Stock minimum ».', 'Show stock with the “Stock minimum” status.'),
+    )
+    questions = [english if en else fr for command, fr, english in candidates if command in allowed]
+    context = executor.authorize_context()
+    if context.membership is not None:
+        from core.permissions import can_create
+        if can_create(context.user, executor.company_id):
+            questions.append('How do I create a customer invoice?' if en else 'Comment créer une facture client ?')
+        elif '/paiements' in allowed:
+            questions.append('Show the latest validated payments.' if en else 'Montre les derniers règlements validés.')
+    elif '/mouvements' in allowed:
+        questions.append('Show the latest stock movements.' if en else 'Montre les derniers mouvements de stock.')
+    return questions
+
+
 def usage(command, executor=None, language='fr'):
     for item in shortcut_catalog(executor, language):
         if item['command'] == command:
