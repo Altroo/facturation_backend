@@ -147,3 +147,24 @@ def knowledge_action(text):
     if procedure or definition or explanation:
         return {'tool': 'knowledge', 'arguments': {'query': text.strip()}}
     return None
+
+
+def greeting_action(text):
+    """Answer only complete greetings; greetings plus tasks keep normal routing."""
+    if text.startswith("/"):
+        return None
+    from chat_ai_assistant.routing import normalized
+    words = re.sub(r"[\W_]+", " ", normalized(text)).strip()
+    english = r"(?:(?:hello|hi|hey)(?: there)?|good (?:morning|afternoon|evening))"
+    english_check_in = r"(?:how are you|how s it going)"
+    french = r"(?:bonjour|bonsoir|salut|coucou)(?: a vous| a toi| tout le monde)?"
+    french_check_in = r"(?:comment allez vous|comment vas tu|ca va)"
+    if re.fullmatch(rf"(?:{english}(?: {english_check_in})?|{english_check_in})", words):
+        message = "Hello! How can I help you with Facturation?"
+    elif re.fullmatch(rf"(?:{french}(?: {french_check_in})?|{french_check_in})", words):
+        message = "Bonjour ! Comment puis-je vous aider dans Facturation ?"
+    else:
+        return None
+    # Existing trusted plain-text response path, with the same authorization,
+    # persistence and delivery checks as other backend-owned answers.
+    return {"tool": "clarify", "message": message}
