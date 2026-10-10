@@ -13,6 +13,8 @@ def shortcut_action(text, executor=None, interface_language='fr'):
     parts = text.split(maxsplit=1)
     command = ALIASES.get(parts[0].casefold(), parts[0].casefold())
     argument = parts[1].strip() if len(parts) == 2 else ''
+    if command == '/' and not argument:
+        command = '/help'
 
     def action(tool, usage=None, **args):
         result = {'tool': tool, 'arguments': args}

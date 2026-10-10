@@ -364,3 +364,11 @@ def test_bare_voir_returns_visible_guidance_without_model(setup):
     assert 'Exemple : /voir' in result['text'] and 'client' in result['text']
     assert result['cards']==[]
     assert Message.objects.get(conversation=conversation,role='assistant').text==result['text']
+
+@pytest.mark.parametrize('language',['en','fr'])
+def test_bare_slash_returns_same_authorized_help_as_help_command(setup,language):
+    ex=executor(setup)
+    result=shortcut_action('/',ex,language)
+    assert result==shortcut_action('/help',ex,language)
+    assert result['tool']=='clarify' and '/voir' in result['message']
+    assert 'Unknown' not in result['message'] and 'inconnue' not in result['message']
