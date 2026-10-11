@@ -2,6 +2,12 @@
 
 Management Projet remains disabled in production by explicit user instruction. This work uses the existing shared Qwen3.5-0.8B checkpoint and Colibri CPU runtime; no new foundation model or application-specific model is downloaded. Production weights, permissions and financial calculations remain unchanged.
 
+## Current status — 2026-10-11
+
+V5r4 completed but missed acceptance: 390/438 correct tools (89.04%), 284/334 eligible exact arguments (85.03%) and 434/438 valid outputs (99.09%). V5r5 is running on the same server/base after correcting a measured neutral-greeting training bias and adding calendar diversity. Selection uses periodic validation; all 438 unchanged acceptance cases must then be measured freshly. Production remains unchanged. [Current queue](AI_TRAINING_QUEUE.md), [completed results](../training/reports/shared-v5r4-en-fr-evaluation.json).
+
+The dated work below preserves earlier diagnoses and measurements; it is not the current rollout status.
+
 ## Diagnosis and verified corrections
 
 The shared v2 benchmark remains the recorded baseline. Genuine failures include dropped AND filters, wrong resources, record searches in place of totals, confused follow-up operations and inappropriate clarification. A current-page ID explicitly supplied by the planner can be equivalent to omitting it and using trusted context; this strict-scoring limitation is recorded without changing benchmark scores. Generic name search and name-only filters are not automatically considered equivalent because the backend searches different fields.

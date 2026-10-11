@@ -1,0 +1,48 @@
+{
+  "train.jsonl": {
+    "count": 2334,
+    "round_trip_passed": 2334,
+    "runtime_prefix_parity_passed": 2334,
+    "loss_boundary_passed": 2334,
+    "semantic_alignment_passed": 2334,
+    "semantic_loss_weight": 4.0,
+    "maximum_tokens": 7662,
+    "sha256": "d119bd73eb74cbb87a32eba66fff112b3a869b16ba2dae0fd637c3874d44a4ce"
+  },
+  "valid.jsonl": {
+    "count": 402,
+    "round_trip_passed": 402,
+    "runtime_prefix_parity_passed": 402,
+    "loss_boundary_passed": 402,
+    "semantic_alignment_passed": 402,
+    "semantic_loss_weight": 4.0,
+    "maximum_tokens": 7496,
+    "sha256": "cdbaeacf2bbee6e538ba169498e9c41f3dec4f1d547b106a763c2f686e4e45ea"
+  },
+  "scope": "Tokenizer/template/parser checks only; not model accuracy or training success",
+  "execution": "Server metadata-only validation; no model weights loaded or optimization performed.",
+  "manifest_sha256": "21625fb38decad0e0dea9acb6964137dfc8a8484f3456b9b95093833c92023f1",
+  "tokenizer_matches_frozen_candidate": true,
+  "runtime_python_matches_frozen_candidate": true,
+  "source_sha256": {
+    "training/datasets/shared-v5r5-en-fr/train.jsonl": "422377f64551b665677a3ab50c495f88de6fb5284b35ee0b03de625aa4c3c89c",
+    "training/datasets/shared-v5r5-en-fr/valid.jsonl": "b38107a9f77b7d47f8f0e881972a753e880ae8ee091217c471a17a2560b3bf86",
+    "training/datasets/shared-v5r5-en-fr/manifest.json": "e7f5d67caf9f5bb99418ed71dd3ce18ef38a7bfbd4a879605595bd1b31efbdf6",
+    "training/datasets/shared-v6r5-en-fr/train.jsonl": "bd5e5c5abf2a2d9deb0466b2fd9e471e8112068a51edbfee5c3c5044377ffd07",
+    "training/datasets/shared-v6r5-en-fr/valid.jsonl": "1ebde5e1a4080d0446a1e3a1ee20172b7ba74fb23987a1874ec1246f7910121a",
+    "training/datasets/shared-v6r5-en-fr/manifest.json": "8e11b43fab2b4b98fdecc7b8568350114e8507d07bb9e57a4f131e1d608501f4",
+    "training/datasets/shared-v7r5-en-fr/train.jsonl": "4499b3ae062e8e8bda3315c50e5e3162e3dc357db414bded1f087bf8db85c16f",
+    "training/datasets/shared-v7r5-en-fr/valid.jsonl": "07c81591f4c0d0912f994922ee9ba4790fa1a7c0d6ddcea2af839a1ccb9e0cc7",
+    "training/datasets/shared-v7r5-en-fr/manifest.json": "5f25d5fe19e532decba52ac1158afc134356fe4d7fc14388dcefc8f5c181a566",
+    "training/datasets/shared-v8r5-en-fr/train.jsonl": "d119bd73eb74cbb87a32eba66fff112b3a869b16ba2dae0fd637c3874d44a4ce",
+    "training/datasets/shared-v8r5-en-fr/valid.jsonl": "cdbaeacf2bbee6e538ba169498e9c41f3dec4f1d547b106a763c2f686e4e45ea",
+    "training/datasets/shared-v8r5-en-fr/manifest.json": "21625fb38decad0e0dea9acb6964137dfc8a8484f3456b9b95093833c92023f1",
+    "training/scripts/preflight_training.py": "c2db6d4b20e12b30948f6bbda3016fe05f290dad9e9804c0ab195a189e330c5b",
+    "training/scripts/semantic_loss.py": "03b2918106c5e7f9dca0b323cb476b4d8fa241f229543fdb6e49d2312319af12"
+  },
+  "peak_memory_bytes": 573161472,
+  "cpu_core_limit": 0.25,
+  "memory_limit_gib": 2,
+  "retention": "V5r5, V6r5 and V7r5 are exact preceding prefixes of the validated V8r5 splits.",
+  "remaining_gates": "Prior-stage accuracy acceptance, frozen model baseline, capacity and unchanged launch-time artifacts remain required before each sequential training stage."
+}

@@ -98,8 +98,8 @@
     },
     "docs/AI_FINE_TUNING.md": {
       "mode": 420,
-      "sha256": "818924447a244dc09e0010783de220b7c3a7490be269fbef7e011751212992af",
-      "size_bytes": 13705
+      "sha256": "82beb2762c7bc4eb99e245f7c40c7f10a51bc2fbd0bd8466f5912f9ba031c1d2",
+      "size_bytes": 13718
     },
     "docs/AI_FRONTEND.md": {
       "mode": 420,
@@ -128,8 +128,8 @@
     },
     "docs/AI_MODEL_ACCURACY.md": {
       "mode": 420,
-      "sha256": "1df2946a90f7f0b360e124101981c1684486ceb07ffe5c738cb3f12ce588062c",
-      "size_bytes": 32685
+      "sha256": "f59580455ea38264fc1b98c9cb6e41f58f828df6fa32a96964a673aa8fb657b2",
+      "size_bytes": 33351
     },
     "docs/AI_PHASE1_REPORT.md": {
       "mode": 420,
@@ -138,8 +138,8 @@
     },
     "docs/AI_PROGRESS.md": {
       "mode": 420,
-      "sha256": "d0a1a5de18e1ac9615c774f180a37297fe5c46038b9da41ad8d7279ca17a4c92",
-      "size_bytes": 49419
+      "sha256": "17e726d80c1505114066dea05feedd29bb470038a8f30e6dcde01ee63f23bb5d",
+      "size_bytes": 47737
     },
     "docs/AI_PROGRESS_HISTORY.md": {
       "mode": 420,
@@ -178,8 +178,8 @@
     },
     "docs/AI_TRAINING_QUEUE.md": {
       "mode": 420,
-      "sha256": "5cc132c1695477ca9b913178fcf7e5f05b5e72af0e06e3d5003579360db85414",
-      "size_bytes": 33992
+      "sha256": "6a3ed7e0a42236abc6a51e6624c3bc189d90c0f9524acfb1b3dbb6dd504d0691",
+      "size_bytes": 32765
     },
     "docs/implementation-files.json": {
       "mode": 420,
@@ -4213,8 +4213,8 @@
     },
     "training/reports/shared-v5r4-en-fr-malformed-calls.json": {
       "mode": 420,
-      "sha256": "6b653bb36d257e5fe8a2d113815e5c32a0fce4f8f900b715437d271b5f669b22",
-      "size_bytes": 2236
+      "sha256": "0a3b44a920953bcdc75cf3d1a269009bd2877cbb066947e24cebf17d4db61b02",
+      "size_bytes": 4404
     },
     "training/reports/shared-v5r4-en-fr-metadata-preflight.json": {
       "mode": 420,
@@ -4285,6 +4285,11 @@
       "mode": 420,
       "sha256": "bb55937cdcc6c450ccc51df85d669f60dc8a10b4627885fc5e585540885928c5",
       "size_bytes": 1292
+    },
+    "training/reports/shared-v8r5-en-fr-server-preflight.json": {
+      "mode": 420,
+      "sha256": "29a62e676aff91168f433374177cb1c136805d3a2be678684530c228f620c94a",
+      "size_bytes": 3134
     },
     "training/scripts/archive/capacity_v4/probe_cpu_capacity.py": {
       "mode": 420,
@@ -4579,5 +4584,5 @@
   },
   "format_version": 1,
   "managed_by": "chat-ai-assistant-source-snapshot",
-  "tree_sha256": "1f8bee21ca5a6619d523798d91fb52151ae346a76c9f8066fce07fd3964f95f3"
+  "tree_sha256": "368a2104c92fea8bee42736f6b08f5d5bf3d4dff264776aac02ad3fca75d2feb"
 }

@@ -50,5 +50,42 @@
       "cause_message": "Invalid call count"
     }
   ],
-  "scope": "Replay of four original rejected calls, not replacement scores. No business executor or business data. Two quote requests emitted no parsed tool call; the replay does not identify their raw generation cause."
+  "scope": "Replay of four original rejected calls, not replacement scores. No business executor or business data. Supplemental existing-log inspection narrows the two empty-call failures without new inference or changing the original measurements.",
+  "supplemental_parser_diagnostic": {
+    "evidence_sha256": "b4109834e1a03b05de01159a5817a248fb19c4c3c5a1c97f3bcd522a07e89595",
+    "log_sha256": "bd97a643d425cac80f62bfd3fa4df468421022fc82eef91ce19bb463fad6554b",
+    "serialized_request_count": 546,
+    "matches": [
+      {
+        "line": 1378,
+        "turn": 341,
+        "completion_tokens": 56,
+        "diagnostic": "[api] qwen tool call rejected: invalid integer parameter 'identifier' for 'prepare_change'; missing required parameters for 'prepare_change': ['identifier']",
+        "case_id": "management-projet-v4-en-fr-fresh-quote-number-fr"
+      },
+      {
+        "line": 1384,
+        "turn": 342,
+        "completion_tokens": 56,
+        "diagnostic": "[api] qwen tool call rejected: invalid integer parameter 'identifier' for 'prepare_change'; missing required parameters for 'prepare_change': ['identifier']",
+        "case_id": "management-projet-v4-en-fr-fresh-quote-number-en"
+      },
+      {
+        "line": 2010,
+        "turn": 497,
+        "completion_tokens": 56,
+        "diagnostic": "[api] qwen tool call rejected: invalid integer parameter 'identifier' for 'prepare_change'; missing required parameters for 'prepare_change': ['identifier']",
+        "case_id": "management-projet-v4-en-fr-fresh-quote-number-fr"
+      },
+      {
+        "line": 2016,
+        "turn": 498,
+        "completion_tokens": 56,
+        "diagnostic": "[api] qwen tool call rejected: invalid integer parameter 'identifier' for 'prepare_change'; missing required parameters for 'prepare_change': ['identifier']",
+        "case_id": "management-projet-v4-en-fr-fresh-quote-number-en"
+      }
+    ],
+    "interpretation": "Sequence-correlated runtime diagnostics show prepare_change with an invalid integer identifier, which the parser rejected before execution. The expected action was a record search. The exact generated identifier value is unavailable; this does not establish a Colibri defect.",
+    "limitation": "Case linkage is inferred from the verified serialized request sequence and matching 56-token replay counts. Raw generated parameter values were not captured."
+  }
 }
