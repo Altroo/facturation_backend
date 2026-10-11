@@ -1,0 +1,1474 @@
+{
+  "version": "contracts-dialogue-v3-en-fr",
+  "application": "contrat",
+  "languages": [
+    "en",
+    "fr"
+  ],
+  "source_dataset": "contracts-v1-en-fr",
+  "source_manifest_sha256": "aaaf22a6b8e4daa51bc1660f5a92aca6af0103d806f2d13362fab0a2c456bbc2",
+  "source_files": {
+    "train.jsonl": "c134e3024a7c01537c206aecf5aa552c825660b93c87450e014c30ee86c07631",
+    "valid.eval.jsonl": "e1299dfa194bb6c14243d3d0f2b87f037bd9e2a1aba68a8d99f2bc2ca72661ad",
+    "test.eval.jsonl": "bd9ade94e2bc9db098b928387548b06a1863fa46d5284388940e11ae0777cd1a",
+    "train.eval.jsonl": "453d2744118379b40fe6cab377acfcf2f64b7f4a201524759710e3332ff7f9c1",
+    "valid.jsonl": "c8e6cf50a2a1ada51091b3cdef2379741a3edeb3fa9669b6855cface87fbdd86"
+  },
+  "counts": {
+    "train": {
+      "retained": 122,
+      "augmented": 31,
+      "total": 153
+    },
+    "valid": {
+      "retained": 30,
+      "augmented": 14,
+      "total": 44
+    },
+    "test": {
+      "retained": 78
+    }
+  },
+  "augmentation": {
+    "train": [
+      {
+        "source_index": 109,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "contrat",
+        "source_id": "contracts-v1-en-fr-train-clarify-private-en"
+      },
+      {
+        "source_index": 105,
+        "history": "Hello, thanks for your help.",
+        "application": "contrat",
+        "source_id": "contracts-v1-en-fr-train-clarify-sql-en"
+      },
+      {
+        "source_index": 102,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "contrat",
+        "source_id": "contracts-v1-en-fr-train-clarify-permissions-fr"
+      },
+      {
+        "source_index": 101,
+        "history": "Hello, thanks for your help.",
+        "application": "contrat",
+        "source_id": "contracts-v1-en-fr-train-clarify-bulk-en"
+      },
+      {
+        "source_index": 65,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "contrat",
+        "source_id": "contracts-v1-en-fr-train-document-docx-en"
+      },
+      {
+        "source_index": 63,
+        "history": "Hello, thanks for your help.",
+        "application": "contrat",
+        "source_id": "contracts-v1-en-fr-train-document-pdf-en"
+      },
+      {
+        "source_index": 64,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "contrat",
+        "source_id": "contracts-v1-en-fr-train-document-docx-fr"
+      },
+      {
+        "source_index": 62,
+        "history": "Hello, thanks for your help.",
+        "application": "contrat",
+        "source_id": "contracts-v1-en-fr-train-document-pdf-fr"
+      },
+      {
+        "source_index": 51,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "contrat",
+        "source_id": "contracts-v1-en-fr-train-detail-amount-en"
+      },
+      {
+        "source_index": 49,
+        "history": "Hello, thanks for your help.",
+        "application": "contrat",
+        "source_id": "contracts-v1-en-fr-train-context-contract-en"
+      },
+      {
+        "source_index": 48,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "contrat",
+        "source_id": "contracts-v1-en-fr-train-context-contract-fr"
+      },
+      {
+        "source_index": 46,
+        "history": "Hello, thanks for your help.",
+        "application": "contrat",
+        "source_id": "contracts-v1-en-fr-train-detail-project-fr"
+      },
+      {
+        "source_index": 115,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "contrat",
+        "source_id": "contracts-v1-en-fr-train-knowledge-schedule-en"
+      },
+      {
+        "source_index": 117,
+        "history": "Hello, thanks for your help.",
+        "application": "contrat",
+        "source_id": "contracts-v1-en-fr-train-knowledge-create-en"
+      },
+      {
+        "source_index": 114,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "contrat",
+        "source_id": "contracts-v1-en-fr-train-knowledge-schedule-fr"
+      },
+      {
+        "source_index": 116,
+        "history": "Hello, thanks for your help.",
+        "application": "contrat",
+        "source_id": "contracts-v1-en-fr-train-knowledge-create-fr"
+      },
+      {
+        "source_index": 61,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "contrat",
+        "source_id": "contracts-v1-en-fr-train-navigate-edit-en"
+      },
+      {
+        "source_index": 53,
+        "history": "Hello, thanks for your help.",
+        "application": "contrat",
+        "source_id": "contracts-v1-en-fr-train-navigate-contracts-en"
+      },
+      {
+        "source_index": 56,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "contrat",
+        "source_id": "contracts-v1-en-fr-train-navigate-known-fr"
+      },
+      {
+        "source_index": 52,
+        "history": "Hello, thanks for your help.",
+        "application": "contrat",
+        "source_id": "contracts-v1-en-fr-train-navigate-contracts-fr"
+      },
+      {
+        "source_index": 79,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "contrat",
+        "source_id": "contracts-v1-en-fr-train-edit-project-en"
+      },
+      {
+        "source_index": 83,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "contrat",
+        "source_id": "contracts-v1-en-fr-train-delete-known-en"
+      },
+      {
+        "source_index": 82,
+        "history": "Hello, thanks for your help.",
+        "application": "contrat",
+        "source_id": "contracts-v1-en-fr-train-delete-known-fr"
+      },
+      {
+        "source_index": 71,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "contrat",
+        "source_id": "contracts-v1-en-fr-train-followup-list-en"
+      },
+      {
+        "source_index": 69,
+        "history": "Hello, thanks for your help.",
+        "application": "contrat",
+        "source_id": "contracts-v1-en-fr-train-followup-second-en"
+      },
+      {
+        "source_index": 68,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "contrat",
+        "source_id": "contracts-v1-en-fr-train-followup-second-fr"
+      },
+      {
+        "source_index": 70,
+        "history": "Hello, thanks for your help.",
+        "application": "contrat",
+        "source_id": "contracts-v1-en-fr-train-followup-list-fr"
+      },
+      {
+        "source_index": 35,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "contrat",
+        "source_id": "contracts-v1-en-fr-train-search-currency-en"
+      },
+      {
+        "source_index": 3,
+        "history": "Hello, thanks for your help.",
+        "application": "contrat",
+        "source_id": "contracts-v1-en-fr-train-search-projects-en"
+      },
+      {
+        "source_index": 26,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "contrat",
+        "source_id": "contracts-v1-en-fr-train-status-complete-fr"
+      },
+      {
+        "source_index": 42,
+        "history": "Hello, thanks for your help.",
+        "application": "contrat",
+        "source_id": "contracts-v1-en-fr-train-search-combined-fr"
+      }
+    ],
+    "valid": [
+      {
+        "source_index": 23,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "contrat",
+        "source_id": "contracts-v1-en-fr-valid-denied-edit-en"
+      },
+      {
+        "source_index": 16,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "contrat",
+        "source_id": "contracts-v1-en-fr-valid-clarify-unknown-date-fr"
+      },
+      {
+        "source_index": 11,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "contrat",
+        "source_id": "contracts-v1-en-fr-valid-document-english-en"
+      },
+      {
+        "source_index": 10,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "contrat",
+        "source_id": "contracts-v1-en-fr-valid-document-english-fr"
+      },
+      {
+        "source_index": 25,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "contrat",
+        "source_id": "contracts-v1-en-fr-valid-knowledge-status-en"
+      },
+      {
+        "source_index": 24,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "contrat",
+        "source_id": "contracts-v1-en-fr-valid-knowledge-status-fr"
+      },
+      {
+        "source_index": 9,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "contrat",
+        "source_id": "contracts-v1-en-fr-valid-navigate-dashboard-en"
+      },
+      {
+        "source_index": 8,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "contrat",
+        "source_id": "contracts-v1-en-fr-valid-navigate-dashboard-fr"
+      },
+      {
+        "source_index": 13,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "contrat",
+        "source_id": "contracts-v1-en-fr-valid-edit-context-en"
+      },
+      {
+        "source_index": 12,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "contrat",
+        "source_id": "contracts-v1-en-fr-valid-edit-context-fr"
+      },
+      {
+        "source_index": 27,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "contrat",
+        "source_id": "contracts-v1-en-fr-valid-followup-third-en"
+      },
+      {
+        "source_index": 26,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "contrat",
+        "source_id": "contracts-v1-en-fr-valid-followup-third-fr"
+      },
+      {
+        "source_index": 29,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "contrat",
+        "source_id": "contracts-v1-en-fr-valid-scope-current-en"
+      },
+      {
+        "source_index": 6,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "contrat",
+        "source_id": "contracts-v1-en-fr-valid-search-subcontractor-fr"
+      }
+    ]
+  },
+  "neutral_history": {
+    "train": {
+      "distribution": {
+        "Bonjour": {
+          "clarify:missing_details": 1,
+          "clarify:unsupported": 8,
+          "contract_document": 1,
+          "get_record": 5,
+          "knowledge": 1,
+          "navigate": 3,
+          "prepare_change": 2,
+          "previous_results": 1,
+          "search_records": 9
+        },
+        "Bonjour, merci pour votre aide.": {
+          "clarify:unsupported": 4,
+          "contract_document": 2,
+          "get_record": 1,
+          "knowledge": 3,
+          "navigate": 3,
+          "prepare_change": 4,
+          "previous_results": 2,
+          "search_records": 13
+        },
+        "Hello": {
+          "clarify:missing_details": 1,
+          "clarify:unsupported": 7,
+          "contract_document": 2,
+          "get_record": 4,
+          "navigate": 2,
+          "prepare_change": 2,
+          "previous_results": 2,
+          "search_records": 9
+        },
+        "Hello, thanks for your help.": {
+          "clarify:missing_details": 3,
+          "clarify:unsupported": 6,
+          "contract_document": 1,
+          "knowledge": 1,
+          "navigate": 5,
+          "prepare_change": 1,
+          "previous_results": 1,
+          "search_records": 12
+        },
+        "no_history": {
+          "clarify:missing_details": 1,
+          "clarify:unsupported": 3,
+          "contract_document": 2,
+          "get_record": 2,
+          "knowledge": 3,
+          "navigate": 1,
+          "prepare_change": 4,
+          "previous_results": 2,
+          "search_records": 13
+        }
+      },
+      "assignment": [
+        {
+          "source_index": 0,
+          "arm": "no_history",
+          "input_sha256": "7807764e9b4b359f31e71444dee9857fdf0db1f836e3371d2a164aa441853c28"
+        },
+        {
+          "source_index": 1,
+          "arm": "Bonjour",
+          "input_sha256": "21fd83d16481dc4d95270f10b5c3d7d39f508617d3c7841a77b378f5f5e2395a"
+        },
+        {
+          "source_index": 2,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "7a91dc9ec11bb35f3269f4bacface614452d2909f4bca6efba41991c9de4a9cb"
+        },
+        {
+          "source_index": 3,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "1a1f8b8d354ba9dce4b37895d75c3cc12c214ea8538baae099b11b6a4169c30e"
+        },
+        {
+          "source_index": 4,
+          "arm": "Hello",
+          "input_sha256": "32a0d71189dfd86c5e383bc2d653480a20d44c667efa0228abc53ac62a74ae2f"
+        },
+        {
+          "source_index": 5,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "421d8186faa12be2d43b56a2807e4baef829cbb34f6378e0f049d8569951acd6"
+        },
+        {
+          "source_index": 6,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "4836d9bf299fced509e978643f885c1d17ecedac1e3fbb7eb0b7ffec50196b6f"
+        },
+        {
+          "source_index": 7,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "a337e6af994148b0a2b26a5452e1cdac4c4ae4c17d9177db942aa64e3d76377c"
+        },
+        {
+          "source_index": 8,
+          "arm": "Hello",
+          "input_sha256": "3aee74b9ccc6ccf3950122acd23ac9f472cc090a5ae4be92132b71dfbd26937a"
+        },
+        {
+          "source_index": 9,
+          "arm": "no_history",
+          "input_sha256": "fc4663edd698d620fafe8eb50e076a0d3be59d3726ed25736ebf517d725dd39e"
+        },
+        {
+          "source_index": 10,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "c27ca147ba94687489eaa31ad141f2496e2ee83c1f633b28c03d7343630ddfbb"
+        },
+        {
+          "source_index": 11,
+          "arm": "Hello",
+          "input_sha256": "8290323f927ea3818d8b8be240f37824b4fc472ab781ee97e3fcc85ff57abb7c"
+        },
+        {
+          "source_index": 12,
+          "arm": "Bonjour",
+          "input_sha256": "33251aa6bc1c6348bf210477098b56013c2a80f27d3c8ea9c2d3afcdb1cd5ddd"
+        },
+        {
+          "source_index": 13,
+          "arm": "Hello",
+          "input_sha256": "62192041b58c46e190d3fc5da696263ee28b6825c3f04d815abfba29fd3be6fd"
+        },
+        {
+          "source_index": 14,
+          "arm": "no_history",
+          "input_sha256": "f8b478f137acff6d028b162bf4618664cc9641f05b74147d0c8176cf515687fa"
+        },
+        {
+          "source_index": 15,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "ec38c107a3ca336458fe97c2deadf9fa1a72101c78642f2e70f0ca6afc0bc2f4"
+        },
+        {
+          "source_index": 16,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "08878adba4cc1be528c4e5633e5e884c566c05282fd3d97688ae4a1ac86a7ea1"
+        },
+        {
+          "source_index": 17,
+          "arm": "no_history",
+          "input_sha256": "c4b665bf64dcfc21e7488fcab64935c0138ddcc58918f2c11440ad227c210516"
+        },
+        {
+          "source_index": 18,
+          "arm": "Hello",
+          "input_sha256": "894a5ddf2989006065cf0ead95ef4216661426509433a1a6a988bf4df434021f"
+        },
+        {
+          "source_index": 19,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "0251846857c03d6904d6ef835f7f7cd2573d98739ec5e83ac0910b1f2dc80873"
+        },
+        {
+          "source_index": 20,
+          "arm": "no_history",
+          "input_sha256": "324df4aa773633fae5704e6657368f14bc795acd54eff450fc355ce6bc58340a"
+        },
+        {
+          "source_index": 21,
+          "arm": "no_history",
+          "input_sha256": "804c455df12ef6ec4d56c3f69975c42638602d42f8b4ac928298c7157023c729"
+        },
+        {
+          "source_index": 22,
+          "arm": "Bonjour",
+          "input_sha256": "930df6b4a147cc32931f98e5d1ec5f05d96c6b922035f052526684e65a5c142a"
+        },
+        {
+          "source_index": 23,
+          "arm": "Bonjour",
+          "input_sha256": "f38cd8d67ad88d37037d1261e2ff789d79484899d90d59e26016b92a195ff290"
+        },
+        {
+          "source_index": 24,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "d0e7068349b8f33f0cf8f58e508c9949ebc2b003a7b1e8dd7dc4542a455faba0"
+        },
+        {
+          "source_index": 25,
+          "arm": "Bonjour",
+          "input_sha256": "46618c581b7cc784c8f0857584a393fb147469108ae3a2b156b8b395fea08ee3"
+        },
+        {
+          "source_index": 26,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "6a75535660eca97d49283b8dea7319e1c600c558378dc4df94680f810826c413"
+        },
+        {
+          "source_index": 27,
+          "arm": "no_history",
+          "input_sha256": "53a50d735fed6141798b420e9d78a967d90f6faef4b57324f6b89488adc8b942"
+        },
+        {
+          "source_index": 28,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "1f3712b2ba8d01440b26136ec4599d4761338df11da2e30685e0eac2f6b4ccf4"
+        },
+        {
+          "source_index": 29,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "247c0eb7aa96a83b73a88a0a6c06bae8f2980ee4a9c32d3f98dadc64dc70ed1b"
+        },
+        {
+          "source_index": 30,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "acf72f395a84bb24ee7daa88942e8c6c1bcd963e45ec7969f15d23a4418d1e88"
+        },
+        {
+          "source_index": 31,
+          "arm": "Hello",
+          "input_sha256": "2d98329e13adc12e9270e153c15450d60e677b192f87af1e90df7221863a983b"
+        },
+        {
+          "source_index": 32,
+          "arm": "no_history",
+          "input_sha256": "ca81ca59ac124ccfbc8b24cf438978978b18598608651c7c125bce89026c19cd"
+        },
+        {
+          "source_index": 33,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "34028a440952a913d172cd40085eb287c240643a8fa06cc085d596b97b988d84"
+        },
+        {
+          "source_index": 34,
+          "arm": "Bonjour",
+          "input_sha256": "b21f062f57473aef6104f2144faa97bcfbd9c293717de5a8b211125f063ff58e"
+        },
+        {
+          "source_index": 35,
+          "arm": "Bonjour",
+          "input_sha256": "93a18aa4d9f25a5dd9ab6d784164210d0fc2cbff0759eda4d622ee61fc314860"
+        },
+        {
+          "source_index": 36,
+          "arm": "Hello",
+          "input_sha256": "5d3c0d20cb770ebb6d9abf289aa1c452c8ec14767105d50b7a88f5d810bd3434"
+        },
+        {
+          "source_index": 37,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "2cca8d8f9dd4c56b6bb9601b006c1dbf3d88c90f93e1434b03e8937a02878e03"
+        },
+        {
+          "source_index": 38,
+          "arm": "no_history",
+          "input_sha256": "dbae4fe2861c38eaf13b2cac715af682ad88c9866cc8341af2ced43c6d21a694"
+        },
+        {
+          "source_index": 39,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "140feac9825fbc502851f24a774b77d4d488b65fde7ad9ec76ee84a9a0480991"
+        },
+        {
+          "source_index": 40,
+          "arm": "no_history",
+          "input_sha256": "b509dddf09cc135e206aff34d567413841fd59fb3ed7181586dd3269bdcfb1ce"
+        },
+        {
+          "source_index": 41,
+          "arm": "no_history",
+          "input_sha256": "0fec21f3c54f6a60ec2f4b8241053c8e9e175e2605647c7727d9c2014e329bff"
+        },
+        {
+          "source_index": 42,
+          "arm": "Bonjour",
+          "input_sha256": "144eb555ad4940cbc54d67141f03a9450fc1af1219be09010b81d4acfb529cb9"
+        },
+        {
+          "source_index": 43,
+          "arm": "Hello",
+          "input_sha256": "546b1d6fa5866acdbabdee8ddde9a89924763305cc4551ba76253284289b1b56"
+        },
+        {
+          "source_index": 44,
+          "arm": "Bonjour",
+          "input_sha256": "6848d5a67a4d815e414fcc2cff2486858fbf772ff28dc6bbdd586b59d5ed9a72"
+        },
+        {
+          "source_index": 45,
+          "arm": "Bonjour",
+          "input_sha256": "7a8b312c60d806faa1bd6d428be576b22f14aa1fac1a215241001c3bfc0ea900"
+        },
+        {
+          "source_index": 46,
+          "arm": "no_history",
+          "input_sha256": "20d3b787f98e7e6bed54c0339048c95159978c38f1048080627ac500606e3135"
+        },
+        {
+          "source_index": 47,
+          "arm": "no_history",
+          "input_sha256": "17cefdccf5122e6e4a3b8dbf3ae18757e7f4968107f694575fe140b9ec1f1d93"
+        },
+        {
+          "source_index": 48,
+          "arm": "Hello",
+          "input_sha256": "44a8e9c717ca2b461dbc45adbd4093125321e5fe04d230834bf2f4b8c73fce72"
+        },
+        {
+          "source_index": 49,
+          "arm": "Hello",
+          "input_sha256": "dcec6b04d0d3a0a0d64c6f1345ce05f4cf1cf6221056cb0f0208196f3f68e7fe"
+        },
+        {
+          "source_index": 50,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "b96a7a0c816a397ad62b29ef63294dab33f416c71308dee830171327ddbce329"
+        },
+        {
+          "source_index": 51,
+          "arm": "Hello",
+          "input_sha256": "b7888f12a23ef25ac900b566d1946adeffe304324f9389b686bc334ae4969e71"
+        },
+        {
+          "source_index": 52,
+          "arm": "Bonjour",
+          "input_sha256": "3df2518b72c2f718abeabf5900a27328dce1076f34e82f99f1deb33bf5dc802c"
+        },
+        {
+          "source_index": 53,
+          "arm": "no_history",
+          "input_sha256": "71e04182448a982d5c57b7876ce7a58d22de206a2cc8b34b4e28777adbba8799"
+        },
+        {
+          "source_index": 54,
+          "arm": "Bonjour",
+          "input_sha256": "390c9e755b033f658c1b78c7b1ad4308cb01ec1a7c030820d5e6902daffeaa13"
+        },
+        {
+          "source_index": 55,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "336bb91d43306330833a73d982d2bba5cb5e5c4d6116a69fc64639231cef38f9"
+        },
+        {
+          "source_index": 56,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "eee58d07a21757d3b19e5d2691e9fd158e3a4b481824ad019618c35d4aa734fe"
+        },
+        {
+          "source_index": 57,
+          "arm": "Hello",
+          "input_sha256": "d43600a29cce0bd2e31e6a5b561848ef10ec7302e7323b41fdafc9316fbb1d64"
+        },
+        {
+          "source_index": 58,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "14c8c1c3c8bb0a5311febc936f6e546811a6059ddc1fe09594d9018fe94cbfb9"
+        },
+        {
+          "source_index": 59,
+          "arm": "Bonjour",
+          "input_sha256": "f68dbe1816e8a9941b33db9d09185157c2649f13ad283f0ded1cac7d075ba0b2"
+        },
+        {
+          "source_index": 60,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "e3c8aa63aa0f29abf4c8c4294f4b606f125ae32902e46947900012072f3bca87"
+        },
+        {
+          "source_index": 61,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "9147e168ce77c56f214be2078f5bf7d2ea47a29a846db34d20561b18fca71d3b"
+        },
+        {
+          "source_index": 62,
+          "arm": "no_history",
+          "input_sha256": "86fe2ae0785f8e4090ffe979efe520219faf68a300ebf4213224909bd9b5b597"
+        },
+        {
+          "source_index": 63,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "9da809ecc7af8c460aa1e0221df91a5f9ae314dee7de45ddba0fb2908352d6a2"
+        },
+        {
+          "source_index": 64,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "25565eb3caa52e9a5ee67d38e39c2c64ab445e7c66e1bc961b63cd1e2f5e5fcb"
+        },
+        {
+          "source_index": 65,
+          "arm": "Hello",
+          "input_sha256": "5fc822a8519fb8a5f86a0776e6acdcd20193e3ef9324edd7ccc135e761f6c897"
+        },
+        {
+          "source_index": 66,
+          "arm": "no_history",
+          "input_sha256": "7b74977986e10a145a4da2cf64bad1eb01e01a58f950c8cd35ee0ce2cf2808d6"
+        },
+        {
+          "source_index": 67,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "9031304e26f931a903f4fdc4114bbd907a4a7486ce8b0e67ef39678620b93b20"
+        },
+        {
+          "source_index": 68,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "925d770d8d9fbee4b2d8b0d3148b62dbee32ac1baf9efbba98f132eaca4e4741"
+        },
+        {
+          "source_index": 69,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "9c6204c693ab086035c77f33eb9beeeed83b2ca823cc65183324b2c23d8936e2"
+        },
+        {
+          "source_index": 70,
+          "arm": "Hello",
+          "input_sha256": "4c60b7972a22fb35906b514b0a3c278b04b83397c34a50215634047c85bd97b1"
+        },
+        {
+          "source_index": 71,
+          "arm": "no_history",
+          "input_sha256": "1f940825b5c598608f8877721d85cffc950d0431f72f2085f8a9fa4bdc833b3b"
+        },
+        {
+          "source_index": 72,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "439065857425c6df90c5d9d988c729ac9cad0a3f542ce9d2d6c121bd01844e63"
+        },
+        {
+          "source_index": 73,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "dbc5368e1a4d625fbbc3d7c1a81c9f42ea2b8859c3357954f6b97db69b2103c2"
+        },
+        {
+          "source_index": 74,
+          "arm": "Bonjour",
+          "input_sha256": "7a0e66aa9c24125e5d31f7ea3e3fe0020e1e8d68052d07ba3a9b5affebc62102"
+        },
+        {
+          "source_index": 75,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "7176c2f10ac87a8d3fe9fb127054da1b22b8eabe0bf1960db71cd9fa799981c8"
+        },
+        {
+          "source_index": 76,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "941de99156aeadbf221d846ab451d059b3aeb94da561aa24d25468b3df319751"
+        },
+        {
+          "source_index": 77,
+          "arm": "no_history",
+          "input_sha256": "906665b1476721090a7465809ecc3124f7e67e66c3a3d5e281620689c6a4bcd3"
+        },
+        {
+          "source_index": 78,
+          "arm": "Bonjour",
+          "input_sha256": "c765da11826fcb44879e2c909b63d7ffe3ca540a4e363faf93b0beeeb5a088fc"
+        },
+        {
+          "source_index": 79,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "7b2ba354fd272917f532433a12eda24fe96590b07fa53884eb2c11a99d7b181b"
+        },
+        {
+          "source_index": 80,
+          "arm": "Hello",
+          "input_sha256": "fd40dc63f28e94df069c0741ba6d5cc6d2d96f3fd4711279807126d03d0e1951"
+        },
+        {
+          "source_index": 81,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "45d9bd6b23d33ed0972c42758d045576208a06f01b8cd16b585d9afeb283c281"
+        },
+        {
+          "source_index": 82,
+          "arm": "no_history",
+          "input_sha256": "acd2c49950e7f4c24f09bc8952a2a0becd08230463f2447ef6aca036bc7b17d9"
+        },
+        {
+          "source_index": 83,
+          "arm": "no_history",
+          "input_sha256": "70ff59f58724f18e596027a2611f94aaa3f763218545f1abc72adc3e59400a35"
+        },
+        {
+          "source_index": 84,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "cc860763d62e98e9a59143d2ab73cce102847f16fb5c4375ac6e44dabecb6fae"
+        },
+        {
+          "source_index": 85,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "3a6ace594297dd98423d9be24b604672b3409731e4b6f0230839bd5b0f73114e"
+        },
+        {
+          "source_index": 86,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "8fb286f109f43d5dd0e5a7e18df721508d68caea6edb120d72a1950e5694635f"
+        },
+        {
+          "source_index": 87,
+          "arm": "no_history",
+          "input_sha256": "186899e91db865b651deba75ee52cc40099c5d09f6c538de467554751887ea08"
+        },
+        {
+          "source_index": 88,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "b796eb8b872efc679942c82aab752c5f94d22ff0adde6563c15f3cfe7b734f43"
+        },
+        {
+          "source_index": 89,
+          "arm": "Bonjour",
+          "input_sha256": "4f193f52c47c7e39107caaf0d02929960cde75e9c6fa6f0d637c2cdef5831e93"
+        },
+        {
+          "source_index": 90,
+          "arm": "Bonjour",
+          "input_sha256": "2698bb19cb9d420960125c5c86bd4674a7a9051eadd4d34fe52ee484a8a6c63a"
+        },
+        {
+          "source_index": 91,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "c9a3deb27e6611f953c8a5fb51eee402f2d379a706b184d6a02205dec5fdefc8"
+        },
+        {
+          "source_index": 92,
+          "arm": "Bonjour",
+          "input_sha256": "6b84635233309fbdd1c41908b444c66b327c319fdfda6c490311987c68b6751e"
+        },
+        {
+          "source_index": 93,
+          "arm": "Hello",
+          "input_sha256": "a7a32ce184a707243f4c402e6978303a6e9c45d3074ae88d38ae73d105dff48f"
+        },
+        {
+          "source_index": 94,
+          "arm": "Hello",
+          "input_sha256": "4ddc9bbf876dbeead1cf6035116e1a25b2334a853b91646d43ae16cbe426bd84"
+        },
+        {
+          "source_index": 95,
+          "arm": "no_history",
+          "input_sha256": "a393b151a988f1ba4b7d8809c106159369224d75fabf056611e6aa382d4d86d6"
+        },
+        {
+          "source_index": 96,
+          "arm": "Bonjour",
+          "input_sha256": "b2b1543ac6cee2e6f20f40cf5c5a9113dc82979cf5154e955d9a5453580e4b67"
+        },
+        {
+          "source_index": 97,
+          "arm": "Bonjour",
+          "input_sha256": "2e64201d2d58a41c863814e980b37df4cb66a04e49aad93db952afe8bab987c1"
+        },
+        {
+          "source_index": 98,
+          "arm": "Bonjour",
+          "input_sha256": "56d9ff2ca34c4543fa70a8f43c5c3184fabc5a8e57f6f2e5628f094efa2b1ced"
+        },
+        {
+          "source_index": 99,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "c4f081a04d8f8f0fa17434600629c05f830aa07d489f1c1bf2b3a93d3c38249d"
+        },
+        {
+          "source_index": 100,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "dd29eff2e27e264c1443995cd4cb560b5c953c2171aa5e5e14dc7d77c7b85170"
+        },
+        {
+          "source_index": 101,
+          "arm": "Bonjour",
+          "input_sha256": "9b46dce1037edc3afa2eb5398976278d16190146efa49f2a2f30093ed47aff9f"
+        },
+        {
+          "source_index": 102,
+          "arm": "no_history",
+          "input_sha256": "a8d9f8a176e9bf3bbbb49e71a40deb6137e9821578bf537fe86e2abc47046575"
+        },
+        {
+          "source_index": 103,
+          "arm": "no_history",
+          "input_sha256": "c0b493a0ac05b58038d501d295abdfa1093f8bcec22b3a3455fe1019d776250d"
+        },
+        {
+          "source_index": 104,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "5b5eff18c12b0b305f920197cc6f82e065248886df777f15552cf0a1efbb2440"
+        },
+        {
+          "source_index": 105,
+          "arm": "Hello",
+          "input_sha256": "509d0e7aa06209d3bf508b3eb4872e97657e255a213721bde7f6264cdc768f3e"
+        },
+        {
+          "source_index": 106,
+          "arm": "Hello",
+          "input_sha256": "506d1979f59cf2cb67a618833e3f764f2e669ace33d3951bacd20d0195a9b19f"
+        },
+        {
+          "source_index": 107,
+          "arm": "Bonjour",
+          "input_sha256": "ee095867d3b2b26b908a22f5c34f91ca564331485a847f1d60005dc4ab2e0e49"
+        },
+        {
+          "source_index": 108,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "1b16a3890433ab90ca6cfcdde3cd773c07573e7a48a7bf5645719c14b6e6ab5d"
+        },
+        {
+          "source_index": 109,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "ef0da709af463b8828b6755783cfc1107a2e12da4714e6ffdb3b63c6a6c6e033"
+        },
+        {
+          "source_index": 110,
+          "arm": "Hello",
+          "input_sha256": "76ffaab9d71935f5d05f8dea36520bc74b7e84d41a35e10fcd13ace6fda31916"
+        },
+        {
+          "source_index": 111,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "021919f0d2d6659cc891b6c35b859ac107ba34f3c4fa0d816b3f39308f4996ca"
+        },
+        {
+          "source_index": 112,
+          "arm": "Hello",
+          "input_sha256": "b2827708f7ad894af806107c6f58e8d1d58459cc6bf7f1976dd6f64752a7a7e6"
+        },
+        {
+          "source_index": 113,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "00997f333f74882573a8f12131a4a2bcc2af5930425035ebe86b084fb6e75c73"
+        },
+        {
+          "source_index": 114,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "96cf58734d556984c0c2adfc68e98ca7e4914fb99236005e2597d5a3db68fa54"
+        },
+        {
+          "source_index": 115,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "5e31670a00c5d666b833fc0d6df05eed9ed429b28a2f664b32526a648d84338f"
+        },
+        {
+          "source_index": 116,
+          "arm": "Bonjour",
+          "input_sha256": "1c798d42cf90c409259a197351590085b4170b4391606e6509cd36bfbd13f37b"
+        },
+        {
+          "source_index": 117,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "f8f4db7b2db89e1725f55023b5b15ef56e9c309a41c7f44ad37c2e2a2b1fb17e"
+        },
+        {
+          "source_index": 118,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "900a523b12c98e34eea965c91727f743b92c0709c9a6cbeb5e17cacb4f70599f"
+        },
+        {
+          "source_index": 119,
+          "arm": "Bonjour",
+          "input_sha256": "cc2e782a133bba470dbbb7be434896d74f46dba47e07c0f632aeedd8c27d0cc9"
+        },
+        {
+          "source_index": 120,
+          "arm": "Hello",
+          "input_sha256": "635147b9c4f6662e2091c857a32c169de869627ca971474eaa999cd43956601c"
+        },
+        {
+          "source_index": 121,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "7c480b0938f29a7d4d0f0cbdb7d35aa3b5f87f8453fd4658370710d81ef9144f"
+        },
+        {
+          "source_index": 122,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "ef0da709af463b8828b6755783cfc1107a2e12da4714e6ffdb3b63c6a6c6e033"
+        },
+        {
+          "source_index": 123,
+          "arm": "Bonjour",
+          "input_sha256": "509d0e7aa06209d3bf508b3eb4872e97657e255a213721bde7f6264cdc768f3e"
+        },
+        {
+          "source_index": 124,
+          "arm": "Hello",
+          "input_sha256": "a8d9f8a176e9bf3bbbb49e71a40deb6137e9821578bf537fe86e2abc47046575"
+        },
+        {
+          "source_index": 125,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "9b46dce1037edc3afa2eb5398976278d16190146efa49f2a2f30093ed47aff9f"
+        },
+        {
+          "source_index": 126,
+          "arm": "Bonjour",
+          "input_sha256": "5fc822a8519fb8a5f86a0776e6acdcd20193e3ef9324edd7ccc135e761f6c897"
+        },
+        {
+          "source_index": 127,
+          "arm": "no_history",
+          "input_sha256": "9da809ecc7af8c460aa1e0221df91a5f9ae314dee7de45ddba0fb2908352d6a2"
+        },
+        {
+          "source_index": 128,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "25565eb3caa52e9a5ee67d38e39c2c64ab445e7c66e1bc961b63cd1e2f5e5fcb"
+        },
+        {
+          "source_index": 129,
+          "arm": "Hello",
+          "input_sha256": "86fe2ae0785f8e4090ffe979efe520219faf68a300ebf4213224909bd9b5b597"
+        },
+        {
+          "source_index": 130,
+          "arm": "Bonjour",
+          "input_sha256": "b7888f12a23ef25ac900b566d1946adeffe304324f9389b686bc334ae4969e71"
+        },
+        {
+          "source_index": 131,
+          "arm": "Bonjour",
+          "input_sha256": "dcec6b04d0d3a0a0d64c6f1345ce05f4cf1cf6221056cb0f0208196f3f68e7fe"
+        },
+        {
+          "source_index": 132,
+          "arm": "Bonjour",
+          "input_sha256": "44a8e9c717ca2b461dbc45adbd4093125321e5fe04d230834bf2f4b8c73fce72"
+        },
+        {
+          "source_index": 133,
+          "arm": "Hello",
+          "input_sha256": "20d3b787f98e7e6bed54c0339048c95159978c38f1048080627ac500606e3135"
+        },
+        {
+          "source_index": 134,
+          "arm": "no_history",
+          "input_sha256": "5e31670a00c5d666b833fc0d6df05eed9ed429b28a2f664b32526a648d84338f"
+        },
+        {
+          "source_index": 135,
+          "arm": "no_history",
+          "input_sha256": "f8f4db7b2db89e1725f55023b5b15ef56e9c309a41c7f44ad37c2e2a2b1fb17e"
+        },
+        {
+          "source_index": 136,
+          "arm": "no_history",
+          "input_sha256": "96cf58734d556984c0c2adfc68e98ca7e4914fb99236005e2597d5a3db68fa54"
+        },
+        {
+          "source_index": 137,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "1c798d42cf90c409259a197351590085b4170b4391606e6509cd36bfbd13f37b"
+        },
+        {
+          "source_index": 138,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "9147e168ce77c56f214be2078f5bf7d2ea47a29a846db34d20561b18fca71d3b"
+        },
+        {
+          "source_index": 139,
+          "arm": "Hello",
+          "input_sha256": "71e04182448a982d5c57b7876ce7a58d22de206a2cc8b34b4e28777adbba8799"
+        },
+        {
+          "source_index": 140,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "eee58d07a21757d3b19e5d2691e9fd158e3a4b481824ad019618c35d4aa734fe"
+        },
+        {
+          "source_index": 141,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "3df2518b72c2f718abeabf5900a27328dce1076f34e82f99f1deb33bf5dc802c"
+        },
+        {
+          "source_index": 142,
+          "arm": "no_history",
+          "input_sha256": "7b2ba354fd272917f532433a12eda24fe96590b07fa53884eb2c11a99d7b181b"
+        },
+        {
+          "source_index": 143,
+          "arm": "Hello",
+          "input_sha256": "70ff59f58724f18e596027a2611f94aaa3f763218545f1abc72adc3e59400a35"
+        },
+        {
+          "source_index": 144,
+          "arm": "Hello",
+          "input_sha256": "acd2c49950e7f4c24f09bc8952a2a0becd08230463f2447ef6aca036bc7b17d9"
+        },
+        {
+          "source_index": 145,
+          "arm": "Hello",
+          "input_sha256": "1f940825b5c598608f8877721d85cffc950d0431f72f2085f8a9fa4bdc833b3b"
+        },
+        {
+          "source_index": 146,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "9c6204c693ab086035c77f33eb9beeeed83b2ca823cc65183324b2c23d8936e2"
+        },
+        {
+          "source_index": 147,
+          "arm": "no_history",
+          "input_sha256": "925d770d8d9fbee4b2d8b0d3148b62dbee32ac1baf9efbba98f132eaca4e4741"
+        },
+        {
+          "source_index": 148,
+          "arm": "Bonjour",
+          "input_sha256": "4c60b7972a22fb35906b514b0a3c278b04b83397c34a50215634047c85bd97b1"
+        },
+        {
+          "source_index": 149,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "93a18aa4d9f25a5dd9ab6d784164210d0fc2cbff0759eda4d622ee61fc314860"
+        },
+        {
+          "source_index": 150,
+          "arm": "no_history",
+          "input_sha256": "1a1f8b8d354ba9dce4b37895d75c3cc12c214ea8538baae099b11b6a4169c30e"
+        },
+        {
+          "source_index": 151,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "6a75535660eca97d49283b8dea7319e1c600c558378dc4df94680f810826c413"
+        },
+        {
+          "source_index": 152,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "144eb555ad4940cbc54d67141f03a9450fc1af1219be09010b81d4acfb529cb9"
+        }
+      ]
+    },
+    "valid": {
+      "distribution": {
+        "Bonjour": {
+          "clarify:unsupported": 1,
+          "knowledge": 1,
+          "previous_results": 2,
+          "search_records": 1
+        },
+        "Bonjour, merci pour votre aide.": {
+          "clarify:missing_details": 2,
+          "clarify:unsupported": 1,
+          "contract_document": 2,
+          "navigate": 1,
+          "prepare_change": 2,
+          "search_records": 4
+        },
+        "Hello": {
+          "clarify:unsupported": 2,
+          "knowledge": 1,
+          "navigate": 1,
+          "previous_results": 1,
+          "search_records": 3
+        },
+        "Hello, thanks for your help.": {
+          "clarify:unsupported": 1,
+          "contract_document": 2,
+          "knowledge": 1,
+          "prepare_change": 2,
+          "previous_results": 1,
+          "search_records": 4
+        },
+        "no_history": {
+          "clarify:missing_details": 1,
+          "clarify:unsupported": 2,
+          "knowledge": 1,
+          "navigate": 2,
+          "search_records": 2
+        }
+      },
+      "assignment": [
+        {
+          "source_index": 0,
+          "arm": "Hello",
+          "input_sha256": "f542a117060f1248236b465f2a50f9234b5017a111ffc4b46ba7274faa5b4e2c"
+        },
+        {
+          "source_index": 1,
+          "arm": "Hello",
+          "input_sha256": "9a11ca1d1b99d8172025570efbeba3347a768dbe34074b0cadd8c812b7be6e4f"
+        },
+        {
+          "source_index": 2,
+          "arm": "no_history",
+          "input_sha256": "71706468f753b348c41891b9de39e309eb4a3bd5e7a10d087885050074b3ef27"
+        },
+        {
+          "source_index": 3,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "d234a959ad80fac5390ff1035186454b963834513885a0253e579e27866f37d7"
+        },
+        {
+          "source_index": 4,
+          "arm": "Bonjour",
+          "input_sha256": "71e8fc2af1ed893033c758e80431712e3329d621f7142a73bdf4f898664d66ce"
+        },
+        {
+          "source_index": 5,
+          "arm": "Hello",
+          "input_sha256": "acef0989c53ef9c406af2ca892293652fdbfe466762f66e81f30aa4b310400ef"
+        },
+        {
+          "source_index": 6,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "26097475d424a74ea992c9ce51c512ed897c6f237feeda1bb24812f90bec8a18"
+        },
+        {
+          "source_index": 7,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "ef076374d6eee3b3c25d295ab1bfef35eb5688391e34b8e42f36a38c903b1ef7"
+        },
+        {
+          "source_index": 8,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "33caa24212270574f7cd57af8202dea2ff3590abd096fc81fd7b9466cac75909"
+        },
+        {
+          "source_index": 9,
+          "arm": "no_history",
+          "input_sha256": "c9206f26fae7cb27d834f4b09877e1f943bcae8284719f639a03923739f43b72"
+        },
+        {
+          "source_index": 10,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "7c631a678970f89fd89112f118906f097a343e8984ca6151b1190742e3588b04"
+        },
+        {
+          "source_index": 11,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "a122ee3e00a6818f2d0b2e570d8d8022b8af19383ea79e7baa354305488a6907"
+        },
+        {
+          "source_index": 12,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "cac78e34ffd9a8030ea61f9770bf57ef4640aa466bb3dd49c1d5fbde0ba8032b"
+        },
+        {
+          "source_index": 13,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "f0a45934d6b1af3eff8056440c87a0928d40debbe62c8ce181f385c26935383d"
+        },
+        {
+          "source_index": 14,
+          "arm": "no_history",
+          "input_sha256": "ea1950b6aa0d421ec511fb38e367298fd7ace22119d796248ef9d8271e6dafa2"
+        },
+        {
+          "source_index": 15,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "51cff925c62e5fff4ba07ea2db1001ec2246cf5a2c68b8fd586bd94e3885785d"
+        },
+        {
+          "source_index": 16,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "0a23a100fb58cb4c693b5bf0ddb44272a5f06d5331d7702d9f4af68938c74ef8"
+        },
+        {
+          "source_index": 17,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "b1cfbca7d95f640d186e4cedcbfa2407afa825e65c9d22599533adae605b1066"
+        },
+        {
+          "source_index": 18,
+          "arm": "Hello",
+          "input_sha256": "0a49d249de09ae87cca22f69799e63cedbd81169bbe149a8499deb06a33382a1"
+        },
+        {
+          "source_index": 19,
+          "arm": "Bonjour",
+          "input_sha256": "9d0de986a49963188508966b682823c095f573b4a89de038fc627acab19a23fd"
+        },
+        {
+          "source_index": 20,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "80602677bd1f76727c5b414fffc747a752085c7f2fe737934b53185792546173"
+        },
+        {
+          "source_index": 21,
+          "arm": "Hello",
+          "input_sha256": "9dd399fd707e3259a7378e7d2c9e714473da00996c28b99ac623608ab880989f"
+        },
+        {
+          "source_index": 22,
+          "arm": "no_history",
+          "input_sha256": "a71b8dcbb318495bf295e76706485d4dc7f6582661abdd36a81bf6366fa05915"
+        },
+        {
+          "source_index": 23,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "fa25b148894fbdad7633fcff5e8f15dde9cccfa30ba081f655e49077fbb40632"
+        },
+        {
+          "source_index": 24,
+          "arm": "Bonjour",
+          "input_sha256": "a68ec12c7d4849bba16e9baac8c606bdb26ed5f7c4d3ad4bec8cf44dbf7431a4"
+        },
+        {
+          "source_index": 25,
+          "arm": "no_history",
+          "input_sha256": "7f549d5c20a40423263181f5a6035bccac0e13c5e2db4dcf027220094d11c616"
+        },
+        {
+          "source_index": 26,
+          "arm": "Hello",
+          "input_sha256": "3a17b76f2742b1952b608491e758455ab1b52c1905bd599f565a019fdece1ba7"
+        },
+        {
+          "source_index": 27,
+          "arm": "Bonjour",
+          "input_sha256": "35e60c4af95acf3ed334d8e8106ea725b463fd799e3d2f1b231c35dd99819a44"
+        },
+        {
+          "source_index": 28,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "812748531a754306cdb69336901c7a7b35aad468f5b3caf124d0da13ea74e660"
+        },
+        {
+          "source_index": 29,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "3c3d9cfe36d266602be8fc9639a74b4429160590034e5018f2b36a075bbd111f"
+        },
+        {
+          "source_index": 30,
+          "arm": "no_history",
+          "input_sha256": "fa25b148894fbdad7633fcff5e8f15dde9cccfa30ba081f655e49077fbb40632"
+        },
+        {
+          "source_index": 31,
+          "arm": "no_history",
+          "input_sha256": "0a23a100fb58cb4c693b5bf0ddb44272a5f06d5331d7702d9f4af68938c74ef8"
+        },
+        {
+          "source_index": 32,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "a122ee3e00a6818f2d0b2e570d8d8022b8af19383ea79e7baa354305488a6907"
+        },
+        {
+          "source_index": 33,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "7c631a678970f89fd89112f118906f097a343e8984ca6151b1190742e3588b04"
+        },
+        {
+          "source_index": 34,
+          "arm": "Hello",
+          "input_sha256": "7f549d5c20a40423263181f5a6035bccac0e13c5e2db4dcf027220094d11c616"
+        },
+        {
+          "source_index": 35,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "a68ec12c7d4849bba16e9baac8c606bdb26ed5f7c4d3ad4bec8cf44dbf7431a4"
+        },
+        {
+          "source_index": 36,
+          "arm": "Hello",
+          "input_sha256": "c9206f26fae7cb27d834f4b09877e1f943bcae8284719f639a03923739f43b72"
+        },
+        {
+          "source_index": 37,
+          "arm": "no_history",
+          "input_sha256": "33caa24212270574f7cd57af8202dea2ff3590abd096fc81fd7b9466cac75909"
+        },
+        {
+          "source_index": 38,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "f0a45934d6b1af3eff8056440c87a0928d40debbe62c8ce181f385c26935383d"
+        },
+        {
+          "source_index": 39,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "cac78e34ffd9a8030ea61f9770bf57ef4640aa466bb3dd49c1d5fbde0ba8032b"
+        },
+        {
+          "source_index": 40,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "35e60c4af95acf3ed334d8e8106ea725b463fd799e3d2f1b231c35dd99819a44"
+        },
+        {
+          "source_index": 41,
+          "arm": "Bonjour",
+          "input_sha256": "3a17b76f2742b1952b608491e758455ab1b52c1905bd599f565a019fdece1ba7"
+        },
+        {
+          "source_index": 42,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "3c3d9cfe36d266602be8fc9639a74b4429160590034e5018f2b36a075bbd111f"
+        },
+        {
+          "source_index": 43,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "26097475d424a74ea992c9ce51c512ed897c6f237feeda1bb24812f90bec8a18"
+        }
+      ]
+    }
+  },
+  "synthetic_reference_fixtures": {
+    "contracts-v1-en-fr-train-followup-second-fr": [
+      223920707,
+      199375172,
+      218239045
+    ],
+    "contracts-v1-en-fr-train-followup-second-en": [
+      223920707,
+      199375172,
+      218239045
+    ],
+    "contracts-v1-en-fr-train-followup-list-fr": [
+      69738605,
+      95011478,
+      22027172
+    ],
+    "contracts-v1-en-fr-train-followup-list-en": [
+      69738605,
+      95011478,
+      22027172
+    ],
+    "contracts-v1-en-fr-valid-followup-third-fr": [
+      3593618,
+      8964862,
+      101308671,
+      196616905
+    ],
+    "contracts-v1-en-fr-valid-followup-third-en": [
+      3593618,
+      8964862,
+      101308671,
+      196616905
+    ],
+    "contracts-v1-en-fr-test-followup-fourth-fr": [
+      118565391,
+      202465006,
+      1222055,
+      63597350,
+      57677818
+    ],
+    "contracts-v1-en-fr-test-followup-fourth-en": [
+      118565391,
+      202465006,
+      1222055,
+      63597350,
+      57677818
+    ]
+  },
+  "generator_sha256": "8413d7820713425fbb2648c77e88dfc72f233b724172448b1740c1f4d5445f27",
+  "native_sources": {
+    "chat_ai/tools.py": "cfdce93dd4cf15a1c99160697f24075f04d47ad86841cee1eeab95a3d3563526",
+    "chat_ai/planner.py": "28fb0ff131b963c8d441ff3763dc02b598d7f0e47c9b27b118a9a116e83e4fcf",
+    "chat_ai/targets.py": "d7a21a4f6a9077aa083c6f5e63179c9ab2a024bd681c0d886c9653ae856ca5fb",
+    "chat_ai/services.py": "8dffdf3ecec19c161aeaba13e69001bf7540364ae2cd1f38c8de0dc74e6108ef",
+    "chat_ai/security.py": "7a95d6e53f82283babe7a7af2e10aa6c73f9f03a4ce7561b0def5a6ae35ea522",
+    "chat_ai/resources.py": "e649d57d16ab1070bba3777185ade4855797431d0a1daf3f0fbace446b9fcce6",
+    "chat_ai/navigation.py": "0b1eae5cc9103065b305a9ad936dafa1d5bd2b7d05a44fab41c0f5bb48e65d1f",
+    "core/constants.py": "6a0c25960c8c24b97b93d2fc76967e631a0c2b68f9b9897be83495a82804b8bc"
+  },
+  "shared_sources": {
+    "src/chat_ai_assistant/planning_messages.py": "d7024d3c9af58d501f680f2c79ae1e5108a6ec19faa92a2ba49b6c67893d1395",
+    "src/chat_ai_assistant/calendar_context.py": "6ee2c0f63ef33c0ba8b8f1ea29fbcd5d6f1e88e4273dc40ece33dab75619aeb9",
+    "src/chat_ai_assistant/clarifications.py": "e5cb817facdb8e440538cc0ed9b252ff127f6d8e470bb630574e5530e7a31a7d",
+    "src/chat_ai_assistant/contracts.py": "ab31f8ff3f2f20b776ca412436e0730dc8fa00e892801772e863400bab4b6fa3",
+    "src/chat_ai_assistant/selection_context.py": "0fe2f1ca934c6915cc21cef11ac37e73bab89a598f801e6d1a057889d2efee15",
+    "src/chat_ai_assistant/routing.py": "1640f46741e967711c7af246d0766b89992c4dc63d48c7a697ef775890d4a811",
+    "training/scripts/build_dialogue_v1.py": "2dcb6179735d96acd338e002e7006e4d85056e41281a119c5046a9283b987a5a",
+    "training/scripts/training_contracts.py": "3a6001309a329d3c3644d1ab608dbaf542cef7a7be91612643d157ad5ce11382",
+    "training/scripts/prepare_shared_v5r5.py": "b7702319000f9d4f0b6f44bab28a2d1063093e0b44a0b2e5bf522f29891f87f6",
+    "training/scripts/build_shared_v5r3.py": "98660f431de448ebfeb1daf31679cf2be931c82c30163da731f4ee7eee19dfe7"
+  },
+  "files": {
+    "train.eval.jsonl": "a2578d4dee849618906230bd21dc4bf16d32f4040a66b56b9ccdaabd911ca408",
+    "train.jsonl": "5a67138f2e9e10bfcab811f8b9581e6fc4b492cdedc8ac877977e3f7b9776a10",
+    "valid.eval.jsonl": "2b37137e6e8b20b36e48b4cac6de00286d62f966331ef506e9f288c192d86e37",
+    "valid.jsonl": "9462d8fdf5d742a31708781ab9dedfdb7b960dd14d77bc35654bfdb888b3efbb",
+    "test.eval.jsonl": "56862df3ed3ca7780582956590608bfa636d88a2ba10e63aebd03fc6a87b2616"
+  },
+  "policy": "Original synthetic questions, action labels and split membership retained; current native tools, context and production dialogue framing replace old envelopes. Neutral histories use input-only hashes independent of target labels; genuine history remains intact. Neutral history variants are not independent samples. No model score or training claim. Database connections forbidden."
+}

@@ -82,19 +82,21 @@ The launcher must bind `--retained-data` to the accepted predecessor run's recor
 
 ## Dialogue curriculum and candidate comparison
 
-The current prepared continuation uses `train_cpu_serial_v2.py` and the cumulative V6r4/V7r4/V8r4 datasets. It retains the full-epoch and application-scope checks above, and binds each exact predecessor manifest and byte prefix. V5r4 is currently training; no later stage has started. Metadata preflight does not establish model accuracy.
+V5r4 finished training and evaluation but failed acceptance: 89.04% tool selection and 85.03% eligible exact arguments across 438 frozen cases. Its results remain unchanged. V5r5 is now the only running optimization job. It repairs a measured association between short greetings and clarification labels, and adds training-only calendar diversity.
 
-After all 438 V5r4 candidate cases finish, `report_dialogue_candidate.py` compares their fresh events with the frozen, measured dialogue baseline. Run it from the repository root:
+The prepared later-stage runner is `train_cpu_serial_v3.py`, with cumulative V6r5/V7r5/V8r5 datasets. It retains the full-epoch and application-scope checks above and binds each exact predecessor manifest and byte prefix. No later stage has started. Their tokenizer/template/schema preflight does not establish model accuracy.
+
+After all 438 candidate cases finish, `report_dialogue_candidate.py` compares their fresh events with the frozen, measured dialogue baseline. Run it from the repository root:
 
 ```sh
 python training/scripts/report_dialogue_candidate.py \
   --data training/datasets/shared-dialogue-v1-en-fr \
-  --candidate training/evaluations/shared-v5r4-preparation \
+  --candidate training/evaluations/shared-v5r5-preparation \
   --baseline training/evaluations/dialogue-v1-preparation \
   --baseline-report training/reports/shared-dialogue-v1-en-fr-baseline.json \
   --evaluation-root training/evaluations \
   --driver-proof training/evaluations/shared-v5r3-preparation/baseline-complete.json \
-  --output training/evaluations/shared-v5r4-preparation/comparison.json
+  --output training/evaluations/shared-v5r5-preparation/comparison.json
 ```
 
 This read-only analysis rejects missing/duplicate cases, changed labels or frozen inputs, mismatched provider/driver evidence, changed pre/post artifact attestations, and a captured process that does not match the pinned Colibri model/runtime/configuration. It recomputes the baseline rather than trusting stored percentages. The driver proof is the earlier frozen baseline evidence also used by the running controller; it is not a new measurement.
@@ -102,3 +104,13 @@ This read-only analysis rejects missing/duplicate cases, changed labels or froze
 Acceptance requires the existing gates for the aggregate and every frozen set. The report includes per-application and per-language results, keeps native security verification explicitly separate, and never activates a model or launches training. Private inputs remain ignored by Git. Published reports must contain only reviewed synthetic scores and hashes, not process commands or infrastructure paths. The baseline retains its explicit 360 reused / 78 newly measured split; no combined latency comparison is inferred.
 
 Verification: 52 shared/training tests and 95 subtests passed, including deliberately mismatched model identities, process arguments, driver evidence and a 96% aggregate hiding a failed application set. The single reviewer found no remaining issues. These tests validate the reporting code; they are not candidate model scores.
+
+## Validation checkpoint selection
+
+The optional `--validation-interval 300` evaluates the unchanged validation split during training. `--checkpoint-interval 300` controls ordinary snapshots separately. `validation_selection.py` selects the lowest application-macro semantic loss, beginning with the base checkpoint at step zero. `checkpoint-selection.json` and the final report identify the selected adapter and validation score; `final/` still means the last optimizer step and must not be substituted for the selected adapter.
+
+Export must reject a step-zero selection and otherwise consume the recorded `selected-STEP` adapter. The isolated R5 export guard replays every validation decision, checks complete application exposure and pinned inputs, and records selected adapter hashes before merging. Selection by validation loss does not replace the 438-case acceptance test. No candidate is automatically activated.
+
+V5r5 settings: existing V5r2 merged base, one complete 1,803-example epoch, 275 validation examples, 24 text layers, LoRA rank 16/alpha 32, BF16 CPU SDPA with gradient checkpointing, semantic weight 4 and learning rate 0.00002. The smaller rate and periodic checkpoint selection address the previous final-checkpoint validation regression; an accuracy improvement remains unmeasured. Fourteen of sixteen CPU threads, a 12 GiB limit and no job swap preserve the measured reserve.
+
+Server preflight passed all training/validation rows. Two unsaved longest-example updates at 7,662 tokens reached 6.43 GiB peak RSS. The actual two-step trainer smoke test evaluated steps 0/1/2 and selected step 1; this verifies mechanics only. Full R5 training and the frozen evaluation remain incomplete. Contracts, Gestion Magasin and Réservation require accepted predecessors and fresh server checks before their one-at-a-time jobs.

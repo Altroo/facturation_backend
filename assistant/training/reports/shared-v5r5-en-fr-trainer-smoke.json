@@ -1,0 +1,12 @@
+{
+  "passed": true,
+  "steps": 2,
+  "validation_steps": [
+    0,
+    1,
+    2
+  ],
+  "selected_step": 1,
+  "baseline_retained": false,
+  "scope": "Mechanics only; no quality claim, export or activation."
+}

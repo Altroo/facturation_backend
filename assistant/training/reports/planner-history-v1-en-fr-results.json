@@ -1,0 +1,194 @@
+{
+  "diagnostic": "planner-history-v1-en-fr",
+  "count": 96,
+  "manifest_sha256": "675772bd928f0f252d128b124474603e9293cc486e364985279d40db0c5cf4fe",
+  "models": {
+    "v5r2": {
+      "original": {
+        "metrics": {
+          "count": 12,
+          "counts": {
+            "tool_correct": 9,
+            "structured_valid": 12,
+            "action_matches": 5
+          },
+          "percent": {
+            "tool_correct": 75.0,
+            "structured_valid": 100.0,
+            "action_matches": 41.67
+          },
+          "exact_arguments": {
+            "passed": 3,
+            "count": 8,
+            "percent": 37.5
+          }
+        },
+        "events_sha256": "b10f1e2a882ded3ad5b6e996080f2987ed33fb2b31d3e843e3f76f9a94fe6825",
+        "summary_sha256": "6283a4a35854cfde6f5c515b383598ca49a9b62905991a217301b4ae55665aa6"
+      },
+      "current_only": {
+        "metrics": {
+          "count": 12,
+          "counts": {
+            "tool_correct": 6,
+            "structured_valid": 10,
+            "action_matches": 4
+          },
+          "percent": {
+            "tool_correct": 50.0,
+            "structured_valid": 83.33,
+            "action_matches": 33.33
+          },
+          "exact_arguments": {
+            "passed": 4,
+            "count": 8,
+            "percent": 50.0
+          }
+        },
+        "events_sha256": "3d37f078a2665c8565de13347c8f5c3ee5ba3baf063e6a91b5b17fe288be6262",
+        "summary_sha256": "5e78730e08512b1426d0c4897bef227f85f8c486846007bae09aace7699dd544"
+      },
+      "long_greeting": {
+        "metrics": {
+          "count": 12,
+          "counts": {
+            "tool_correct": 9,
+            "structured_valid": 12,
+            "action_matches": 5
+          },
+          "percent": {
+            "tool_correct": 75.0,
+            "structured_valid": 100.0,
+            "action_matches": 41.67
+          },
+          "exact_arguments": {
+            "passed": 3,
+            "count": 8,
+            "percent": 37.5
+          }
+        },
+        "events_sha256": "fe36aa941f215fc9dcda43c344b31359ba3f7864e3d9a9429a94f7530b2f6e00",
+        "summary_sha256": "14d4e9879e7085669c13d744d0d331c180d69a276cc5653c2adc0e76bf67d213"
+      },
+      "current_first": {
+        "metrics": {
+          "count": 12,
+          "counts": {
+            "tool_correct": 7,
+            "structured_valid": 12,
+            "action_matches": 3
+          },
+          "percent": {
+            "tool_correct": 58.33,
+            "structured_valid": 100.0,
+            "action_matches": 25.0
+          },
+          "exact_arguments": {
+            "passed": 3,
+            "count": 8,
+            "percent": 37.5
+          }
+        },
+        "events_sha256": "77c832ff6039043dec7d6e29e2225b1fa8d67408d7138ca64e2619c6cb521560",
+        "summary_sha256": "71c9784f14339b27a140c45cea4a3a1f764215f62533771b493ebf4ffbde73c4"
+      }
+    },
+    "v5r4": {
+      "original": {
+        "metrics": {
+          "count": 12,
+          "counts": {
+            "tool_correct": 6,
+            "structured_valid": 12,
+            "action_matches": 6
+          },
+          "percent": {
+            "tool_correct": 50.0,
+            "structured_valid": 100.0,
+            "action_matches": 50.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 8,
+            "percent": 25.0
+          }
+        },
+        "events_sha256": "2954b0898b1fe1bac6241c064e034046b5afa9e01c5e0fffacd0e81f196f7b37",
+        "summary_sha256": "f57d5da9b3ee1d2dd4446fc887633f31a7db2847622ce37a9cc9ed5f940d5a4c"
+      },
+      "current_only": {
+        "metrics": {
+          "count": 12,
+          "counts": {
+            "tool_correct": 10,
+            "structured_valid": 10,
+            "action_matches": 8
+          },
+          "percent": {
+            "tool_correct": 83.33,
+            "structured_valid": 83.33,
+            "action_matches": 66.67
+          },
+          "exact_arguments": {
+            "passed": 6,
+            "count": 8,
+            "percent": 75.0
+          }
+        },
+        "events_sha256": "d6b57302f5e2e1851cfea1296f28b0dc81953ca09c03f969af940e7c45865f6e",
+        "summary_sha256": "593d52af18510370c755303c94ee16adb045c4c8c50b82eea01fa2afe6cb9b3c"
+      },
+      "long_greeting": {
+        "metrics": {
+          "count": 12,
+          "counts": {
+            "tool_correct": 10,
+            "structured_valid": 10,
+            "action_matches": 8
+          },
+          "percent": {
+            "tool_correct": 83.33,
+            "structured_valid": 83.33,
+            "action_matches": 66.67
+          },
+          "exact_arguments": {
+            "passed": 6,
+            "count": 8,
+            "percent": 75.0
+          }
+        },
+        "events_sha256": "5ca50ea6e97d3e4efdbf69be837eee4fe6e8c89aa16903a438076302e2b208df",
+        "summary_sha256": "6aa7fea83660ff2875f8786ae82e7c3f2da515f1e9044539bd2f5884b9e29dcc"
+      },
+      "current_first": {
+        "metrics": {
+          "count": 12,
+          "counts": {
+            "tool_correct": 6,
+            "structured_valid": 12,
+            "action_matches": 4
+          },
+          "percent": {
+            "tool_correct": 50.0,
+            "structured_valid": 100.0,
+            "action_matches": 33.33
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 8,
+            "percent": 25.0
+          }
+        },
+        "events_sha256": "617a98f249fbb1ec15e2334886e486e88fc39fc4e00b8a95eb46ddb62dab3544",
+        "summary_sha256": "0c39a95955aa88472ebd8823d07c4c6e6181d27affc29596b40adba4fb2b14be"
+      }
+    }
+  },
+  "interpretation": "For V5r4 only, removing background or changing its neutral greeting increased eligible exact arguments from 2/8 to 6/8 but caused two invalid outputs. Current-first did not improve exact arguments. Evidence supports a greeting-dependent failure on selected cases, not a complete causal explanation or a production workaround.",
+  "limitations": [
+    "Twelve selected scenarios per arm, not independent acceptance.",
+    "Current-only is diagnostic and does not authorize dropping production history.",
+    "No business operations, training, model activation or frozen benchmark changes.",
+    "Original 438-case acceptance still fails."
+  ]
+}

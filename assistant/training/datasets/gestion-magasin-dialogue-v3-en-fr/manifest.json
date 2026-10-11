@@ -1,0 +1,1691 @@
+{
+  "version": "gestion-magasin-dialogue-v3-en-fr",
+  "application": "gestion_magasin",
+  "languages": [
+    "en",
+    "fr"
+  ],
+  "source_dataset": "gestion-magasin-v1-en-fr",
+  "source_manifest_sha256": "a2656ba0e8be4bce02806404eff622f024b10a757592901c1c87f923e9dddfe2",
+  "source_files": {
+    "train.jsonl": "eb3050d7fb85f1c8862f2f57dc72ab435122dfc5d5a0a142912d14ab82c5b61b",
+    "valid.eval.jsonl": "8f91b5382c94ab8e7b62997d190bf02d1282084f484f2a98555b9a1920877bf4",
+    "test.eval.jsonl": "c4d01b46e4d481adefd7e60753139dbd575538b452d4bfa0b96448e4a2ce2c63",
+    "train.eval.jsonl": "49f5cc5216312e751926c25aacb0c6b432363eafd124755889e547160e0ea643",
+    "valid.jsonl": "c3744e58736761f15189edcf00b5690c39ef99068197049805de41071153d788"
+  },
+  "counts": {
+    "train": {
+      "retained": 166,
+      "augmented": 32,
+      "total": 198
+    },
+    "valid": {
+      "retained": 30,
+      "augmented": 13,
+      "total": 43
+    },
+    "test": {
+      "retained": 90
+    }
+  },
+  "augmentation": {
+    "train": [
+      {
+        "source_index": 149,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "gestion_magasin",
+        "source_id": "gestion-magasin-v1-en-fr-train-clarify-store-en"
+      },
+      {
+        "source_index": 139,
+        "history": "Hello, thanks for your help.",
+        "application": "gestion_magasin",
+        "source_id": "gestion-magasin-v1-en-fr-train-clarify-money-en"
+      },
+      {
+        "source_index": 154,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "gestion_magasin",
+        "source_id": "gestion-magasin-v1-en-fr-train-clarify-profit-fr"
+      },
+      {
+        "source_index": 155,
+        "history": "Hello, thanks for your help.",
+        "application": "gestion_magasin",
+        "source_id": "gestion-magasin-v1-en-fr-train-clarify-profit-en"
+      },
+      {
+        "source_index": 107,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "gestion_magasin",
+        "source_id": "gestion-magasin-v1-en-fr-train-finance-sales_total-en"
+      },
+      {
+        "source_index": 111,
+        "history": "Hello, thanks for your help.",
+        "application": "gestion_magasin",
+        "source_id": "gestion-magasin-v1-en-fr-train-finance-purchases_total-en"
+      },
+      {
+        "source_index": 106,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "gestion_magasin",
+        "source_id": "gestion-magasin-v1-en-fr-train-finance-sales_total-fr"
+      },
+      {
+        "source_index": 116,
+        "history": "Hello, thanks for your help.",
+        "application": "gestion_magasin",
+        "source_id": "gestion-magasin-v1-en-fr-train-finance-today_cash_total-fr"
+      },
+      {
+        "source_index": 101,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "gestion_magasin",
+        "source_id": "gestion-magasin-v1-en-fr-train-read-context-en"
+      },
+      {
+        "source_index": 100,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "gestion_magasin",
+        "source_id": "gestion-magasin-v1-en-fr-train-read-context-fr"
+      },
+      {
+        "source_index": 161,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "gestion_magasin",
+        "source_id": "gestion-magasin-v1-en-fr-train-knowledge-stock-en"
+      },
+      {
+        "source_index": 163,
+        "history": "Hello, thanks for your help.",
+        "application": "gestion_magasin",
+        "source_id": "gestion-magasin-v1-en-fr-train-knowledge-pos-en"
+      },
+      {
+        "source_index": 162,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "gestion_magasin",
+        "source_id": "gestion-magasin-v1-en-fr-train-knowledge-pos-fr"
+      },
+      {
+        "source_index": 160,
+        "history": "Hello, thanks for your help.",
+        "application": "gestion_magasin",
+        "source_id": "gestion-magasin-v1-en-fr-train-knowledge-stock-fr"
+      },
+      {
+        "source_index": 97,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "gestion_magasin",
+        "source_id": "gestion-magasin-v1-en-fr-train-navigation-pos-en"
+      },
+      {
+        "source_index": 91,
+        "history": "Hello, thanks for your help.",
+        "application": "gestion_magasin",
+        "source_id": "gestion-magasin-v1-en-fr-train-navigation-inventories-en"
+      },
+      {
+        "source_index": 84,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "gestion_magasin",
+        "source_id": "gestion-magasin-v1-en-fr-train-navigation-sales-fr"
+      },
+      {
+        "source_index": 90,
+        "history": "Hello, thanks for your help.",
+        "application": "gestion_magasin",
+        "source_id": "gestion-magasin-v1-en-fr-train-navigation-inventories-fr"
+      },
+      {
+        "source_index": 129,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "gestion_magasin",
+        "source_id": "gestion-magasin-v1-en-fr-train-edit-sale-en"
+      },
+      {
+        "source_index": 127,
+        "history": "Hello, thanks for your help.",
+        "application": "gestion_magasin",
+        "source_id": "gestion-magasin-v1-en-fr-train-edit-customer-en"
+      },
+      {
+        "source_index": 131,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "gestion_magasin",
+        "source_id": "gestion-magasin-v1-en-fr-train-delete-known-en"
+      },
+      {
+        "source_index": 130,
+        "history": "Hello, thanks for your help.",
+        "application": "gestion_magasin",
+        "source_id": "gestion-magasin-v1-en-fr-train-delete-known-fr"
+      },
+      {
+        "source_index": 105,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "gestion_magasin",
+        "source_id": "gestion-magasin-v1-en-fr-train-followup-list-en"
+      },
+      {
+        "source_index": 103,
+        "history": "Hello, thanks for your help.",
+        "application": "gestion_magasin",
+        "source_id": "gestion-magasin-v1-en-fr-train-followup-second-en"
+      },
+      {
+        "source_index": 104,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "gestion_magasin",
+        "source_id": "gestion-magasin-v1-en-fr-train-followup-list-fr"
+      },
+      {
+        "source_index": 102,
+        "history": "Hello, thanks for your help.",
+        "application": "gestion_magasin",
+        "source_id": "gestion-magasin-v1-en-fr-train-followup-second-fr"
+      },
+      {
+        "source_index": 135,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "gestion_magasin",
+        "source_id": "gestion-magasin-v1-en-fr-train-document-known-en"
+      },
+      {
+        "source_index": 134,
+        "history": "Hello, thanks for your help.",
+        "application": "gestion_magasin",
+        "source_id": "gestion-magasin-v1-en-fr-train-document-known-fr"
+      },
+      {
+        "source_index": 17,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "gestion_magasin",
+        "source_id": "gestion-magasin-v1-en-fr-train-search-expense-en"
+      },
+      {
+        "source_index": 47,
+        "history": "Hello, thanks for your help.",
+        "application": "gestion_magasin",
+        "source_id": "gestion-magasin-v1-en-fr-train-name-stock_request-en"
+      },
+      {
+        "source_index": 8,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "gestion_magasin",
+        "source_id": "gestion-magasin-v1-en-fr-train-search-sale-fr"
+      },
+      {
+        "source_index": 46,
+        "history": "Hello, thanks for your help.",
+        "application": "gestion_magasin",
+        "source_id": "gestion-magasin-v1-en-fr-train-name-stock_request-fr"
+      }
+    ],
+    "valid": [
+      {
+        "source_index": 27,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "gestion_magasin",
+        "source_id": "gestion-magasin-v1-en-fr-valid-denied-report-en"
+      },
+      {
+        "source_index": 22,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "gestion_magasin",
+        "source_id": "gestion-magasin-v1-en-fr-valid-clarify-period-fr"
+      },
+      {
+        "source_index": 14,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "gestion_magasin",
+        "source_id": "gestion-magasin-v1-en-fr-valid-finance-expenses-fr"
+      },
+      {
+        "source_index": 8,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "gestion_magasin",
+        "source_id": "gestion-magasin-v1-en-fr-valid-read-known-fr"
+      },
+      {
+        "source_index": 29,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "gestion_magasin",
+        "source_id": "gestion-magasin-v1-en-fr-valid-knowledge-transfer-en"
+      },
+      {
+        "source_index": 28,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "gestion_magasin",
+        "source_id": "gestion-magasin-v1-en-fr-valid-knowledge-transfer-fr"
+      },
+      {
+        "source_index": 11,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "gestion_magasin",
+        "source_id": "gestion-magasin-v1-en-fr-valid-navigation-attendance-en"
+      },
+      {
+        "source_index": 12,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "gestion_magasin",
+        "source_id": "gestion-magasin-v1-en-fr-valid-navigation-create-fr"
+      },
+      {
+        "source_index": 17,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "gestion_magasin",
+        "source_id": "gestion-magasin-v1-en-fr-valid-edit-expense-en"
+      },
+      {
+        "source_index": 21,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "gestion_magasin",
+        "source_id": "gestion-magasin-v1-en-fr-valid-document-english-en"
+      },
+      {
+        "source_index": 20,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "gestion_magasin",
+        "source_id": "gestion-magasin-v1-en-fr-valid-document-english-fr"
+      },
+      {
+        "source_index": 1,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "gestion_magasin",
+        "source_id": "gestion-magasin-v1-en-fr-valid-search-product-en"
+      },
+      {
+        "source_index": 6,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "gestion_magasin",
+        "source_id": "gestion-magasin-v1-en-fr-valid-search-stock-fr"
+      }
+    ]
+  },
+  "neutral_history": {
+    "train": {
+      "distribution": {
+        "Bonjour": {
+          "clarify:ambiguous_metric": 1,
+          "clarify:unsupported": 4,
+          "financial_summary": 1,
+          "get_record": 1,
+          "knowledge": 2,
+          "navigate": 5,
+          "prepare_change": 4,
+          "previous_results": 1,
+          "sale_document": 1,
+          "search_records": 19
+        },
+        "Bonjour, merci pour votre aide.": {
+          "clarify:ambiguous_metric": 1,
+          "clarify:missing_details": 1,
+          "clarify:unsupported": 3,
+          "financial_summary": 3,
+          "get_record": 1,
+          "knowledge": 2,
+          "navigate": 6,
+          "prepare_change": 1,
+          "previous_results": 1,
+          "search_records": 19
+        },
+        "Hello": {
+          "clarify:ambiguous_metric": 1,
+          "clarify:unsupported": 4,
+          "financial_summary": 3,
+          "knowledge": 2,
+          "navigate": 2,
+          "prepare_change": 5,
+          "previous_results": 3,
+          "sale_document": 1,
+          "search_records": 15
+        },
+        "Hello, thanks for your help.": {
+          "clarify:unsupported": 3,
+          "financial_summary": 5,
+          "get_record": 1,
+          "knowledge": 2,
+          "navigate": 2,
+          "prepare_change": 3,
+          "previous_results": 1,
+          "sale_document": 1,
+          "search_records": 17
+        },
+        "no_history": {
+          "clarify:missing_details": 1,
+          "clarify:unsupported": 7,
+          "financial_summary": 6,
+          "get_record": 1,
+          "navigate": 9,
+          "prepare_change": 3,
+          "previous_results": 2,
+          "sale_document": 1,
+          "search_records": 20
+        }
+      },
+      "assignment": [
+        {
+          "source_index": 0,
+          "arm": "no_history",
+          "input_sha256": "a5d777eaefdc399c26e8dea8e3bce971f80c6f9847419443ddff63cf25011091"
+        },
+        {
+          "source_index": 1,
+          "arm": "Bonjour",
+          "input_sha256": "7d2880513ecacb29c90934502c11c80596350a3d314276a754d3ddc724879cd6"
+        },
+        {
+          "source_index": 2,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "ebc1f5384ca4e6b9d5ab0c55de033f33018634c6d33a13ba7720ee215082cb5a"
+        },
+        {
+          "source_index": 3,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "6c715e6b481f4041889a2eccd0d7d2ffba41a5fcc151f2c96e5d9d76935ce450"
+        },
+        {
+          "source_index": 4,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "53ed4e82fe59967b32bcbd90b1493810d6c37dcafd48251679a38ba357999224"
+        },
+        {
+          "source_index": 5,
+          "arm": "Bonjour",
+          "input_sha256": "41b65c991455a3f2f410256e934d7e99362c25c0ce390a7e3497b501e61ddba1"
+        },
+        {
+          "source_index": 6,
+          "arm": "Bonjour",
+          "input_sha256": "7dfa8ef011f37c1a70fd2ae3e6215a69294e3a4361995dc2dcde21ce65b8ec42"
+        },
+        {
+          "source_index": 7,
+          "arm": "Hello",
+          "input_sha256": "12a6b5289a4aafdac257df2beea4a873df92101dda210ec38bf9f0dd8ae206c2"
+        },
+        {
+          "source_index": 8,
+          "arm": "Hello",
+          "input_sha256": "c1d4a73ac8536c32ae91d0067def56137cddddfd1226465b64246e610b7b689e"
+        },
+        {
+          "source_index": 9,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "b0553e914a15246d4f4cd68eeba29767e1886e1e341fb83ff1a5b67449a3d488"
+        },
+        {
+          "source_index": 10,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "1731b10ff3c9bfdce39d90f56e2914281f5c2ff7145fb21812806e8e76ae775b"
+        },
+        {
+          "source_index": 11,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "5556950aaa5b75afa33830a713f7c678cb60bd8c0a45a40c211ea5ea7042be45"
+        },
+        {
+          "source_index": 12,
+          "arm": "Bonjour",
+          "input_sha256": "3eabbd7cda9f7f571f34a98bfa2f314e99d7b36a6641932ab0c598836958836d"
+        },
+        {
+          "source_index": 13,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "ff8b59c9784770396e1f7dadcaaa80fc52ec7bcd8669aca9e36b3dab696fd3e9"
+        },
+        {
+          "source_index": 14,
+          "arm": "Hello",
+          "input_sha256": "d6c57a8e7e2e2eb7f73ebdc44f2fb9ef88f99150cdd5cdc7e4e4145f25d888e4"
+        },
+        {
+          "source_index": 15,
+          "arm": "Hello",
+          "input_sha256": "8755812ae1c1a430e22695a2a607bf71ef17022c69263d9ba6e7ae8b1c5cad75"
+        },
+        {
+          "source_index": 16,
+          "arm": "Bonjour",
+          "input_sha256": "c97293561c9eb82c14344ee8ae8c792b03904c1a610719ca0e3e7bd9142e54ec"
+        },
+        {
+          "source_index": 17,
+          "arm": "Bonjour",
+          "input_sha256": "33b0d13436f118b9dc1f5c424ace7dc337fb80de78c039fe11ef39417eac9e29"
+        },
+        {
+          "source_index": 18,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "2b9770ec7faafaf41262841217f901b29c78878839a43408c975c107d7d4cc85"
+        },
+        {
+          "source_index": 19,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "3866b36e887c9341bcaeb89882dbf7e4d735be9799547d9679f4057aa88b8453"
+        },
+        {
+          "source_index": 20,
+          "arm": "no_history",
+          "input_sha256": "d6df1b542ee2d5e3b28538bb0c7156c83dc8e153a71c61e5cfbba199337c9c7b"
+        },
+        {
+          "source_index": 21,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "a51292ab0c18ec3480436cdd50563da16f9f22d6dc6f6dc8828e5b163cff0760"
+        },
+        {
+          "source_index": 22,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "14c9ac6600053f6a1e7deabaeac46e7095bca99239a21d3b9bb70e09919655a9"
+        },
+        {
+          "source_index": 23,
+          "arm": "no_history",
+          "input_sha256": "914a989080ea53b95af5917569b8e574dbdb7d753ac1fb58d02c5a26d655c2c2"
+        },
+        {
+          "source_index": 24,
+          "arm": "no_history",
+          "input_sha256": "73afa4d271510d2c335ffe22356a9b57eb7cbfa8b4b3d98381ef95c0a1a9d064"
+        },
+        {
+          "source_index": 25,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "063c6052e89ff4aa3ed84faef9b4c153654759c5ac07ccda96a9ffff232ba34e"
+        },
+        {
+          "source_index": 26,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "69a19de9a6b8d677d04d98c1ec2b849b008e22614f54e40c56a9c51ddb9ba8a6"
+        },
+        {
+          "source_index": 27,
+          "arm": "no_history",
+          "input_sha256": "59101a7b5ba7c08317906b59d0401d8e802a73d067f6c0ae6774a80b17915771"
+        },
+        {
+          "source_index": 28,
+          "arm": "no_history",
+          "input_sha256": "e4aabf56f3b5a4e3ff3e2731d904d6113e0ce4311145a75927e31e988e69f612"
+        },
+        {
+          "source_index": 29,
+          "arm": "no_history",
+          "input_sha256": "95e12e2d6fe469248c7dadb433c953bd14ff940484a2c3714c33943c33678275"
+        },
+        {
+          "source_index": 30,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "aab5061762fa3d1983f449f25762eeea94bc7491cf3405db3649b3e225f32957"
+        },
+        {
+          "source_index": 31,
+          "arm": "Hello",
+          "input_sha256": "8747b8b84a2286006d103b2090e6d26c95201a4d8e6e858f3ff4356c1052185f"
+        },
+        {
+          "source_index": 32,
+          "arm": "no_history",
+          "input_sha256": "1c3c165d87819a9f6c5eb9eae9fdb1dd18787cc8ba964303928f8a2e2a26e6ac"
+        },
+        {
+          "source_index": 33,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "e09687af8c1c237ab18939b75da307b78b2bed850a2f6205dfddf9c736b11aec"
+        },
+        {
+          "source_index": 34,
+          "arm": "Hello",
+          "input_sha256": "06fcf48b211766b1c79dd7476bc4744dc04e80e9c690a39ee29678dd015118aa"
+        },
+        {
+          "source_index": 35,
+          "arm": "no_history",
+          "input_sha256": "55db7e7d77c9b90a1ebb554cd2fcf7b3b23bff8c1882db022d2b3540aef38002"
+        },
+        {
+          "source_index": 36,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "3a5283db087a92494ee4679c037762253b4e1f574ec12acd28d293f3cec60ec3"
+        },
+        {
+          "source_index": 37,
+          "arm": "no_history",
+          "input_sha256": "cfdb7a4b8739fbae5d0601177f07ed7f1b38e3b05cb0af07de1f97820fcca672"
+        },
+        {
+          "source_index": 38,
+          "arm": "no_history",
+          "input_sha256": "fdf2d7bf30bd147aba491f9c594dec2b3d40b3badc4130d1833f93df6e6d7db2"
+        },
+        {
+          "source_index": 39,
+          "arm": "Bonjour",
+          "input_sha256": "75a331fe4201904e1e9e9505f31441972d6c94910fe390b3699e2cfd410d4c5d"
+        },
+        {
+          "source_index": 40,
+          "arm": "no_history",
+          "input_sha256": "d854c418cf0f41216065db666419158f3b74d3215c80182b9cc9f4c980721818"
+        },
+        {
+          "source_index": 41,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "935fab87fd8cc6a94b5d01347fcb1657baaf15c7c9d325d5ce7be7a974686a4b"
+        },
+        {
+          "source_index": 42,
+          "arm": "Bonjour",
+          "input_sha256": "546c7d57bc04d3e1bb37e6870ed21b6aa8dcae085e4640432516dc08b35701b8"
+        },
+        {
+          "source_index": 43,
+          "arm": "Hello",
+          "input_sha256": "c0ee668a736ae2e0bcc779a75c4946ec86706f9ead892bf93e2d6d59c8455b3b"
+        },
+        {
+          "source_index": 44,
+          "arm": "no_history",
+          "input_sha256": "69931ad60aae13877a5971aa15b7d43ea507a5a1343fae4e49b3c06441fa937b"
+        },
+        {
+          "source_index": 45,
+          "arm": "Bonjour",
+          "input_sha256": "7e7af8d0434f864e64a924e3dade60b3db6e52e8e09f0c24c1966a7c501a55b3"
+        },
+        {
+          "source_index": 46,
+          "arm": "no_history",
+          "input_sha256": "628d9973c1b11d40ebeab3c8b6fe3ecfcac5359aeb08229a59b1c8a036c2b079"
+        },
+        {
+          "source_index": 47,
+          "arm": "Bonjour",
+          "input_sha256": "2c3936a011981fdee0a61a8471a19f609e34e355f7039403bb9d90a6bfff0bc4"
+        },
+        {
+          "source_index": 48,
+          "arm": "Hello",
+          "input_sha256": "0c107f601cffbf38635dea73af9ce27a74b9202edfa7c2c672c05e2dcca168f5"
+        },
+        {
+          "source_index": 49,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "47df6e05ab00e1d09fc8dae4ae435bd2a01ac9adfebd5b2d2950b9bb7c16db04"
+        },
+        {
+          "source_index": 50,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "cd959f1fe7e361ef48783c051d6ec5db715f0b401ccac830ef8122eb6278dbac"
+        },
+        {
+          "source_index": 51,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "5956de35dd840c71b5b8cbd90d55f788a6a89a7d716d6c4c398554cd9ec56504"
+        },
+        {
+          "source_index": 52,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "ecb72de878f81efe62b8955fd96a8380dde4dda7067f7f26d1abc82402729680"
+        },
+        {
+          "source_index": 53,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "6c5be89a6427bb89b86e0e484271ab3af952075b7ef901c0ad7a9c641f3a0399"
+        },
+        {
+          "source_index": 54,
+          "arm": "Bonjour",
+          "input_sha256": "f46ae84befd489cfa5e51b61248f7953abe0cf71e5fac1e6908ecd1ecb9ed516"
+        },
+        {
+          "source_index": 55,
+          "arm": "Bonjour",
+          "input_sha256": "37b71909db55e3d68b445d011e565bfbac868bef271fa8d957dc9f3df2b83d17"
+        },
+        {
+          "source_index": 56,
+          "arm": "no_history",
+          "input_sha256": "4c2ce4c7ea91db32608b4049dfbb02bf4fd302e5d8379fe12ecd1f7c82507cb0"
+        },
+        {
+          "source_index": 57,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "62841a6c0be42c6a65f1e7abac6c31bb3921aab319f2ec411931641319a69c56"
+        },
+        {
+          "source_index": 58,
+          "arm": "no_history",
+          "input_sha256": "7a524710732f17b8bab5b439e8bf322c3531ebb9e735c58d04c38779c4d3e908"
+        },
+        {
+          "source_index": 59,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "bfc0cb2a43cd7a66514114f37ad5c4f58aa2c9b81b1698b4eb7a31021424a270"
+        },
+        {
+          "source_index": 60,
+          "arm": "Hello",
+          "input_sha256": "b8d7eec8e4678ebaaaf08afd5fa2308602bda2448a34b2fad37f7dcf6f92ee80"
+        },
+        {
+          "source_index": 61,
+          "arm": "no_history",
+          "input_sha256": "d90aec15f8daaccb457319701fa72d4b61824f95569ee8a2e5c845476762caea"
+        },
+        {
+          "source_index": 62,
+          "arm": "Bonjour",
+          "input_sha256": "1ab131e6a158f9750188291d7b65f6e30163735c26a34f95c5619a640bb694c9"
+        },
+        {
+          "source_index": 63,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "93ef5da40a321dc08082c90ab051eed71249a16f994205176bcbc3c0ad2b4ac7"
+        },
+        {
+          "source_index": 64,
+          "arm": "Bonjour",
+          "input_sha256": "227296d577e132ac526c5b76d923791b2ed2b44e23ae46b949610bb4e0cc253e"
+        },
+        {
+          "source_index": 65,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "e697d0eb4ca77adbb0d50fd1be35de32183a92ff72bf17f0e1bf2dff69715238"
+        },
+        {
+          "source_index": 66,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "3772bfa83af7c130861ef9065d9462163b99b3278c39ce4c0300c0c2d0fab41f"
+        },
+        {
+          "source_index": 67,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "29be793c6e784d3beba580fecb8e6ce7b198c98863c8f5ce6a75c30e59ddc5a3"
+        },
+        {
+          "source_index": 68,
+          "arm": "no_history",
+          "input_sha256": "580a5ce3bf7eafa19b5af8e3c14861ecc4db36f28f8b09b6253d845fe8175415"
+        },
+        {
+          "source_index": 69,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "94d1dc66fd66042da0f4049ac7b26b804cd28a440fce93caff65a06798b834ed"
+        },
+        {
+          "source_index": 70,
+          "arm": "no_history",
+          "input_sha256": "a789dfb894b537787d07e47593aac05395b1eef85542b21933f3d4ec065b1fd7"
+        },
+        {
+          "source_index": 71,
+          "arm": "Hello",
+          "input_sha256": "5958550f7513f8969b04963988a436ffc5fd80586cc519b0355a68df6a465a76"
+        },
+        {
+          "source_index": 72,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "7420a0d4092f076ebd404fe0984763505bda71d6c3fd7f4de97998ec6d57230c"
+        },
+        {
+          "source_index": 73,
+          "arm": "Hello",
+          "input_sha256": "36106492adaaf449034d6005def483f116baf8b42784b2d683ddba17e55ab51d"
+        },
+        {
+          "source_index": 74,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "26494f6dde01e64717125d338e95ff141020d354665f34bd79b3a8ba9054f9b8"
+        },
+        {
+          "source_index": 75,
+          "arm": "Hello",
+          "input_sha256": "8a589b28ce67aede69c159003aa2d35f163b20f92be2c6af5c1148d6ace5d41a"
+        },
+        {
+          "source_index": 76,
+          "arm": "Hello",
+          "input_sha256": "727167d9574a198fa6a072aefdc671870faad655a95b7e735466251d7ec03a18"
+        },
+        {
+          "source_index": 77,
+          "arm": "Hello",
+          "input_sha256": "e5ffb7b055aac06f8cd139772ec9fb18e8d57b3717c8288305f822329d25f2a8"
+        },
+        {
+          "source_index": 78,
+          "arm": "Bonjour",
+          "input_sha256": "f6e931c350019fa9fcccaf4aa40ee36faedd3af6b1dd432bc8c0f257acb0529e"
+        },
+        {
+          "source_index": 79,
+          "arm": "Bonjour",
+          "input_sha256": "69fd90930cbecfbd45bd268d7ed56a378b0c20621f118ebc95caee6621b3f7e9"
+        },
+        {
+          "source_index": 80,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "f1e74b99cf703b47234cf4108c1c8eea8849fba6c1e6dc480376af7e99660790"
+        },
+        {
+          "source_index": 81,
+          "arm": "Bonjour",
+          "input_sha256": "9f95bce4241df12abc736f59fe5618d507147150d887581f3faa9cfb406f74c6"
+        },
+        {
+          "source_index": 82,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "a34c4fcb6b601f1c3d00258c4d92d9e6e05e3c0dced5ba64bf0059d95ba5138a"
+        },
+        {
+          "source_index": 83,
+          "arm": "no_history",
+          "input_sha256": "82109ad2b3dffc1ab3b003ed5617f635cbcf4d33b766d5502ed7999a42400a61"
+        },
+        {
+          "source_index": 84,
+          "arm": "Bonjour",
+          "input_sha256": "ba5b82e1be48be9e2545951535e68d9c12dd71731c8e796e023f018041901220"
+        },
+        {
+          "source_index": 85,
+          "arm": "Bonjour",
+          "input_sha256": "06533cc3076831b237837ff26199ebb6f86f1ac2f89d0c881e02cbec3cce8bfa"
+        },
+        {
+          "source_index": 86,
+          "arm": "no_history",
+          "input_sha256": "8eb6c777c190d274ce878c9a8bc4067b0f061882c07258e7c69083f9e26f742d"
+        },
+        {
+          "source_index": 87,
+          "arm": "Bonjour",
+          "input_sha256": "00a63e8b3f759d8f679cc83f212888140feb078b61f21727d4d23bf642b1e093"
+        },
+        {
+          "source_index": 88,
+          "arm": "Bonjour",
+          "input_sha256": "e2cfe077f11825a91942ac9f04c1b353cfd8f8d09881e26fcb7c35309b5d5ed7"
+        },
+        {
+          "source_index": 89,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "f1e87c6ad8a919e79c40364811143a57fb86667416c4a30742267d12de6b0c93"
+        },
+        {
+          "source_index": 90,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "b5bc0224bf1ce4dc95d033f6f4b730de98ec47c6c18f1029a447fdb2a7fb87a2"
+        },
+        {
+          "source_index": 91,
+          "arm": "no_history",
+          "input_sha256": "995f697bbdbf65e458e41f5f8b08fd1420c20db451337bd6053144715edebe5f"
+        },
+        {
+          "source_index": 92,
+          "arm": "no_history",
+          "input_sha256": "0cdae199d27c823a4205f948564904b3dc13417f702a7331d6c31e22bb5b14f9"
+        },
+        {
+          "source_index": 93,
+          "arm": "no_history",
+          "input_sha256": "f7d47220ae3a65b6d1b9e82e282f4549384af4c367ea00a1a1b4d4e83d79a425"
+        },
+        {
+          "source_index": 94,
+          "arm": "no_history",
+          "input_sha256": "dd8f0f99e50c445ef365cb84278cdc007cca02e1784fd69c08277b0d81c425a4"
+        },
+        {
+          "source_index": 95,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "d2ea7b85375f97ee7c9ec119363861c4d95a92bf20d618e5740239aa577dcdde"
+        },
+        {
+          "source_index": 96,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "75416fd4141210a079f753e7aa54fc4e89ad99b8ede526fa65a79a3651836359"
+        },
+        {
+          "source_index": 97,
+          "arm": "no_history",
+          "input_sha256": "7af4d013d1d2167e92778c1d73ef68e4b856d77b06eef45c8dcae1102a1c1f1c"
+        },
+        {
+          "source_index": 98,
+          "arm": "no_history",
+          "input_sha256": "9ffe44cff797f801a9ca7463b7ff1a9e0e0954849530f1578b20e7e069def375"
+        },
+        {
+          "source_index": 99,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "f46dcdcbf27d90c09add3dda62efe9c1fef40da337b56a6e3c8216e97f321264"
+        },
+        {
+          "source_index": 100,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "e6ad8c6cc5563bab47172e768a8d0ee1cac1ac0ee6d701d4574fc6499def8195"
+        },
+        {
+          "source_index": 101,
+          "arm": "Bonjour",
+          "input_sha256": "b5ace5acb2aceed7f5030448087c89395db39240f98c7ff48e3b9e76467bec13"
+        },
+        {
+          "source_index": 102,
+          "arm": "no_history",
+          "input_sha256": "efe8699c0f9aa397b7041c552567e8c41d8b2ea7f778879669139beeeaf0bd31"
+        },
+        {
+          "source_index": 103,
+          "arm": "no_history",
+          "input_sha256": "ba955b78b1c203ffc9d233f418754fde2a994abf863642bb1ebd844aee478584"
+        },
+        {
+          "source_index": 104,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "4f29e2549ae6ea7d3e43dec87c98d157a7dbe1fe40050daee69deaa569148a36"
+        },
+        {
+          "source_index": 105,
+          "arm": "Hello",
+          "input_sha256": "2220faa92b7542236e2e42d3eba6a993a989896328e1e65272c36ab42ee48b93"
+        },
+        {
+          "source_index": 106,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "ebcbae4ea63c0cc9c65ec2a398ddf7c572e90c7d66a7a2b342c44aecfeebb558"
+        },
+        {
+          "source_index": 107,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "71ea16da5bfa69b5dd5fada3d00dceaf804fe0b2656d982bad4e52d90e4af844"
+        },
+        {
+          "source_index": 108,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "71ea33eeb56b6102d02ffe5e91b0a143a950f91e5f3fa37cf0e1cb384caea88a"
+        },
+        {
+          "source_index": 109,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "84ccdac9a367cb7ddc0e0b9ab40f349c25b735fdaef8f923810ba71b46c2e33e"
+        },
+        {
+          "source_index": 110,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "20425be0be87bdba0007dc05691917b2a18864ff1894bfee02ed9f0f4134f0eb"
+        },
+        {
+          "source_index": 111,
+          "arm": "no_history",
+          "input_sha256": "a93f2d9a15238370f747791108ebc17117da7497371b50af217f1dfe908ae75f"
+        },
+        {
+          "source_index": 112,
+          "arm": "no_history",
+          "input_sha256": "abc293350e3f87fd31baa1c7e745769c00dfed5eee0a17377f1af60dcdd1631c"
+        },
+        {
+          "source_index": 113,
+          "arm": "Bonjour",
+          "input_sha256": "8e9215bfc157d9c8f8fce0e43fc9c68584c4d9532dd9cc3179197c15696432c7"
+        },
+        {
+          "source_index": 114,
+          "arm": "Hello",
+          "input_sha256": "3ed21f4d9c592b17d2060061a37c9aeb71f306b44e7a16b498167c54ddc01b52"
+        },
+        {
+          "source_index": 115,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "7b7b8604cb8cd1e8090ec6c827a2c5abbfa08d3952fbdb5bfa680ca6f3c6e7cb"
+        },
+        {
+          "source_index": 116,
+          "arm": "no_history",
+          "input_sha256": "47b4a0f5fab4bf0826808708c804bd69a1d99dbd8b916acae213c433dceae7c5"
+        },
+        {
+          "source_index": 117,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "a786abb5c3394b039d33357309d7b98656ba01b66795f12b6df9a6c75ab7625c"
+        },
+        {
+          "source_index": 118,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "ca7588b1b29e44f79a5bd4e74e711b2f071cac6eed4c853581112536ac8ccb5c"
+        },
+        {
+          "source_index": 119,
+          "arm": "no_history",
+          "input_sha256": "f392513e880b2e73b13af0eac6f5b5f11469a20ad8357231e33069d4a8e2ce3d"
+        },
+        {
+          "source_index": 120,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "772d79ed617fdd2a41a786eeba4aa195f83d589ef671ed47667cf7620c3bb170"
+        },
+        {
+          "source_index": 121,
+          "arm": "Bonjour",
+          "input_sha256": "2432775e1b808032802424d8730659ae18454dbadbb2c53dd3bd9fb388f4b485"
+        },
+        {
+          "source_index": 122,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "2eb5ea0015fffe9da79bbed8abf32359ddde1a16777707d04abe58553d4afa2f"
+        },
+        {
+          "source_index": 123,
+          "arm": "Hello",
+          "input_sha256": "9f7c335c113efca49849f20d06ec62c3a1dc991dca82ba1c7b9ef57ae8f3dfbc"
+        },
+        {
+          "source_index": 124,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "d6f457f17d63a251bae08c622f57e30375e3c2068d6fd9696ad4a0686bdbe5b8"
+        },
+        {
+          "source_index": 125,
+          "arm": "no_history",
+          "input_sha256": "389b0747ccdc493b3c802a46c523510ae19b091876f18d05fc26f1b56fa9af44"
+        },
+        {
+          "source_index": 126,
+          "arm": "Bonjour",
+          "input_sha256": "9c3c25bbaa9fb165eba77ec80a76fa18237fc572ac0f805fbb2f550c9bec6f4b"
+        },
+        {
+          "source_index": 127,
+          "arm": "Hello",
+          "input_sha256": "c004f86739e0dd61c9b680c522f57ac6dc25ad4a17cd66d07db05c6277f80195"
+        },
+        {
+          "source_index": 128,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "dfd924f0e0efa914dd1df42f833211577a8ea8f0ad3d4be0c96bd628de9387b9"
+        },
+        {
+          "source_index": 129,
+          "arm": "no_history",
+          "input_sha256": "99344792dd117ae42771f17760555651f40dbd87cadcdbab41edef8e503081b7"
+        },
+        {
+          "source_index": 130,
+          "arm": "no_history",
+          "input_sha256": "b47624d7d03e8f85885bbe8a15a5da74307117683b28618ffd9cbced46fc6ccb"
+        },
+        {
+          "source_index": 131,
+          "arm": "Hello",
+          "input_sha256": "bd690a47ac223a20a001af716a370075fb159e995a3bdc6aedbb9652435f34c3"
+        },
+        {
+          "source_index": 132,
+          "arm": "no_history",
+          "input_sha256": "4c73fecf9f80c85b3121214e3cf1cba2dc70d8740ab88a00f7013dd39067b4f7"
+        },
+        {
+          "source_index": 133,
+          "arm": "Bonjour",
+          "input_sha256": "268d63e8804efc40f9a7b5f7df73137c0e33daa36b42e1ed2190f0e1f173c910"
+        },
+        {
+          "source_index": 134,
+          "arm": "no_history",
+          "input_sha256": "3e21aa15e4c17aec48a3532cba0199559aa977bb6f1f723e4306532606580d66"
+        },
+        {
+          "source_index": 135,
+          "arm": "Bonjour",
+          "input_sha256": "caa5d88b7470a7b9086fed2b32d2248a6cfc2302bc94cee1fb78aae2cdbd94f5"
+        },
+        {
+          "source_index": 136,
+          "arm": "Bonjour",
+          "input_sha256": "b9a46400d7cae9cbd7807dec11c7a50f9712ed2a00ec04f64d6eca2c0d7094a9"
+        },
+        {
+          "source_index": 137,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "dc1ab0a5751a63415a204c450e7e1326c5d301d2b2814ff22d54d426ce8628d8"
+        },
+        {
+          "source_index": 138,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "2222f0079b8eae9ea5d79314b26d6e8fb3d8df48cfbca15165fa40cabfa14516"
+        },
+        {
+          "source_index": 139,
+          "arm": "Hello",
+          "input_sha256": "0966deb91325d81086e4ea026d51227f92019e46da4f33fad2fe85919f8957be"
+        },
+        {
+          "source_index": 140,
+          "arm": "no_history",
+          "input_sha256": "0fa76362c9b6005d60951e3dd9849ed4d423cf59b39d626dd84a7b81afd7c1b1"
+        },
+        {
+          "source_index": 141,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "88b1ea54b9a08005e8546fe039a72b68c3ce69be1e0895fefd969fedb32b233b"
+        },
+        {
+          "source_index": 142,
+          "arm": "no_history",
+          "input_sha256": "09f97d172d100b0791a3d05c78b2aaffa47103cca326df0626f51cc700d39466"
+        },
+        {
+          "source_index": 143,
+          "arm": "Hello",
+          "input_sha256": "d226820912bdb19b63a5e1c30d84abe38610a3bc80c96a281ff92b0758c9e535"
+        },
+        {
+          "source_index": 144,
+          "arm": "Hello",
+          "input_sha256": "c88b914e5f1bac28d21a7b05682828749da6c0c1c658d6c3efb67f106f331f53"
+        },
+        {
+          "source_index": 145,
+          "arm": "no_history",
+          "input_sha256": "89ad2b4049465988743c2209eb72a0c94e06cefde6abd1f270e86b8f67bbac6a"
+        },
+        {
+          "source_index": 146,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "c5fae201d5adfa5318ddc6542fae6ed6fb5eb143bf7eb4f3ec0698b76d7054cd"
+        },
+        {
+          "source_index": 147,
+          "arm": "Bonjour",
+          "input_sha256": "4349c6126144e62e29549d937addc0dbab8b4a5c1e28dce1f57a0d67f51e6aaf"
+        },
+        {
+          "source_index": 148,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "11d7e3280ce2d4d2070a790cf29f82bab9ad79b20ef8e8ffcb7cb75b83992e84"
+        },
+        {
+          "source_index": 149,
+          "arm": "no_history",
+          "input_sha256": "540441a28fdd5ad3a2be65b3565937e0bce385912ab7283c6172c602f16c63b8"
+        },
+        {
+          "source_index": 150,
+          "arm": "Hello",
+          "input_sha256": "64abb3b406398ea1b02e0ac570be962b06790478f361e8dd3ec2e3625fda35e1"
+        },
+        {
+          "source_index": 151,
+          "arm": "Bonjour",
+          "input_sha256": "8ebd496f321e6cef395c8d6fca547055a4bb85def4be259911db8b6451ad0abb"
+        },
+        {
+          "source_index": 152,
+          "arm": "Bonjour",
+          "input_sha256": "717494c5d934b44acaafa0b6ee3275a9c1403db6b43e53ad6511c55d0f735abe"
+        },
+        {
+          "source_index": 153,
+          "arm": "no_history",
+          "input_sha256": "5cc938398b3e5a0d2b36698b9b0dd0ae3c52ee0b6da88209123c4b62520d58da"
+        },
+        {
+          "source_index": 154,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "9f1ceb032f3d9a83aa23582c844b9ebe35ffcd7537d6d3216c4144278ffd0f57"
+        },
+        {
+          "source_index": 155,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "707255f5421020a8ca1902b6e5bd0e83baa18350700d119de8238b63349e11ce"
+        },
+        {
+          "source_index": 156,
+          "arm": "no_history",
+          "input_sha256": "cf259dac5aa7b135efe8b468ebf486da106b3c76f1193fe39e667d4148a8981e"
+        },
+        {
+          "source_index": 157,
+          "arm": "no_history",
+          "input_sha256": "d629638c8705bd61d7d177d3486daa03ff662f62e0629061a7db4fc1576a8109"
+        },
+        {
+          "source_index": 158,
+          "arm": "no_history",
+          "input_sha256": "5a707e063c7593ac8abbe1ad505ab0e9e242c03ed532779eb62fffe103ba6d2b"
+        },
+        {
+          "source_index": 159,
+          "arm": "Bonjour",
+          "input_sha256": "ff628aabf11059feca31dbf1af8db6ccb1a15dd9ec8b50e8e72846de294ab7ac"
+        },
+        {
+          "source_index": 160,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "b23be4203683e7af4df1a836c181d7f00d48cb67cf2c6d50b7fa460434e1aa54"
+        },
+        {
+          "source_index": 161,
+          "arm": "Hello",
+          "input_sha256": "bd2d05dffe59b04692cbee87f06885f215cf97a8cf7a86c0941a5a390a8fb32c"
+        },
+        {
+          "source_index": 162,
+          "arm": "Hello",
+          "input_sha256": "d03b4f0c69416ce6d8db15ac5b85f238d30ff48dcc4c182549a1674794767571"
+        },
+        {
+          "source_index": 163,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "1fb510fc6c3d96db2b2e47aa8fe2d6ee97143755e83656004756f2cfe22dfa26"
+        },
+        {
+          "source_index": 164,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "9366015d3ce4ff267045e857fcccfdfde10f5f2493ca4b970c8d7334d3818e42"
+        },
+        {
+          "source_index": 165,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "cea0c6790764548f2a8919f8ec010a9d3a2666d0f8862d12cb86b2cb2dc73da5"
+        },
+        {
+          "source_index": 166,
+          "arm": "Hello",
+          "input_sha256": "540441a28fdd5ad3a2be65b3565937e0bce385912ab7283c6172c602f16c63b8"
+        },
+        {
+          "source_index": 167,
+          "arm": "Bonjour",
+          "input_sha256": "0966deb91325d81086e4ea026d51227f92019e46da4f33fad2fe85919f8957be"
+        },
+        {
+          "source_index": 168,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "9f1ceb032f3d9a83aa23582c844b9ebe35ffcd7537d6d3216c4144278ffd0f57"
+        },
+        {
+          "source_index": 169,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "707255f5421020a8ca1902b6e5bd0e83baa18350700d119de8238b63349e11ce"
+        },
+        {
+          "source_index": 170,
+          "arm": "no_history",
+          "input_sha256": "71ea16da5bfa69b5dd5fada3d00dceaf804fe0b2656d982bad4e52d90e4af844"
+        },
+        {
+          "source_index": 171,
+          "arm": "Hello",
+          "input_sha256": "a93f2d9a15238370f747791108ebc17117da7497371b50af217f1dfe908ae75f"
+        },
+        {
+          "source_index": 172,
+          "arm": "no_history",
+          "input_sha256": "ebcbae4ea63c0cc9c65ec2a398ddf7c572e90c7d66a7a2b342c44aecfeebb558"
+        },
+        {
+          "source_index": 173,
+          "arm": "Hello",
+          "input_sha256": "47b4a0f5fab4bf0826808708c804bd69a1d99dbd8b916acae213c433dceae7c5"
+        },
+        {
+          "source_index": 174,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "b5ace5acb2aceed7f5030448087c89395db39240f98c7ff48e3b9e76467bec13"
+        },
+        {
+          "source_index": 175,
+          "arm": "no_history",
+          "input_sha256": "e6ad8c6cc5563bab47172e768a8d0ee1cac1ac0ee6d701d4574fc6499def8195"
+        },
+        {
+          "source_index": 176,
+          "arm": "Bonjour",
+          "input_sha256": "bd2d05dffe59b04692cbee87f06885f215cf97a8cf7a86c0941a5a390a8fb32c"
+        },
+        {
+          "source_index": 177,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "1fb510fc6c3d96db2b2e47aa8fe2d6ee97143755e83656004756f2cfe22dfa26"
+        },
+        {
+          "source_index": 178,
+          "arm": "Bonjour",
+          "input_sha256": "d03b4f0c69416ce6d8db15ac5b85f238d30ff48dcc4c182549a1674794767571"
+        },
+        {
+          "source_index": 179,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "b23be4203683e7af4df1a836c181d7f00d48cb67cf2c6d50b7fa460434e1aa54"
+        },
+        {
+          "source_index": 180,
+          "arm": "Hello",
+          "input_sha256": "7af4d013d1d2167e92778c1d73ef68e4b856d77b06eef45c8dcae1102a1c1f1c"
+        },
+        {
+          "source_index": 181,
+          "arm": "Hello",
+          "input_sha256": "995f697bbdbf65e458e41f5f8b08fd1420c20db451337bd6053144715edebe5f"
+        },
+        {
+          "source_index": 182,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "ba5b82e1be48be9e2545951535e68d9c12dd71731c8e796e023f018041901220"
+        },
+        {
+          "source_index": 183,
+          "arm": "no_history",
+          "input_sha256": "b5bc0224bf1ce4dc95d033f6f4b730de98ec47c6c18f1029a447fdb2a7fb87a2"
+        },
+        {
+          "source_index": 184,
+          "arm": "Hello",
+          "input_sha256": "99344792dd117ae42771f17760555651f40dbd87cadcdbab41edef8e503081b7"
+        },
+        {
+          "source_index": 185,
+          "arm": "Bonjour",
+          "input_sha256": "c004f86739e0dd61c9b680c522f57ac6dc25ad4a17cd66d07db05c6277f80195"
+        },
+        {
+          "source_index": 186,
+          "arm": "Bonjour",
+          "input_sha256": "bd690a47ac223a20a001af716a370075fb159e995a3bdc6aedbb9652435f34c3"
+        },
+        {
+          "source_index": 187,
+          "arm": "Hello",
+          "input_sha256": "b47624d7d03e8f85885bbe8a15a5da74307117683b28618ffd9cbced46fc6ccb"
+        },
+        {
+          "source_index": 188,
+          "arm": "Bonjour",
+          "input_sha256": "2220faa92b7542236e2e42d3eba6a993a989896328e1e65272c36ab42ee48b93"
+        },
+        {
+          "source_index": 189,
+          "arm": "Hello",
+          "input_sha256": "ba955b78b1c203ffc9d233f418754fde2a994abf863642bb1ebd844aee478584"
+        },
+        {
+          "source_index": 190,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "4f29e2549ae6ea7d3e43dec87c98d157a7dbe1fe40050daee69deaa569148a36"
+        },
+        {
+          "source_index": 191,
+          "arm": "Hello",
+          "input_sha256": "efe8699c0f9aa397b7041c552567e8c41d8b2ea7f778879669139beeeaf0bd31"
+        },
+        {
+          "source_index": 192,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "caa5d88b7470a7b9086fed2b32d2248a6cfc2302bc94cee1fb78aae2cdbd94f5"
+        },
+        {
+          "source_index": 193,
+          "arm": "Hello",
+          "input_sha256": "3e21aa15e4c17aec48a3532cba0199559aa977bb6f1f723e4306532606580d66"
+        },
+        {
+          "source_index": 194,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "33b0d13436f118b9dc1f5c424ace7dc337fb80de78c039fe11ef39417eac9e29"
+        },
+        {
+          "source_index": 195,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "2c3936a011981fdee0a61a8471a19f609e34e355f7039403bb9d90a6bfff0bc4"
+        },
+        {
+          "source_index": 196,
+          "arm": "Bonjour",
+          "input_sha256": "c1d4a73ac8536c32ae91d0067def56137cddddfd1226465b64246e610b7b689e"
+        },
+        {
+          "source_index": 197,
+          "arm": "Hello",
+          "input_sha256": "628d9973c1b11d40ebeab3c8b6fe3ecfcac5359aeb08229a59b1c8a036c2b079"
+        }
+      ]
+    },
+    "valid": {
+      "distribution": {
+        "Bonjour": {
+          "navigate": 1,
+          "prepare_change": 1,
+          "sale_document": 1,
+          "search_records": 1
+        },
+        "Bonjour, merci pour votre aide.": {
+          "clarify:missing_details": 1,
+          "knowledge": 1,
+          "navigate": 2,
+          "prepare_change": 1,
+          "search_records": 1
+        },
+        "Hello": {
+          "clarify:unsupported": 2,
+          "financial_summary": 1,
+          "get_record": 1,
+          "knowledge": 1,
+          "sale_document": 1,
+          "search_records": 4
+        },
+        "Hello, thanks for your help.": {
+          "clarify:missing_details": 1,
+          "clarify:unsupported": 2,
+          "financial_summary": 1,
+          "knowledge": 1,
+          "navigate": 1,
+          "prepare_change": 1,
+          "sale_document": 1,
+          "search_records": 2
+        },
+        "no_history": {
+          "clarify:missing_details": 1,
+          "clarify:unsupported": 1,
+          "financial_summary": 1,
+          "get_record": 2,
+          "knowledge": 1,
+          "navigate": 2,
+          "sale_document": 1,
+          "search_records": 4
+        }
+      },
+      "assignment": [
+        {
+          "source_index": 0,
+          "arm": "no_history",
+          "input_sha256": "8b9f6ea959714589d512e73b5aa1a95ab723e587346c6d77262984f5dded8ac1"
+        },
+        {
+          "source_index": 1,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "04dfd103f5d0057fc80550214b353e892c78e0f1dc75b21d0eac325f898966d4"
+        },
+        {
+          "source_index": 2,
+          "arm": "no_history",
+          "input_sha256": "7e685a7e441dfba6a92fb70cd413cf0b3e319ae42f2f7762884dfdbb66821b05"
+        },
+        {
+          "source_index": 3,
+          "arm": "no_history",
+          "input_sha256": "cb7a72b94bdfb827915196792aaaf29a721b7be7969952d670ccc58a08de7baf"
+        },
+        {
+          "source_index": 4,
+          "arm": "Hello",
+          "input_sha256": "79096a108c33d15e3389d39de3ed88ba7c82ae7ccc97ba4a2bb86acc538e571a"
+        },
+        {
+          "source_index": 5,
+          "arm": "Hello",
+          "input_sha256": "216175088f74bd6714159feda912dce2644c4f164f00996b80f48492238ec644"
+        },
+        {
+          "source_index": 6,
+          "arm": "Bonjour",
+          "input_sha256": "51695b5c0e9ed02bafb763d42cd680909b84114488efcc92a2d395178ebf5248"
+        },
+        {
+          "source_index": 7,
+          "arm": "Hello",
+          "input_sha256": "9160057a99b1c2f90b13d620a59e5a6fe395f0d48e2cbf5552f367a6a7f8d497"
+        },
+        {
+          "source_index": 8,
+          "arm": "no_history",
+          "input_sha256": "c5109d92734ff0e6c9f5c1f7fbab57ec31b5c348c4a87c93fc0e89f86e5d5655"
+        },
+        {
+          "source_index": 9,
+          "arm": "no_history",
+          "input_sha256": "a36239e111424c03137337187e80dc9b02685229d2799e2f9fc85693deae58ba"
+        },
+        {
+          "source_index": 10,
+          "arm": "no_history",
+          "input_sha256": "c7cdfdf09886bfabd05ff1aa05a79293d86aa94ba598b267e171812538ee41b6"
+        },
+        {
+          "source_index": 11,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "c1f3f060b2b454f90c7a032431af3a5833c3479f8b6d15de98ec8473e36a5705"
+        },
+        {
+          "source_index": 12,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "f6a5c2a649511a7b979b0402742f47b37fafb4909b43098db5f02e3e13b30de6"
+        },
+        {
+          "source_index": 13,
+          "arm": "Bonjour",
+          "input_sha256": "9c71d16394022b5c2714005b0d2d49c9bb018f9bffdbed307a7471ebda6717a8"
+        },
+        {
+          "source_index": 14,
+          "arm": "no_history",
+          "input_sha256": "13ab25ff1cffb216032a05e2c5ba98fdd168fd8a03eb0debe5c8593eef779645"
+        },
+        {
+          "source_index": 15,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "c239d27a1e242075471da6fcb3949cfb71c302c8b62020cf11b6036cbcf10e3f"
+        },
+        {
+          "source_index": 16,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "668702dbb47a37cc29cf8489bc8d0b5257933edd236a9542263e9c009d9d0f81"
+        },
+        {
+          "source_index": 17,
+          "arm": "Bonjour",
+          "input_sha256": "f2a074bd4b34d41f094bedc7facd8dc3633449259ec422c644d07643137010be"
+        },
+        {
+          "source_index": 18,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "3af23ba3d13fee1ac34f6feacb80183ec50d2f09ec2c1d93f2e131b79ae00689"
+        },
+        {
+          "source_index": 19,
+          "arm": "Hello",
+          "input_sha256": "e3471490159964a59fef4fc69aa7d33db2218e9b271ed380bae09b34f5e76cec"
+        },
+        {
+          "source_index": 20,
+          "arm": "Bonjour",
+          "input_sha256": "22b65caf045828f7e2684af383f5d2402e1a069a804d6088babf7bb6af62d849"
+        },
+        {
+          "source_index": 21,
+          "arm": "no_history",
+          "input_sha256": "3487d51756bfc1618a38468d9e8507ca325ce6650024d503fdb15d253eff6647"
+        },
+        {
+          "source_index": 22,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "2a9a0a7383ba9e08ee3e8836626799c09f59c441bcdd61e6cd496cde045f94db"
+        },
+        {
+          "source_index": 23,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "2005d373f655675b18e0658d03b681979ce51c882627b4ecd0e12cd5f99e96cd"
+        },
+        {
+          "source_index": 24,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "739d84ef00cfbde5b68948165217834ca0116e75a625c88005bf23f55275e163"
+        },
+        {
+          "source_index": 25,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "81e934ea829e5d4f5d5dfd644a8cf09a846ff473b61a430fcf659cd7ac8ca5d0"
+        },
+        {
+          "source_index": 26,
+          "arm": "Hello",
+          "input_sha256": "383fb1770adea919df976a898c3a0affa1e13c39a0a420b15151c8c4056f625c"
+        },
+        {
+          "source_index": 27,
+          "arm": "no_history",
+          "input_sha256": "a3f61c0c3c806070a86a7eaacbb523b6834526964ad4ba7514eaad1022febc1a"
+        },
+        {
+          "source_index": 28,
+          "arm": "no_history",
+          "input_sha256": "11b72c5b418265d1047aa4831acc9dc051d4d1ee82838d1d5d38b0ab1fea924b"
+        },
+        {
+          "source_index": 29,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "b31ca2a0e43bc00f079686d21ba875a018903d74c88bf51204eb1f5f3967f601"
+        },
+        {
+          "source_index": 30,
+          "arm": "Hello",
+          "input_sha256": "a3f61c0c3c806070a86a7eaacbb523b6834526964ad4ba7514eaad1022febc1a"
+        },
+        {
+          "source_index": 31,
+          "arm": "no_history",
+          "input_sha256": "2a9a0a7383ba9e08ee3e8836626799c09f59c441bcdd61e6cd496cde045f94db"
+        },
+        {
+          "source_index": 32,
+          "arm": "Hello",
+          "input_sha256": "13ab25ff1cffb216032a05e2c5ba98fdd168fd8a03eb0debe5c8593eef779645"
+        },
+        {
+          "source_index": 33,
+          "arm": "Hello",
+          "input_sha256": "c5109d92734ff0e6c9f5c1f7fbab57ec31b5c348c4a87c93fc0e89f86e5d5655"
+        },
+        {
+          "source_index": 34,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "b31ca2a0e43bc00f079686d21ba875a018903d74c88bf51204eb1f5f3967f601"
+        },
+        {
+          "source_index": 35,
+          "arm": "Hello",
+          "input_sha256": "11b72c5b418265d1047aa4831acc9dc051d4d1ee82838d1d5d38b0ab1fea924b"
+        },
+        {
+          "source_index": 36,
+          "arm": "Bonjour, merci pour votre aide.",
+          "input_sha256": "c1f3f060b2b454f90c7a032431af3a5833c3479f8b6d15de98ec8473e36a5705"
+        },
+        {
+          "source_index": 37,
+          "arm": "no_history",
+          "input_sha256": "f6a5c2a649511a7b979b0402742f47b37fafb4909b43098db5f02e3e13b30de6"
+        },
+        {
+          "source_index": 38,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "f2a074bd4b34d41f094bedc7facd8dc3633449259ec422c644d07643137010be"
+        },
+        {
+          "source_index": 39,
+          "arm": "Hello",
+          "input_sha256": "3487d51756bfc1618a38468d9e8507ca325ce6650024d503fdb15d253eff6647"
+        },
+        {
+          "source_index": 40,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "22b65caf045828f7e2684af383f5d2402e1a069a804d6088babf7bb6af62d849"
+        },
+        {
+          "source_index": 41,
+          "arm": "no_history",
+          "input_sha256": "04dfd103f5d0057fc80550214b353e892c78e0f1dc75b21d0eac325f898966d4"
+        },
+        {
+          "source_index": 42,
+          "arm": "Hello, thanks for your help.",
+          "input_sha256": "51695b5c0e9ed02bafb763d42cd680909b84114488efcc92a2d395178ebf5248"
+        }
+      ]
+    }
+  },
+  "synthetic_reference_fixtures": {
+    "gestion-magasin-v1-en-fr-train-followup-second-fr": [
+      121576331,
+      200148315,
+      268305954
+    ],
+    "gestion-magasin-v1-en-fr-train-followup-second-en": [
+      121576331,
+      200148315,
+      268305954
+    ],
+    "gestion-magasin-v1-en-fr-train-followup-list-fr": [
+      173998277,
+      72272003,
+      94977037
+    ],
+    "gestion-magasin-v1-en-fr-train-followup-list-en": [
+      173998277,
+      72272003,
+      94977037
+    ],
+    "gestion-magasin-v1-en-fr-test-followup-fourth-fr": [
+      36873179,
+      150710314,
+      201523824,
+      29006008,
+      82538384
+    ],
+    "gestion-magasin-v1-en-fr-test-followup-fourth-en": [
+      36873179,
+      150710314,
+      201523824,
+      29006008,
+      82538384
+    ]
+  },
+  "generator_sha256": "8413d7820713425fbb2648c77e88dfc72f233b724172448b1740c1f4d5445f27",
+  "native_sources": {
+    "chat_ai/tools.py": "ff98a2f69fdc98bd6614c4d9e7b5cd87e903b96c4ecd7f63a8da669a9fcb45c9",
+    "chat_ai/planner.py": "2f34f5a0db2e757f0397cc719edf04d224ba9df5e7e09bed59926df3c591f7fe",
+    "chat_ai/targets.py": "8c25bab411918b66ac7cfcc438554662721bee298f5961e0b4f66c17c2c97a5c",
+    "chat_ai/services.py": "293f5e930cc7119b70d2997d62ade4ad678e71d626e253b9358555d36759642d",
+    "chat_ai/security.py": "0f888d5e3db5576de26865e7d3ad3244ab099e05f422df250c61e3b093547661",
+    "chat_ai/resources.py": "1258174b03a5eb89fed794048d2635f0881abf32e8235c68b42322e5e1c5bf2c",
+    "chat_ai/navigation.py": "6ea7b8b94f8d7ae4bfc15442f8892598b6d95fb2f1e20de23c0f770ae48a32bd"
+  },
+  "shared_sources": {
+    "src/chat_ai_assistant/planning_messages.py": "d7024d3c9af58d501f680f2c79ae1e5108a6ec19faa92a2ba49b6c67893d1395",
+    "src/chat_ai_assistant/calendar_context.py": "6ee2c0f63ef33c0ba8b8f1ea29fbcd5d6f1e88e4273dc40ece33dab75619aeb9",
+    "src/chat_ai_assistant/clarifications.py": "e5cb817facdb8e440538cc0ed9b252ff127f6d8e470bb630574e5530e7a31a7d",
+    "src/chat_ai_assistant/contracts.py": "ab31f8ff3f2f20b776ca412436e0730dc8fa00e892801772e863400bab4b6fa3",
+    "src/chat_ai_assistant/selection_context.py": "0fe2f1ca934c6915cc21cef11ac37e73bab89a598f801e6d1a057889d2efee15",
+    "src/chat_ai_assistant/routing.py": "1640f46741e967711c7af246d0766b89992c4dc63d48c7a697ef775890d4a811",
+    "training/scripts/build_dialogue_v1.py": "2dcb6179735d96acd338e002e7006e4d85056e41281a119c5046a9283b987a5a",
+    "training/scripts/training_contracts.py": "3a6001309a329d3c3644d1ab608dbaf542cef7a7be91612643d157ad5ce11382",
+    "training/scripts/prepare_shared_v5r5.py": "b7702319000f9d4f0b6f44bab28a2d1063093e0b44a0b2e5bf522f29891f87f6",
+    "training/scripts/build_shared_v5r3.py": "98660f431de448ebfeb1daf31679cf2be931c82c30163da731f4ee7eee19dfe7"
+  },
+  "files": {
+    "train.eval.jsonl": "39ab4bf6709129758c89254083b72d96298fbb4f7d7b66753426b0112f56b186",
+    "train.jsonl": "f8d48e23d13b3c2b5c75c356ea8011b79e7f753f9924528f283ecd98e8898992",
+    "valid.eval.jsonl": "f148d0d215096d82b7f6b2722b611c331a5c3b2110705276e5ef78f9eb9af80e",
+    "valid.jsonl": "1889508c6b8ae62c78dc83b2ab2144f7616911459dbd732dacc4a53b0695cf11",
+    "test.eval.jsonl": "e01b4c5d5c6e93ffcb406d3f92000ecd21ad48e1a435b3ff6be3263233d7d42c"
+  },
+  "policy": "Original synthetic questions, action labels and split membership retained; current native tools, context and production dialogue framing replace old envelopes. Neutral histories use input-only hashes independent of target labels; genuine history remains intact. Neutral history variants are not independent samples. No model score or training claim. Database connections forbidden."
+}

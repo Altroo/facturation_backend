@@ -1,0 +1,38 @@
+{
+  "manifest_sha256": "21625fb38decad0e0dea9acb6964137dfc8a8484f3456b9b95093833c92023f1",
+  "tokenizer_and_runtime_match_server": true,
+  "scope": "Metadata only; no weights, local inference or optimization.",
+  "train.jsonl": {
+    "count": 2334,
+    "round_trip_passed": 2334,
+    "runtime_prefix_parity_passed": 2334,
+    "loss_boundary_passed": 2334,
+    "semantic_alignment_passed": 2334,
+    "semantic_loss_weight": 4,
+    "maximum_tokens": 7662,
+    "sha256": "d119bd73eb74cbb87a32eba66fff112b3a869b16ba2dae0fd637c3874d44a4ce"
+  },
+  "valid.jsonl": {
+    "count": 402,
+    "round_trip_passed": 402,
+    "runtime_prefix_parity_passed": 402,
+    "loss_boundary_passed": 402,
+    "semantic_alignment_passed": 402,
+    "semantic_loss_weight": 4,
+    "maximum_tokens": 7496,
+    "sha256": "cdbaeacf2bbee6e538ba169498e9c41f3dec4f1d547b106a763c2f686e4e45ea"
+  },
+  "held_out": {
+    "count": 690,
+    "round_trip_passed": 690,
+    "runtime_prefix_parity_passed": 690,
+    "loss_boundary_passed": 690,
+    "semantic_alignment_passed": 690,
+    "semantic_loss_weight": 4,
+    "maximum_tokens": 7271,
+    "sha256": "5d2363626a0d6b7832f6702439a3445128bdc2039b6cff0cdeb1f18c48e45c56",
+    "maximum_prompt_tokens": 7235,
+    "reserved_output_tokens": 512,
+    "maximum_request_bytes": 28196
+  }
+}

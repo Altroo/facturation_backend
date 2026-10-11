@@ -6,6 +6,7 @@ from importlib import metadata
 from training_schedule import complete_epoch_order
 from text_lora import configure_text_lora
 from semantic_loss import semantic_token_weights
+from validation_selection import ValidationSelection
 
 
 def file_fingerprint(path):
@@ -61,7 +62,7 @@ def model_fingerprint(root):
             'config': artifact_group(root, [root / name for name in config_names if (root / name).is_file()])}
 
 
-p=argparse.ArgumentParser();p.add_argument('--model',type=Path,required=True);p.add_argument('--data',type=Path,required=True);p.add_argument('--output',type=Path,required=True);p.add_argument('--steps',type=int,default=96);p.add_argument('--threads',type=int,default=14);p.add_argument('--max-seq-length',type=int,default=4096);p.add_argument('--learning-rate',type=float,default=0.0001);p.add_argument('--balanced-applications',action='store_true');p.add_argument('--lora-layers',type=int,default=4);p.add_argument('--lora-rank',type=int,default=8);p.add_argument('--lora-alpha',type=float,default=16);p.add_argument('--gradient-checkpointing',action='store_true');p.add_argument('--semantic-loss-weight',type=float,default=1.0);p.add_argument('--complete-epochs',type=int);p.add_argument('--attention',choices=['eager','sdpa'],default='eager');a=p.parse_args()
+p=argparse.ArgumentParser();p.add_argument('--model',type=Path,required=True);p.add_argument('--data',type=Path,required=True);p.add_argument('--output',type=Path,required=True);p.add_argument('--steps',type=int,default=96);p.add_argument('--threads',type=int,default=14);p.add_argument('--max-seq-length',type=int,default=4096);p.add_argument('--learning-rate',type=float,default=0.0001);p.add_argument('--balanced-applications',action='store_true');p.add_argument('--lora-layers',type=int,default=4);p.add_argument('--lora-rank',type=int,default=8);p.add_argument('--lora-alpha',type=float,default=16);p.add_argument('--gradient-checkpointing',action='store_true');p.add_argument('--semantic-loss-weight',type=float,default=1.0);p.add_argument('--complete-epochs',type=int);p.add_argument('--attention',choices=['eager','sdpa'],default='eager');p.add_argument('--validation-interval',type=int,default=0);p.add_argument('--checkpoint-interval',type=int,default=24);a=p.parse_args()
 if platform.system()!='Linux' or os.environ.get('CHAT_AI_TRAINING_SERVER')!='1':raise SystemExit('Training is restricted to the approved Linux server.')
 dataset_manifest=json.loads((a.data/'manifest.json').read_text())
 if set(dataset_manifest.get('languages',[]))!={'en','fr'}:raise SystemExit('Current training scope requires an English/French-only dataset manifest.')
@@ -88,6 +89,7 @@ if psutil.virtual_memory().available<psutil.virtual_memory().total*.10:raise Sys
 if not 1 <= a.semantic_loss_weight < float('inf'):raise SystemExit('Semantic loss weight must be finite and at least one.')
 if a.steps <= 0 or a.threads <= 0 or a.max_seq_length <= 0 or not 0 < a.learning_rate < float('inf'):
     raise SystemExit('Training steps, threads, context and learning rate must be positive and finite.')
+if a.validation_interval < 0 or a.checkpoint_interval < 1:raise SystemExit('Validation interval must be nonnegative and checkpoint interval positive.')
 script_fingerprint = file_fingerprint(Path(__file__))
 base_fingerprint = model_fingerprint(a.model)
 package_versions = dict(sorted((distribution.metadata['Name'], distribution.version)
@@ -100,7 +102,7 @@ model,regex=configure_text_lora(model,layers=a.lora_layers,rank=a.lora_rank,alph
 model.print_trainable_parameters();model.train()
 optimizer=torch.optim.AdamW([v for v in model.parameters() if v.requires_grad],lr=a.learning_rate,weight_decay=0)
 provenance = {
-    'provenance_version': 1, 'script': script_fingerprint, 'schedule_script': file_fingerprint(Path(__file__).with_name('training_schedule.py')), 'lora_setup_script': file_fingerprint(Path(__file__).with_name('text_lora.py')), 'semantic_loss_script': file_fingerprint(Path(__file__).with_name('semantic_loss.py')), 'base_artifacts': base_fingerprint,
+    'provenance_version': 1, 'script': script_fingerprint, 'schedule_script': file_fingerprint(Path(__file__).with_name('training_schedule.py')), 'lora_setup_script': file_fingerprint(Path(__file__).with_name('text_lora.py')), 'semantic_loss_script': file_fingerprint(Path(__file__).with_name('semantic_loss.py')), 'validation_selection_script': file_fingerprint(Path(__file__).with_name('validation_selection.py')), 'base_artifacts': base_fingerprint,
     'python_version': platform.python_version(), 'dependency_versions': package_versions,
     'host': platform.node(), 'platform': platform.platform(),
     'dataset_sha256': hashlib.sha256(train_bytes).hexdigest(),
@@ -112,7 +114,8 @@ provenance = {
         'complete_epochs': a.complete_epochs, 'seed': 17, 'device': 'cpu', 'dtype': 'bfloat16', 'attention_implementation': a.attention,
         'optimizer': {'class': 'torch.optim.AdamW', **optimizer.defaults},
         'batch_size': 1, 'gradient_accumulation_steps': 1, 'gradient_clip_norm': 1.0,
-        'shuffle': 'complete independently reshuffled epochs, proportionally interleaved applications' if a.complete_epochs else 'seeded per-application permutations, alternating applications' if a.balanced_applications else 'one seeded permutation, cycled unchanged', 'checkpoint_interval_steps': 24,
+        'shuffle': 'complete independently reshuffled epochs, proportionally interleaved applications' if a.complete_epochs else 'seeded per-application permutations, alternating applications' if a.balanced_applications else 'one seeded permutation, cycled unchanged', 'checkpoint_interval_steps': a.checkpoint_interval,
+        'validation_interval_steps': a.validation_interval, 'selection_metric': 'validation application-macro semantic loss' if a.validation_interval else None,
         'thinking': False, 'gradient_checkpointing': 'nonreentrant' if a.gradient_checkpointing else False, 'loss': 'assistant-only cross entropy, semantic-token weighted per-example mean' if a.semantic_loss_weight>1 else 'assistant-only cross entropy, per-example mean', 'semantic_loss_weight': a.semantic_loss_weight,
         'lora': {'r': a.lora_rank, 'alpha': a.lora_alpha, 'dropout': 0.0, 'bias': 'none',
                  'task_type': 'CAUSAL_LM', 'target_regex': regex, 'layers': a.lora_layers},
@@ -170,6 +173,27 @@ def validate():
 
 started=time.monotonic();metrics=[]
 base_validation=validate();print(json.dumps({'baseline_validation_loss':base_validation}),flush=True)
+selection=ValidationSelection(base_validation,declared) if a.validation_interval else None
+validation_history=[{'step':0,'loss':base_validation}]
+selected_adapter=None
+last_validation=None
+def check_validation(step):
+    global selected_adapter
+    measured=validate()
+    improved=selection.observe(step,measured)
+    if improved:
+        selected_adapter=f'selected-{step}'
+        model.save_pretrained(a.output/selected_adapter)
+        tokenizer.save_pretrained(a.output/selected_adapter)
+    entry={'step':step,'loss':measured,'improved':improved,'selected_step':selection.best_step}
+    validation_history.append(entry)
+    (a.output/'validation-history.json').write_text(json.dumps(validation_history,indent=2))
+    (a.output/'checkpoint-selection.json').write_text(json.dumps({
+        'metric':'validation application-macro semantic loss','selected_step':selection.best_step,
+        'selected_adapter':selected_adapter,'validation':selection.best,
+        'policy':'Baseline remains selected unless validation improves. This is not model acceptance.'},indent=2))
+    print(json.dumps({'validation_checkpoint':entry}),flush=True)
+    return measured
 order=complete_epoch_order(rows) if a.complete_epochs else list(range(len(encoded)))
 if not a.complete_epochs:random.shuffle(order)
 if a.balanced_applications:
@@ -200,10 +224,16 @@ for step in range(a.steps):
     loss.backward();torch.nn.utils.clip_grad_norm_([v for v in model.parameters() if v.requires_grad],1.0,error_if_nonfinite=True);optimizer.step()
     metric={'step':step+1,'loss':float(loss.detach()),'seconds':round(time.monotonic()-start,3),'rss_bytes':psutil.Process().memory_info().rss}
     metrics.append(metric);print(json.dumps(metric),flush=True)
-    if (step+1)%24==0:model.save_pretrained(a.output/f'checkpoint-{step+1}')
+    if (step+1)%a.checkpoint_interval==0:model.save_pretrained(a.output/f'checkpoint-{step+1}')
+    if selection and (step+1)%a.validation_interval==0:
+        last_validation=check_validation(step+1)
 model.save_pretrained(a.output/'final');tokenizer.save_pretrained(a.output/'final')
-final_validation=validate()
+final_validation=(last_validation if a.steps%a.validation_interval==0 else check_validation(a.steps)) if selection else validate()
 report={'host':platform.node(),'platform':platform.platform(),'device':'cpu','dtype':'bfloat16','threads':a.threads,'steps':a.steps,'seed':17,'lora_rank':a.lora_rank,'lora_alpha':a.lora_alpha,'target_regex':regex,'trainable_parameters':sum(v.numel() for v in model.parameters() if v.requires_grad),'model_path':str(a.model),'dataset_sha256':provenance['dataset_sha256'],'validation_sha256':provenance['validation_sha256'],'baseline_validation_loss':base_validation['micro'],'final_validation_loss':final_validation['micro'],'baseline_validation_unweighted_loss':base_validation['unweighted']['micro'],'final_validation_unweighted_loss':final_validation['unweighted']['micro'],'baseline_validation_by_application':base_validation,'final_validation_by_application':final_validation,'duration_seconds':time.monotonic()-started,'peak_rss_kib':resource.getrusage(resource.RUSAGE_SELF).ru_maxrss,'steps_metrics':metrics,'deployment_status':'NOT DEPLOYED; held-out Colibri evaluation required'}
 report.update(provenance)
+if selection:
+    report['checkpoint_selection']={'metric':'validation application-macro semantic loss','step':selection.best_step,
+                                    'adapter':selected_adapter,'validation':selection.best}
+    report['validation_history']=validation_history
 report['application_exposure']={app:{'steps':count,'unique_examples':len(unique_exposure[app])} for app,count in exposure.items()}
 (a.output/'training-report.json').write_text(json.dumps(report,indent=2));print(json.dumps({k:v for k,v in report.items() if k!='steps_metrics'},indent=2))
