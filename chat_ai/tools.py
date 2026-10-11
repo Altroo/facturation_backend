@@ -38,16 +38,69 @@ STOCK_ROUTES = {
 }
 
 
+SEARCH_ARGUMENT_DESCRIPTIONS = {
+    'client_name': 'Customer / Client: the customer name, never the article name or reference. Combine with product_name when both are requested.',
+    'product_name': 'Article / Produit: the article designation or reference on a document line. Keep the customer separately in client_name.',
+    'invoice_number': 'Numéro de facture / Invoice number: the invoice business number, not a database ID.',
+    'quote_number': 'Numéro de devis / Quote number: the exact quote business number.',
+    'document_number': 'Numéro du document / Document number: the exact pro forma, credit note or delivery note number.',
+    'date_from': 'Inclusive first date (YYYY-MM-DD). Include every requested date bound. Resolve relative dates using trusted today; do not invent a missing year.',
+    'date_to': 'Inclusive last date (YYYY-MM-DD). Include every requested date bound. Yesterday is the day before trusted today.',
+    'limit': 'Maximum number of records returned. Set the requested number explicitly when the user asks for at most/only N records (1 to 10). Default 10.',
+    'offset': 'Number of matching records to skip for pagination. Default 0.',
+    'unpaid': 'Impayées / Unpaid: true when the user requests invoices with a remaining unpaid balance, including partially paid invoices.',
+}
+
+
+def described_search_properties(properties):
+    return {name: {**schema, **({'description': SEARCH_ARGUMENT_DESCRIPTIONS[name]}
+                             if name in SEARCH_ARGUMENT_DESCRIPTIONS else {})}
+            for name, schema in properties.items()}
+
+
+def operation_status_description(resource, adapter):
+    if resource == 'stock_balance':
+        return ('État: a_approvisionner = À approvisionner (available stock below zero); '
+                'minimum = Stock minimum (configured minimum > 0 and available stock from zero to minimum); '
+                'disponible = Disponible (all other balances).')
+    choices = (adapter.model.TYPE_CHOICES if resource == 'stock_movement' else
+               adapter.model.STATUT_CHOICES if resource == 'logistics_order' else
+               adapter.model.STATUS_CHOICES)
+    label = ('Phase du dossier' if resource == 'logistics_order' else
+             'Type de mouvement' if resource == 'stock_movement' else 'Statut')
+    english = {'opening': 'Opening stock', 'adjustment': 'Adjustment', 'receipt': 'Receipt',
+               'delivery': 'Delivery', 'inventory': 'Inventory', 'reversal': 'Reversal',
+               'draft': 'Draft', 'validated': 'Validated', 'cancelled': 'Cancelled'}
+    return label + ': ' + ', '.join(
+        f'{value} = {title}' + (f' / {english[value]}' if value in english else '')
+        for value, title in choices
+    ) + '. Include the exact enum value whenever a status or movement type is requested.'
+
+
 def operations_schema(resources):
     """Each resource advertises only its supported filters and native statuses."""
     branches = []
     for resource in resources:
         adapter = operations.OPERATIONS[resource]
-        properties = {name: STRING for name in sorted(adapter.filters)}
-        properties.update(resource={'const': resource}, status={'enum': sorted(adapter.statuses)},
+        descriptions = {
+            'reference': ('Article reference only.' if resource in ('stock_balance', 'stock_movement')
+                          else 'Logistics order number.' if resource == 'logistics_order'
+                          else 'Receipt/inventory document reference, not an article reference.'),
+            'product_name': 'Article designation or article reference. For receipts, inventories and logistics, searches their lines.',
+            'location_name': 'Stock location name; expected line location for logistics orders.',
+            'client_name': 'Customer business name, surname or first name on related logistics lines.',
+            'supplier_name': 'Supplier name on the logistics order.',
+        }
+        properties = {name: {**STRING, 'description': descriptions[name]}
+                      for name in sorted(adapter.filters)}
+        properties.update(resource={'const': resource}, status={'enum': sorted(adapter.statuses),
+                                  'description': operation_status_description(resource, adapter)},
                           date_from=DATE, date_to=DATE,
                           limit={'type': 'integer', 'minimum': 1, 'maximum': 10},
                           offset={'type': 'integer', 'minimum': 0, 'maximum': 1000})
+        # Keep resource-specific meanings; common date/pagination labels are shared.
+        for name in ('date_from', 'date_to', 'limit', 'offset'):
+            properties[name] = {**properties[name], 'description': SEARCH_ARGUMENT_DESCRIPTIONS[name]}
         branches.append(object_schema(properties, ('resource',)))
     return {'type': 'object', 'oneOf': branches}
 
@@ -89,6 +142,13 @@ class ChatAIContextToolRegistry(ChatAIToolRegistry):
 
 def registry():
     def tool(name, description, properties, required=(), capabilities=('read',)):
+        if name in {'search_invoices', 'search_quotes', 'search_documents', 'search_articles', 'search_payments'}:
+            properties = described_search_properties(properties)
+            description += ' Combine all requested supported filters (AND), including status, dates and result limit; do not silently omit one.'
+            if name == 'search_articles':
+                properties['product_name'] = {**properties['product_name'], 'description': 'Article / Produit: designation or reference in the article catalogue; no document is required.'}
+            if name == 'search_payments':
+                properties['status'] = {**properties['status'], 'description': 'Statut / Status: Valide = valid/validated/collected; Annulé = cancelled. Include when explicitly requested.'}
         return ChatAITool(name, description, object_schema(properties, required), OUTPUT, name, required_capabilities=capabilities)
     return ChatAIContextToolRegistry([
         tool('search_invoices', 'Search invoices by exact number, client name, date interval or unpaid balance. Dates ISO. No guessed year.',
@@ -105,7 +165,7 @@ def registry():
              {'query':STRING,'invoice_number':STRING,'client_name':STRING,'product_name':STRING,'status':{'enum':['Valide','Annulé']},'date_from':DATE,'date_to':DATE,'limit':{'type':'integer','minimum':1,'maximum':10},'offset':{'type':'integer','minimum':0,'maximum':1000}}),
         ChatAITool('search_users', 'Staff-only account lookup by name or email using the existing global account administration scope; excludes your own account.',
              object_schema({'query':STRING,'name':STRING,'email':STRING,'is_active':{'type':'boolean'},'date_from':DATE,'date_to':DATE,'limit':{'type':'integer','minimum':1,'maximum':10},'offset':{'type':'integer','minimum':0,'maximum':1000}}), OUTPUT, 'search_users', required_capabilities=('user_admin',)),
-        ChatAITool('search_operations', 'Find stock balances, movements, receipts, inventories, or permitted logistics orders by product/reference/location/client/supplier. Use only filters supported for that resource. Stock status is État; logistics status is Phase du dossier. Read only.',
+        ChatAITool('search_operations', 'Find stock balances, movements, receipts, inventories, or permitted logistics orders by product/reference/location/client/supplier. Use only filters supported for that resource. Balance status is État, movement status is Type de mouvement, receipt/inventory status is Statut; logistics status is Phase du dossier. Read only.',
              operations_schema(operations.OPERATIONS), OUTPUT, 'search_operations', required_capabilities=('stock_read',)),
         tool('get_record', 'Retrieve a previously identified proforma, credit note, delivery note, article, payment, user, stock record or logistics order. IDs must come from authorized results, never guesses.',
              {'resource':{'enum':list(DOCUMENTS)+list(catalog.CATALOG)+list(operations.OPERATIONS)},'identifier':ID}, ('resource','identifier'), capabilities=('context',)),
