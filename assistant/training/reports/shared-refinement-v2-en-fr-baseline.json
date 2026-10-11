@@ -1,0 +1,195 @@
+{
+  "model_id": "chat-ai-shared-qwen08-v5r2-en-fr-20261010",
+  "status": "Completed before further optimization; acceptance failed",
+  "count": 48,
+  "sets": [
+    {
+      "application": "facturation",
+      "dataset_sha256": "19bb4d8ba6b8055bef6692440ddcbe944f49dd7bc42f9751a2f62a069b3931a8",
+      "metrics": {
+        "count": 16,
+        "counts": {
+          "tool_correct": 4,
+          "arguments_correct": 4,
+          "structured_valid": 16
+        },
+        "percent": {
+          "tool_correct": 25.0,
+          "arguments_correct": 25.0,
+          "structured_valid": 100.0
+        },
+        "exact_arguments": {
+          "passed": 0,
+          "count": 12,
+          "percent": 0.0
+        }
+      },
+      "by_language": {
+        "en": {
+          "count": 8,
+          "counts": {
+            "tool_correct": 2,
+            "arguments_correct": 2,
+            "structured_valid": 8
+          },
+          "percent": {
+            "tool_correct": 25.0,
+            "arguments_correct": 25.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 6,
+            "percent": 0.0
+          }
+        },
+        "fr": {
+          "count": 8,
+          "counts": {
+            "tool_correct": 2,
+            "arguments_correct": 2,
+            "structured_valid": 8
+          },
+          "percent": {
+            "tool_correct": 25.0,
+            "arguments_correct": 25.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 6,
+            "percent": 0.0
+          }
+        }
+      },
+      "model_targets_passed": false
+    },
+    {
+      "application": "management-projet",
+      "dataset_sha256": "f82d52637162db6aa3a857b8176de87049c9adb23fbe0665bc29d03700bc1446",
+      "metrics": {
+        "count": 16,
+        "counts": {
+          "tool_correct": 6,
+          "arguments_correct": 3,
+          "structured_valid": 16
+        },
+        "percent": {
+          "tool_correct": 37.5,
+          "arguments_correct": 18.75,
+          "structured_valid": 100.0
+        },
+        "exact_arguments": {
+          "passed": 0,
+          "count": 10,
+          "percent": 0.0
+        }
+      },
+      "by_language": {
+        "en": {
+          "count": 8,
+          "counts": {
+            "tool_correct": 3,
+            "arguments_correct": 2,
+            "structured_valid": 8
+          },
+          "percent": {
+            "tool_correct": 37.5,
+            "arguments_correct": 25.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 5,
+            "percent": 0.0
+          }
+        },
+        "fr": {
+          "count": 8,
+          "counts": {
+            "tool_correct": 3,
+            "arguments_correct": 1,
+            "structured_valid": 8
+          },
+          "percent": {
+            "tool_correct": 37.5,
+            "arguments_correct": 12.5,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 5,
+            "percent": 0.0
+          }
+        }
+      },
+      "model_targets_passed": false
+    },
+    {
+      "application": "design-workflow",
+      "dataset_sha256": "9231e09df49101a1fcae4f76368f78dd28dd81cfeaa6d2d29a7f2cffe4b9dc2f",
+      "metrics": {
+        "count": 16,
+        "counts": {
+          "tool_correct": 4,
+          "arguments_correct": 2,
+          "structured_valid": 16
+        },
+        "percent": {
+          "tool_correct": 25.0,
+          "arguments_correct": 12.5,
+          "structured_valid": 100.0
+        },
+        "exact_arguments": {
+          "passed": 0,
+          "count": 12,
+          "percent": 0.0
+        }
+      },
+      "by_language": {
+        "en": {
+          "count": 8,
+          "counts": {
+            "tool_correct": 2,
+            "arguments_correct": 1,
+            "structured_valid": 8
+          },
+          "percent": {
+            "tool_correct": 25.0,
+            "arguments_correct": 12.5,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 6,
+            "percent": 0.0
+          }
+        },
+        "fr": {
+          "count": 8,
+          "counts": {
+            "tool_correct": 2,
+            "arguments_correct": 1,
+            "structured_valid": 8
+          },
+          "percent": {
+            "tool_correct": 25.0,
+            "arguments_correct": 12.5,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 6,
+            "percent": 0.0
+          }
+        }
+      },
+      "model_targets_passed": false
+    }
+  ],
+  "limitations": [
+    "Synthetic frozen cases authored by the implementation team, not a blind external certification.",
+    "No business tool was executed.",
+    "Includes earlier greetings as distinct user messages; a separately versioned framing diagnostic follows."
+  ]
+}

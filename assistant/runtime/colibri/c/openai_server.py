@@ -2147,6 +2147,61 @@ QWEN_FUNCTION_RE = re.compile(r"<function=([^>\n]+)>\s*(.*?)</function>", re.S)
 QWEN_PARAM_RE = re.compile(r"<parameter=([^>\n]+)>\n(.*?)\n</parameter>", re.S)
 
 
+def _qwen_parameter_schema(parameters):
+    """Recover unambiguous property types through compound JSON Schemas.
+
+    This is type recovery only; the application validates the complete schema.
+    Union branches broaden types; conjunctive constraints narrow them. Untyped
+    constraints do not erase a known conjunctive type. Conflicts stay strings.
+    """
+    def intersect(left, right):
+        if left is None:
+            return right
+        if right is None:
+            return left
+        result = left & right
+        if ("integer" in left and "number" in right
+                or "number" in left and "integer" in right):
+            result.add("integer")
+        return result
+
+    def collect(node, depth=0):
+        if not isinstance(node, dict) or depth > 16:
+            return {}, set()
+        properties = {}
+        for name, spec in (node.get("properties") or {}).items():
+            if isinstance(spec, dict):
+                kind = spec.get("type")
+                kinds = kind if isinstance(kind, list) else [kind]
+                properties[name] = ({item for item in kinds if item != "null"}
+                                    if kind is not None else None)
+        required = set(node.get("required") or [])
+        for keyword in ("allOf", "oneOf", "anyOf"):
+            branches = node.get(keyword)
+            if not isinstance(branches, list) or not branches:
+                continue
+            parts = [collect(branch, depth + 1) for branch in branches]
+            combined = {}
+            if keyword == "allOf":
+                for props, _ in parts:
+                    for name, kinds in props.items():
+                        combined[name] = intersect(combined.get(name), kinds)
+            else:
+                for name in {name for props, _ in parts for name in props}:
+                    kinds = [props.get(name) for props, _ in parts]
+                    combined[name] = (None if any(value is None for value in kinds)
+                                      else set.union(*kinds))
+            for name, kinds in combined.items():
+                properties[name] = intersect(properties.get(name), kinds)
+            branch_required = [keys for _, keys in parts]
+            required.update(set.union(*branch_required) if keyword == "allOf"
+                            else set.intersection(*branch_required))
+        return properties, required
+    properties, required = collect(parameters)
+    return {name: {"type": next(iter(kinds))} if kinds and len(kinds) == 1 else {}
+            for name, kinds in properties.items()}, required
+
+
 def parse_qwen_tool_calls(reply, tools=None):
     """Parse Qwen3.8's XML-ish calls back into OpenAI `tool_calls`.
 
@@ -2159,11 +2214,11 @@ def parse_qwen_tool_calls(reply, tools=None):
     required = {}
     for tool in (tools or []):
         fn = tool.get("function", tool) if isinstance(tool, dict) else {}
-        params = (fn.get("parameters") or {}).get("properties") or {}
+        params, required_keys = _qwen_parameter_schema(fn.get("parameters") or {})
         name = fn.get("name")
         if isinstance(name, str) and name and isinstance(params, dict):
             schema[name] = params
-            required[name] = set((fn.get("parameters") or {}).get("required") or [])
+            required[name] = required_keys
 
     canonical = list(QWEN_CALL_RE.finditer(reply or ""))
     recovered_inner = False

@@ -1,0 +1,53 @@
+{
+  "version": "management-projet-synthetic-v2-en-fr",
+  "languages": [
+    "en",
+    "fr"
+  ],
+  "source": "Native registered tools and form metadata; independently authored synthetic scenarios. All database queries forbidden. Original v1 files untouched.",
+  "counts": {
+    "train": 266,
+    "validation": 22,
+    "independent": 20
+  },
+  "categories": {
+    "list": 20,
+    "projectfilter": 12,
+    "name": 4,
+    "combined": 14,
+    "status": 26,
+    "metric": 36,
+    "navigation": 12,
+    "context": 14,
+    "followup": 4,
+    "write": 2,
+    "delete": 12,
+    "print": 2,
+    "knowledge": 8,
+    "clarify": 18,
+    "client": 12,
+    "dated": 12,
+    "lookup": 4,
+    "supplier": 4,
+    "full": 4,
+    "stage": 2,
+    "projectmetric": 8,
+    "custommetric": 8,
+    "budget": 2,
+    "estimates": 2,
+    "ordinal": 4,
+    "edit": 10,
+    "described": 4,
+    "denied": 6
+  },
+  "held_out_sha256": "1c63c39ecb5906f3fa2adf0dd2a74a78c8b814836cf8131d499e0ead88eb0277",
+  "generator_sha256": "8be00fe85dffc31b6915e0346e625b7616b6ff3a6c299394f4d844fa2158d075",
+  "split_policy": "No normalized prompt overlap with original held-out, validation or new companion hold-out. Bilingual pairs stay together. Adaptation informed by failure categories; no claim original acceptance set remains unseen. No claim exhaustive semantic near-duplicate removal.",
+  "files": {
+    "train.jsonl": "18b4090c646388edc80eff132de5ce61977095f475a1697a76a075fe871133d3",
+    "valid.eval.jsonl": "1b47e89df4b8414c2e7db66b2e7b1996c743a841c1ff1ab4e777e82bfa1e9ea8",
+    "independent.eval.jsonl": "c4586a2c6459e02c63557f1e693a5212b51c507eba80d32f2661128a25c3f5d8",
+    "train.eval.jsonl": "0787ebbe8a718e3d5df7395d0d7174464557d51087060e524ebee25f35bc4bd9",
+    "valid.jsonl": "fff5b83cadd018363852ac70bee6f9bfe2c2c4177b272692094dc2afb2dc49ab"
+  }
+}

@@ -1,0 +1,274 @@
+[
+  {
+    "type": "function",
+    "function": {
+      "name": "search_records",
+      "description": "Search projects/tasks or permitted chat messages; all filters combine with AND.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "resource": {
+            "type": "string",
+            "enum": [
+              "project",
+              "task",
+              "message"
+            ]
+          },
+          "query": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "project_name": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "assignee_name": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "mine": {
+            "type": "boolean"
+          },
+          "status": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "overdue": {
+            "type": "boolean"
+          },
+          "archived": {
+            "type": "boolean"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10
+          }
+        },
+        "required": [
+          "resource"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "get_record",
+      "description": "Read a known record, or the current-page record.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "resource": {
+            "type": "string",
+            "enum": [
+              "project",
+              "task",
+              "message"
+            ]
+          },
+          "identifier": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          }
+        },
+        "required": [
+          "resource"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "navigate",
+      "description": "Open an approved native page or a known project/task. Search names first.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "resource": {
+            "type": "string",
+            "enum": [
+              "overview",
+              "projects",
+              "board",
+              "chat",
+              "notifications",
+              "reports",
+              "team",
+              "changelog",
+              "project",
+              "task"
+            ]
+          },
+          "identifier": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          }
+        },
+        "required": [
+          "resource"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "knowledge",
+      "description": "Explain reviewed Design Workflow procedures.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "maxLength": 120
+          }
+        },
+        "required": [
+          "query"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "previous_results",
+      "description": "Open an earlier result by one-based position, or list the previous results.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "operation": {
+            "type": "string",
+            "enum": [
+              "open",
+              "list"
+            ]
+          },
+          "index": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10
+          }
+        },
+        "required": [
+          "operation"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "workload_summary",
+      "description": "Count non-archived tasks by their actual board status; supports project or my tasks.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "project_name": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "mine": {
+            "type": "boolean"
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "time_report",
+      "description": "Manager-only native recorded and live person-time. Includes every collaborator; one workday = 480 minutes.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "project_name": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "date_from": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "date_to": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "prepare_change",
+      "description": "PROPOSE a known project/task edit or archive; requires separate human confirmation. Never deletes.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "resource": {
+            "enum": [
+              "project",
+              "task"
+            ]
+          },
+          "identifier": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "operation": {
+            "enum": [
+              "update",
+              "archive"
+            ]
+          },
+          "changes": {
+            "type": "object",
+            "maxProperties": 5,
+            "propertyNames": {
+              "enum": [
+                "blocked_reason",
+                "description",
+                "due_date",
+                "name",
+                "priority",
+                "start_date",
+                "target_end_date",
+                "title"
+              ]
+            },
+            "additionalProperties": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 1000
+            }
+          }
+        },
+        "required": [
+          "resource",
+          "identifier",
+          "operation"
+        ],
+        "additionalProperties": false
+      }
+    }
+  }
+]

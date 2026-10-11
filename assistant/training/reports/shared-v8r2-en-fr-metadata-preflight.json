@@ -1,0 +1,28 @@
+{
+  "train.jsonl": {
+    "count": 1892,
+    "round_trip_passed": 1892,
+    "runtime_prefix_parity_passed": 1892,
+    "loss_boundary_passed": 1892,
+    "semantic_alignment_passed": 1892,
+    "semantic_loss_weight": 4.0,
+    "maximum_tokens": 5135,
+    "sha256": "86eec440e31a8fa6a194a76203074a4a618e4e7618b755cd598132857f081344"
+  },
+  "valid.jsonl": {
+    "count": 276,
+    "round_trip_passed": 276,
+    "runtime_prefix_parity_passed": 276,
+    "loss_boundary_passed": 276,
+    "semantic_alignment_passed": 276,
+    "semantic_loss_weight": 4.0,
+    "maximum_tokens": 4977,
+    "sha256": "549e02a515823409eb74a9483f1e3ff4fa9bcb73fd17f3fbbaf35503d5b5225c"
+  },
+  "scope": "Tokenizer/template/parser checks only; not model accuracy or training success",
+  "execution": "Local metadata-only validation; no model weights loaded or optimization performed.",
+  "tokenizer_matches_recorded_server_v5": true,
+  "runtime_python_matches_recorded_server_v5": true,
+  "server_next_stage_preflight": "Still required before the next sequential training stage",
+  "retention": "V6r2 and V7r2 are exact preceding prefixes of V8r2, verified separately."
+}

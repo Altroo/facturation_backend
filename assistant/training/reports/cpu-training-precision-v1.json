@@ -1,0 +1,37 @@
+{
+  "scope": "Two optimizer updates per precision on the longest existing training row; no saved adapter or accuracy claim. Cold load excluded from step timing.",
+  "dataset_sha256": "2369d802ab3cf3ed9171958cacead8f33eefc814ea2fd0399474bc1c9bdc6359",
+  "sequence_tokens": 5135,
+  "updates_per_precision": 2,
+  "cpu_threads": 14,
+  "memory_limit_gib": 16,
+  "precisions": {
+    "bfloat16": {
+      "step_seconds": [
+        104.00308663025498,
+        104.11999708786607
+      ],
+      "mean_step_seconds": 104.06154185906053,
+      "peak_rss_gib": 5.381290435791016,
+      "all_24_layers_updated": true
+    },
+    "float32": {
+      "step_seconds": [
+        115.36801518127322,
+        111.73599839024246
+      ],
+      "mean_step_seconds": 113.55200678575784,
+      "peak_rss_gib": 6.588310241699219,
+      "all_24_layers_updated": true
+    }
+  },
+  "source_sha256": {
+    "probe_cpu_capacity.py": "e0a280fe0415ccf5df5cb2e9e738286c5bb1fdee74ffadfdbbe3463b03d9e46b",
+    "text_lora.py": "806b1ccfd267f4ce23b498b13b2303223c5b4320cd7603f07343fdcc84d52b47",
+    "semantic_loss.py": "03b2918106c5e7f9dca0b323cb476b4d8fa241f229543fdb6e49d2312319af12"
+  },
+  "private_measurement_sha256": "88b8018bec66ca773d971dd9fc9f22d28819ba26c8890ae94f7b9cd331236bc9",
+  "base_artifacts_unchanged": true,
+  "production_unchanged": true,
+  "decision": "Retain bfloat16: lower measured time and peak memory. No accuracy comparison or adapter training result. The refreshed curriculum has longer examples and needs its own capacity check."
+}

@@ -1,0 +1,23 @@
+{
+  "train.jsonl": {
+    "count": 1454,
+    "round_trip_passed": 1454,
+    "runtime_prefix_parity_passed": 1454,
+    "loss_boundary_passed": 1454,
+    "semantic_alignment_passed": 1454,
+    "semantic_loss_weight": 4.0,
+    "maximum_tokens": 5135,
+    "sha256": "2369d802ab3cf3ed9171958cacead8f33eefc814ea2fd0399474bc1c9bdc6359"
+  },
+  "valid.jsonl": {
+    "count": 186,
+    "round_trip_passed": 186,
+    "runtime_prefix_parity_passed": 186,
+    "loss_boundary_passed": 186,
+    "semantic_alignment_passed": 186,
+    "semantic_loss_weight": 4.0,
+    "maximum_tokens": 4977,
+    "sha256": "a32984f4899c8b9c8895e140003f734e5aec95aff9d470960533e3d2ce91a646"
+  },
+  "scope": "Tokenizer/template/parser checks only; not model accuracy or training success"
+}

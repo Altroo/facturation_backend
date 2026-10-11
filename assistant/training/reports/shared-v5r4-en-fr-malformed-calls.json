@@ -1,0 +1,54 @@
+{
+  "model_id": "chat-ai-shared-qwen08-v5r4-en-fr-20261011",
+  "count": 4,
+  "source_sha256": "ef98ca2a540a6d80e13a338bc6933a78838f586949bce6f4076ce2026a0f9624",
+  "cases": [
+    {
+      "id": "acceptance-stock_reversal-en",
+      "dataset": "shared-adapter-v2-en-fr--facturation-acceptance-en-fr--test.eval.jsonl",
+      "error": "INVALID_MODEL_OUTPUT",
+      "cause_type": "ValidationError",
+      "cause_message": "{'resource': 'stock_movement', 'location_name': 'Syn Annexe', 'product_name': 'SYN-TUBE-8', 'status': 'cancelled', 'date_from': '2026-04-06', 'date_to': '2026-04-20'} is not valid under any of the given schemas",
+      "validation_path": [
+        "arguments"
+      ],
+      "invalid_instance": {
+        "resource": "stock_movement",
+        "location_name": "Syn Annexe",
+        "product_name": "SYN-TUBE-8",
+        "status": "cancelled",
+        "date_from": "2026-04-06",
+        "date_to": "2026-04-20"
+      }
+    },
+    {
+      "id": "acceptance-unsupported_stock_write-fr",
+      "dataset": "shared-adapter-v2-en-fr--facturation-acceptance-en-fr--test.eval.jsonl",
+      "error": "INVALID_MODEL_OUTPUT",
+      "cause_type": "ValidationError",
+      "cause_message": "Additional properties are not allowed ('SYN-BOULON-63' was unexpected)",
+      "validation_path": [
+        "arguments",
+        "changes"
+      ],
+      "invalid_instance": {
+        "SYN-BOULON-63": "Syn Atelier, 25"
+      }
+    },
+    {
+      "id": "management-projet-v4-en-fr-fresh-quote-number-fr",
+      "dataset": "shared-adapter-v2-en-fr--management-projet-v4-en-fr--independent.eval.jsonl",
+      "error": "INVALID_MODEL_OUTPUT",
+      "cause_type": "ValueError",
+      "cause_message": "Invalid call count"
+    },
+    {
+      "id": "management-projet-v4-en-fr-fresh-quote-number-en",
+      "dataset": "shared-adapter-v2-en-fr--management-projet-v4-en-fr--independent.eval.jsonl",
+      "error": "INVALID_MODEL_OUTPUT",
+      "cause_type": "ValueError",
+      "cause_message": "Invalid call count"
+    }
+  ],
+  "scope": "Replay of four original rejected calls, not replacement scores. No business executor or business data. Two quote requests emitted no parsed tool call; the replay does not identify their raw generation cause."
+}

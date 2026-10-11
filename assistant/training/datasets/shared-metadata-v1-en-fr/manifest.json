@@ -1,0 +1,117 @@
+{
+  "version": "shared-metadata-v1-en-fr",
+  "languages": [
+    "en",
+    "fr"
+  ],
+  "status": "Unmeasured description-only diagnostic. No training or acceptance claim.",
+  "methodology": "All 362 prior prompts, trusted contexts, expected labels, tool lists and validation constraints are unchanged. Only matching tool/argument descriptions change. DW system prompt updates are deliberately excluded. Previously inspected regressions are not unseen certification.",
+  "inputs": {
+    "management-projet-v1-en-fr--test.eval.jsonl": {
+      "original_dataset": "management-projet-v1-en-fr/test.eval.jsonl",
+      "original_sha256": "1c63c39ecb5906f3fa2adf0dd2a74a78c8b814836cf8131d499e0ead88eb0277",
+      "baseline_label": "management-projet-candidate-shared-v5r2-final",
+      "count": 60,
+      "description_changed_rows": 60
+    },
+    "design-workflow-v1-en-fr--test.eval.jsonl": {
+      "original_dataset": "design-workflow-v1-en-fr/test.eval.jsonl",
+      "original_sha256": "4bb23c2a24f4434663f54c8dfbf94f55f00557a91115ed9d08f84a5ec95de045",
+      "baseline_label": "design-workflow-candidate-shared-v5r2-final",
+      "count": 60,
+      "description_changed_rows": 60
+    },
+    "facturation-acceptance-en-fr--test.eval.jsonl": {
+      "original_dataset": "facturation-acceptance-en-fr/test.eval.jsonl",
+      "original_sha256": "91ca4ad072df31a651c8a87ea51dd9349d0f937f2701bcab3da868d01cfa479a",
+      "baseline_label": "facturation-candidate-shared-v5r2-final",
+      "count": 80,
+      "description_changed_rows": 18
+    },
+    "management-projet-v2-en-fr--independent.eval.jsonl": {
+      "original_dataset": "management-projet-v2-en-fr/independent.eval.jsonl",
+      "original_sha256": "c4586a2c6459e02c63557f1e693a5212b51c507eba80d32f2661128a25c3f5d8",
+      "baseline_label": "management-projet-companion-shared-v5r2",
+      "count": 20,
+      "description_changed_rows": 20
+    },
+    "management-projet-v3-en-fr--independent.eval.jsonl": {
+      "original_dataset": "management-projet-v3-en-fr/independent.eval.jsonl",
+      "original_sha256": "12e224a326a40fb185b5bf10cd1b7e38339ca3fa955f72ed3da678fe8df98f41",
+      "baseline_label": "management-projet-fresh-shared-v5r2",
+      "count": 32,
+      "description_changed_rows": 32
+    },
+    "design-workflow-v2-en-fr--independent.eval.jsonl": {
+      "original_dataset": "design-workflow-v2-en-fr/independent.eval.jsonl",
+      "original_sha256": "68fca7d1c02da3f6755e71ba016c235c5c0df1d16ff560730f210e281355dea9",
+      "baseline_label": "design-workflow-fresh-shared-v5r2",
+      "count": 24,
+      "description_changed_rows": 22
+    },
+    "management-projet-v4-en-fr--independent.eval.jsonl": {
+      "original_dataset": "management-projet-v4-en-fr/independent.eval.jsonl",
+      "original_sha256": "993a0bc3aed974fd52b04941efd8e06ee865bc7d7e98761dda6e0d1f7b9dc8e1",
+      "baseline_label": "management-projet-new-holdout-shared-v5r2",
+      "count": 32,
+      "description_changed_rows": 32
+    },
+    "design-workflow-v3-en-fr--independent.eval.jsonl": {
+      "original_dataset": "design-workflow-v3-en-fr/independent.eval.jsonl",
+      "original_sha256": "67632837aa5a9069a1fddcb503569e0f1c8f48dfc10ae65b54e3da2d188b58fb",
+      "baseline_label": "design-workflow-new-holdout-shared-v5r2",
+      "count": 20,
+      "description_changed_rows": 18
+    },
+    "management-projet-refinement-v1-en-fr--independent.eval.jsonl": {
+      "original_dataset": "management-projet-refinement-v1-en-fr/independent.eval.jsonl",
+      "original_sha256": "95e5fb162dd3345b3a817e23e39fa3420b61f0b1188472d648ea028ee5a5ba71",
+      "baseline_label": "management-projet-refinement-candidate-v5r2",
+      "count": 12,
+      "description_changed_rows": 12
+    },
+    "design-workflow-refinement-v1-en-fr--independent.eval.jsonl": {
+      "original_dataset": "design-workflow-refinement-v1-en-fr/independent.eval.jsonl",
+      "original_sha256": "a432864c18ccc4a2604ae1fec1b718f61da4f71848b4c3c92516b1d266fc5e2d",
+      "baseline_label": "design-workflow-refinement-candidate-v5r2",
+      "count": 10,
+      "description_changed_rows": 10
+    },
+    "facturation-refinement-v1-en-fr--independent.eval.jsonl": {
+      "original_dataset": "facturation-refinement-v1-en-fr/independent.eval.jsonl",
+      "original_sha256": "983b06c7aa815eb04bcd7c092e5b5086019314b1abeb970c341f6bbd370bf5d7",
+      "baseline_label": "facturation-refinement-candidate-v5r2",
+      "count": 12,
+      "description_changed_rows": 2
+    }
+  },
+  "files": {
+    "management-projet-v1-en-fr--test.eval.jsonl": "8b98db8509d07084f64b3dcbf107cd39a8cf6a731a38e6939c3d9bdc7571bf8c",
+    "design-workflow-v1-en-fr--test.eval.jsonl": "312b8b4d8480e57ab4e49d92bb20b112788bc731c05b68cf2ff756401cb1b0f9",
+    "facturation-acceptance-en-fr--test.eval.jsonl": "f325774b1f16b96531e2df1b81ed4425c5ffcd34c3f494dde942744681ea4f06",
+    "management-projet-v2-en-fr--independent.eval.jsonl": "21a611bd49e7167316ccb3b77ba0ce06c45f6b843bbc3e51b9f00da604b14183",
+    "management-projet-v3-en-fr--independent.eval.jsonl": "c84b533d647bfde4ee59a40653e8cfd55b9249e315aea2fccc5404befbfef5f0",
+    "design-workflow-v2-en-fr--independent.eval.jsonl": "96783ca6c8fa1e24ec9023063fb3bf7724701c133a6943e064ae21392d9f5485",
+    "management-projet-v4-en-fr--independent.eval.jsonl": "7098adf753f7cfe3cfba3e83298f8eecfb45357767892de13d13671564281839",
+    "design-workflow-v3-en-fr--independent.eval.jsonl": "393f33f780e3d5b36e13878d0854424c75ef5fa111db7866759ebbebd67b4d0d",
+    "management-projet-refinement-v1-en-fr--independent.eval.jsonl": "840aa56d224283a07092e0cb49fc61d3128e5def66a53fd087215f70848aaaf2",
+    "design-workflow-refinement-v1-en-fr--independent.eval.jsonl": "cbc3edd4c79c315425449eb66a92c5ef303f245a66ccaaa309cf3287fd3bf0db",
+    "facturation-refinement-v1-en-fr--independent.eval.jsonl": "90a1d046387e3fe788886eb0892dde109a9d18971faf6bd977bb7fe25ef0eaaf"
+  },
+  "sources": {
+    "management_projet": {
+      "chat_ai/tools.py": "4a34fe503ade55e048434ea1aae1a15a025a2578667d54e4ca35111da5d4f688",
+      "chat_ai/planner.py": "5e2a8b8a1556f8a96027a5eb1835e9c5b5ed81b544e87f02c01aff8fb2d2620f"
+    },
+    "design_workflow": {
+      "chat_ai/tools.py": "2f6345eb65adec60462c7d760a2cbf7e04f86f2bbbcbaa5965e8114e51bb531b",
+      "chat_ai/planner.py": "a7aadd71a5d3ed53ce490ed0729295f8db439ad6562f0c2a4f1aadfc1bced70c"
+    },
+    "facturation": {
+      "chat_ai/tools.py": "be1963d91290edbacdfee277486ea131f8539dccc100b1c12e7ef3b5e8396447"
+    }
+  },
+  "count": 362,
+  "description_changed_rows": 286,
+  "maximum_partial_request_bytes": 18473
+}

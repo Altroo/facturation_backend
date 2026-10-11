@@ -1,0 +1,340 @@
+{
+  "version": "reservation-dialogue-v2-en-fr",
+  "application": "reservation",
+  "languages": [
+    "en",
+    "fr"
+  ],
+  "source_dataset": "reservation-v1-en-fr",
+  "source_manifest_sha256": "5d45841b9f3b443b21d4838c20674020ce18f059c2658ad7172d0f7f311633cb",
+  "source_files": {
+    "train.jsonl": "744313f90b7c9f2186e81fc33337a016a46a69149c3897206eb2d3bdff6b363f",
+    "valid.eval.jsonl": "d43e4dc73908bfa3f6185a0962d9a39ccf8bc4ff53259613a45a038ff85019b7",
+    "test.eval.jsonl": "1a27d3aa2051db1eb9182ededdaf1a36592e3c670ec18e50f88148af3127d9d0",
+    "train.eval.jsonl": "06807cf0a47e4d0d89ba5221374a20c94774efa53a4d235c8ec1bb57de333948",
+    "valid.jsonl": "92c8e02270293866b7c4b77f27c5b938b76143c383e1af612149aaacd66387f6"
+  },
+  "counts": {
+    "train": {
+      "retained": 150,
+      "augmented": 30,
+      "total": 180
+    },
+    "valid": {
+      "retained": 30,
+      "augmented": 10,
+      "total": 40
+    },
+    "test": {
+      "retained": 84
+    }
+  },
+  "augmentation": {
+    "train": [
+      {
+        "source_index": 133,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "reservation",
+        "source_id": "reservation-v1-en-fr-train-clarify-amount-en"
+      },
+      {
+        "source_index": 121,
+        "history": "Hello, thanks for your help.",
+        "application": "reservation",
+        "source_id": "reservation-v1-en-fr-train-clarify-metric-en"
+      },
+      {
+        "source_index": 126,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "reservation",
+        "source_id": "reservation-v1-en-fr-train-clarify-cash-fr"
+      },
+      {
+        "source_index": 128,
+        "history": "Hello, thanks for your help.",
+        "application": "reservation",
+        "source_id": "reservation-v1-en-fr-train-clarify-payment-fr"
+      },
+      {
+        "source_index": 91,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "reservation",
+        "source_id": "reservation-v1-en-fr-train-finance-reservation_costs-en"
+      },
+      {
+        "source_index": 97,
+        "history": "Hello, thanks for your help.",
+        "application": "reservation",
+        "source_id": "reservation-v1-en-fr-train-finance-unreturned_amount-en"
+      },
+      {
+        "source_index": 92,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "reservation",
+        "source_id": "reservation-v1-en-fr-train-finance-reservation_balance-fr"
+      },
+      {
+        "source_index": 96,
+        "history": "Hello, thanks for your help.",
+        "application": "reservation",
+        "source_id": "reservation-v1-en-fr-train-finance-unreturned_amount-fr"
+      },
+      {
+        "source_index": 77,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "reservation",
+        "source_id": "reservation-v1-en-fr-train-read-context-en"
+      },
+      {
+        "source_index": 79,
+        "history": "Hello, thanks for your help.",
+        "application": "reservation",
+        "source_id": "reservation-v1-en-fr-train-read-known-en"
+      },
+      {
+        "source_index": 78,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "reservation",
+        "source_id": "reservation-v1-en-fr-train-read-known-fr"
+      },
+      {
+        "source_index": 76,
+        "history": "Hello, thanks for your help.",
+        "application": "reservation",
+        "source_id": "reservation-v1-en-fr-train-read-context-fr"
+      },
+      {
+        "source_index": 147,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "reservation",
+        "source_id": "reservation-v1-en-fr-train-knowledge-workflow-en"
+      },
+      {
+        "source_index": 146,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "reservation",
+        "source_id": "reservation-v1-en-fr-train-knowledge-workflow-fr"
+      },
+      {
+        "source_index": 83,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "reservation",
+        "source_id": "reservation-v1-en-fr-train-navigation-new-en"
+      },
+      {
+        "source_index": 45,
+        "history": "Hello, thanks for your help.",
+        "application": "reservation",
+        "source_id": "reservation-v1-en-fr-train-navigation-balance-en"
+      },
+      {
+        "source_index": 42,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "reservation",
+        "source_id": "reservation-v1-en-fr-train-navigation-occupancy-fr"
+      },
+      {
+        "source_index": 80,
+        "history": "Hello, thanks for your help.",
+        "application": "reservation",
+        "source_id": "reservation-v1-en-fr-train-navigation-parent-fr"
+      },
+      {
+        "source_index": 115,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "reservation",
+        "source_id": "reservation-v1-en-fr-train-edit-rent-notes-en"
+      },
+      {
+        "source_index": 113,
+        "history": "Hello, thanks for your help.",
+        "application": "reservation",
+        "source_id": "reservation-v1-en-fr-train-edit-local-adresse-en"
+      },
+      {
+        "source_index": 104,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "reservation",
+        "source_id": "reservation-v1-en-fr-train-edit-reservation-notes-fr"
+      },
+      {
+        "source_index": 114,
+        "history": "Hello, thanks for your help.",
+        "application": "reservation",
+        "source_id": "reservation-v1-en-fr-train-edit-rent-notes-fr"
+      },
+      {
+        "source_index": 85,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "reservation",
+        "source_id": "reservation-v1-en-fr-train-followup-open-en"
+      },
+      {
+        "source_index": 87,
+        "history": "Hello, thanks for your help.",
+        "application": "reservation",
+        "source_id": "reservation-v1-en-fr-train-followup-list-en"
+      },
+      {
+        "source_index": 86,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "reservation",
+        "source_id": "reservation-v1-en-fr-train-followup-list-fr"
+      },
+      {
+        "source_index": 84,
+        "history": "Hello, thanks for your help.",
+        "application": "reservation",
+        "source_id": "reservation-v1-en-fr-train-followup-open-fr"
+      },
+      {
+        "source_index": 15,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "reservation",
+        "source_id": "reservation-v1-en-fr-train-name-cost-en"
+      },
+      {
+        "source_index": 27,
+        "history": "Hello, thanks for your help.",
+        "application": "reservation",
+        "source_id": "reservation-v1-en-fr-train-name-hilton_report-en"
+      },
+      {
+        "source_index": 22,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "reservation",
+        "source_id": "reservation-v1-en-fr-train-name-rent-fr"
+      },
+      {
+        "source_index": 65,
+        "history": "Hello, thanks for your help.",
+        "application": "reservation",
+        "source_id": "reservation-v1-en-fr-train-search-costperiod-en"
+      }
+    ],
+    "valid": [
+      {
+        "source_index": 29,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "reservation",
+        "source_id": "reservation-v1-en-fr-valid-denied-user-en"
+      },
+      {
+        "source_index": 26,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "reservation",
+        "source_id": "reservation-v1-en-fr-valid-clarify-unknown-fr"
+      },
+      {
+        "source_index": 21,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "reservation",
+        "source_id": "reservation-v1-en-fr-valid-finance-costs-en"
+      },
+      {
+        "source_index": 20,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "reservation",
+        "source_id": "reservation-v1-en-fr-valid-finance-costs-fr"
+      },
+      {
+        "source_index": 23,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "reservation",
+        "source_id": "reservation-v1-en-fr-valid-navigation-rent-en"
+      },
+      {
+        "source_index": 22,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "reservation",
+        "source_id": "reservation-v1-en-fr-valid-navigation-rent-fr"
+      },
+      {
+        "source_index": 25,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "reservation",
+        "source_id": "reservation-v1-en-fr-valid-edit-notes-en"
+      },
+      {
+        "source_index": 24,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "reservation",
+        "source_id": "reservation-v1-en-fr-valid-edit-notes-fr"
+      },
+      {
+        "source_index": 19,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "reservation",
+        "source_id": "reservation-v1-en-fr-valid-search-rents-en"
+      },
+      {
+        "source_index": 8,
+        "history": "Bonjour, merci pour votre aide.",
+        "application": "reservation",
+        "source_id": "reservation-v1-en-fr-valid-search-local-fr"
+      }
+    ]
+  },
+  "synthetic_reference_fixtures": {
+    "reservation-v1-en-fr-train-followup-open-fr": [
+      261927720,
+      251684849,
+      216760661
+    ],
+    "reservation-v1-en-fr-train-followup-open-en": [
+      261927720,
+      251684849,
+      216760661
+    ],
+    "reservation-v1-en-fr-train-followup-list-fr": [
+      72738076,
+      231910440,
+      66015097
+    ],
+    "reservation-v1-en-fr-train-followup-list-en": [
+      72738076,
+      231910440,
+      66015097
+    ],
+    "reservation-v1-en-fr-test-followup-third-fr": [
+      103635356,
+      68902008,
+      206202235,
+      229868472
+    ],
+    "reservation-v1-en-fr-test-followup-third-en": [
+      103635356,
+      68902008,
+      206202235,
+      229868472
+    ]
+  },
+  "generator_sha256": "2403d04b5101b4ea5e25b3dfa41cd2ec83ae66bbc405ca7622aac308c5983eda",
+  "native_sources": {
+    "chat_ai/tools.py": "ca3896baf9c961fd207d47436e3717f7ce957d2ebd62855d33c9e50afbe0c9bd",
+    "chat_ai/planner.py": "2ea0bcc9408b26e65529f9bd66db5294c8b951d50be99e2799654ceebdef9108",
+    "chat_ai/targets.py": "ba3f5ba9f288273d50a24ce04c0bc273b88f4f14965f5660b41728280c4ada55",
+    "chat_ai/services.py": "048d63497afa9a7d7f8ef4858f59ff591587cf267257438eed65ed51d1a8410a",
+    "chat_ai/security.py": "69d27ff7a88923383dbd82cf8c5c36c6367701c9096f55324c31f8ab2de84026",
+    "chat_ai/resources.py": "00e8a16b7e0170effe8d79d0e1c9c408df16b457189cd79ee51cdb27fa50a1e1",
+    "chat_ai/navigation.py": "4cb7be483244eea18cce1b0f35d2e70b4196d10a1125e43e8271fbf8d5194491"
+  },
+  "shared_sources": {
+    "src/chat_ai_assistant/planning_messages.py": "d7024d3c9af58d501f680f2c79ae1e5108a6ec19faa92a2ba49b6c67893d1395",
+    "src/chat_ai_assistant/calendar_context.py": "6ee2c0f63ef33c0ba8b8f1ea29fbcd5d6f1e88e4273dc40ece33dab75619aeb9",
+    "src/chat_ai_assistant/clarifications.py": "e5cb817facdb8e440538cc0ed9b252ff127f6d8e470bb630574e5530e7a31a7d",
+    "src/chat_ai_assistant/contracts.py": "ab31f8ff3f2f20b776ca412436e0730dc8fa00e892801772e863400bab4b6fa3",
+    "src/chat_ai_assistant/selection_context.py": "f5e5e9a2345341d9e0ce650ef74a80847b29d564dacbf3ecac5b9db5d8ed3297",
+    "src/chat_ai_assistant/routing.py": "1640f46741e967711c7af246d0766b89992c4dc63d48c7a697ef775890d4a811",
+    "training/scripts/build_dialogue_v1.py": "2dcb6179735d96acd338e002e7006e4d85056e41281a119c5046a9283b987a5a",
+    "training/scripts/training_contracts.py": "3a6001309a329d3c3644d1ab608dbaf542cef7a7be91612643d157ad5ce11382"
+  },
+  "files": {
+    "train.eval.jsonl": "017eb663dae9b957ae79a7874014127262eca6b971a32b6979aecf0a4c17d7ac",
+    "train.jsonl": "b671c87866ed25f29d6a1d3d5346c9bd652d5b0ba3f445c8ff12dcfa505baa34",
+    "valid.eval.jsonl": "d4dec4ab17d621a146be8909f469fcd3483db8082fe641e43963da1fd67c9767",
+    "valid.jsonl": "a4ee6d63ae8c886a18accb22d5be085eb6fd0377ac9d962b2ae37ae8247a91dd",
+    "test.eval.jsonl": "c19d78ef3714deb67f12a5f6712ec34f9fc3212ad9b271063591fd66821f4e25"
+  },
+  "policy": "Original synthetic questions, action labels and split membership retained; current native tools, context and production dialogue framing replace old envelopes. Neutral history variants are not independent samples. No model score or training claim. Database connections forbidden."
+}

@@ -1,0 +1,2751 @@
+{
+  "version": "shared-metadata-v1-en-fr",
+  "status": "Description-only diagnostic completed; production unchanged",
+  "model_id": "chat-ai-shared-qwen08-v5r2-en-fr-20261010",
+  "model_targets_passed": false,
+  "passed_sets": 3,
+  "set_count": 11,
+  "baseline": {
+    "count": 362,
+    "tool_selection": {
+      "passed": 344,
+      "count": 362
+    },
+    "exact_arguments": {
+      "passed": 254,
+      "count": 280
+    },
+    "structured_output": {
+      "passed": 358,
+      "count": 362
+    }
+  },
+  "candidate": {
+    "count": 362,
+    "tool_selection": {
+      "passed": 346,
+      "count": 362
+    },
+    "exact_arguments": {
+      "passed": 257,
+      "count": 280
+    },
+    "structured_output": {
+      "passed": 356,
+      "count": 362
+    }
+  },
+  "results": {
+    "management-projet-candidate-shared-metadata-v1-final": {
+      "dataset": "shared-metadata-v1-en-fr/management-projet-v1-en-fr--test.eval.jsonl",
+      "dataset_sha256": "8b98db8509d07084f64b3dcbf107cd39a8cf6a731a38e6939c3d9bdc7571bf8c",
+      "baseline_dataset_sha256": "1c63c39ecb5906f3fa2adf0dd2a74a78c8b814836cf8131d499e0ead88eb0277",
+      "baseline": {
+        "count": 60,
+        "counts": {
+          "tool_correct": 57,
+          "arguments_correct": 57,
+          "structured_valid": 60
+        },
+        "percent": {
+          "tool_correct": 95.0,
+          "arguments_correct": 95.0,
+          "structured_valid": 100.0
+        },
+        "exact_arguments": {
+          "passed": 47,
+          "count": 50,
+          "percent": 94.0
+        }
+      },
+      "candidate": {
+        "count": 60,
+        "counts": {
+          "tool_correct": 60,
+          "arguments_correct": 60,
+          "structured_valid": 60
+        },
+        "percent": {
+          "tool_correct": 100.0,
+          "arguments_correct": 100.0,
+          "structured_valid": 100.0
+        },
+        "exact_arguments": {
+          "passed": 50,
+          "count": 50,
+          "percent": 100.0
+        }
+      },
+      "by_language": {
+        "en": {
+          "count": 30,
+          "counts": {
+            "tool_correct": 30,
+            "arguments_correct": 30,
+            "structured_valid": 30
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 25,
+            "count": 25,
+            "percent": 100.0
+          }
+        },
+        "fr": {
+          "count": 30,
+          "counts": {
+            "tool_correct": 30,
+            "arguments_correct": 30,
+            "structured_valid": 30
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 25,
+            "count": 25,
+            "percent": 100.0
+          }
+        }
+      },
+      "by_category": {
+        "clarify": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 4,
+            "arguments_correct": 4,
+            "structured_valid": 4
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        },
+        "context": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "arguments_correct": 2,
+            "structured_valid": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        },
+        "delete": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "arguments_correct": 2,
+            "structured_valid": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        },
+        "edit": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "arguments_correct": 2,
+            "structured_valid": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        },
+        "followup": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "arguments_correct": 2,
+            "structured_valid": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        },
+        "knowledge": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 4,
+            "arguments_correct": 4,
+            "structured_valid": 4
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        },
+        "metric": {
+          "count": 12,
+          "counts": {
+            "tool_correct": 12,
+            "arguments_correct": 12,
+            "structured_valid": 12
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 12,
+            "count": 12,
+            "percent": 100.0
+          }
+        },
+        "navigate": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 4,
+            "arguments_correct": 4,
+            "structured_valid": 4
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 4,
+            "count": 4,
+            "percent": 100.0
+          }
+        },
+        "pdf": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "arguments_correct": 2,
+            "structured_valid": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        },
+        "search": {
+          "count": 24,
+          "counts": {
+            "tool_correct": 24,
+            "arguments_correct": 24,
+            "structured_valid": 24
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 24,
+            "count": 24,
+            "percent": 100.0
+          }
+        },
+        "security": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "arguments_correct": 2,
+            "structured_valid": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        }
+      },
+      "acceptance": {
+        "passed": true,
+        "targets": {
+          "tool_selection": true,
+          "exact_arguments": true,
+          "structured_output": true,
+          "clarification_reason_and_language": true,
+          "critical_model_cases": true
+        },
+        "clarifications": {
+          "count": 6,
+          "counts": {
+            "tool_correct": 6,
+            "structured_valid": 6,
+            "action_matches": 6
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        },
+        "critical_model_cases": {
+          "count": 10,
+          "counts": {
+            "tool_correct": 10,
+            "structured_valid": 10,
+            "action_matches": 10
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 4,
+            "count": 4,
+            "percent": 100.0
+          }
+        }
+      },
+      "transitions": {
+        "tool_correct": {
+          "improved": 3,
+          "regressed": 0
+        },
+        "arguments_correct": {
+          "improved": 3,
+          "regressed": 0
+        },
+        "structured_valid": {
+          "improved": 0,
+          "regressed": 0
+        }
+      }
+    },
+    "design-workflow-candidate-shared-metadata-v1-final": {
+      "dataset": "shared-metadata-v1-en-fr/design-workflow-v1-en-fr--test.eval.jsonl",
+      "dataset_sha256": "312b8b4d8480e57ab4e49d92bb20b112788bc731c05b68cf2ff756401cb1b0f9",
+      "baseline_dataset_sha256": "4bb23c2a24f4434663f54c8dfbf94f55f00557a91115ed9d08f84a5ec95de045",
+      "baseline": {
+        "count": 60,
+        "counts": {
+          "tool_correct": 60,
+          "arguments_correct": 57,
+          "structured_valid": 60
+        },
+        "percent": {
+          "tool_correct": 100.0,
+          "arguments_correct": 95.0,
+          "structured_valid": 100.0
+        },
+        "exact_arguments": {
+          "passed": 45,
+          "count": 48,
+          "percent": 93.75
+        }
+      },
+      "candidate": {
+        "count": 60,
+        "counts": {
+          "tool_correct": 60,
+          "arguments_correct": 58,
+          "structured_valid": 60
+        },
+        "percent": {
+          "tool_correct": 100.0,
+          "arguments_correct": 96.67,
+          "structured_valid": 100.0
+        },
+        "exact_arguments": {
+          "passed": 46,
+          "count": 48,
+          "percent": 95.83
+        }
+      },
+      "by_language": {
+        "en": {
+          "count": 30,
+          "counts": {
+            "tool_correct": 30,
+            "arguments_correct": 29,
+            "structured_valid": 30
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 96.67,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 23,
+            "count": 24,
+            "percent": 95.83
+          }
+        },
+        "fr": {
+          "count": 30,
+          "counts": {
+            "tool_correct": 30,
+            "arguments_correct": 29,
+            "structured_valid": 30
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 96.67,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 23,
+            "count": 24,
+            "percent": 95.83
+          }
+        }
+      },
+      "by_category": {
+        "archive": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "arguments_correct": 2,
+            "structured_valid": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        },
+        "clarify": {
+          "count": 8,
+          "counts": {
+            "tool_correct": 8,
+            "arguments_correct": 8,
+            "structured_valid": 8
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        },
+        "context": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 4,
+            "arguments_correct": 4,
+            "structured_valid": 4
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 4,
+            "count": 4,
+            "percent": 100.0
+          }
+        },
+        "followup": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "arguments_correct": 2,
+            "structured_valid": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        },
+        "knowledge": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 4,
+            "arguments_correct": 4,
+            "structured_valid": 4
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        },
+        "navigate": {
+          "count": 8,
+          "counts": {
+            "tool_correct": 8,
+            "arguments_correct": 8,
+            "structured_valid": 8
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 8,
+            "count": 8,
+            "percent": 100.0
+          }
+        },
+        "search": {
+          "count": 20,
+          "counts": {
+            "tool_correct": 20,
+            "arguments_correct": 18,
+            "structured_valid": 20
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 90.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 18,
+            "count": 20,
+            "percent": 90.0
+          }
+        },
+        "time": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 4,
+            "arguments_correct": 4,
+            "structured_valid": 4
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 4,
+            "count": 4,
+            "percent": 100.0
+          }
+        },
+        "workload": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 4,
+            "arguments_correct": 4,
+            "structured_valid": 4
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 4,
+            "count": 4,
+            "percent": 100.0
+          }
+        },
+        "write": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 4,
+            "arguments_correct": 4,
+            "structured_valid": 4
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 4,
+            "count": 4,
+            "percent": 100.0
+          }
+        }
+      },
+      "acceptance": {
+        "passed": true,
+        "targets": {
+          "tool_selection": true,
+          "exact_arguments": true,
+          "structured_output": true,
+          "clarification_reason_and_language": true,
+          "critical_model_cases": true
+        },
+        "clarifications": {
+          "count": 8,
+          "counts": {
+            "tool_correct": 8,
+            "structured_valid": 8,
+            "action_matches": 8
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        },
+        "critical_model_cases": {
+          "count": 14,
+          "counts": {
+            "tool_correct": 14,
+            "structured_valid": 14,
+            "action_matches": 14
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 6,
+            "count": 6,
+            "percent": 100.0
+          }
+        }
+      },
+      "transitions": {
+        "tool_correct": {
+          "improved": 0,
+          "regressed": 0
+        },
+        "arguments_correct": {
+          "improved": 2,
+          "regressed": 1
+        },
+        "structured_valid": {
+          "improved": 0,
+          "regressed": 0
+        }
+      }
+    },
+    "facturation-candidate-shared-metadata-v1-final": {
+      "dataset": "shared-metadata-v1-en-fr/facturation-acceptance-en-fr--test.eval.jsonl",
+      "dataset_sha256": "f325774b1f16b96531e2df1b81ed4425c5ffcd34c3f494dde942744681ea4f06",
+      "baseline_dataset_sha256": "91ca4ad072df31a651c8a87ea51dd9349d0f937f2701bcab3da868d01cfa479a",
+      "baseline": {
+        "count": 80,
+        "counts": {
+          "tool_correct": 79,
+          "arguments_correct": 65,
+          "structured_valid": 79
+        },
+        "percent": {
+          "tool_correct": 98.75,
+          "arguments_correct": 81.25,
+          "structured_valid": 98.75
+        },
+        "exact_arguments": {
+          "passed": 54,
+          "count": 66,
+          "percent": 81.82
+        }
+      },
+      "candidate": {
+        "count": 80,
+        "counts": {
+          "tool_correct": 79,
+          "arguments_correct": 65,
+          "structured_valid": 79
+        },
+        "percent": {
+          "tool_correct": 98.75,
+          "arguments_correct": 81.25,
+          "structured_valid": 98.75
+        },
+        "exact_arguments": {
+          "passed": 54,
+          "count": 66,
+          "percent": 81.82
+        }
+      },
+      "by_language": {
+        "en": {
+          "count": 40,
+          "counts": {
+            "tool_correct": 40,
+            "arguments_correct": 32,
+            "structured_valid": 40
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 80.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 27,
+            "count": 33,
+            "percent": 81.82
+          }
+        },
+        "fr": {
+          "count": 40,
+          "counts": {
+            "tool_correct": 39,
+            "arguments_correct": 33,
+            "structured_valid": 39
+          },
+          "percent": {
+            "tool_correct": 97.5,
+            "arguments_correct": 82.5,
+            "structured_valid": 97.5
+          },
+          "exact_arguments": {
+            "passed": 27,
+            "count": 33,
+            "percent": 81.82
+          }
+        }
+      },
+      "by_category": {
+        "capability_boundary": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 4,
+            "arguments_correct": 4,
+            "structured_valid": 4
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        },
+        "catalog_filters": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 4,
+            "arguments_correct": 4,
+            "structured_valid": 4
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 4,
+            "count": 4,
+            "percent": 100.0
+          }
+        },
+        "confirmed_mutation_proposal": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 4,
+            "arguments_correct": 4,
+            "structured_valid": 4
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 4,
+            "count": 4,
+            "percent": 100.0
+          }
+        },
+        "customer_lookup": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "arguments_correct": 2,
+            "structured_valid": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        },
+        "document_filters": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 4,
+            "arguments_correct": 2,
+            "structured_valid": 4
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 50.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 4,
+            "percent": 50.0
+          }
+        },
+        "exact_reference": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 4,
+            "arguments_correct": 4,
+            "structured_valid": 4
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 4,
+            "count": 4,
+            "percent": 100.0
+          }
+        },
+        "explicit_record_reference": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "arguments_correct": 2,
+            "structured_valid": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        },
+        "financial_metric": {
+          "count": 8,
+          "counts": {
+            "tool_correct": 8,
+            "arguments_correct": 8,
+            "structured_valid": 8
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 8,
+            "count": 8,
+            "percent": 100.0
+          }
+        },
+        "language_switch_clarification": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 4,
+            "arguments_correct": 2,
+            "structured_valid": 4
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 50.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        },
+        "mutation_target_discovery": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "arguments_correct": 2,
+            "structured_valid": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        },
+        "navigation": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 4,
+            "arguments_correct": 4,
+            "structured_valid": 4
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 4,
+            "count": 4,
+            "percent": 100.0
+          }
+        },
+        "operational_filters": {
+          "count": 10,
+          "counts": {
+            "tool_correct": 9,
+            "arguments_correct": 3,
+            "structured_valid": 9
+          },
+          "percent": {
+            "tool_correct": 90.0,
+            "arguments_correct": 30.0,
+            "structured_valid": 90.0
+          },
+          "exact_arguments": {
+            "passed": 3,
+            "count": 10,
+            "percent": 30.0
+          }
+        },
+        "page_context": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 4,
+            "arguments_correct": 4,
+            "structured_valid": 4
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 4,
+            "count": 4,
+            "percent": 100.0
+          }
+        },
+        "payment_filters": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 4,
+            "arguments_correct": 3,
+            "structured_valid": 4
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 75.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 3,
+            "count": 4,
+            "percent": 75.0
+          }
+        },
+        "payment_listing": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "arguments_correct": 2,
+            "structured_valid": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        },
+        "printing": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "arguments_correct": 2,
+            "structured_valid": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        },
+        "relative_search_dates": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "arguments_correct": 0,
+            "structured_valid": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 0.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 2,
+            "percent": 0.0
+          }
+        },
+        "staff_lookup": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "arguments_correct": 2,
+            "structured_valid": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        },
+        "structured_memory": {
+          "count": 6,
+          "counts": {
+            "tool_correct": 6,
+            "arguments_correct": 6,
+            "structured_valid": 6
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 6,
+            "count": 6,
+            "percent": 100.0
+          }
+        },
+        "unsupported_operation": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "arguments_correct": 1,
+            "structured_valid": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 50.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        },
+        "workflow_knowledge": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 4,
+            "arguments_correct": 4,
+            "structured_valid": 4
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        }
+      },
+      "acceptance": {
+        "passed": false,
+        "targets": {
+          "tool_selection": true,
+          "exact_arguments": false,
+          "structured_output": false,
+          "clarification_reason_and_language": false,
+          "critical_model_cases": false
+        },
+        "clarifications": {
+          "count": 10,
+          "counts": {
+            "tool_correct": 10,
+            "structured_valid": 10,
+            "action_matches": 7
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 70.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        },
+        "critical_model_cases": {
+          "count": 14,
+          "counts": {
+            "tool_correct": 14,
+            "structured_valid": 14,
+            "action_matches": 11
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 78.57
+          },
+          "exact_arguments": {
+            "passed": 4,
+            "count": 4,
+            "percent": 100.0
+          }
+        }
+      },
+      "transitions": {
+        "tool_correct": {
+          "improved": 0,
+          "regressed": 0
+        },
+        "arguments_correct": {
+          "improved": 0,
+          "regressed": 0
+        },
+        "structured_valid": {
+          "improved": 0,
+          "regressed": 0
+        }
+      }
+    },
+    "management-projet-companion-shared-metadata-v1": {
+      "dataset": "shared-metadata-v1-en-fr/management-projet-v2-en-fr--independent.eval.jsonl",
+      "dataset_sha256": "21a611bd49e7167316ccb3b77ba0ce06c45f6b843bbc3e51b9f00da604b14183",
+      "baseline_dataset_sha256": "c4586a2c6459e02c63557f1e693a5212b51c507eba80d32f2661128a25c3f5d8",
+      "baseline": {
+        "count": 20,
+        "counts": {
+          "tool_correct": 20,
+          "arguments_correct": 19,
+          "structured_valid": 20
+        },
+        "percent": {
+          "tool_correct": 100.0,
+          "arguments_correct": 95.0,
+          "structured_valid": 100.0
+        },
+        "exact_arguments": {
+          "passed": 14,
+          "count": 14,
+          "percent": 100.0
+        }
+      },
+      "candidate": {
+        "count": 20,
+        "counts": {
+          "tool_correct": 19,
+          "arguments_correct": 18,
+          "structured_valid": 19
+        },
+        "percent": {
+          "tool_correct": 95.0,
+          "arguments_correct": 90.0,
+          "structured_valid": 95.0
+        },
+        "exact_arguments": {
+          "passed": 13,
+          "count": 14,
+          "percent": 92.86
+        }
+      },
+      "by_language": {
+        "en": {
+          "count": 10,
+          "counts": {
+            "tool_correct": 9,
+            "arguments_correct": 8,
+            "structured_valid": 9
+          },
+          "percent": {
+            "tool_correct": 90.0,
+            "arguments_correct": 80.0,
+            "structured_valid": 90.0
+          },
+          "exact_arguments": {
+            "passed": 6,
+            "count": 7,
+            "percent": 85.71
+          }
+        },
+        "fr": {
+          "count": 10,
+          "counts": {
+            "tool_correct": 10,
+            "arguments_correct": 10,
+            "structured_valid": 10
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 7,
+            "count": 7,
+            "percent": 100.0
+          }
+        }
+      },
+      "by_category": {
+        "audit": {
+          "count": 20,
+          "counts": {
+            "tool_correct": 19,
+            "arguments_correct": 18,
+            "structured_valid": 19
+          },
+          "percent": {
+            "tool_correct": 95.0,
+            "arguments_correct": 90.0,
+            "structured_valid": 95.0
+          },
+          "exact_arguments": {
+            "passed": 13,
+            "count": 14,
+            "percent": 92.86
+          }
+        }
+      },
+      "acceptance": {
+        "passed": false,
+        "targets": {
+          "tool_selection": true,
+          "exact_arguments": false,
+          "structured_output": false,
+          "clarification_reason_and_language": false,
+          "critical_model_cases": false
+        },
+        "clarifications": {
+          "count": 6,
+          "counts": {
+            "tool_correct": 6,
+            "structured_valid": 6,
+            "action_matches": 5
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 83.33
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        },
+        "critical_model_cases": {
+          "count": 8,
+          "counts": {
+            "tool_correct": 7,
+            "structured_valid": 7,
+            "action_matches": 6
+          },
+          "percent": {
+            "tool_correct": 87.5,
+            "structured_valid": 87.5,
+            "action_matches": 75.0
+          },
+          "exact_arguments": {
+            "passed": 1,
+            "count": 2,
+            "percent": 50.0
+          }
+        }
+      },
+      "transitions": {
+        "tool_correct": {
+          "improved": 0,
+          "regressed": 1
+        },
+        "arguments_correct": {
+          "improved": 0,
+          "regressed": 1
+        },
+        "structured_valid": {
+          "improved": 0,
+          "regressed": 1
+        }
+      }
+    },
+    "management-projet-fresh-shared-metadata-v1": {
+      "dataset": "shared-metadata-v1-en-fr/management-projet-v3-en-fr--independent.eval.jsonl",
+      "dataset_sha256": "c84b533d647bfde4ee59a40653e8cfd55b9249e315aea2fccc5404befbfef5f0",
+      "baseline_dataset_sha256": "12e224a326a40fb185b5bf10cd1b7e38339ca3fa955f72ed3da678fe8df98f41",
+      "baseline": {
+        "count": 32,
+        "counts": {
+          "tool_correct": 30,
+          "arguments_correct": 30,
+          "structured_valid": 32
+        },
+        "percent": {
+          "tool_correct": 93.75,
+          "arguments_correct": 93.75,
+          "structured_valid": 100.0
+        },
+        "exact_arguments": {
+          "passed": 24,
+          "count": 26,
+          "percent": 92.31
+        }
+      },
+      "candidate": {
+        "count": 32,
+        "counts": {
+          "tool_correct": 30,
+          "arguments_correct": 30,
+          "structured_valid": 32
+        },
+        "percent": {
+          "tool_correct": 93.75,
+          "arguments_correct": 93.75,
+          "structured_valid": 100.0
+        },
+        "exact_arguments": {
+          "passed": 24,
+          "count": 26,
+          "percent": 92.31
+        }
+      },
+      "by_language": {
+        "en": {
+          "count": 16,
+          "counts": {
+            "tool_correct": 15,
+            "arguments_correct": 15,
+            "structured_valid": 16
+          },
+          "percent": {
+            "tool_correct": 93.75,
+            "arguments_correct": 93.75,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 12,
+            "count": 13,
+            "percent": 92.31
+          }
+        },
+        "fr": {
+          "count": 16,
+          "counts": {
+            "tool_correct": 15,
+            "arguments_correct": 15,
+            "structured_valid": 16
+          },
+          "percent": {
+            "tool_correct": 93.75,
+            "arguments_correct": 93.75,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 12,
+            "count": 13,
+            "percent": 92.31
+          }
+        }
+      },
+      "by_category": {
+        "audit": {
+          "count": 32,
+          "counts": {
+            "tool_correct": 30,
+            "arguments_correct": 30,
+            "structured_valid": 32
+          },
+          "percent": {
+            "tool_correct": 93.75,
+            "arguments_correct": 93.75,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 24,
+            "count": 26,
+            "percent": 92.31
+          }
+        }
+      },
+      "acceptance": {
+        "passed": false,
+        "targets": {
+          "tool_selection": false,
+          "exact_arguments": false,
+          "structured_output": true,
+          "clarification_reason_and_language": true,
+          "critical_model_cases": false
+        },
+        "clarifications": {
+          "count": 6,
+          "counts": {
+            "tool_correct": 6,
+            "structured_valid": 6,
+            "action_matches": 6
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        },
+        "critical_model_cases": {
+          "count": 8,
+          "counts": {
+            "tool_correct": 6,
+            "structured_valid": 8,
+            "action_matches": 6
+          },
+          "percent": {
+            "tool_correct": 75.0,
+            "structured_valid": 100.0,
+            "action_matches": 75.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 2,
+            "percent": 0.0
+          }
+        }
+      },
+      "transitions": {
+        "tool_correct": {
+          "improved": 0,
+          "regressed": 0
+        },
+        "arguments_correct": {
+          "improved": 0,
+          "regressed": 0
+        },
+        "structured_valid": {
+          "improved": 0,
+          "regressed": 0
+        }
+      }
+    },
+    "design-workflow-fresh-shared-metadata-v1": {
+      "dataset": "shared-metadata-v1-en-fr/design-workflow-v2-en-fr--independent.eval.jsonl",
+      "dataset_sha256": "96783ca6c8fa1e24ec9023063fb3bf7724701c133a6943e064ae21392d9f5485",
+      "baseline_dataset_sha256": "68fca7d1c02da3f6755e71ba016c235c5c0df1d16ff560730f210e281355dea9",
+      "baseline": {
+        "count": 24,
+        "counts": {
+          "tool_correct": 24,
+          "arguments_correct": 22,
+          "structured_valid": 24
+        },
+        "percent": {
+          "tool_correct": 100.0,
+          "arguments_correct": 91.67,
+          "structured_valid": 100.0
+        },
+        "exact_arguments": {
+          "passed": 16,
+          "count": 18,
+          "percent": 88.89
+        }
+      },
+      "candidate": {
+        "count": 24,
+        "counts": {
+          "tool_correct": 24,
+          "arguments_correct": 24,
+          "structured_valid": 24
+        },
+        "percent": {
+          "tool_correct": 100.0,
+          "arguments_correct": 100.0,
+          "structured_valid": 100.0
+        },
+        "exact_arguments": {
+          "passed": 18,
+          "count": 18,
+          "percent": 100.0
+        }
+      },
+      "by_language": {
+        "en": {
+          "count": 12,
+          "counts": {
+            "tool_correct": 12,
+            "arguments_correct": 12,
+            "structured_valid": 12
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 9,
+            "count": 9,
+            "percent": 100.0
+          }
+        },
+        "fr": {
+          "count": 12,
+          "counts": {
+            "tool_correct": 12,
+            "arguments_correct": 12,
+            "structured_valid": 12
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 9,
+            "count": 9,
+            "percent": 100.0
+          }
+        }
+      },
+      "by_category": {
+        "audit": {
+          "count": 24,
+          "counts": {
+            "tool_correct": 24,
+            "arguments_correct": 24,
+            "structured_valid": 24
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 18,
+            "count": 18,
+            "percent": 100.0
+          }
+        }
+      },
+      "acceptance": {
+        "passed": true,
+        "targets": {
+          "tool_selection": true,
+          "exact_arguments": true,
+          "structured_output": true,
+          "clarification_reason_and_language": true,
+          "critical_model_cases": true
+        },
+        "clarifications": {
+          "count": 6,
+          "counts": {
+            "tool_correct": 6,
+            "structured_valid": 6,
+            "action_matches": 6
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        },
+        "critical_model_cases": {
+          "count": 8,
+          "counts": {
+            "tool_correct": 8,
+            "structured_valid": 8,
+            "action_matches": 8
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        }
+      },
+      "transitions": {
+        "tool_correct": {
+          "improved": 0,
+          "regressed": 0
+        },
+        "arguments_correct": {
+          "improved": 2,
+          "regressed": 0
+        },
+        "structured_valid": {
+          "improved": 0,
+          "regressed": 0
+        }
+      }
+    },
+    "management-projet-new-holdout-shared-metadata-v1": {
+      "dataset": "shared-metadata-v1-en-fr/management-projet-v4-en-fr--independent.eval.jsonl",
+      "dataset_sha256": "7098adf753f7cfe3cfba3e83298f8eecfb45357767892de13d13671564281839",
+      "baseline_dataset_sha256": "993a0bc3aed974fd52b04941efd8e06ee865bc7d7e98761dda6e0d1f7b9dc8e1",
+      "baseline": {
+        "count": 32,
+        "counts": {
+          "tool_correct": 27,
+          "arguments_correct": 27,
+          "structured_valid": 30
+        },
+        "percent": {
+          "tool_correct": 84.38,
+          "arguments_correct": 84.38,
+          "structured_valid": 93.75
+        },
+        "exact_arguments": {
+          "passed": 20,
+          "count": 20,
+          "percent": 100.0
+        }
+      },
+      "candidate": {
+        "count": 32,
+        "counts": {
+          "tool_correct": 28,
+          "arguments_correct": 28,
+          "structured_valid": 30
+        },
+        "percent": {
+          "tool_correct": 87.5,
+          "arguments_correct": 87.5,
+          "structured_valid": 93.75
+        },
+        "exact_arguments": {
+          "passed": 20,
+          "count": 20,
+          "percent": 100.0
+        }
+      },
+      "by_language": {
+        "en": {
+          "count": 16,
+          "counts": {
+            "tool_correct": 14,
+            "arguments_correct": 14,
+            "structured_valid": 15
+          },
+          "percent": {
+            "tool_correct": 87.5,
+            "arguments_correct": 87.5,
+            "structured_valid": 93.75
+          },
+          "exact_arguments": {
+            "passed": 10,
+            "count": 10,
+            "percent": 100.0
+          }
+        },
+        "fr": {
+          "count": 16,
+          "counts": {
+            "tool_correct": 14,
+            "arguments_correct": 14,
+            "structured_valid": 15
+          },
+          "percent": {
+            "tool_correct": 87.5,
+            "arguments_correct": 87.5,
+            "structured_valid": 93.75
+          },
+          "exact_arguments": {
+            "passed": 10,
+            "count": 10,
+            "percent": 100.0
+          }
+        }
+      },
+      "by_category": {
+        "fresh": {
+          "count": 32,
+          "counts": {
+            "tool_correct": 28,
+            "arguments_correct": 28,
+            "structured_valid": 30
+          },
+          "percent": {
+            "tool_correct": 87.5,
+            "arguments_correct": 87.5,
+            "structured_valid": 93.75
+          },
+          "exact_arguments": {
+            "passed": 20,
+            "count": 20,
+            "percent": 100.0
+          }
+        }
+      },
+      "acceptance": {
+        "passed": false,
+        "targets": {
+          "tool_selection": false,
+          "exact_arguments": true,
+          "structured_output": false,
+          "clarification_reason_and_language": false,
+          "critical_model_cases": false
+        },
+        "clarifications": {
+          "count": 10,
+          "counts": {
+            "tool_correct": 6,
+            "structured_valid": 8,
+            "action_matches": 6
+          },
+          "percent": {
+            "tool_correct": 60.0,
+            "structured_valid": 80.0,
+            "action_matches": 60.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        },
+        "critical_model_cases": {
+          "count": 12,
+          "counts": {
+            "tool_correct": 8,
+            "structured_valid": 10,
+            "action_matches": 8
+          },
+          "percent": {
+            "tool_correct": 66.67,
+            "structured_valid": 83.33,
+            "action_matches": 66.67
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        }
+      },
+      "transitions": {
+        "tool_correct": {
+          "improved": 1,
+          "regressed": 0
+        },
+        "arguments_correct": {
+          "improved": 1,
+          "regressed": 0
+        },
+        "structured_valid": {
+          "improved": 0,
+          "regressed": 0
+        }
+      }
+    },
+    "design-workflow-new-holdout-shared-metadata-v1": {
+      "dataset": "shared-metadata-v1-en-fr/design-workflow-v3-en-fr--independent.eval.jsonl",
+      "dataset_sha256": "393f33f780e3d5b36e13878d0854424c75ef5fa111db7866759ebbebd67b4d0d",
+      "baseline_dataset_sha256": "67632837aa5a9069a1fddcb503569e0f1c8f48dfc10ae65b54e3da2d188b58fb",
+      "baseline": {
+        "count": 20,
+        "counts": {
+          "tool_correct": 20,
+          "arguments_correct": 20,
+          "structured_valid": 20
+        },
+        "percent": {
+          "tool_correct": 100.0,
+          "arguments_correct": 100.0,
+          "structured_valid": 100.0
+        },
+        "exact_arguments": {
+          "passed": 14,
+          "count": 14,
+          "percent": 100.0
+        }
+      },
+      "candidate": {
+        "count": 20,
+        "counts": {
+          "tool_correct": 20,
+          "arguments_correct": 19,
+          "structured_valid": 20
+        },
+        "percent": {
+          "tool_correct": 100.0,
+          "arguments_correct": 95.0,
+          "structured_valid": 100.0
+        },
+        "exact_arguments": {
+          "passed": 13,
+          "count": 14,
+          "percent": 92.86
+        }
+      },
+      "by_language": {
+        "en": {
+          "count": 10,
+          "counts": {
+            "tool_correct": 10,
+            "arguments_correct": 9,
+            "structured_valid": 10
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 90.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 6,
+            "count": 7,
+            "percent": 85.71
+          }
+        },
+        "fr": {
+          "count": 10,
+          "counts": {
+            "tool_correct": 10,
+            "arguments_correct": 10,
+            "structured_valid": 10
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 7,
+            "count": 7,
+            "percent": 100.0
+          }
+        }
+      },
+      "by_category": {
+        "fresh": {
+          "count": 20,
+          "counts": {
+            "tool_correct": 20,
+            "arguments_correct": 19,
+            "structured_valid": 20
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 95.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 13,
+            "count": 14,
+            "percent": 92.86
+          }
+        }
+      },
+      "acceptance": {
+        "passed": false,
+        "targets": {
+          "tool_selection": true,
+          "exact_arguments": false,
+          "structured_output": true,
+          "clarification_reason_and_language": true,
+          "critical_model_cases": true
+        },
+        "clarifications": {
+          "count": 6,
+          "counts": {
+            "tool_correct": 6,
+            "structured_valid": 6,
+            "action_matches": 6
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        },
+        "critical_model_cases": {
+          "count": 8,
+          "counts": {
+            "tool_correct": 8,
+            "structured_valid": 8,
+            "action_matches": 8
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        }
+      },
+      "transitions": {
+        "tool_correct": {
+          "improved": 0,
+          "regressed": 0
+        },
+        "arguments_correct": {
+          "improved": 0,
+          "regressed": 1
+        },
+        "structured_valid": {
+          "improved": 0,
+          "regressed": 0
+        }
+      }
+    },
+    "management-projet-refinement-candidate-metadata-v1": {
+      "dataset": "shared-metadata-v1-en-fr/management-projet-refinement-v1-en-fr--independent.eval.jsonl",
+      "dataset_sha256": "840aa56d224283a07092e0cb49fc61d3128e5def66a53fd087215f70848aaaf2",
+      "baseline_dataset_sha256": "95e5fb162dd3345b3a817e23e39fa3420b61f0b1188472d648ea028ee5a5ba71",
+      "baseline": {
+        "count": 12,
+        "counts": {
+          "tool_correct": 9,
+          "arguments_correct": 9,
+          "structured_valid": 11
+        },
+        "percent": {
+          "tool_correct": 75.0,
+          "arguments_correct": 75.0,
+          "structured_valid": 91.67
+        },
+        "exact_arguments": {
+          "passed": 8,
+          "count": 8,
+          "percent": 100.0
+        }
+      },
+      "candidate": {
+        "count": 12,
+        "counts": {
+          "tool_correct": 8,
+          "arguments_correct": 8,
+          "structured_valid": 10
+        },
+        "percent": {
+          "tool_correct": 66.67,
+          "arguments_correct": 66.67,
+          "structured_valid": 83.33
+        },
+        "exact_arguments": {
+          "passed": 8,
+          "count": 8,
+          "percent": 100.0
+        }
+      },
+      "by_language": {
+        "en": {
+          "count": 6,
+          "counts": {
+            "tool_correct": 4,
+            "arguments_correct": 4,
+            "structured_valid": 5
+          },
+          "percent": {
+            "tool_correct": 66.67,
+            "arguments_correct": 66.67,
+            "structured_valid": 83.33
+          },
+          "exact_arguments": {
+            "passed": 4,
+            "count": 4,
+            "percent": 100.0
+          }
+        },
+        "fr": {
+          "count": 6,
+          "counts": {
+            "tool_correct": 4,
+            "arguments_correct": 4,
+            "structured_valid": 5
+          },
+          "percent": {
+            "tool_correct": 66.67,
+            "arguments_correct": 66.67,
+            "structured_valid": 83.33
+          },
+          "exact_arguments": {
+            "passed": 4,
+            "count": 4,
+            "percent": 100.0
+          }
+        }
+      },
+      "by_category": {
+        "budget": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "arguments_correct": 2,
+            "structured_valid": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        },
+        "business": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "arguments_correct": 2,
+            "structured_valid": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        },
+        "label": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "arguments_correct": 2,
+            "structured_valid": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        },
+        "month": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 0,
+            "arguments_correct": 0,
+            "structured_valid": 2
+          },
+          "percent": {
+            "tool_correct": 0.0,
+            "arguments_correct": 0.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        },
+        "supplier": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "arguments_correct": 2,
+            "structured_valid": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        },
+        "unsupported": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 0,
+            "arguments_correct": 0,
+            "structured_valid": 0
+          },
+          "percent": {
+            "tool_correct": 0.0,
+            "arguments_correct": 0.0,
+            "structured_valid": 0.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        }
+      },
+      "acceptance": {
+        "passed": false,
+        "targets": {
+          "tool_selection": false,
+          "exact_arguments": true,
+          "structured_output": false,
+          "clarification_reason_and_language": false,
+          "critical_model_cases": false
+        },
+        "clarifications": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 0,
+            "structured_valid": 2,
+            "action_matches": 0
+          },
+          "percent": {
+            "tool_correct": 0.0,
+            "structured_valid": 50.0,
+            "action_matches": 0.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        },
+        "critical_model_cases": {
+          "count": 6,
+          "counts": {
+            "tool_correct": 2,
+            "structured_valid": 4,
+            "action_matches": 2
+          },
+          "percent": {
+            "tool_correct": 33.33,
+            "structured_valid": 66.67,
+            "action_matches": 33.33
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        }
+      },
+      "transitions": {
+        "tool_correct": {
+          "improved": 0,
+          "regressed": 1
+        },
+        "arguments_correct": {
+          "improved": 0,
+          "regressed": 1
+        },
+        "structured_valid": {
+          "improved": 0,
+          "regressed": 1
+        }
+      }
+    },
+    "design-workflow-refinement-candidate-metadata-v1": {
+      "dataset": "shared-metadata-v1-en-fr/design-workflow-refinement-v1-en-fr--independent.eval.jsonl",
+      "dataset_sha256": "cbc3edd4c79c315425449eb66a92c5ef303f245a66ccaaa309cf3287fd3bf0db",
+      "baseline_dataset_sha256": "a432864c18ccc4a2604ae1fec1b718f61da4f71848b4c3c92516b1d266fc5e2d",
+      "baseline": {
+        "count": 10,
+        "counts": {
+          "tool_correct": 8,
+          "arguments_correct": 8,
+          "structured_valid": 10
+        },
+        "percent": {
+          "tool_correct": 80.0,
+          "arguments_correct": 80.0,
+          "structured_valid": 100.0
+        },
+        "exact_arguments": {
+          "passed": 6,
+          "count": 8,
+          "percent": 75.0
+        }
+      },
+      "candidate": {
+        "count": 10,
+        "counts": {
+          "tool_correct": 8,
+          "arguments_correct": 7,
+          "structured_valid": 10
+        },
+        "percent": {
+          "tool_correct": 80.0,
+          "arguments_correct": 70.0,
+          "structured_valid": 100.0
+        },
+        "exact_arguments": {
+          "passed": 5,
+          "count": 8,
+          "percent": 62.5
+        }
+      },
+      "by_language": {
+        "en": {
+          "count": 5,
+          "counts": {
+            "tool_correct": 4,
+            "arguments_correct": 4,
+            "structured_valid": 5
+          },
+          "percent": {
+            "tool_correct": 80.0,
+            "arguments_correct": 80.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 3,
+            "count": 4,
+            "percent": 75.0
+          }
+        },
+        "fr": {
+          "count": 5,
+          "counts": {
+            "tool_correct": 4,
+            "arguments_correct": 3,
+            "structured_valid": 5
+          },
+          "percent": {
+            "tool_correct": 80.0,
+            "arguments_correct": 60.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 4,
+            "percent": 50.0
+          }
+        }
+      },
+      "by_category": {
+        "archive": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "arguments_correct": 2,
+            "structured_valid": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        },
+        "assigned": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "arguments_correct": 1,
+            "structured_valid": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 50.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 1,
+            "count": 2,
+            "percent": 50.0
+          }
+        },
+        "explicit": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 0,
+            "arguments_correct": 0,
+            "structured_valid": 2
+          },
+          "percent": {
+            "tool_correct": 0.0,
+            "arguments_correct": 0.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 2,
+            "percent": 0.0
+          }
+        },
+        "review": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "arguments_correct": 2,
+            "structured_valid": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        },
+        "year": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "arguments_correct": 2,
+            "structured_valid": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        }
+      },
+      "acceptance": {
+        "passed": false,
+        "targets": {
+          "tool_selection": false,
+          "exact_arguments": false,
+          "structured_output": true,
+          "clarification_reason_and_language": true,
+          "critical_model_cases": true
+        },
+        "clarifications": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "structured_valid": 2,
+            "action_matches": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        },
+        "critical_model_cases": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "structured_valid": 2,
+            "action_matches": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        }
+      },
+      "transitions": {
+        "tool_correct": {
+          "improved": 0,
+          "regressed": 0
+        },
+        "arguments_correct": {
+          "improved": 0,
+          "regressed": 1
+        },
+        "structured_valid": {
+          "improved": 0,
+          "regressed": 0
+        }
+      }
+    },
+    "facturation-refinement-candidate-metadata-v1": {
+      "dataset": "shared-metadata-v1-en-fr/facturation-refinement-v1-en-fr--independent.eval.jsonl",
+      "dataset_sha256": "90a1d046387e3fe788886eb0892dde109a9d18971faf6bd977bb7fe25ef0eaaf",
+      "baseline_dataset_sha256": "983b06c7aa815eb04bcd7c092e5b5086019314b1abeb970c341f6bbd370bf5d7",
+      "baseline": {
+        "count": 12,
+        "counts": {
+          "tool_correct": 10,
+          "arguments_correct": 8,
+          "structured_valid": 12
+        },
+        "percent": {
+          "tool_correct": 83.33,
+          "arguments_correct": 66.67,
+          "structured_valid": 100.0
+        },
+        "exact_arguments": {
+          "passed": 6,
+          "count": 8,
+          "percent": 75.0
+        }
+      },
+      "candidate": {
+        "count": 12,
+        "counts": {
+          "tool_correct": 10,
+          "arguments_correct": 8,
+          "structured_valid": 12
+        },
+        "percent": {
+          "tool_correct": 83.33,
+          "arguments_correct": 66.67,
+          "structured_valid": 100.0
+        },
+        "exact_arguments": {
+          "passed": 6,
+          "count": 8,
+          "percent": 75.0
+        }
+      },
+      "by_language": {
+        "en": {
+          "count": 6,
+          "counts": {
+            "tool_correct": 5,
+            "arguments_correct": 4,
+            "structured_valid": 6
+          },
+          "percent": {
+            "tool_correct": 83.33,
+            "arguments_correct": 66.67,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 3,
+            "count": 4,
+            "percent": 75.0
+          }
+        },
+        "fr": {
+          "count": 6,
+          "counts": {
+            "tool_correct": 5,
+            "arguments_correct": 4,
+            "structured_valid": 6
+          },
+          "percent": {
+            "tool_correct": 83.33,
+            "arguments_correct": 66.67,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 3,
+            "count": 4,
+            "percent": 75.0
+          }
+        }
+      },
+      "by_category": {
+        "date": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "arguments_correct": 2,
+            "structured_valid": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        },
+        "history": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "arguments_correct": 2,
+            "structured_valid": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        },
+        "invoice": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "arguments_correct": 0,
+            "structured_valid": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 0.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 2,
+            "percent": 0.0
+          }
+        },
+        "payment": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "arguments_correct": 2,
+            "structured_valid": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        },
+        "unsafe": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "arguments_correct": 2,
+            "structured_valid": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        },
+        "year": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 0,
+            "arguments_correct": 0,
+            "structured_valid": 2
+          },
+          "percent": {
+            "tool_correct": 0.0,
+            "arguments_correct": 0.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        }
+      },
+      "acceptance": {
+        "passed": false,
+        "targets": {
+          "tool_selection": false,
+          "exact_arguments": false,
+          "structured_output": true,
+          "clarification_reason_and_language": false,
+          "critical_model_cases": false
+        },
+        "clarifications": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 2,
+            "structured_valid": 4,
+            "action_matches": 2
+          },
+          "percent": {
+            "tool_correct": 50.0,
+            "structured_valid": 100.0,
+            "action_matches": 50.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        },
+        "critical_model_cases": {
+          "count": 6,
+          "counts": {
+            "tool_correct": 4,
+            "structured_valid": 6,
+            "action_matches": 4
+          },
+          "percent": {
+            "tool_correct": 66.67,
+            "structured_valid": 100.0,
+            "action_matches": 66.67
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        }
+      },
+      "transitions": {
+        "tool_correct": {
+          "improved": 0,
+          "regressed": 0
+        },
+        "arguments_correct": {
+          "improved": 0,
+          "regressed": 0
+        },
+        "structured_valid": {
+          "improved": 0,
+          "regressed": 0
+        }
+      }
+    }
+  },
+  "limitations": [
+    "All prompts, expected labels, contexts and schema validation constraints are unchanged; only matching native tool descriptions changed.",
+    "These are previously inspected regressions, not an unseen certification. Paired translations are not independent statistical observations.",
+    "This run excludes later native prompt changes, saved-result context and computed calendar dates. Current-adapter evaluation remains separate.",
+    "Only planner output is evaluated; no business operations execute. Backend authorization tests remain separate.",
+    "Three identical isolated four-thread workers ran concurrently. Timing is not comparable to the prior idle single-worker benchmark.",
+    "No training occurred in this comparison. Candidate weights, tokenizer, runtime, provider and process identities were verified unchanged."
+  ]
+}

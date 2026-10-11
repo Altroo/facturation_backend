@@ -13,6 +13,7 @@ from client.models import Client
 from devi.models import Devi
 from devi.serializers import DeviDetailSerializer
 from client.serializers import ClientDetailSerializer
+from chat_ai_assistant.selection_context import ordinal_target_matches, explicit_target_matches
 from chat_ai_assistant.contracts import ChatAIError
 from .models import PendingAction, AuditEvent
 from .documents import DOCUMENTS, scoped_queryset
@@ -97,6 +98,12 @@ def prepare(executor,resource,identifier,operation,changes=None):
     if operation=='delete' and changes:raise ChatAIError('INVALID_ARGUMENTS')
     for value in changes.values():
         if value is not None and value!='':validate_text(value)
+    aliases = {'invoice': r"facture(?!\s+(?:d['’]avoir|avoir|pro\s*forma))(?: client)?|invoice", 'quote': 'devis|quote|estimate', 'client': 'client|customer', 'proforma': r'facture pro\s*forma|proforma|pro forma', 'credit_note': r"facture d['’]avoir|facture avoir|avoir|credit note", 'delivery_note': 'bon de livraison|delivery note'}
+    ordinal = ordinal_target_matches(executor.instruction, resource, identifier,
+                                     executor.state, timezone.now(), aliases)
+    explicit = explicit_target_matches(executor.instruction, resource, identifier, aliases)
+    if ordinal is False or explicit is False:
+        raise ChatAIError('CONTEXT_EXPIRED')
     obj=target(executor.user_id,executor.company_id,resource,identifier,operation)
     if operation=='update':
         try:_,changes=validated_update(obj,changes)

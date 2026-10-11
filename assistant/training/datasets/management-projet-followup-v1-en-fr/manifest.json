@@ -1,0 +1,24 @@
+{
+  "version": "management-projet-followup-v1-en-fr",
+  "application": "management_projet",
+  "languages": [
+    "en",
+    "fr"
+  ],
+  "count": 28,
+  "status": "Unmeasured diagnostic; no training or acceptance claim.",
+  "methodology": "Synthetic fresh cases for saved-result ordinal edits and safe clarification. Current native prompt and permission-filtered registry. No business operations are executed by evaluation. All database access prohibited during generation. Neither train nor validation examples are generated.",
+  "files": {
+    "independent.eval.jsonl": "6d2d7f3896299af4f93383f080da4b0666dab964a8af29d8462eb48bcb3053fe"
+  },
+  "native_sources": {
+    "chat_ai/services.py": "075aaecccc567bd502f8270940fddbb503b6b661f86345cb7a255d7793df664f",
+    "chat_ai/planner.py": "9f9551756b3c2bf8ab51f29bcbde91cc0293f0e0d0d9e3ba9f94554e662456fe",
+    "chat_ai/tools.py": "4a34fe503ade55e048434ea1aae1a15a025a2578667d54e4ca35111da5d4f688"
+  },
+  "shared_sources": {
+    "src/chat_ai_assistant/calendar_context.py": "6ee2c0f63ef33c0ba8b8f1ea29fbcd5d6f1e88e4273dc40ece33dab75619aeb9",
+    "src/chat_ai_assistant/orchestrator.py": "7b85c9479ac895969f07cb5d7fa1fe7d95fd0f8eee9255222cf96635095a7c4e"
+  },
+  "generator_sha256": "95c53fcfc4f234330343ce1740e782f0c7240b5c332bab918d2c4af64864a868"
+}

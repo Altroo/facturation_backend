@@ -1,0 +1,312 @@
+{
+  "metrics": {
+    "count": 32,
+    "counts": {
+      "tool_correct": 26,
+      "structured_valid": 30,
+      "action_matches": 23
+    },
+    "percent": {
+      "tool_correct": 81.25,
+      "structured_valid": 93.75,
+      "action_matches": 71.88
+    },
+    "exact_arguments": {
+      "passed": 20,
+      "count": 26,
+      "percent": 76.92
+    }
+  },
+  "targets": {
+    "tool_selection": false,
+    "exact_arguments": false,
+    "structured_output": false,
+    "clarification_reason_and_language": false,
+    "critical_model_cases": false
+  },
+  "model_targets_passed": false,
+  "clarifications": {
+    "count": 6,
+    "counts": {
+      "tool_correct": 3,
+      "structured_valid": 6,
+      "action_matches": 3
+    },
+    "percent": {
+      "tool_correct": 50.0,
+      "structured_valid": 100.0,
+      "action_matches": 50.0
+    },
+    "exact_arguments": {
+      "passed": 0,
+      "count": 0,
+      "percent": null
+    }
+  },
+  "critical_model_cases": {
+    "count": 9,
+    "counts": {
+      "tool_correct": 5,
+      "structured_valid": 9,
+      "action_matches": 5
+    },
+    "percent": {
+      "tool_correct": 55.56,
+      "structured_valid": 100.0,
+      "action_matches": 55.56
+    },
+    "exact_arguments": {
+      "passed": 2,
+      "count": 3,
+      "percent": 66.67
+    }
+  },
+  "by_language": {
+    "en": {
+      "count": 16,
+      "counts": {
+        "tool_correct": 14,
+        "structured_valid": 15,
+        "action_matches": 12
+      },
+      "percent": {
+        "tool_correct": 87.5,
+        "structured_valid": 93.75,
+        "action_matches": 75.0
+      },
+      "exact_arguments": {
+        "passed": 10,
+        "count": 13,
+        "percent": 76.92
+      }
+    },
+    "fr": {
+      "count": 16,
+      "counts": {
+        "tool_correct": 12,
+        "structured_valid": 15,
+        "action_matches": 11
+      },
+      "percent": {
+        "tool_correct": 75.0,
+        "structured_valid": 93.75,
+        "action_matches": 68.75
+      },
+      "exact_arguments": {
+        "passed": 10,
+        "count": 13,
+        "percent": 76.92
+      }
+    }
+  },
+  "by_reporting_group": {
+    "authorized_change": {
+      "count": 2,
+      "counts": {
+        "tool_correct": 2,
+        "structured_valid": 2,
+        "action_matches": 2
+      },
+      "percent": {
+        "tool_correct": 100.0,
+        "structured_valid": 100.0,
+        "action_matches": 100.0
+      },
+      "exact_arguments": {
+        "passed": 2,
+        "count": 2,
+        "percent": 100.0
+      }
+    },
+    "conversation_context": {
+      "count": 2,
+      "counts": {
+        "tool_correct": 2,
+        "structured_valid": 2,
+        "action_matches": 2
+      },
+      "percent": {
+        "tool_correct": 100.0,
+        "structured_valid": 100.0,
+        "action_matches": 100.0
+      },
+      "exact_arguments": {
+        "passed": 2,
+        "count": 2,
+        "percent": 100.0
+      }
+    },
+    "financial_clarification": {
+      "count": 2,
+      "counts": {
+        "tool_correct": 1,
+        "structured_valid": 2,
+        "action_matches": 1
+      },
+      "percent": {
+        "tool_correct": 50.0,
+        "structured_valid": 100.0,
+        "action_matches": 50.0
+      },
+      "exact_arguments": {
+        "passed": 0,
+        "count": 0,
+        "percent": null
+      }
+    },
+    "financial_summary": {
+      "count": 10,
+      "counts": {
+        "tool_correct": 10,
+        "structured_valid": 10,
+        "action_matches": 10
+      },
+      "percent": {
+        "tool_correct": 100.0,
+        "structured_valid": 100.0,
+        "action_matches": 100.0
+      },
+      "exact_arguments": {
+        "passed": 10,
+        "count": 10,
+        "percent": 100.0
+      }
+    },
+    "period_clarification": {
+      "count": 2,
+      "counts": {
+        "tool_correct": 0,
+        "structured_valid": 2,
+        "action_matches": 0
+      },
+      "percent": {
+        "tool_correct": 0.0,
+        "structured_valid": 100.0,
+        "action_matches": 0.0
+      },
+      "exact_arguments": {
+        "passed": 0,
+        "count": 0,
+        "percent": null
+      }
+    },
+    "permission_denial": {
+      "count": 2,
+      "counts": {
+        "tool_correct": 2,
+        "structured_valid": 2,
+        "action_matches": 2
+      },
+      "percent": {
+        "tool_correct": 100.0,
+        "structured_valid": 100.0,
+        "action_matches": 100.0
+      },
+      "exact_arguments": {
+        "passed": 0,
+        "count": 0,
+        "percent": null
+      }
+    },
+    "record_search": {
+      "count": 12,
+      "counts": {
+        "tool_correct": 9,
+        "structured_valid": 10,
+        "action_matches": 6
+      },
+      "percent": {
+        "tool_correct": 75.0,
+        "structured_valid": 83.33,
+        "action_matches": 50.0
+      },
+      "exact_arguments": {
+        "passed": 6,
+        "count": 12,
+        "percent": 50.0
+      }
+    }
+  },
+  "distinct_bilingual_scenario_ids": 16,
+  "failures": [
+    {
+      "id": "management-projet-v3-en-fr-audit-status-en",
+      "group": "record_search",
+      "critical": false,
+      "tool_correct": true,
+      "structured_valid": true
+    },
+    {
+      "id": "management-projet-v3-en-fr-audit-before-fr",
+      "group": "record_search",
+      "critical": false,
+      "tool_correct": false,
+      "structured_valid": false
+    },
+    {
+      "id": "management-projet-v3-en-fr-audit-before-en",
+      "group": "record_search",
+      "critical": false,
+      "tool_correct": true,
+      "structured_valid": true
+    },
+    {
+      "id": "management-projet-v3-en-fr-audit-stage-fr",
+      "group": "record_search",
+      "critical": false,
+      "tool_correct": true,
+      "structured_valid": true
+    },
+    {
+      "id": "management-projet-v3-en-fr-audit-descriptive-fr",
+      "group": "record_search",
+      "critical": true,
+      "tool_correct": false,
+      "structured_valid": true
+    },
+    {
+      "id": "management-projet-v3-en-fr-audit-descriptive-en",
+      "group": "record_search",
+      "critical": false,
+      "tool_correct": false,
+      "structured_valid": false
+    },
+    {
+      "id": "management-projet-v3-en-fr-audit-ambiguous-fr",
+      "group": "financial_clarification",
+      "critical": true,
+      "tool_correct": false,
+      "structured_valid": true
+    },
+    {
+      "id": "management-projet-v3-en-fr-audit-year-fr",
+      "group": "period_clarification",
+      "critical": true,
+      "tool_correct": false,
+      "structured_valid": true
+    },
+    {
+      "id": "management-projet-v3-en-fr-audit-year-en",
+      "group": "period_clarification",
+      "critical": true,
+      "tool_correct": false,
+      "structured_valid": true
+    }
+  ],
+  "native_backend_security_verified": null,
+  "limitations": [
+    "Separate analysis of frozen events; original benchmark files and scores are unchanged.",
+    "All clarification reason/language and proposed-change arguments must match their labels.",
+    "Knowledge queries are checked only for nonempty text; retrieval factuality is not measured here.",
+    "Bilingual pairs share scenarios; scenario count is not independent statistical certification.",
+    "Original failures informed training categories; originals remain regression tests, not unseen certification.",
+    "No business tools execute here. Native permission, tenant, confirmation and audit tests remain required.",
+    "Passing model targets does not authorize production activation."
+  ],
+  "label": "management-projet-fresh-shared-v4",
+  "model_id": "chat-ai-shared-qwen08-v4-en-fr-20261009",
+  "snapshot_sha256": "12e224a326a40fb185b5bf10cd1b7e38339ca3fa955f72ed3da678fe8df98f41",
+  "events_sha256": "ca61c298e91aff6a00b386c3e22d4686de865642c59258cb5cc2253c8afef5d1",
+  "frozen_evaluator_sha256": "dca2abf86b2162ccd99b868108dd957f5ef600fe196a5bf9f21b15cafa4fbe7b",
+  "acceptance_script_sha256": "c9efde5b48a32d2900ed581477e65e677865a875b08400fe67fe70a521fcaebc"
+}

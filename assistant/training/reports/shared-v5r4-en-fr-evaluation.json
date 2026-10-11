@@ -1,0 +1,5185 @@
+{
+  "version": "shared-dialogue-v1-en-fr",
+  "baseline_model_id": "chat-ai-shared-qwen08-v5r2-en-fr-20261010",
+  "candidate_model_id": "chat-ai-shared-qwen08-v5r4-en-fr-20261011",
+  "manifest_sha256": "5bfa383c276e28cf3a78a20788d1b51fd7769563243aa26f33fcab7fed9b13e3",
+  "frozen_evaluator_sha256": "dca2abf86b2162ccd99b868108dd957f5ef600fe196a5bf9f21b15cafa4fbe7b",
+  "acceptance_script_sha256": "c9efde5b48a32d2900ed581477e65e677865a875b08400fe67fe70a521fcaebc",
+  "report_script_sha256": "56223505cecb5db5f5a83468fe6bab51b439f850611c6a0e54c5054cc12186c4",
+  "baseline_report_sha256": "6ada567fcd7c9d34908fa1b279e812115bbb280f2419b0d4658d0757f2b06aee",
+  "candidate_completion_sha256": "0c48ec1e0316a7227b9e445b67b8ed216e63e6e4c89822b35d74a7d21df91c01",
+  "candidate_artifact_digests": {
+    "weights": "ff84ebdc7ae875ec2474eaaaf4a8d2461c078b2dbe2d7b29182dc871bb191e52",
+    "tokenizer": "a5ab4c5fca17ea9ed852f68cdcc4d583e4507086a5799861c3f66cb22a48df2c",
+    "config": "d23728a0322a445a79e1cc94553698fe2d84063f108ece16f165d7aab596b062",
+    "runtime": "ad9da4a77237056269ddf600cce337990bf7c51ce343f74c6f8f26e03db13a35"
+  },
+  "driver_sha256": "92809a54e162613fc6beb2072b0087478b035a6fef853f4736d4fdd94736fefa",
+  "driver_proof_sha256": "e747cc2763e818f8d7dcb46470ecbe925f97edb21d5e19875af0efe6e68d968d",
+  "provider_sha256": {
+    "src/chat_ai_assistant/provider.py": "f5a65cf7ed046dcce5b21697ac69866fa8f6ba8a6601eeff70d2819d8414e86e",
+    "src/chat_ai_assistant/contracts.py": "ab31f8ff3f2f20b776ca412436e0730dc8fa00e892801772e863400bab4b6fa3",
+    "src/chat_ai_assistant/clarifications.py": "e5cb817facdb8e440538cc0ed9b252ff127f6d8e470bb630574e5530e7a31a7d",
+    "src/chat_ai_assistant/__init__.py": "89de2438dbe666b8ce112a701c89faf82ef9afec7c7a61c9ec1bbfc9da5192e1"
+  },
+  "all_frozen_sets_passed": false,
+  "native_backend_security_verified": null,
+  "production_activation": "NOT AUTHORIZED BY THIS REPORT",
+  "limitations": [
+    "Every candidate case is freshly measured; the baseline reuses 360 identical inputs and measures 78 changed histories separately.",
+    "No latency comparison is inferred from the combined baseline.",
+    "Synthetic bilingual cases and regression sets are not blind external certification.",
+    "Knowledge query scoring does not measure retrieval factuality. Native security and real application tests remain separate.",
+    "Passing aggregate scores alone is insufficient: each frozen set must pass the existing acceptance gates."
+  ],
+  "baseline": {
+    "metrics": {
+      "count": 438,
+      "counts": {
+        "tool_correct": 386,
+        "structured_valid": 425,
+        "action_matches": 353
+      },
+      "percent": {
+        "tool_correct": 88.13,
+        "structured_valid": 97.03,
+        "action_matches": 80.59
+      },
+      "exact_arguments": {
+        "passed": 277,
+        "count": 334,
+        "percent": 82.93
+      }
+    },
+    "targets": {
+      "tool_selection": false,
+      "exact_arguments": false,
+      "structured_output": false,
+      "clarification_reason_and_language": false,
+      "critical_model_cases": false
+    },
+    "model_targets_passed": false,
+    "clarifications": {
+      "count": 90,
+      "counts": {
+        "tool_correct": 68,
+        "structured_valid": 85,
+        "action_matches": 62
+      },
+      "percent": {
+        "tool_correct": 75.56,
+        "structured_valid": 94.44,
+        "action_matches": 68.89
+      },
+      "exact_arguments": {
+        "passed": 0,
+        "count": 0,
+        "percent": null
+      }
+    },
+    "critical_model_cases": {
+      "count": 150,
+      "counts": {
+        "tool_correct": 107,
+        "structured_valid": 137,
+        "action_matches": 97
+      },
+      "percent": {
+        "tool_correct": 71.33,
+        "structured_valid": 91.33,
+        "action_matches": 64.67
+      },
+      "exact_arguments": {
+        "passed": 35,
+        "count": 60,
+        "percent": 58.33
+      }
+    },
+    "by_language": {
+      "en": {
+        "count": 219,
+        "counts": {
+          "tool_correct": 194,
+          "structured_valid": 211,
+          "action_matches": 177
+        },
+        "percent": {
+          "tool_correct": 88.58,
+          "structured_valid": 96.35,
+          "action_matches": 80.82
+        },
+        "exact_arguments": {
+          "passed": 139,
+          "count": 167,
+          "percent": 83.23
+        }
+      },
+      "fr": {
+        "count": 219,
+        "counts": {
+          "tool_correct": 192,
+          "structured_valid": 214,
+          "action_matches": 176
+        },
+        "percent": {
+          "tool_correct": 87.67,
+          "structured_valid": 97.72,
+          "action_matches": 80.37
+        },
+        "exact_arguments": {
+          "passed": 138,
+          "count": 167,
+          "percent": 82.63
+        }
+      }
+    },
+    "distinct_bilingual_scenario_ids": 219,
+    "failures": [
+      {
+        "id": "test-search-collaborator-fr",
+        "group": "search",
+        "critical": false,
+        "tool_correct": true,
+        "structured_valid": true
+      },
+      {
+        "id": "test-search-collaborator-en",
+        "group": "search",
+        "critical": false,
+        "tool_correct": true,
+        "structured_valid": true
+      },
+      {
+        "id": "design-workflow-v3-en-fr-fresh-assignee-en",
+        "group": "fresh",
+        "critical": false,
+        "tool_correct": true,
+        "structured_valid": true
+      },
+      {
+        "id": "design-workflow-v3-en-fr-fresh-time-en",
+        "group": "fresh",
+        "critical": false,
+        "tool_correct": true,
+        "structured_valid": true
+      },
+      {
+        "id": "design-workflow-v3-en-fr-fresh-denied-fr",
+        "group": "fresh",
+        "critical": true,
+        "tool_correct": true,
+        "structured_valid": true
+      },
+      {
+        "id": "design-workflow-v3-en-fr-fresh-denied-en",
+        "group": "fresh",
+        "critical": true,
+        "tool_correct": true,
+        "structured_valid": true
+      },
+      {
+        "id": "design_workflow-refinement-v1-assigned-late-fr",
+        "group": "assigned",
+        "critical": false,
+        "tool_correct": true,
+        "structured_valid": true
+      },
+      {
+        "id": "design_workflow-refinement-v1-explicit-date-fr",
+        "group": "explicit",
+        "critical": false,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "design_workflow-refinement-v1-explicit-date-en",
+        "group": "explicit",
+        "critical": false,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "design_workflow-refinement-v1-review-mine-en",
+        "group": "review",
+        "critical": false,
+        "tool_correct": true,
+        "structured_valid": true
+      },
+      {
+        "id": "acceptance-invoice_combined-fr",
+        "group": "document_filters",
+        "critical": false,
+        "tool_correct": true,
+        "structured_valid": true
+      },
+      {
+        "id": "acceptance-delivery_relative_dates-en",
+        "group": "relative_search_dates",
+        "critical": false,
+        "tool_correct": true,
+        "structured_valid": true
+      },
+      {
+        "id": "acceptance-delivery_relative_dates-fr",
+        "group": "relative_search_dates",
+        "critical": false,
+        "tool_correct": true,
+        "structured_valid": true
+      },
+      {
+        "id": "acceptance-valid_payment-en",
+        "group": "payment_filters",
+        "critical": false,
+        "tool_correct": true,
+        "structured_valid": true
+      },
+      {
+        "id": "acceptance-stock_minimum-en",
+        "group": "operational_filters",
+        "critical": false,
+        "tool_correct": true,
+        "structured_valid": true
+      },
+      {
+        "id": "acceptance-stock_minimum-fr",
+        "group": "operational_filters",
+        "critical": false,
+        "tool_correct": true,
+        "structured_valid": true
+      },
+      {
+        "id": "acceptance-stock_reversal-en",
+        "group": "operational_filters",
+        "critical": false,
+        "tool_correct": true,
+        "structured_valid": true
+      },
+      {
+        "id": "acceptance-stock_reversal-fr",
+        "group": "operational_filters",
+        "critical": false,
+        "tool_correct": true,
+        "structured_valid": true
+      },
+      {
+        "id": "acceptance-stock_inventory-en",
+        "group": "operational_filters",
+        "critical": false,
+        "tool_correct": true,
+        "structured_valid": true
+      },
+      {
+        "id": "acceptance-stock_inventory-fr",
+        "group": "operational_filters",
+        "critical": false,
+        "tool_correct": true,
+        "structured_valid": true
+      },
+      {
+        "id": "acceptance-logistics_transit-fr",
+        "group": "operational_filters",
+        "critical": false,
+        "tool_correct": true,
+        "structured_valid": true
+      },
+      {
+        "id": "acceptance-missing_year_switch-en",
+        "group": "language_switch_clarification",
+        "critical": true,
+        "tool_correct": true,
+        "structured_valid": true
+      },
+      {
+        "id": "facturation-refinement-v1-invoice-filters-fr",
+        "group": "invoice",
+        "critical": false,
+        "tool_correct": true,
+        "structured_valid": true
+      },
+      {
+        "id": "facturation-refinement-v1-invoice-filters-en",
+        "group": "invoice",
+        "critical": false,
+        "tool_correct": true,
+        "structured_valid": true
+      },
+      {
+        "id": "facturation-refinement-v1-year-implicit-fr",
+        "group": "year",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "facturation-refinement-v1-year-implicit-en",
+        "group": "year",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "v2-audit-change-en",
+        "group": "authorized_change",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": false
+      },
+      {
+        "id": "v2-audit-ambiguous-fr",
+        "group": "financial_clarification",
+        "critical": true,
+        "tool_correct": true,
+        "structured_valid": true
+      },
+      {
+        "id": "v2-audit-ambiguous-en",
+        "group": "financial_clarification",
+        "critical": true,
+        "tool_correct": true,
+        "structured_valid": true
+      },
+      {
+        "id": "management-projet-v3-en-fr-audit-before-en",
+        "group": "record_search",
+        "critical": false,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "management-projet-v3-en-fr-audit-edit-fr",
+        "group": "authorized_change",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "management-projet-v3-en-fr-audit-edit-en",
+        "group": "authorized_change",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "management-projet-v4-en-fr-fresh-earned-fr",
+        "group": "fresh",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "management-projet-v4-en-fr-fresh-supplier-total-fr",
+        "group": "fresh",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": false
+      },
+      {
+        "id": "management-projet-v4-en-fr-fresh-supplier-total-en",
+        "group": "fresh",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": false
+      },
+      {
+        "id": "management-projet-v4-en-fr-fresh-missing-year-fr",
+        "group": "fresh",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "management-projet-v4-en-fr-fresh-missing-year-en",
+        "group": "fresh",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "management_projet-refinement-v1-unsupported-total-fr",
+        "group": "unsupported",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": false
+      },
+      {
+        "id": "management_projet-refinement-v1-unsupported-total-en",
+        "group": "unsupported",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": false
+      },
+      {
+        "id": "management_projet-refinement-v1-month-implicit-en",
+        "group": "month",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "second-customer-city-fr",
+        "group": "second-customer-city",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "first-supplier-contact-fr",
+        "group": "first-supplier-contact",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "third-project-status-en",
+        "group": "third-project-status",
+        "critical": true,
+        "tool_correct": true,
+        "structured_valid": true
+      },
+      {
+        "id": "second-quote-amount-fr",
+        "group": "second-quote-amount",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": false
+      },
+      {
+        "id": "second-quote-amount-en",
+        "group": "second-quote-amount",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": false
+      },
+      {
+        "id": "third-expense-note-fr",
+        "group": "third-expense-note",
+        "critical": true,
+        "tool_correct": true,
+        "structured_valid": true
+      },
+      {
+        "id": "first-receipt-date-fr",
+        "group": "first-receipt-date",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "second-schedule-date-fr",
+        "group": "second-schedule-date",
+        "critical": true,
+        "tool_correct": true,
+        "structured_valid": true
+      },
+      {
+        "id": "second-schedule-date-en",
+        "group": "second-schedule-date",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "third-customer-delete-fr",
+        "group": "third-customer-delete",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "third-customer-delete-en",
+        "group": "third-customer-delete",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": false
+      },
+      {
+        "id": "second-result-after-other-language-fr",
+        "group": "second-result-after-other-language",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "out-of-range-fr",
+        "group": "out-of-range",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "out-of-range-en",
+        "group": "out-of-range",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "expired-selection-fr",
+        "group": "expired-selection",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "expired-selection-en",
+        "group": "expired-selection",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "read-only-selection-fr",
+        "group": "read-only-selection",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "read-only-selection-en",
+        "group": "read-only-selection",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "delete-no-selection-fr",
+        "group": "delete-no-selection",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "delete-no-selection-en",
+        "group": "delete-no-selection",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "facturation-refinement-v2-en-fr-composed-relative-fr",
+        "group": "composed",
+        "critical": false,
+        "tool_correct": true,
+        "structured_valid": true
+      },
+      {
+        "id": "facturation-refinement-v2-en-fr-composed-relative-en",
+        "group": "composed",
+        "critical": false,
+        "tool_correct": true,
+        "structured_valid": true
+      },
+      {
+        "id": "facturation-refinement-v2-en-fr-quote-limited-state-fr",
+        "group": "quote",
+        "critical": true,
+        "tool_correct": true,
+        "structured_valid": true
+      },
+      {
+        "id": "facturation-refinement-v2-en-fr-date-worded-fr",
+        "group": "date",
+        "critical": false,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "facturation-refinement-v2-en-fr-paid-or-unpaid-fr",
+        "group": "paid",
+        "critical": false,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "facturation-refinement-v2-en-fr-paid-or-unpaid-en",
+        "group": "paid",
+        "critical": false,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "facturation-refinement-v2-en-fr-only-before-fr",
+        "group": "only",
+        "critical": false,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "facturation-refinement-v2-en-fr-only-before-en",
+        "group": "only",
+        "critical": false,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "management-projet-refinement-v2-en-fr-multi-field-position-fr",
+        "group": "multi",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "management-projet-refinement-v2-en-fr-multi-field-position-en",
+        "group": "multi",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "management-projet-refinement-v2-en-fr-selection-tax-fr",
+        "group": "selection",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": false
+      },
+      {
+        "id": "management-projet-refinement-v2-en-fr-selection-tax-en",
+        "group": "selection",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": false
+      },
+      {
+        "id": "management-projet-refinement-v2-en-fr-delete-one-fr",
+        "group": "delete",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": false
+      },
+      {
+        "id": "management-projet-refinement-v2-en-fr-delete-one-en",
+        "group": "delete",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": false
+      },
+      {
+        "id": "management-projet-refinement-v2-en-fr-sixth-absent-fr",
+        "group": "sixth",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "management-projet-refinement-v2-en-fr-sixth-absent-en",
+        "group": "sixth",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "management-projet-refinement-v2-en-fr-supplier-metric-fr",
+        "group": "supplier",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "management-projet-refinement-v2-en-fr-supplier-metric-en",
+        "group": "supplier",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": false
+      },
+      {
+        "id": "management-projet-refinement-v2-en-fr-end-only-fr",
+        "group": "end",
+        "critical": false,
+        "tool_correct": true,
+        "structured_valid": true
+      },
+      {
+        "id": "management-projet-refinement-v2-en-fr-end-only-en",
+        "group": "end",
+        "critical": false,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "design-workflow-refinement-v2-en-fr-project-own-en",
+        "group": "project",
+        "critical": false,
+        "tool_correct": true,
+        "structured_valid": true
+      },
+      {
+        "id": "design-workflow-refinement-v2-en-fr-edit-date-fr",
+        "group": "edit",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "design-workflow-refinement-v2-en-fr-edit-date-en",
+        "group": "edit",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "design-workflow-refinement-v2-en-fr-edit-two-values-fr",
+        "group": "edit",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "design-workflow-refinement-v2-en-fr-edit-two-values-en",
+        "group": "edit",
+        "critical": true,
+        "tool_correct": true,
+        "structured_valid": true
+      }
+    ],
+    "limitations": [
+      "Separate analysis of frozen events; original benchmark files and scores are unchanged.",
+      "All clarification reason/language and proposed-change arguments must match their labels.",
+      "Knowledge queries are checked only for nonempty text; retrieval factuality is not measured here.",
+      "Bilingual pairs share scenarios; scenario count is not independent statistical certification.",
+      "Original failures informed training categories; originals remain regression tests, not unseen certification.",
+      "No business tools execute here. Native permission, tenant, confirmation and audit tests remain required.",
+      "Passing model targets does not authorize production activation."
+    ]
+  },
+  "candidate": {
+    "metrics": {
+      "count": 438,
+      "counts": {
+        "tool_correct": 390,
+        "structured_valid": 434,
+        "action_matches": 378
+      },
+      "percent": {
+        "tool_correct": 89.04,
+        "structured_valid": 99.09,
+        "action_matches": 86.3
+      },
+      "exact_arguments": {
+        "passed": 284,
+        "count": 334,
+        "percent": 85.03
+      }
+    },
+    "targets": {
+      "tool_selection": false,
+      "exact_arguments": false,
+      "structured_output": true,
+      "clarification_reason_and_language": false,
+      "critical_model_cases": false
+    },
+    "model_targets_passed": false,
+    "clarifications": {
+      "count": 90,
+      "counts": {
+        "tool_correct": 82,
+        "structured_valid": 89,
+        "action_matches": 80
+      },
+      "percent": {
+        "tool_correct": 91.11,
+        "structured_valid": 98.89,
+        "action_matches": 88.89
+      },
+      "exact_arguments": {
+        "passed": 0,
+        "count": 0,
+        "percent": null
+      }
+    },
+    "critical_model_cases": {
+      "count": 150,
+      "counts": {
+        "tool_correct": 130,
+        "structured_valid": 149,
+        "action_matches": 128
+      },
+      "percent": {
+        "tool_correct": 86.67,
+        "structured_valid": 99.33,
+        "action_matches": 85.33
+      },
+      "exact_arguments": {
+        "passed": 48,
+        "count": 60,
+        "percent": 80.0
+      }
+    },
+    "by_language": {
+      "en": {
+        "count": 219,
+        "counts": {
+          "tool_correct": 195,
+          "structured_valid": 217,
+          "action_matches": 191
+        },
+        "percent": {
+          "tool_correct": 89.04,
+          "structured_valid": 99.09,
+          "action_matches": 87.21
+        },
+        "exact_arguments": {
+          "passed": 143,
+          "count": 167,
+          "percent": 85.63
+        }
+      },
+      "fr": {
+        "count": 219,
+        "counts": {
+          "tool_correct": 195,
+          "structured_valid": 217,
+          "action_matches": 187
+        },
+        "percent": {
+          "tool_correct": 89.04,
+          "structured_valid": 99.09,
+          "action_matches": 85.39
+        },
+        "exact_arguments": {
+          "passed": 141,
+          "count": 167,
+          "percent": 84.43
+        }
+      }
+    },
+    "distinct_bilingual_scenario_ids": 219,
+    "failures": [
+      {
+        "id": "design-workflow-v3-en-fr-fresh-assignee-en",
+        "group": "fresh",
+        "critical": false,
+        "tool_correct": true,
+        "structured_valid": true
+      },
+      {
+        "id": "design-workflow-v3-en-fr-fresh-time-en",
+        "group": "fresh",
+        "critical": false,
+        "tool_correct": true,
+        "structured_valid": true
+      },
+      {
+        "id": "design_workflow-refinement-v1-explicit-date-fr",
+        "group": "explicit",
+        "critical": false,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "design_workflow-refinement-v1-explicit-date-en",
+        "group": "explicit",
+        "critical": false,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "acceptance-invoice_combined-fr",
+        "group": "document_filters",
+        "critical": false,
+        "tool_correct": true,
+        "structured_valid": true
+      },
+      {
+        "id": "acceptance-stock_minimum-en",
+        "group": "operational_filters",
+        "critical": false,
+        "tool_correct": true,
+        "structured_valid": true
+      },
+      {
+        "id": "acceptance-stock_minimum-fr",
+        "group": "operational_filters",
+        "critical": false,
+        "tool_correct": true,
+        "structured_valid": true
+      },
+      {
+        "id": "acceptance-stock_reversal-en",
+        "group": "operational_filters",
+        "critical": false,
+        "tool_correct": false,
+        "structured_valid": false
+      },
+      {
+        "id": "acceptance-stock_inventory-fr",
+        "group": "operational_filters",
+        "critical": false,
+        "tool_correct": true,
+        "structured_valid": true
+      },
+      {
+        "id": "acceptance-logistics_transit-fr",
+        "group": "operational_filters",
+        "critical": false,
+        "tool_correct": true,
+        "structured_valid": true
+      },
+      {
+        "id": "acceptance-unsupported_stock_write-fr",
+        "group": "unsupported_operation",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": false
+      },
+      {
+        "id": "facturation-refinement-v1-invoice-filters-fr",
+        "group": "invoice",
+        "critical": false,
+        "tool_correct": true,
+        "structured_valid": true
+      },
+      {
+        "id": "facturation-refinement-v1-invoice-filters-en",
+        "group": "invoice",
+        "critical": false,
+        "tool_correct": true,
+        "structured_valid": true
+      },
+      {
+        "id": "metric-profit-fr",
+        "group": "metric",
+        "critical": false,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "management-projet-v3-en-fr-audit-quote-fr",
+        "group": "record_search",
+        "critical": false,
+        "tool_correct": true,
+        "structured_valid": true
+      },
+      {
+        "id": "management-projet-v4-en-fr-fresh-quote-number-fr",
+        "group": "fresh",
+        "critical": false,
+        "tool_correct": false,
+        "structured_valid": false
+      },
+      {
+        "id": "management-projet-v4-en-fr-fresh-quote-number-en",
+        "group": "fresh",
+        "critical": false,
+        "tool_correct": false,
+        "structured_valid": false
+      },
+      {
+        "id": "management-projet-v4-en-fr-fresh-missing-year-en",
+        "group": "fresh",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "out-of-range-fr",
+        "group": "out-of-range",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "out-of-range-en",
+        "group": "out-of-range",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "expired-selection-fr",
+        "group": "expired-selection",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "expired-selection-en",
+        "group": "expired-selection",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "read-only-selection-fr",
+        "group": "read-only-selection",
+        "critical": true,
+        "tool_correct": true,
+        "structured_valid": true
+      },
+      {
+        "id": "delete-no-selection-fr",
+        "group": "delete-no-selection",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "delete-no-selection-en",
+        "group": "delete-no-selection",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "facturation-refinement-v2-en-fr-composed-relative-fr",
+        "group": "composed",
+        "critical": false,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "facturation-refinement-v2-en-fr-composed-relative-en",
+        "group": "composed",
+        "critical": false,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "facturation-refinement-v2-en-fr-date-worded-fr",
+        "group": "date",
+        "critical": false,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "facturation-refinement-v2-en-fr-date-worded-en",
+        "group": "date",
+        "critical": false,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "facturation-refinement-v2-en-fr-paid-or-unpaid-fr",
+        "group": "paid",
+        "critical": false,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "facturation-refinement-v2-en-fr-paid-or-unpaid-en",
+        "group": "paid",
+        "critical": false,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "facturation-refinement-v2-en-fr-only-before-fr",
+        "group": "only",
+        "critical": false,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "facturation-refinement-v2-en-fr-only-before-en",
+        "group": "only",
+        "critical": false,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "facturation-refinement-v2-en-fr-reference-exact-fr",
+        "group": "reference",
+        "critical": false,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "facturation-refinement-v2-en-fr-reference-exact-en",
+        "group": "reference",
+        "critical": false,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "facturation-refinement-v2-en-fr-quote-customer-and-item-fr",
+        "group": "quote",
+        "critical": false,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "facturation-refinement-v2-en-fr-quote-customer-and-item-en",
+        "group": "quote",
+        "critical": false,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "management-projet-refinement-v2-en-fr-multi-field-position-fr",
+        "group": "multi",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "management-projet-refinement-v2-en-fr-multi-field-position-en",
+        "group": "multi",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "management-projet-refinement-v2-en-fr-selection-tax-fr",
+        "group": "selection",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "management-projet-refinement-v2-en-fr-selection-tax-en",
+        "group": "selection",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "management-projet-refinement-v2-en-fr-delete-one-fr",
+        "group": "delete",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "management-projet-refinement-v2-en-fr-delete-one-en",
+        "group": "delete",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "management-projet-refinement-v2-en-fr-end-only-fr",
+        "group": "end",
+        "critical": false,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "management-projet-refinement-v2-en-fr-end-only-en",
+        "group": "end",
+        "critical": false,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "management-projet-refinement-v2-en-fr-current-project-status-fr",
+        "group": "current",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "management-projet-refinement-v2-en-fr-current-project-status-en",
+        "group": "current",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "design-workflow-refinement-v2-en-fr-person-and-status-fr",
+        "group": "person",
+        "critical": false,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "design-workflow-refinement-v2-en-fr-person-and-status-en",
+        "group": "person",
+        "critical": false,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "design-workflow-refinement-v2-en-fr-text-person-separate-fr",
+        "group": "text",
+        "critical": false,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "design-workflow-refinement-v2-en-fr-text-person-separate-en",
+        "group": "text",
+        "critical": false,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "design-workflow-refinement-v2-en-fr-board-unambiguous-fr",
+        "group": "board",
+        "critical": false,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "design-workflow-refinement-v2-en-fr-board-unambiguous-en",
+        "group": "board",
+        "critical": false,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "design-workflow-refinement-v2-en-fr-project-own-fr",
+        "group": "project",
+        "critical": false,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "design-workflow-refinement-v2-en-fr-project-own-en",
+        "group": "project",
+        "critical": false,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "design-workflow-refinement-v2-en-fr-edit-date-fr",
+        "group": "edit",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "design-workflow-refinement-v2-en-fr-edit-date-en",
+        "group": "edit",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "design-workflow-refinement-v2-en-fr-edit-two-values-fr",
+        "group": "edit",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "design-workflow-refinement-v2-en-fr-edit-two-values-en",
+        "group": "edit",
+        "critical": true,
+        "tool_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "design-workflow-refinement-v2-en-fr-archive-outside-fr",
+        "group": "archive",
+        "critical": true,
+        "tool_correct": true,
+        "structured_valid": true
+      }
+    ],
+    "limitations": [
+      "Separate analysis of frozen events; original benchmark files and scores are unchanged.",
+      "All clarification reason/language and proposed-change arguments must match their labels.",
+      "Knowledge queries are checked only for nonempty text; retrieval factuality is not measured here.",
+      "Bilingual pairs share scenarios; scenario count is not independent statistical certification.",
+      "Original failures informed training categories; originals remain regression tests, not unseen certification.",
+      "No business tools execute here. Native permission, tenant, confirmation and audit tests remain required.",
+      "Passing model targets does not authorize production activation."
+    ]
+  },
+  "baseline_by_application": {
+    "design_workflow": {
+      "metrics": {
+        "count": 130,
+        "counts": {
+          "tool_correct": 125,
+          "structured_valid": 130,
+          "action_matches": 115
+        },
+        "percent": {
+          "tool_correct": 96.15,
+          "structured_valid": 100.0,
+          "action_matches": 88.46
+        },
+        "exact_arguments": {
+          "passed": 87,
+          "count": 100,
+          "percent": 87.0
+        }
+      },
+      "targets": {
+        "tool_selection": true,
+        "exact_arguments": false,
+        "structured_output": true,
+        "clarification_reason_and_language": false,
+        "critical_model_cases": false
+      },
+      "model_targets_passed": false,
+      "clarifications": {
+        "count": 26,
+        "counts": {
+          "tool_correct": 26,
+          "structured_valid": 26,
+          "action_matches": 24
+        },
+        "percent": {
+          "tool_correct": 100.0,
+          "structured_valid": 100.0,
+          "action_matches": 92.31
+        },
+        "exact_arguments": {
+          "passed": 0,
+          "count": 0,
+          "percent": null
+        }
+      },
+      "critical_model_cases": {
+        "count": 40,
+        "counts": {
+          "tool_correct": 37,
+          "structured_valid": 40,
+          "action_matches": 34
+        },
+        "percent": {
+          "tool_correct": 92.5,
+          "structured_valid": 100.0,
+          "action_matches": 85.0
+        },
+        "exact_arguments": {
+          "passed": 10,
+          "count": 14,
+          "percent": 71.43
+        }
+      },
+      "by_language": {
+        "en": {
+          "count": 65,
+          "counts": {
+            "tool_correct": 63,
+            "structured_valid": 65,
+            "action_matches": 56
+          },
+          "percent": {
+            "tool_correct": 96.92,
+            "structured_valid": 100.0,
+            "action_matches": 86.15
+          },
+          "exact_arguments": {
+            "passed": 42,
+            "count": 50,
+            "percent": 84.0
+          }
+        },
+        "fr": {
+          "count": 65,
+          "counts": {
+            "tool_correct": 62,
+            "structured_valid": 65,
+            "action_matches": 59
+          },
+          "percent": {
+            "tool_correct": 95.38,
+            "structured_valid": 100.0,
+            "action_matches": 90.77
+          },
+          "exact_arguments": {
+            "passed": 45,
+            "count": 50,
+            "percent": 90.0
+          }
+        }
+      },
+      "distinct_bilingual_scenario_ids": 65,
+      "failures": [
+        {
+          "id": "test-search-collaborator-fr",
+          "group": "search",
+          "critical": false,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "test-search-collaborator-en",
+          "group": "search",
+          "critical": false,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "design-workflow-v3-en-fr-fresh-assignee-en",
+          "group": "fresh",
+          "critical": false,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "design-workflow-v3-en-fr-fresh-time-en",
+          "group": "fresh",
+          "critical": false,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "design-workflow-v3-en-fr-fresh-denied-fr",
+          "group": "fresh",
+          "critical": true,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "design-workflow-v3-en-fr-fresh-denied-en",
+          "group": "fresh",
+          "critical": true,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "design_workflow-refinement-v1-assigned-late-fr",
+          "group": "assigned",
+          "critical": false,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "design_workflow-refinement-v1-explicit-date-fr",
+          "group": "explicit",
+          "critical": false,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "design_workflow-refinement-v1-explicit-date-en",
+          "group": "explicit",
+          "critical": false,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "design_workflow-refinement-v1-review-mine-en",
+          "group": "review",
+          "critical": false,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "design-workflow-refinement-v2-en-fr-project-own-en",
+          "group": "project",
+          "critical": false,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "design-workflow-refinement-v2-en-fr-edit-date-fr",
+          "group": "edit",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "design-workflow-refinement-v2-en-fr-edit-date-en",
+          "group": "edit",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "design-workflow-refinement-v2-en-fr-edit-two-values-fr",
+          "group": "edit",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "design-workflow-refinement-v2-en-fr-edit-two-values-en",
+          "group": "edit",
+          "critical": true,
+          "tool_correct": true,
+          "structured_valid": true
+        }
+      ],
+      "limitations": [
+        "Separate analysis of frozen events; original benchmark files and scores are unchanged.",
+        "All clarification reason/language and proposed-change arguments must match their labels.",
+        "Knowledge queries are checked only for nonempty text; retrieval factuality is not measured here.",
+        "Bilingual pairs share scenarios; scenario count is not independent statistical certification.",
+        "Original failures informed training categories; originals remain regression tests, not unseen certification.",
+        "No business tools execute here. Native permission, tenant, confirmation and audit tests remain required.",
+        "Passing model targets does not authorize production activation."
+      ]
+    },
+    "facturation": {
+      "metrics": {
+        "count": 108,
+        "counts": {
+          "tool_correct": 101,
+          "structured_valid": 108,
+          "action_matches": 84
+        },
+        "percent": {
+          "tool_correct": 93.52,
+          "structured_valid": 100.0,
+          "action_matches": 77.78
+        },
+        "exact_arguments": {
+          "passed": 66,
+          "count": 86,
+          "percent": 76.74
+        }
+      },
+      "targets": {
+        "tool_selection": false,
+        "exact_arguments": false,
+        "structured_output": true,
+        "clarification_reason_and_language": false,
+        "critical_model_cases": false
+      },
+      "model_targets_passed": false,
+      "clarifications": {
+        "count": 18,
+        "counts": {
+          "tool_correct": 16,
+          "structured_valid": 18,
+          "action_matches": 14
+        },
+        "percent": {
+          "tool_correct": 88.89,
+          "structured_valid": 100.0,
+          "action_matches": 77.78
+        },
+        "exact_arguments": {
+          "passed": 0,
+          "count": 0,
+          "percent": null
+        }
+      },
+      "critical_model_cases": {
+        "count": 24,
+        "counts": {
+          "tool_correct": 22,
+          "structured_valid": 24,
+          "action_matches": 20
+        },
+        "percent": {
+          "tool_correct": 91.67,
+          "structured_valid": 100.0,
+          "action_matches": 83.33
+        },
+        "exact_arguments": {
+          "passed": 6,
+          "count": 6,
+          "percent": 100.0
+        }
+      },
+      "by_language": {
+        "en": {
+          "count": 54,
+          "counts": {
+            "tool_correct": 51,
+            "structured_valid": 54,
+            "action_matches": 43
+          },
+          "percent": {
+            "tool_correct": 94.44,
+            "structured_valid": 100.0,
+            "action_matches": 79.63
+          },
+          "exact_arguments": {
+            "passed": 34,
+            "count": 43,
+            "percent": 79.07
+          }
+        },
+        "fr": {
+          "count": 54,
+          "counts": {
+            "tool_correct": 50,
+            "structured_valid": 54,
+            "action_matches": 41
+          },
+          "percent": {
+            "tool_correct": 92.59,
+            "structured_valid": 100.0,
+            "action_matches": 75.93
+          },
+          "exact_arguments": {
+            "passed": 32,
+            "count": 43,
+            "percent": 74.42
+          }
+        }
+      },
+      "distinct_bilingual_scenario_ids": 54,
+      "failures": [
+        {
+          "id": "acceptance-invoice_combined-fr",
+          "group": "document_filters",
+          "critical": false,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "acceptance-delivery_relative_dates-en",
+          "group": "relative_search_dates",
+          "critical": false,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "acceptance-delivery_relative_dates-fr",
+          "group": "relative_search_dates",
+          "critical": false,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "acceptance-valid_payment-en",
+          "group": "payment_filters",
+          "critical": false,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "acceptance-stock_minimum-en",
+          "group": "operational_filters",
+          "critical": false,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "acceptance-stock_minimum-fr",
+          "group": "operational_filters",
+          "critical": false,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "acceptance-stock_reversal-en",
+          "group": "operational_filters",
+          "critical": false,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "acceptance-stock_reversal-fr",
+          "group": "operational_filters",
+          "critical": false,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "acceptance-stock_inventory-en",
+          "group": "operational_filters",
+          "critical": false,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "acceptance-stock_inventory-fr",
+          "group": "operational_filters",
+          "critical": false,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "acceptance-logistics_transit-fr",
+          "group": "operational_filters",
+          "critical": false,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "acceptance-missing_year_switch-en",
+          "group": "language_switch_clarification",
+          "critical": true,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "facturation-refinement-v1-invoice-filters-fr",
+          "group": "invoice",
+          "critical": false,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "facturation-refinement-v1-invoice-filters-en",
+          "group": "invoice",
+          "critical": false,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "facturation-refinement-v1-year-implicit-fr",
+          "group": "year",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "facturation-refinement-v1-year-implicit-en",
+          "group": "year",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "facturation-refinement-v2-en-fr-composed-relative-fr",
+          "group": "composed",
+          "critical": false,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "facturation-refinement-v2-en-fr-composed-relative-en",
+          "group": "composed",
+          "critical": false,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "facturation-refinement-v2-en-fr-quote-limited-state-fr",
+          "group": "quote",
+          "critical": true,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "facturation-refinement-v2-en-fr-date-worded-fr",
+          "group": "date",
+          "critical": false,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "facturation-refinement-v2-en-fr-paid-or-unpaid-fr",
+          "group": "paid",
+          "critical": false,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "facturation-refinement-v2-en-fr-paid-or-unpaid-en",
+          "group": "paid",
+          "critical": false,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "facturation-refinement-v2-en-fr-only-before-fr",
+          "group": "only",
+          "critical": false,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "facturation-refinement-v2-en-fr-only-before-en",
+          "group": "only",
+          "critical": false,
+          "tool_correct": false,
+          "structured_valid": true
+        }
+      ],
+      "limitations": [
+        "Separate analysis of frozen events; original benchmark files and scores are unchanged.",
+        "All clarification reason/language and proposed-change arguments must match their labels.",
+        "Knowledge queries are checked only for nonempty text; retrieval factuality is not measured here.",
+        "Bilingual pairs share scenarios; scenario count is not independent statistical certification.",
+        "Original failures informed training categories; originals remain regression tests, not unseen certification.",
+        "No business tools execute here. Native permission, tenant, confirmation and audit tests remain required.",
+        "Passing model targets does not authorize production activation."
+      ]
+    },
+    "management_projet": {
+      "metrics": {
+        "count": 200,
+        "counts": {
+          "tool_correct": 160,
+          "structured_valid": 187,
+          "action_matches": 154
+        },
+        "percent": {
+          "tool_correct": 80.0,
+          "structured_valid": 93.5,
+          "action_matches": 77.0
+        },
+        "exact_arguments": {
+          "passed": 124,
+          "count": 148,
+          "percent": 83.78
+        }
+      },
+      "targets": {
+        "tool_selection": false,
+        "exact_arguments": false,
+        "structured_output": false,
+        "clarification_reason_and_language": false,
+        "critical_model_cases": false
+      },
+      "model_targets_passed": false,
+      "clarifications": {
+        "count": 46,
+        "counts": {
+          "tool_correct": 26,
+          "structured_valid": 41,
+          "action_matches": 24
+        },
+        "percent": {
+          "tool_correct": 56.52,
+          "structured_valid": 89.13,
+          "action_matches": 52.17
+        },
+        "exact_arguments": {
+          "passed": 0,
+          "count": 0,
+          "percent": null
+        }
+      },
+      "critical_model_cases": {
+        "count": 86,
+        "counts": {
+          "tool_correct": 48,
+          "structured_valid": 73,
+          "action_matches": 43
+        },
+        "percent": {
+          "tool_correct": 55.81,
+          "structured_valid": 84.88,
+          "action_matches": 50.0
+        },
+        "exact_arguments": {
+          "passed": 19,
+          "count": 40,
+          "percent": 47.5
+        }
+      },
+      "by_language": {
+        "en": {
+          "count": 100,
+          "counts": {
+            "tool_correct": 80,
+            "structured_valid": 92,
+            "action_matches": 78
+          },
+          "percent": {
+            "tool_correct": 80.0,
+            "structured_valid": 92.0,
+            "action_matches": 78.0
+          },
+          "exact_arguments": {
+            "passed": 63,
+            "count": 74,
+            "percent": 85.14
+          }
+        },
+        "fr": {
+          "count": 100,
+          "counts": {
+            "tool_correct": 80,
+            "structured_valid": 95,
+            "action_matches": 76
+          },
+          "percent": {
+            "tool_correct": 80.0,
+            "structured_valid": 95.0,
+            "action_matches": 76.0
+          },
+          "exact_arguments": {
+            "passed": 61,
+            "count": 74,
+            "percent": 82.43
+          }
+        }
+      },
+      "distinct_bilingual_scenario_ids": 100,
+      "failures": [
+        {
+          "id": "v2-audit-change-en",
+          "group": "authorized_change",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": false
+        },
+        {
+          "id": "v2-audit-ambiguous-fr",
+          "group": "financial_clarification",
+          "critical": true,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "v2-audit-ambiguous-en",
+          "group": "financial_clarification",
+          "critical": true,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "management-projet-v3-en-fr-audit-before-en",
+          "group": "record_search",
+          "critical": false,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "management-projet-v3-en-fr-audit-edit-fr",
+          "group": "authorized_change",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "management-projet-v3-en-fr-audit-edit-en",
+          "group": "authorized_change",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "management-projet-v4-en-fr-fresh-earned-fr",
+          "group": "fresh",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "management-projet-v4-en-fr-fresh-supplier-total-fr",
+          "group": "fresh",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": false
+        },
+        {
+          "id": "management-projet-v4-en-fr-fresh-supplier-total-en",
+          "group": "fresh",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": false
+        },
+        {
+          "id": "management-projet-v4-en-fr-fresh-missing-year-fr",
+          "group": "fresh",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "management-projet-v4-en-fr-fresh-missing-year-en",
+          "group": "fresh",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "management_projet-refinement-v1-unsupported-total-fr",
+          "group": "unsupported",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": false
+        },
+        {
+          "id": "management_projet-refinement-v1-unsupported-total-en",
+          "group": "unsupported",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": false
+        },
+        {
+          "id": "management_projet-refinement-v1-month-implicit-en",
+          "group": "month",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "second-customer-city-fr",
+          "group": "second-customer-city",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "first-supplier-contact-fr",
+          "group": "first-supplier-contact",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "third-project-status-en",
+          "group": "third-project-status",
+          "critical": true,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "second-quote-amount-fr",
+          "group": "second-quote-amount",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": false
+        },
+        {
+          "id": "second-quote-amount-en",
+          "group": "second-quote-amount",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": false
+        },
+        {
+          "id": "third-expense-note-fr",
+          "group": "third-expense-note",
+          "critical": true,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "first-receipt-date-fr",
+          "group": "first-receipt-date",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "second-schedule-date-fr",
+          "group": "second-schedule-date",
+          "critical": true,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "second-schedule-date-en",
+          "group": "second-schedule-date",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "third-customer-delete-fr",
+          "group": "third-customer-delete",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "third-customer-delete-en",
+          "group": "third-customer-delete",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": false
+        },
+        {
+          "id": "second-result-after-other-language-fr",
+          "group": "second-result-after-other-language",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "out-of-range-fr",
+          "group": "out-of-range",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "out-of-range-en",
+          "group": "out-of-range",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "expired-selection-fr",
+          "group": "expired-selection",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "expired-selection-en",
+          "group": "expired-selection",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "read-only-selection-fr",
+          "group": "read-only-selection",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "read-only-selection-en",
+          "group": "read-only-selection",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "delete-no-selection-fr",
+          "group": "delete-no-selection",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "delete-no-selection-en",
+          "group": "delete-no-selection",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "management-projet-refinement-v2-en-fr-multi-field-position-fr",
+          "group": "multi",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "management-projet-refinement-v2-en-fr-multi-field-position-en",
+          "group": "multi",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "management-projet-refinement-v2-en-fr-selection-tax-fr",
+          "group": "selection",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": false
+        },
+        {
+          "id": "management-projet-refinement-v2-en-fr-selection-tax-en",
+          "group": "selection",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": false
+        },
+        {
+          "id": "management-projet-refinement-v2-en-fr-delete-one-fr",
+          "group": "delete",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": false
+        },
+        {
+          "id": "management-projet-refinement-v2-en-fr-delete-one-en",
+          "group": "delete",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": false
+        },
+        {
+          "id": "management-projet-refinement-v2-en-fr-sixth-absent-fr",
+          "group": "sixth",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "management-projet-refinement-v2-en-fr-sixth-absent-en",
+          "group": "sixth",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "management-projet-refinement-v2-en-fr-supplier-metric-fr",
+          "group": "supplier",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "management-projet-refinement-v2-en-fr-supplier-metric-en",
+          "group": "supplier",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": false
+        },
+        {
+          "id": "management-projet-refinement-v2-en-fr-end-only-fr",
+          "group": "end",
+          "critical": false,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "management-projet-refinement-v2-en-fr-end-only-en",
+          "group": "end",
+          "critical": false,
+          "tool_correct": false,
+          "structured_valid": true
+        }
+      ],
+      "limitations": [
+        "Separate analysis of frozen events; original benchmark files and scores are unchanged.",
+        "All clarification reason/language and proposed-change arguments must match their labels.",
+        "Knowledge queries are checked only for nonempty text; retrieval factuality is not measured here.",
+        "Bilingual pairs share scenarios; scenario count is not independent statistical certification.",
+        "Original failures informed training categories; originals remain regression tests, not unseen certification.",
+        "No business tools execute here. Native permission, tenant, confirmation and audit tests remain required.",
+        "Passing model targets does not authorize production activation."
+      ]
+    }
+  },
+  "candidate_by_application": {
+    "design_workflow": {
+      "metrics": {
+        "count": 130,
+        "counts": {
+          "tool_correct": 116,
+          "structured_valid": 130,
+          "action_matches": 113
+        },
+        "percent": {
+          "tool_correct": 89.23,
+          "structured_valid": 100.0,
+          "action_matches": 86.92
+        },
+        "exact_arguments": {
+          "passed": 84,
+          "count": 100,
+          "percent": 84.0
+        }
+      },
+      "targets": {
+        "tool_selection": false,
+        "exact_arguments": false,
+        "structured_output": true,
+        "clarification_reason_and_language": false,
+        "critical_model_cases": false
+      },
+      "model_targets_passed": false,
+      "clarifications": {
+        "count": 26,
+        "counts": {
+          "tool_correct": 26,
+          "structured_valid": 26,
+          "action_matches": 25
+        },
+        "percent": {
+          "tool_correct": 100.0,
+          "structured_valid": 100.0,
+          "action_matches": 96.15
+        },
+        "exact_arguments": {
+          "passed": 0,
+          "count": 0,
+          "percent": null
+        }
+      },
+      "critical_model_cases": {
+        "count": 40,
+        "counts": {
+          "tool_correct": 36,
+          "structured_valid": 40,
+          "action_matches": 35
+        },
+        "percent": {
+          "tool_correct": 90.0,
+          "structured_valid": 100.0,
+          "action_matches": 87.5
+        },
+        "exact_arguments": {
+          "passed": 10,
+          "count": 14,
+          "percent": 71.43
+        }
+      },
+      "by_language": {
+        "en": {
+          "count": 65,
+          "counts": {
+            "tool_correct": 58,
+            "structured_valid": 65,
+            "action_matches": 56
+          },
+          "percent": {
+            "tool_correct": 89.23,
+            "structured_valid": 100.0,
+            "action_matches": 86.15
+          },
+          "exact_arguments": {
+            "passed": 41,
+            "count": 50,
+            "percent": 82.0
+          }
+        },
+        "fr": {
+          "count": 65,
+          "counts": {
+            "tool_correct": 58,
+            "structured_valid": 65,
+            "action_matches": 57
+          },
+          "percent": {
+            "tool_correct": 89.23,
+            "structured_valid": 100.0,
+            "action_matches": 87.69
+          },
+          "exact_arguments": {
+            "passed": 43,
+            "count": 50,
+            "percent": 86.0
+          }
+        }
+      },
+      "distinct_bilingual_scenario_ids": 65,
+      "failures": [
+        {
+          "id": "design-workflow-v3-en-fr-fresh-assignee-en",
+          "group": "fresh",
+          "critical": false,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "design-workflow-v3-en-fr-fresh-time-en",
+          "group": "fresh",
+          "critical": false,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "design_workflow-refinement-v1-explicit-date-fr",
+          "group": "explicit",
+          "critical": false,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "design_workflow-refinement-v1-explicit-date-en",
+          "group": "explicit",
+          "critical": false,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "design-workflow-refinement-v2-en-fr-person-and-status-fr",
+          "group": "person",
+          "critical": false,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "design-workflow-refinement-v2-en-fr-person-and-status-en",
+          "group": "person",
+          "critical": false,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "design-workflow-refinement-v2-en-fr-text-person-separate-fr",
+          "group": "text",
+          "critical": false,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "design-workflow-refinement-v2-en-fr-text-person-separate-en",
+          "group": "text",
+          "critical": false,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "design-workflow-refinement-v2-en-fr-board-unambiguous-fr",
+          "group": "board",
+          "critical": false,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "design-workflow-refinement-v2-en-fr-board-unambiguous-en",
+          "group": "board",
+          "critical": false,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "design-workflow-refinement-v2-en-fr-project-own-fr",
+          "group": "project",
+          "critical": false,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "design-workflow-refinement-v2-en-fr-project-own-en",
+          "group": "project",
+          "critical": false,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "design-workflow-refinement-v2-en-fr-edit-date-fr",
+          "group": "edit",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "design-workflow-refinement-v2-en-fr-edit-date-en",
+          "group": "edit",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "design-workflow-refinement-v2-en-fr-edit-two-values-fr",
+          "group": "edit",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "design-workflow-refinement-v2-en-fr-edit-two-values-en",
+          "group": "edit",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "design-workflow-refinement-v2-en-fr-archive-outside-fr",
+          "group": "archive",
+          "critical": true,
+          "tool_correct": true,
+          "structured_valid": true
+        }
+      ],
+      "limitations": [
+        "Separate analysis of frozen events; original benchmark files and scores are unchanged.",
+        "All clarification reason/language and proposed-change arguments must match their labels.",
+        "Knowledge queries are checked only for nonempty text; retrieval factuality is not measured here.",
+        "Bilingual pairs share scenarios; scenario count is not independent statistical certification.",
+        "Original failures informed training categories; originals remain regression tests, not unseen certification.",
+        "No business tools execute here. Native permission, tenant, confirmation and audit tests remain required.",
+        "Passing model targets does not authorize production activation."
+      ]
+    },
+    "facturation": {
+      "metrics": {
+        "count": 108,
+        "counts": {
+          "tool_correct": 94,
+          "structured_valid": 106,
+          "action_matches": 87
+        },
+        "percent": {
+          "tool_correct": 87.04,
+          "structured_valid": 98.15,
+          "action_matches": 80.56
+        },
+        "exact_arguments": {
+          "passed": 66,
+          "count": 86,
+          "percent": 76.74
+        }
+      },
+      "targets": {
+        "tool_selection": false,
+        "exact_arguments": false,
+        "structured_output": false,
+        "clarification_reason_and_language": false,
+        "critical_model_cases": false
+      },
+      "model_targets_passed": false,
+      "clarifications": {
+        "count": 18,
+        "counts": {
+          "tool_correct": 17,
+          "structured_valid": 17,
+          "action_matches": 17
+        },
+        "percent": {
+          "tool_correct": 94.44,
+          "structured_valid": 94.44,
+          "action_matches": 94.44
+        },
+        "exact_arguments": {
+          "passed": 0,
+          "count": 0,
+          "percent": null
+        }
+      },
+      "critical_model_cases": {
+        "count": 24,
+        "counts": {
+          "tool_correct": 23,
+          "structured_valid": 23,
+          "action_matches": 23
+        },
+        "percent": {
+          "tool_correct": 95.83,
+          "structured_valid": 95.83,
+          "action_matches": 95.83
+        },
+        "exact_arguments": {
+          "passed": 6,
+          "count": 6,
+          "percent": 100.0
+        }
+      },
+      "by_language": {
+        "en": {
+          "count": 54,
+          "counts": {
+            "tool_correct": 47,
+            "structured_valid": 53,
+            "action_matches": 45
+          },
+          "percent": {
+            "tool_correct": 87.04,
+            "structured_valid": 98.15,
+            "action_matches": 83.33
+          },
+          "exact_arguments": {
+            "passed": 34,
+            "count": 43,
+            "percent": 79.07
+          }
+        },
+        "fr": {
+          "count": 54,
+          "counts": {
+            "tool_correct": 47,
+            "structured_valid": 53,
+            "action_matches": 42
+          },
+          "percent": {
+            "tool_correct": 87.04,
+            "structured_valid": 98.15,
+            "action_matches": 77.78
+          },
+          "exact_arguments": {
+            "passed": 32,
+            "count": 43,
+            "percent": 74.42
+          }
+        }
+      },
+      "distinct_bilingual_scenario_ids": 54,
+      "failures": [
+        {
+          "id": "acceptance-invoice_combined-fr",
+          "group": "document_filters",
+          "critical": false,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "acceptance-stock_minimum-en",
+          "group": "operational_filters",
+          "critical": false,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "acceptance-stock_minimum-fr",
+          "group": "operational_filters",
+          "critical": false,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "acceptance-stock_reversal-en",
+          "group": "operational_filters",
+          "critical": false,
+          "tool_correct": false,
+          "structured_valid": false
+        },
+        {
+          "id": "acceptance-stock_inventory-fr",
+          "group": "operational_filters",
+          "critical": false,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "acceptance-logistics_transit-fr",
+          "group": "operational_filters",
+          "critical": false,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "acceptance-unsupported_stock_write-fr",
+          "group": "unsupported_operation",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": false
+        },
+        {
+          "id": "facturation-refinement-v1-invoice-filters-fr",
+          "group": "invoice",
+          "critical": false,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "facturation-refinement-v1-invoice-filters-en",
+          "group": "invoice",
+          "critical": false,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "facturation-refinement-v2-en-fr-composed-relative-fr",
+          "group": "composed",
+          "critical": false,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "facturation-refinement-v2-en-fr-composed-relative-en",
+          "group": "composed",
+          "critical": false,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "facturation-refinement-v2-en-fr-date-worded-fr",
+          "group": "date",
+          "critical": false,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "facturation-refinement-v2-en-fr-date-worded-en",
+          "group": "date",
+          "critical": false,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "facturation-refinement-v2-en-fr-paid-or-unpaid-fr",
+          "group": "paid",
+          "critical": false,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "facturation-refinement-v2-en-fr-paid-or-unpaid-en",
+          "group": "paid",
+          "critical": false,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "facturation-refinement-v2-en-fr-only-before-fr",
+          "group": "only",
+          "critical": false,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "facturation-refinement-v2-en-fr-only-before-en",
+          "group": "only",
+          "critical": false,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "facturation-refinement-v2-en-fr-reference-exact-fr",
+          "group": "reference",
+          "critical": false,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "facturation-refinement-v2-en-fr-reference-exact-en",
+          "group": "reference",
+          "critical": false,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "facturation-refinement-v2-en-fr-quote-customer-and-item-fr",
+          "group": "quote",
+          "critical": false,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "facturation-refinement-v2-en-fr-quote-customer-and-item-en",
+          "group": "quote",
+          "critical": false,
+          "tool_correct": false,
+          "structured_valid": true
+        }
+      ],
+      "limitations": [
+        "Separate analysis of frozen events; original benchmark files and scores are unchanged.",
+        "All clarification reason/language and proposed-change arguments must match their labels.",
+        "Knowledge queries are checked only for nonempty text; retrieval factuality is not measured here.",
+        "Bilingual pairs share scenarios; scenario count is not independent statistical certification.",
+        "Original failures informed training categories; originals remain regression tests, not unseen certification.",
+        "No business tools execute here. Native permission, tenant, confirmation and audit tests remain required.",
+        "Passing model targets does not authorize production activation."
+      ]
+    },
+    "management_projet": {
+      "metrics": {
+        "count": 200,
+        "counts": {
+          "tool_correct": 180,
+          "structured_valid": 198,
+          "action_matches": 178
+        },
+        "percent": {
+          "tool_correct": 90.0,
+          "structured_valid": 99.0,
+          "action_matches": 89.0
+        },
+        "exact_arguments": {
+          "passed": 134,
+          "count": 148,
+          "percent": 90.54
+        }
+      },
+      "targets": {
+        "tool_selection": false,
+        "exact_arguments": false,
+        "structured_output": true,
+        "clarification_reason_and_language": false,
+        "critical_model_cases": false
+      },
+      "model_targets_passed": false,
+      "clarifications": {
+        "count": 46,
+        "counts": {
+          "tool_correct": 39,
+          "structured_valid": 46,
+          "action_matches": 38
+        },
+        "percent": {
+          "tool_correct": 84.78,
+          "structured_valid": 100.0,
+          "action_matches": 82.61
+        },
+        "exact_arguments": {
+          "passed": 0,
+          "count": 0,
+          "percent": null
+        }
+      },
+      "critical_model_cases": {
+        "count": 86,
+        "counts": {
+          "tool_correct": 71,
+          "structured_valid": 86,
+          "action_matches": 70
+        },
+        "percent": {
+          "tool_correct": 82.56,
+          "structured_valid": 100.0,
+          "action_matches": 81.4
+        },
+        "exact_arguments": {
+          "passed": 32,
+          "count": 40,
+          "percent": 80.0
+        }
+      },
+      "by_language": {
+        "en": {
+          "count": 100,
+          "counts": {
+            "tool_correct": 90,
+            "structured_valid": 99,
+            "action_matches": 90
+          },
+          "percent": {
+            "tool_correct": 90.0,
+            "structured_valid": 99.0,
+            "action_matches": 90.0
+          },
+          "exact_arguments": {
+            "passed": 68,
+            "count": 74,
+            "percent": 91.89
+          }
+        },
+        "fr": {
+          "count": 100,
+          "counts": {
+            "tool_correct": 90,
+            "structured_valid": 99,
+            "action_matches": 88
+          },
+          "percent": {
+            "tool_correct": 90.0,
+            "structured_valid": 99.0,
+            "action_matches": 88.0
+          },
+          "exact_arguments": {
+            "passed": 66,
+            "count": 74,
+            "percent": 89.19
+          }
+        }
+      },
+      "distinct_bilingual_scenario_ids": 100,
+      "failures": [
+        {
+          "id": "metric-profit-fr",
+          "group": "metric",
+          "critical": false,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "management-projet-v3-en-fr-audit-quote-fr",
+          "group": "record_search",
+          "critical": false,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "management-projet-v4-en-fr-fresh-quote-number-fr",
+          "group": "fresh",
+          "critical": false,
+          "tool_correct": false,
+          "structured_valid": false
+        },
+        {
+          "id": "management-projet-v4-en-fr-fresh-quote-number-en",
+          "group": "fresh",
+          "critical": false,
+          "tool_correct": false,
+          "structured_valid": false
+        },
+        {
+          "id": "management-projet-v4-en-fr-fresh-missing-year-en",
+          "group": "fresh",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "out-of-range-fr",
+          "group": "out-of-range",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "out-of-range-en",
+          "group": "out-of-range",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "expired-selection-fr",
+          "group": "expired-selection",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "expired-selection-en",
+          "group": "expired-selection",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "read-only-selection-fr",
+          "group": "read-only-selection",
+          "critical": true,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "delete-no-selection-fr",
+          "group": "delete-no-selection",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "delete-no-selection-en",
+          "group": "delete-no-selection",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "management-projet-refinement-v2-en-fr-multi-field-position-fr",
+          "group": "multi",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "management-projet-refinement-v2-en-fr-multi-field-position-en",
+          "group": "multi",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "management-projet-refinement-v2-en-fr-selection-tax-fr",
+          "group": "selection",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "management-projet-refinement-v2-en-fr-selection-tax-en",
+          "group": "selection",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "management-projet-refinement-v2-en-fr-delete-one-fr",
+          "group": "delete",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "management-projet-refinement-v2-en-fr-delete-one-en",
+          "group": "delete",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "management-projet-refinement-v2-en-fr-end-only-fr",
+          "group": "end",
+          "critical": false,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "management-projet-refinement-v2-en-fr-end-only-en",
+          "group": "end",
+          "critical": false,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "management-projet-refinement-v2-en-fr-current-project-status-fr",
+          "group": "current",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "management-projet-refinement-v2-en-fr-current-project-status-en",
+          "group": "current",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        }
+      ],
+      "limitations": [
+        "Separate analysis of frozen events; original benchmark files and scores are unchanged.",
+        "All clarification reason/language and proposed-change arguments must match their labels.",
+        "Knowledge queries are checked only for nonempty text; retrieval factuality is not measured here.",
+        "Bilingual pairs share scenarios; scenario count is not independent statistical certification.",
+        "Original failures informed training categories; originals remain regression tests, not unseen certification.",
+        "No business tools execute here. Native permission, tenant, confirmation and audit tests remain required.",
+        "Passing model targets does not authorize production activation."
+      ]
+    }
+  },
+  "sets": [
+    {
+      "dataset": "shared-adapter-v2-en-fr--design-workflow-v1-en-fr--test.eval.jsonl",
+      "dataset_sha256": "a68b97ede98f06de515569a639cfa015b7face6e22c127da975040220d112a1f",
+      "events_sha256": "56a5707721bdd5c16bd52e92f482fb58ff9be45f1da136adb01ec64e13e7ed1a",
+      "assessment": {
+        "metrics": {
+          "count": 60,
+          "counts": {
+            "tool_correct": 60,
+            "structured_valid": 60,
+            "action_matches": 60
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 48,
+            "count": 48,
+            "percent": 100.0
+          }
+        },
+        "targets": {
+          "tool_selection": true,
+          "exact_arguments": true,
+          "structured_output": true,
+          "clarification_reason_and_language": true,
+          "critical_model_cases": true
+        },
+        "model_targets_passed": true,
+        "clarifications": {
+          "count": 8,
+          "counts": {
+            "tool_correct": 8,
+            "structured_valid": 8,
+            "action_matches": 8
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        },
+        "critical_model_cases": {
+          "count": 14,
+          "counts": {
+            "tool_correct": 14,
+            "structured_valid": 14,
+            "action_matches": 14
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 6,
+            "count": 6,
+            "percent": 100.0
+          }
+        },
+        "by_language": {
+          "en": {
+            "count": 30,
+            "counts": {
+              "tool_correct": 30,
+              "structured_valid": 30,
+              "action_matches": 30
+            },
+            "percent": {
+              "tool_correct": 100.0,
+              "structured_valid": 100.0,
+              "action_matches": 100.0
+            },
+            "exact_arguments": {
+              "passed": 24,
+              "count": 24,
+              "percent": 100.0
+            }
+          },
+          "fr": {
+            "count": 30,
+            "counts": {
+              "tool_correct": 30,
+              "structured_valid": 30,
+              "action_matches": 30
+            },
+            "percent": {
+              "tool_correct": 100.0,
+              "structured_valid": 100.0,
+              "action_matches": 100.0
+            },
+            "exact_arguments": {
+              "passed": 24,
+              "count": 24,
+              "percent": 100.0
+            }
+          }
+        },
+        "distinct_bilingual_scenario_ids": 30,
+        "failures": [],
+        "limitations": [
+          "Separate analysis of frozen events; original benchmark files and scores are unchanged.",
+          "All clarification reason/language and proposed-change arguments must match their labels.",
+          "Knowledge queries are checked only for nonempty text; retrieval factuality is not measured here.",
+          "Bilingual pairs share scenarios; scenario count is not independent statistical certification.",
+          "Original failures informed training categories; originals remain regression tests, not unseen certification.",
+          "No business tools execute here. Native permission, tenant, confirmation and audit tests remain required.",
+          "Passing model targets does not authorize production activation."
+        ]
+      }
+    },
+    {
+      "dataset": "shared-adapter-v2-en-fr--design-workflow-v2-en-fr--independent.eval.jsonl",
+      "dataset_sha256": "76a49dd3f16a3f8747d2a27e72136a8638bb7e9bfaa0464fe074d30b35474965",
+      "events_sha256": "1f37593e0ff730b742d4d154e8e0a99e586e74eb2cb6b10e84ef51183a3f4827",
+      "assessment": {
+        "metrics": {
+          "count": 24,
+          "counts": {
+            "tool_correct": 24,
+            "structured_valid": 24,
+            "action_matches": 24
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 18,
+            "count": 18,
+            "percent": 100.0
+          }
+        },
+        "targets": {
+          "tool_selection": true,
+          "exact_arguments": true,
+          "structured_output": true,
+          "clarification_reason_and_language": true,
+          "critical_model_cases": true
+        },
+        "model_targets_passed": true,
+        "clarifications": {
+          "count": 6,
+          "counts": {
+            "tool_correct": 6,
+            "structured_valid": 6,
+            "action_matches": 6
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        },
+        "critical_model_cases": {
+          "count": 8,
+          "counts": {
+            "tool_correct": 8,
+            "structured_valid": 8,
+            "action_matches": 8
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        },
+        "by_language": {
+          "en": {
+            "count": 12,
+            "counts": {
+              "tool_correct": 12,
+              "structured_valid": 12,
+              "action_matches": 12
+            },
+            "percent": {
+              "tool_correct": 100.0,
+              "structured_valid": 100.0,
+              "action_matches": 100.0
+            },
+            "exact_arguments": {
+              "passed": 9,
+              "count": 9,
+              "percent": 100.0
+            }
+          },
+          "fr": {
+            "count": 12,
+            "counts": {
+              "tool_correct": 12,
+              "structured_valid": 12,
+              "action_matches": 12
+            },
+            "percent": {
+              "tool_correct": 100.0,
+              "structured_valid": 100.0,
+              "action_matches": 100.0
+            },
+            "exact_arguments": {
+              "passed": 9,
+              "count": 9,
+              "percent": 100.0
+            }
+          }
+        },
+        "distinct_bilingual_scenario_ids": 12,
+        "failures": [],
+        "limitations": [
+          "Separate analysis of frozen events; original benchmark files and scores are unchanged.",
+          "All clarification reason/language and proposed-change arguments must match their labels.",
+          "Knowledge queries are checked only for nonempty text; retrieval factuality is not measured here.",
+          "Bilingual pairs share scenarios; scenario count is not independent statistical certification.",
+          "Original failures informed training categories; originals remain regression tests, not unseen certification.",
+          "No business tools execute here. Native permission, tenant, confirmation and audit tests remain required.",
+          "Passing model targets does not authorize production activation."
+        ]
+      }
+    },
+    {
+      "dataset": "shared-adapter-v2-en-fr--design-workflow-v3-en-fr--independent.eval.jsonl",
+      "dataset_sha256": "03dd38836643543de70dcbd000f282bc8086fbba9ddffb532f3b5ed9d2db3523",
+      "events_sha256": "b7438689026cdc2569684a15074f743135f72e4fe35049c90ea027d0b28431be",
+      "assessment": {
+        "metrics": {
+          "count": 20,
+          "counts": {
+            "tool_correct": 20,
+            "structured_valid": 20,
+            "action_matches": 18
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 90.0
+          },
+          "exact_arguments": {
+            "passed": 12,
+            "count": 14,
+            "percent": 85.71
+          }
+        },
+        "targets": {
+          "tool_selection": true,
+          "exact_arguments": false,
+          "structured_output": true,
+          "clarification_reason_and_language": true,
+          "critical_model_cases": true
+        },
+        "model_targets_passed": false,
+        "clarifications": {
+          "count": 6,
+          "counts": {
+            "tool_correct": 6,
+            "structured_valid": 6,
+            "action_matches": 6
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        },
+        "critical_model_cases": {
+          "count": 8,
+          "counts": {
+            "tool_correct": 8,
+            "structured_valid": 8,
+            "action_matches": 8
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        },
+        "by_language": {
+          "en": {
+            "count": 10,
+            "counts": {
+              "tool_correct": 10,
+              "structured_valid": 10,
+              "action_matches": 8
+            },
+            "percent": {
+              "tool_correct": 100.0,
+              "structured_valid": 100.0,
+              "action_matches": 80.0
+            },
+            "exact_arguments": {
+              "passed": 5,
+              "count": 7,
+              "percent": 71.43
+            }
+          },
+          "fr": {
+            "count": 10,
+            "counts": {
+              "tool_correct": 10,
+              "structured_valid": 10,
+              "action_matches": 10
+            },
+            "percent": {
+              "tool_correct": 100.0,
+              "structured_valid": 100.0,
+              "action_matches": 100.0
+            },
+            "exact_arguments": {
+              "passed": 7,
+              "count": 7,
+              "percent": 100.0
+            }
+          }
+        },
+        "distinct_bilingual_scenario_ids": 10,
+        "failures": [
+          {
+            "id": "design-workflow-v3-en-fr-fresh-assignee-en",
+            "group": "fresh",
+            "critical": false,
+            "tool_correct": true,
+            "structured_valid": true
+          },
+          {
+            "id": "design-workflow-v3-en-fr-fresh-time-en",
+            "group": "fresh",
+            "critical": false,
+            "tool_correct": true,
+            "structured_valid": true
+          }
+        ],
+        "limitations": [
+          "Separate analysis of frozen events; original benchmark files and scores are unchanged.",
+          "All clarification reason/language and proposed-change arguments must match their labels.",
+          "Knowledge queries are checked only for nonempty text; retrieval factuality is not measured here.",
+          "Bilingual pairs share scenarios; scenario count is not independent statistical certification.",
+          "Original failures informed training categories; originals remain regression tests, not unseen certification.",
+          "No business tools execute here. Native permission, tenant, confirmation and audit tests remain required.",
+          "Passing model targets does not authorize production activation."
+        ]
+      }
+    },
+    {
+      "dataset": "shared-adapter-v2-en-fr--design-workflow-refinement-v1-en-fr--independent.eval.jsonl",
+      "dataset_sha256": "1e7c759c1b96fe2ef63c7923734dea1e0a36537d6c84a9a12c438678e8a57745",
+      "events_sha256": "bcbb0edc6dfc4d66cc5ce574e0a16dd08abce488b94656ecd29ec89043e3dc3b",
+      "assessment": {
+        "metrics": {
+          "count": 10,
+          "counts": {
+            "tool_correct": 8,
+            "structured_valid": 10,
+            "action_matches": 8
+          },
+          "percent": {
+            "tool_correct": 80.0,
+            "structured_valid": 100.0,
+            "action_matches": 80.0
+          },
+          "exact_arguments": {
+            "passed": 6,
+            "count": 8,
+            "percent": 75.0
+          }
+        },
+        "targets": {
+          "tool_selection": false,
+          "exact_arguments": false,
+          "structured_output": true,
+          "clarification_reason_and_language": true,
+          "critical_model_cases": true
+        },
+        "model_targets_passed": false,
+        "clarifications": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "structured_valid": 2,
+            "action_matches": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        },
+        "critical_model_cases": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "structured_valid": 2,
+            "action_matches": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        },
+        "by_language": {
+          "en": {
+            "count": 5,
+            "counts": {
+              "tool_correct": 4,
+              "structured_valid": 5,
+              "action_matches": 4
+            },
+            "percent": {
+              "tool_correct": 80.0,
+              "structured_valid": 100.0,
+              "action_matches": 80.0
+            },
+            "exact_arguments": {
+              "passed": 3,
+              "count": 4,
+              "percent": 75.0
+            }
+          },
+          "fr": {
+            "count": 5,
+            "counts": {
+              "tool_correct": 4,
+              "structured_valid": 5,
+              "action_matches": 4
+            },
+            "percent": {
+              "tool_correct": 80.0,
+              "structured_valid": 100.0,
+              "action_matches": 80.0
+            },
+            "exact_arguments": {
+              "passed": 3,
+              "count": 4,
+              "percent": 75.0
+            }
+          }
+        },
+        "distinct_bilingual_scenario_ids": 5,
+        "failures": [
+          {
+            "id": "design_workflow-refinement-v1-explicit-date-fr",
+            "group": "explicit",
+            "critical": false,
+            "tool_correct": false,
+            "structured_valid": true
+          },
+          {
+            "id": "design_workflow-refinement-v1-explicit-date-en",
+            "group": "explicit",
+            "critical": false,
+            "tool_correct": false,
+            "structured_valid": true
+          }
+        ],
+        "limitations": [
+          "Separate analysis of frozen events; original benchmark files and scores are unchanged.",
+          "All clarification reason/language and proposed-change arguments must match their labels.",
+          "Knowledge queries are checked only for nonempty text; retrieval factuality is not measured here.",
+          "Bilingual pairs share scenarios; scenario count is not independent statistical certification.",
+          "Original failures informed training categories; originals remain regression tests, not unseen certification.",
+          "No business tools execute here. Native permission, tenant, confirmation and audit tests remain required.",
+          "Passing model targets does not authorize production activation."
+        ]
+      }
+    },
+    {
+      "dataset": "shared-adapter-v2-en-fr--facturation-acceptance-en-fr--test.eval.jsonl",
+      "dataset_sha256": "5032ad514fa56ec971eafa72e3589d135debc12ca1f6272342460d9230837a42",
+      "events_sha256": "1ec52f7080e94a52954365d6d911cfc7edff6dfca90f5ce0f02a9f50b2d2e243",
+      "assessment": {
+        "metrics": {
+          "count": 80,
+          "counts": {
+            "tool_correct": 78,
+            "structured_valid": 78,
+            "action_matches": 73
+          },
+          "percent": {
+            "tool_correct": 97.5,
+            "structured_valid": 97.5,
+            "action_matches": 91.25
+          },
+          "exact_arguments": {
+            "passed": 60,
+            "count": 66,
+            "percent": 90.91
+          }
+        },
+        "targets": {
+          "tool_selection": true,
+          "exact_arguments": false,
+          "structured_output": false,
+          "clarification_reason_and_language": false,
+          "critical_model_cases": false
+        },
+        "model_targets_passed": false,
+        "clarifications": {
+          "count": 10,
+          "counts": {
+            "tool_correct": 9,
+            "structured_valid": 9,
+            "action_matches": 9
+          },
+          "percent": {
+            "tool_correct": 90.0,
+            "structured_valid": 90.0,
+            "action_matches": 90.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        },
+        "critical_model_cases": {
+          "count": 14,
+          "counts": {
+            "tool_correct": 13,
+            "structured_valid": 13,
+            "action_matches": 13
+          },
+          "percent": {
+            "tool_correct": 92.86,
+            "structured_valid": 92.86,
+            "action_matches": 92.86
+          },
+          "exact_arguments": {
+            "passed": 4,
+            "count": 4,
+            "percent": 100.0
+          }
+        },
+        "by_language": {
+          "en": {
+            "count": 40,
+            "counts": {
+              "tool_correct": 39,
+              "structured_valid": 39,
+              "action_matches": 38
+            },
+            "percent": {
+              "tool_correct": 97.5,
+              "structured_valid": 97.5,
+              "action_matches": 95.0
+            },
+            "exact_arguments": {
+              "passed": 31,
+              "count": 33,
+              "percent": 93.94
+            }
+          },
+          "fr": {
+            "count": 40,
+            "counts": {
+              "tool_correct": 39,
+              "structured_valid": 39,
+              "action_matches": 35
+            },
+            "percent": {
+              "tool_correct": 97.5,
+              "structured_valid": 97.5,
+              "action_matches": 87.5
+            },
+            "exact_arguments": {
+              "passed": 29,
+              "count": 33,
+              "percent": 87.88
+            }
+          }
+        },
+        "distinct_bilingual_scenario_ids": 40,
+        "failures": [
+          {
+            "id": "acceptance-invoice_combined-fr",
+            "group": "document_filters",
+            "critical": false,
+            "tool_correct": true,
+            "structured_valid": true
+          },
+          {
+            "id": "acceptance-stock_minimum-en",
+            "group": "operational_filters",
+            "critical": false,
+            "tool_correct": true,
+            "structured_valid": true
+          },
+          {
+            "id": "acceptance-stock_minimum-fr",
+            "group": "operational_filters",
+            "critical": false,
+            "tool_correct": true,
+            "structured_valid": true
+          },
+          {
+            "id": "acceptance-stock_reversal-en",
+            "group": "operational_filters",
+            "critical": false,
+            "tool_correct": false,
+            "structured_valid": false
+          },
+          {
+            "id": "acceptance-stock_inventory-fr",
+            "group": "operational_filters",
+            "critical": false,
+            "tool_correct": true,
+            "structured_valid": true
+          },
+          {
+            "id": "acceptance-logistics_transit-fr",
+            "group": "operational_filters",
+            "critical": false,
+            "tool_correct": true,
+            "structured_valid": true
+          },
+          {
+            "id": "acceptance-unsupported_stock_write-fr",
+            "group": "unsupported_operation",
+            "critical": true,
+            "tool_correct": false,
+            "structured_valid": false
+          }
+        ],
+        "limitations": [
+          "Separate analysis of frozen events; original benchmark files and scores are unchanged.",
+          "All clarification reason/language and proposed-change arguments must match their labels.",
+          "Knowledge queries are checked only for nonempty text; retrieval factuality is not measured here.",
+          "Bilingual pairs share scenarios; scenario count is not independent statistical certification.",
+          "Original failures informed training categories; originals remain regression tests, not unseen certification.",
+          "No business tools execute here. Native permission, tenant, confirmation and audit tests remain required.",
+          "Passing model targets does not authorize production activation."
+        ]
+      }
+    },
+    {
+      "dataset": "shared-adapter-v2-en-fr--facturation-refinement-v1-en-fr--independent.eval.jsonl",
+      "dataset_sha256": "51f86d89eb3d5dc325c2a785aad7bf593be38cf6440a2ba2affb0601a19c280c",
+      "events_sha256": "955a5299f4b1f1f92879cf6d359388c54dc27b34dbeabc49dce6ae4adf4955c4",
+      "assessment": {
+        "metrics": {
+          "count": 12,
+          "counts": {
+            "tool_correct": 12,
+            "structured_valid": 12,
+            "action_matches": 10
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 83.33
+          },
+          "exact_arguments": {
+            "passed": 6,
+            "count": 8,
+            "percent": 75.0
+          }
+        },
+        "targets": {
+          "tool_selection": true,
+          "exact_arguments": false,
+          "structured_output": true,
+          "clarification_reason_and_language": true,
+          "critical_model_cases": true
+        },
+        "model_targets_passed": false,
+        "clarifications": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 4,
+            "structured_valid": 4,
+            "action_matches": 4
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        },
+        "critical_model_cases": {
+          "count": 6,
+          "counts": {
+            "tool_correct": 6,
+            "structured_valid": 6,
+            "action_matches": 6
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        },
+        "by_language": {
+          "en": {
+            "count": 6,
+            "counts": {
+              "tool_correct": 6,
+              "structured_valid": 6,
+              "action_matches": 5
+            },
+            "percent": {
+              "tool_correct": 100.0,
+              "structured_valid": 100.0,
+              "action_matches": 83.33
+            },
+            "exact_arguments": {
+              "passed": 3,
+              "count": 4,
+              "percent": 75.0
+            }
+          },
+          "fr": {
+            "count": 6,
+            "counts": {
+              "tool_correct": 6,
+              "structured_valid": 6,
+              "action_matches": 5
+            },
+            "percent": {
+              "tool_correct": 100.0,
+              "structured_valid": 100.0,
+              "action_matches": 83.33
+            },
+            "exact_arguments": {
+              "passed": 3,
+              "count": 4,
+              "percent": 75.0
+            }
+          }
+        },
+        "distinct_bilingual_scenario_ids": 6,
+        "failures": [
+          {
+            "id": "facturation-refinement-v1-invoice-filters-fr",
+            "group": "invoice",
+            "critical": false,
+            "tool_correct": true,
+            "structured_valid": true
+          },
+          {
+            "id": "facturation-refinement-v1-invoice-filters-en",
+            "group": "invoice",
+            "critical": false,
+            "tool_correct": true,
+            "structured_valid": true
+          }
+        ],
+        "limitations": [
+          "Separate analysis of frozen events; original benchmark files and scores are unchanged.",
+          "All clarification reason/language and proposed-change arguments must match their labels.",
+          "Knowledge queries are checked only for nonempty text; retrieval factuality is not measured here.",
+          "Bilingual pairs share scenarios; scenario count is not independent statistical certification.",
+          "Original failures informed training categories; originals remain regression tests, not unseen certification.",
+          "No business tools execute here. Native permission, tenant, confirmation and audit tests remain required.",
+          "Passing model targets does not authorize production activation."
+        ]
+      }
+    },
+    {
+      "dataset": "shared-adapter-v2-en-fr--management-projet-v1-en-fr--test.eval.jsonl",
+      "dataset_sha256": "4bba62427783498ef0b28c06f2bfe838709551ec84e4e1a1b7528a0d07ea1bc7",
+      "events_sha256": "b8959c921ad62b58938c88cfebb41634f1b91074fe0e75de94029f7a1b26debf",
+      "assessment": {
+        "metrics": {
+          "count": 60,
+          "counts": {
+            "tool_correct": 59,
+            "structured_valid": 60,
+            "action_matches": 59
+          },
+          "percent": {
+            "tool_correct": 98.33,
+            "structured_valid": 100.0,
+            "action_matches": 98.33
+          },
+          "exact_arguments": {
+            "passed": 49,
+            "count": 50,
+            "percent": 98.0
+          }
+        },
+        "targets": {
+          "tool_selection": true,
+          "exact_arguments": true,
+          "structured_output": true,
+          "clarification_reason_and_language": true,
+          "critical_model_cases": true
+        },
+        "model_targets_passed": true,
+        "clarifications": {
+          "count": 6,
+          "counts": {
+            "tool_correct": 6,
+            "structured_valid": 6,
+            "action_matches": 6
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        },
+        "critical_model_cases": {
+          "count": 10,
+          "counts": {
+            "tool_correct": 10,
+            "structured_valid": 10,
+            "action_matches": 10
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 4,
+            "count": 4,
+            "percent": 100.0
+          }
+        },
+        "by_language": {
+          "en": {
+            "count": 30,
+            "counts": {
+              "tool_correct": 30,
+              "structured_valid": 30,
+              "action_matches": 30
+            },
+            "percent": {
+              "tool_correct": 100.0,
+              "structured_valid": 100.0,
+              "action_matches": 100.0
+            },
+            "exact_arguments": {
+              "passed": 25,
+              "count": 25,
+              "percent": 100.0
+            }
+          },
+          "fr": {
+            "count": 30,
+            "counts": {
+              "tool_correct": 29,
+              "structured_valid": 30,
+              "action_matches": 29
+            },
+            "percent": {
+              "tool_correct": 96.67,
+              "structured_valid": 100.0,
+              "action_matches": 96.67
+            },
+            "exact_arguments": {
+              "passed": 24,
+              "count": 25,
+              "percent": 96.0
+            }
+          }
+        },
+        "distinct_bilingual_scenario_ids": 30,
+        "failures": [
+          {
+            "id": "metric-profit-fr",
+            "group": "metric",
+            "critical": false,
+            "tool_correct": false,
+            "structured_valid": true
+          }
+        ],
+        "limitations": [
+          "Separate analysis of frozen events; original benchmark files and scores are unchanged.",
+          "All clarification reason/language and proposed-change arguments must match their labels.",
+          "Knowledge queries are checked only for nonempty text; retrieval factuality is not measured here.",
+          "Bilingual pairs share scenarios; scenario count is not independent statistical certification.",
+          "Original failures informed training categories; originals remain regression tests, not unseen certification.",
+          "No business tools execute here. Native permission, tenant, confirmation and audit tests remain required.",
+          "Passing model targets does not authorize production activation."
+        ]
+      }
+    },
+    {
+      "dataset": "shared-adapter-v2-en-fr--management-projet-v2-en-fr--independent.eval.jsonl",
+      "dataset_sha256": "cd50078a995961c76f8205f78be66a2fc3242280b554343b308a24fae183e8e8",
+      "events_sha256": "ac07f67867c65055a3ff97a4dded343eabf6248e15cc7cab4f11ff53f0081ed0",
+      "assessment": {
+        "metrics": {
+          "count": 20,
+          "counts": {
+            "tool_correct": 20,
+            "structured_valid": 20,
+            "action_matches": 20
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 14,
+            "count": 14,
+            "percent": 100.0
+          }
+        },
+        "targets": {
+          "tool_selection": true,
+          "exact_arguments": true,
+          "structured_output": true,
+          "clarification_reason_and_language": true,
+          "critical_model_cases": true
+        },
+        "model_targets_passed": true,
+        "clarifications": {
+          "count": 6,
+          "counts": {
+            "tool_correct": 6,
+            "structured_valid": 6,
+            "action_matches": 6
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        },
+        "critical_model_cases": {
+          "count": 8,
+          "counts": {
+            "tool_correct": 8,
+            "structured_valid": 8,
+            "action_matches": 8
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        },
+        "by_language": {
+          "en": {
+            "count": 10,
+            "counts": {
+              "tool_correct": 10,
+              "structured_valid": 10,
+              "action_matches": 10
+            },
+            "percent": {
+              "tool_correct": 100.0,
+              "structured_valid": 100.0,
+              "action_matches": 100.0
+            },
+            "exact_arguments": {
+              "passed": 7,
+              "count": 7,
+              "percent": 100.0
+            }
+          },
+          "fr": {
+            "count": 10,
+            "counts": {
+              "tool_correct": 10,
+              "structured_valid": 10,
+              "action_matches": 10
+            },
+            "percent": {
+              "tool_correct": 100.0,
+              "structured_valid": 100.0,
+              "action_matches": 100.0
+            },
+            "exact_arguments": {
+              "passed": 7,
+              "count": 7,
+              "percent": 100.0
+            }
+          }
+        },
+        "distinct_bilingual_scenario_ids": 10,
+        "failures": [],
+        "limitations": [
+          "Separate analysis of frozen events; original benchmark files and scores are unchanged.",
+          "All clarification reason/language and proposed-change arguments must match their labels.",
+          "Knowledge queries are checked only for nonempty text; retrieval factuality is not measured here.",
+          "Bilingual pairs share scenarios; scenario count is not independent statistical certification.",
+          "Original failures informed training categories; originals remain regression tests, not unseen certification.",
+          "No business tools execute here. Native permission, tenant, confirmation and audit tests remain required.",
+          "Passing model targets does not authorize production activation."
+        ]
+      }
+    },
+    {
+      "dataset": "shared-adapter-v2-en-fr--management-projet-v3-en-fr--independent.eval.jsonl",
+      "dataset_sha256": "d239c5be3d914669e65a5cc7fba3044ac73ee0fe31ae3ab6a86c2e1c673486d5",
+      "events_sha256": "0cb96f133f00f57aeebadff3d9395bd60569e467f52fe7de918323196599199b",
+      "assessment": {
+        "metrics": {
+          "count": 32,
+          "counts": {
+            "tool_correct": 32,
+            "structured_valid": 32,
+            "action_matches": 31
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 96.88
+          },
+          "exact_arguments": {
+            "passed": 25,
+            "count": 26,
+            "percent": 96.15
+          }
+        },
+        "targets": {
+          "tool_selection": true,
+          "exact_arguments": true,
+          "structured_output": true,
+          "clarification_reason_and_language": true,
+          "critical_model_cases": true
+        },
+        "model_targets_passed": true,
+        "clarifications": {
+          "count": 6,
+          "counts": {
+            "tool_correct": 6,
+            "structured_valid": 6,
+            "action_matches": 6
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        },
+        "critical_model_cases": {
+          "count": 8,
+          "counts": {
+            "tool_correct": 8,
+            "structured_valid": 8,
+            "action_matches": 8
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        },
+        "by_language": {
+          "en": {
+            "count": 16,
+            "counts": {
+              "tool_correct": 16,
+              "structured_valid": 16,
+              "action_matches": 16
+            },
+            "percent": {
+              "tool_correct": 100.0,
+              "structured_valid": 100.0,
+              "action_matches": 100.0
+            },
+            "exact_arguments": {
+              "passed": 13,
+              "count": 13,
+              "percent": 100.0
+            }
+          },
+          "fr": {
+            "count": 16,
+            "counts": {
+              "tool_correct": 16,
+              "structured_valid": 16,
+              "action_matches": 15
+            },
+            "percent": {
+              "tool_correct": 100.0,
+              "structured_valid": 100.0,
+              "action_matches": 93.75
+            },
+            "exact_arguments": {
+              "passed": 12,
+              "count": 13,
+              "percent": 92.31
+            }
+          }
+        },
+        "distinct_bilingual_scenario_ids": 16,
+        "failures": [
+          {
+            "id": "management-projet-v3-en-fr-audit-quote-fr",
+            "group": "record_search",
+            "critical": false,
+            "tool_correct": true,
+            "structured_valid": true
+          }
+        ],
+        "limitations": [
+          "Separate analysis of frozen events; original benchmark files and scores are unchanged.",
+          "All clarification reason/language and proposed-change arguments must match their labels.",
+          "Knowledge queries are checked only for nonempty text; retrieval factuality is not measured here.",
+          "Bilingual pairs share scenarios; scenario count is not independent statistical certification.",
+          "Original failures informed training categories; originals remain regression tests, not unseen certification.",
+          "No business tools execute here. Native permission, tenant, confirmation and audit tests remain required.",
+          "Passing model targets does not authorize production activation."
+        ]
+      }
+    },
+    {
+      "dataset": "shared-adapter-v2-en-fr--management-projet-v4-en-fr--independent.eval.jsonl",
+      "dataset_sha256": "66b337ebdd4d859d3c15330f040444d1b3b2b820ea4585359f21eadf5cee1c96",
+      "events_sha256": "537b033d9fcb40d55c2cad025a3b6ffc9315a04e004d6b01e8235ebb7b008323",
+      "assessment": {
+        "metrics": {
+          "count": 32,
+          "counts": {
+            "tool_correct": 29,
+            "structured_valid": 30,
+            "action_matches": 29
+          },
+          "percent": {
+            "tool_correct": 90.62,
+            "structured_valid": 93.75,
+            "action_matches": 90.62
+          },
+          "exact_arguments": {
+            "passed": 18,
+            "count": 20,
+            "percent": 90.0
+          }
+        },
+        "targets": {
+          "tool_selection": false,
+          "exact_arguments": false,
+          "structured_output": false,
+          "clarification_reason_and_language": false,
+          "critical_model_cases": false
+        },
+        "model_targets_passed": false,
+        "clarifications": {
+          "count": 10,
+          "counts": {
+            "tool_correct": 9,
+            "structured_valid": 10,
+            "action_matches": 9
+          },
+          "percent": {
+            "tool_correct": 90.0,
+            "structured_valid": 100.0,
+            "action_matches": 90.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        },
+        "critical_model_cases": {
+          "count": 12,
+          "counts": {
+            "tool_correct": 11,
+            "structured_valid": 12,
+            "action_matches": 11
+          },
+          "percent": {
+            "tool_correct": 91.67,
+            "structured_valid": 100.0,
+            "action_matches": 91.67
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        },
+        "by_language": {
+          "en": {
+            "count": 16,
+            "counts": {
+              "tool_correct": 14,
+              "structured_valid": 15,
+              "action_matches": 14
+            },
+            "percent": {
+              "tool_correct": 87.5,
+              "structured_valid": 93.75,
+              "action_matches": 87.5
+            },
+            "exact_arguments": {
+              "passed": 9,
+              "count": 10,
+              "percent": 90.0
+            }
+          },
+          "fr": {
+            "count": 16,
+            "counts": {
+              "tool_correct": 15,
+              "structured_valid": 15,
+              "action_matches": 15
+            },
+            "percent": {
+              "tool_correct": 93.75,
+              "structured_valid": 93.75,
+              "action_matches": 93.75
+            },
+            "exact_arguments": {
+              "passed": 9,
+              "count": 10,
+              "percent": 90.0
+            }
+          }
+        },
+        "distinct_bilingual_scenario_ids": 16,
+        "failures": [
+          {
+            "id": "management-projet-v4-en-fr-fresh-quote-number-fr",
+            "group": "fresh",
+            "critical": false,
+            "tool_correct": false,
+            "structured_valid": false
+          },
+          {
+            "id": "management-projet-v4-en-fr-fresh-quote-number-en",
+            "group": "fresh",
+            "critical": false,
+            "tool_correct": false,
+            "structured_valid": false
+          },
+          {
+            "id": "management-projet-v4-en-fr-fresh-missing-year-en",
+            "group": "fresh",
+            "critical": true,
+            "tool_correct": false,
+            "structured_valid": true
+          }
+        ],
+        "limitations": [
+          "Separate analysis of frozen events; original benchmark files and scores are unchanged.",
+          "All clarification reason/language and proposed-change arguments must match their labels.",
+          "Knowledge queries are checked only for nonempty text; retrieval factuality is not measured here.",
+          "Bilingual pairs share scenarios; scenario count is not independent statistical certification.",
+          "Original failures informed training categories; originals remain regression tests, not unseen certification.",
+          "No business tools execute here. Native permission, tenant, confirmation and audit tests remain required.",
+          "Passing model targets does not authorize production activation."
+        ]
+      }
+    },
+    {
+      "dataset": "shared-adapter-v2-en-fr--management-projet-refinement-v1-en-fr--independent.eval.jsonl",
+      "dataset_sha256": "e9dfb81a6ff77fa5cea25bbd94fba26b0efca77154316bf8bbca33360aeeabab",
+      "events_sha256": "7d47eb312570c2d1980711720ca53731f4e3647cc4502bb979b03286b20e4216",
+      "assessment": {
+        "metrics": {
+          "count": 12,
+          "counts": {
+            "tool_correct": 12,
+            "structured_valid": 12,
+            "action_matches": 12
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 8,
+            "count": 8,
+            "percent": 100.0
+          }
+        },
+        "targets": {
+          "tool_selection": true,
+          "exact_arguments": true,
+          "structured_output": true,
+          "clarification_reason_and_language": true,
+          "critical_model_cases": true
+        },
+        "model_targets_passed": true,
+        "clarifications": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 4,
+            "structured_valid": 4,
+            "action_matches": 4
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        },
+        "critical_model_cases": {
+          "count": 6,
+          "counts": {
+            "tool_correct": 6,
+            "structured_valid": 6,
+            "action_matches": 6
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        },
+        "by_language": {
+          "en": {
+            "count": 6,
+            "counts": {
+              "tool_correct": 6,
+              "structured_valid": 6,
+              "action_matches": 6
+            },
+            "percent": {
+              "tool_correct": 100.0,
+              "structured_valid": 100.0,
+              "action_matches": 100.0
+            },
+            "exact_arguments": {
+              "passed": 4,
+              "count": 4,
+              "percent": 100.0
+            }
+          },
+          "fr": {
+            "count": 6,
+            "counts": {
+              "tool_correct": 6,
+              "structured_valid": 6,
+              "action_matches": 6
+            },
+            "percent": {
+              "tool_correct": 100.0,
+              "structured_valid": 100.0,
+              "action_matches": 100.0
+            },
+            "exact_arguments": {
+              "passed": 4,
+              "count": 4,
+              "percent": 100.0
+            }
+          }
+        },
+        "distinct_bilingual_scenario_ids": 6,
+        "failures": [],
+        "limitations": [
+          "Separate analysis of frozen events; original benchmark files and scores are unchanged.",
+          "All clarification reason/language and proposed-change arguments must match their labels.",
+          "Knowledge queries are checked only for nonempty text; retrieval factuality is not measured here.",
+          "Bilingual pairs share scenarios; scenario count is not independent statistical certification.",
+          "Original failures informed training categories; originals remain regression tests, not unseen certification.",
+          "No business tools execute here. Native permission, tenant, confirmation and audit tests remain required.",
+          "Passing model targets does not authorize production activation."
+        ]
+      }
+    },
+    {
+      "dataset": "shared-adapter-v2-en-fr--management-projet-followup-v1-en-fr--independent.eval.jsonl",
+      "dataset_sha256": "f1307c78f473ea28af89d0968ab4d022ddec3334d50435cfe6260f57f2a8e145",
+      "events_sha256": "42a091f76df387e63f788f28d92039220003e5e598f0aab8fbd22e15fba491b1",
+      "assessment": {
+        "metrics": {
+          "count": 28,
+          "counts": {
+            "tool_correct": 22,
+            "structured_valid": 28,
+            "action_matches": 21
+          },
+          "percent": {
+            "tool_correct": 78.57,
+            "structured_valid": 100.0,
+            "action_matches": 75.0
+          },
+          "exact_arguments": {
+            "passed": 20,
+            "count": 20,
+            "percent": 100.0
+          }
+        },
+        "targets": {
+          "tool_selection": false,
+          "exact_arguments": true,
+          "structured_output": true,
+          "clarification_reason_and_language": false,
+          "critical_model_cases": false
+        },
+        "model_targets_passed": false,
+        "clarifications": {
+          "count": 8,
+          "counts": {
+            "tool_correct": 2,
+            "structured_valid": 8,
+            "action_matches": 1
+          },
+          "percent": {
+            "tool_correct": 25.0,
+            "structured_valid": 100.0,
+            "action_matches": 12.5
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        },
+        "critical_model_cases": {
+          "count": 28,
+          "counts": {
+            "tool_correct": 22,
+            "structured_valid": 28,
+            "action_matches": 21
+          },
+          "percent": {
+            "tool_correct": 78.57,
+            "structured_valid": 100.0,
+            "action_matches": 75.0
+          },
+          "exact_arguments": {
+            "passed": 20,
+            "count": 20,
+            "percent": 100.0
+          }
+        },
+        "by_language": {
+          "en": {
+            "count": 14,
+            "counts": {
+              "tool_correct": 11,
+              "structured_valid": 14,
+              "action_matches": 11
+            },
+            "percent": {
+              "tool_correct": 78.57,
+              "structured_valid": 100.0,
+              "action_matches": 78.57
+            },
+            "exact_arguments": {
+              "passed": 10,
+              "count": 10,
+              "percent": 100.0
+            }
+          },
+          "fr": {
+            "count": 14,
+            "counts": {
+              "tool_correct": 11,
+              "structured_valid": 14,
+              "action_matches": 10
+            },
+            "percent": {
+              "tool_correct": 78.57,
+              "structured_valid": 100.0,
+              "action_matches": 71.43
+            },
+            "exact_arguments": {
+              "passed": 10,
+              "count": 10,
+              "percent": 100.0
+            }
+          }
+        },
+        "distinct_bilingual_scenario_ids": 14,
+        "failures": [
+          {
+            "id": "out-of-range-fr",
+            "group": "out-of-range",
+            "critical": true,
+            "tool_correct": false,
+            "structured_valid": true
+          },
+          {
+            "id": "out-of-range-en",
+            "group": "out-of-range",
+            "critical": true,
+            "tool_correct": false,
+            "structured_valid": true
+          },
+          {
+            "id": "expired-selection-fr",
+            "group": "expired-selection",
+            "critical": true,
+            "tool_correct": false,
+            "structured_valid": true
+          },
+          {
+            "id": "expired-selection-en",
+            "group": "expired-selection",
+            "critical": true,
+            "tool_correct": false,
+            "structured_valid": true
+          },
+          {
+            "id": "read-only-selection-fr",
+            "group": "read-only-selection",
+            "critical": true,
+            "tool_correct": true,
+            "structured_valid": true
+          },
+          {
+            "id": "delete-no-selection-fr",
+            "group": "delete-no-selection",
+            "critical": true,
+            "tool_correct": false,
+            "structured_valid": true
+          },
+          {
+            "id": "delete-no-selection-en",
+            "group": "delete-no-selection",
+            "critical": true,
+            "tool_correct": false,
+            "structured_valid": true
+          }
+        ],
+        "limitations": [
+          "Separate analysis of frozen events; original benchmark files and scores are unchanged.",
+          "All clarification reason/language and proposed-change arguments must match their labels.",
+          "Knowledge queries are checked only for nonempty text; retrieval factuality is not measured here.",
+          "Bilingual pairs share scenarios; scenario count is not independent statistical certification.",
+          "Original failures informed training categories; originals remain regression tests, not unseen certification.",
+          "No business tools execute here. Native permission, tenant, confirmation and audit tests remain required.",
+          "Passing model targets does not authorize production activation."
+        ]
+      }
+    },
+    {
+      "dataset": "facturation-refinement-v2-en-fr--independent.eval.jsonl",
+      "dataset_sha256": "3f8745eab65f545ab55ca31b8b3c78219bae0f988b7d0ed3d1278b1146eead0d",
+      "events_sha256": "9d088c13c753eac030f249550c45515f4cf94ce6d256329fd3c7626b7edf7613",
+      "assessment": {
+        "metrics": {
+          "count": 16,
+          "counts": {
+            "tool_correct": 4,
+            "structured_valid": 16,
+            "action_matches": 4
+          },
+          "percent": {
+            "tool_correct": 25.0,
+            "structured_valid": 100.0,
+            "action_matches": 25.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 12,
+            "percent": 0.0
+          }
+        },
+        "targets": {
+          "tool_selection": false,
+          "exact_arguments": false,
+          "structured_output": true,
+          "clarification_reason_and_language": true,
+          "critical_model_cases": true
+        },
+        "model_targets_passed": false,
+        "clarifications": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 4,
+            "structured_valid": 4,
+            "action_matches": 4
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        },
+        "critical_model_cases": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 4,
+            "structured_valid": 4,
+            "action_matches": 4
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        },
+        "by_language": {
+          "en": {
+            "count": 8,
+            "counts": {
+              "tool_correct": 2,
+              "structured_valid": 8,
+              "action_matches": 2
+            },
+            "percent": {
+              "tool_correct": 25.0,
+              "structured_valid": 100.0,
+              "action_matches": 25.0
+            },
+            "exact_arguments": {
+              "passed": 0,
+              "count": 6,
+              "percent": 0.0
+            }
+          },
+          "fr": {
+            "count": 8,
+            "counts": {
+              "tool_correct": 2,
+              "structured_valid": 8,
+              "action_matches": 2
+            },
+            "percent": {
+              "tool_correct": 25.0,
+              "structured_valid": 100.0,
+              "action_matches": 25.0
+            },
+            "exact_arguments": {
+              "passed": 0,
+              "count": 6,
+              "percent": 0.0
+            }
+          }
+        },
+        "distinct_bilingual_scenario_ids": 8,
+        "failures": [
+          {
+            "id": "facturation-refinement-v2-en-fr-composed-relative-fr",
+            "group": "composed",
+            "critical": false,
+            "tool_correct": false,
+            "structured_valid": true
+          },
+          {
+            "id": "facturation-refinement-v2-en-fr-composed-relative-en",
+            "group": "composed",
+            "critical": false,
+            "tool_correct": false,
+            "structured_valid": true
+          },
+          {
+            "id": "facturation-refinement-v2-en-fr-date-worded-fr",
+            "group": "date",
+            "critical": false,
+            "tool_correct": false,
+            "structured_valid": true
+          },
+          {
+            "id": "facturation-refinement-v2-en-fr-date-worded-en",
+            "group": "date",
+            "critical": false,
+            "tool_correct": false,
+            "structured_valid": true
+          },
+          {
+            "id": "facturation-refinement-v2-en-fr-paid-or-unpaid-fr",
+            "group": "paid",
+            "critical": false,
+            "tool_correct": false,
+            "structured_valid": true
+          },
+          {
+            "id": "facturation-refinement-v2-en-fr-paid-or-unpaid-en",
+            "group": "paid",
+            "critical": false,
+            "tool_correct": false,
+            "structured_valid": true
+          },
+          {
+            "id": "facturation-refinement-v2-en-fr-only-before-fr",
+            "group": "only",
+            "critical": false,
+            "tool_correct": false,
+            "structured_valid": true
+          },
+          {
+            "id": "facturation-refinement-v2-en-fr-only-before-en",
+            "group": "only",
+            "critical": false,
+            "tool_correct": false,
+            "structured_valid": true
+          },
+          {
+            "id": "facturation-refinement-v2-en-fr-reference-exact-fr",
+            "group": "reference",
+            "critical": false,
+            "tool_correct": false,
+            "structured_valid": true
+          },
+          {
+            "id": "facturation-refinement-v2-en-fr-reference-exact-en",
+            "group": "reference",
+            "critical": false,
+            "tool_correct": false,
+            "structured_valid": true
+          },
+          {
+            "id": "facturation-refinement-v2-en-fr-quote-customer-and-item-fr",
+            "group": "quote",
+            "critical": false,
+            "tool_correct": false,
+            "structured_valid": true
+          },
+          {
+            "id": "facturation-refinement-v2-en-fr-quote-customer-and-item-en",
+            "group": "quote",
+            "critical": false,
+            "tool_correct": false,
+            "structured_valid": true
+          }
+        ],
+        "limitations": [
+          "Separate analysis of frozen events; original benchmark files and scores are unchanged.",
+          "All clarification reason/language and proposed-change arguments must match their labels.",
+          "Knowledge queries are checked only for nonempty text; retrieval factuality is not measured here.",
+          "Bilingual pairs share scenarios; scenario count is not independent statistical certification.",
+          "Original failures informed training categories; originals remain regression tests, not unseen certification.",
+          "No business tools execute here. Native permission, tenant, confirmation and audit tests remain required.",
+          "Passing model targets does not authorize production activation."
+        ]
+      }
+    },
+    {
+      "dataset": "management-projet-refinement-v2-en-fr--independent.eval.jsonl",
+      "dataset_sha256": "35ea0592763e6c5fec0d3a72f51887d19d68de1fe94dfaf10685b4ee6e424cba",
+      "events_sha256": "f5dd52a2119005a40fee844e40a0cb9e5deb4eb310e6155f6b0342770727476e",
+      "assessment": {
+        "metrics": {
+          "count": 16,
+          "counts": {
+            "tool_correct": 6,
+            "structured_valid": 16,
+            "action_matches": 6
+          },
+          "percent": {
+            "tool_correct": 37.5,
+            "structured_valid": 100.0,
+            "action_matches": 37.5
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 10,
+            "percent": 0.0
+          }
+        },
+        "targets": {
+          "tool_selection": false,
+          "exact_arguments": false,
+          "structured_output": true,
+          "clarification_reason_and_language": true,
+          "critical_model_cases": false
+        },
+        "model_targets_passed": false,
+        "clarifications": {
+          "count": 6,
+          "counts": {
+            "tool_correct": 6,
+            "structured_valid": 6,
+            "action_matches": 6
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        },
+        "critical_model_cases": {
+          "count": 14,
+          "counts": {
+            "tool_correct": 6,
+            "structured_valid": 14,
+            "action_matches": 6
+          },
+          "percent": {
+            "tool_correct": 42.86,
+            "structured_valid": 100.0,
+            "action_matches": 42.86
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 8,
+            "percent": 0.0
+          }
+        },
+        "by_language": {
+          "en": {
+            "count": 8,
+            "counts": {
+              "tool_correct": 3,
+              "structured_valid": 8,
+              "action_matches": 3
+            },
+            "percent": {
+              "tool_correct": 37.5,
+              "structured_valid": 100.0,
+              "action_matches": 37.5
+            },
+            "exact_arguments": {
+              "passed": 0,
+              "count": 5,
+              "percent": 0.0
+            }
+          },
+          "fr": {
+            "count": 8,
+            "counts": {
+              "tool_correct": 3,
+              "structured_valid": 8,
+              "action_matches": 3
+            },
+            "percent": {
+              "tool_correct": 37.5,
+              "structured_valid": 100.0,
+              "action_matches": 37.5
+            },
+            "exact_arguments": {
+              "passed": 0,
+              "count": 5,
+              "percent": 0.0
+            }
+          }
+        },
+        "distinct_bilingual_scenario_ids": 8,
+        "failures": [
+          {
+            "id": "management-projet-refinement-v2-en-fr-multi-field-position-fr",
+            "group": "multi",
+            "critical": true,
+            "tool_correct": false,
+            "structured_valid": true
+          },
+          {
+            "id": "management-projet-refinement-v2-en-fr-multi-field-position-en",
+            "group": "multi",
+            "critical": true,
+            "tool_correct": false,
+            "structured_valid": true
+          },
+          {
+            "id": "management-projet-refinement-v2-en-fr-selection-tax-fr",
+            "group": "selection",
+            "critical": true,
+            "tool_correct": false,
+            "structured_valid": true
+          },
+          {
+            "id": "management-projet-refinement-v2-en-fr-selection-tax-en",
+            "group": "selection",
+            "critical": true,
+            "tool_correct": false,
+            "structured_valid": true
+          },
+          {
+            "id": "management-projet-refinement-v2-en-fr-delete-one-fr",
+            "group": "delete",
+            "critical": true,
+            "tool_correct": false,
+            "structured_valid": true
+          },
+          {
+            "id": "management-projet-refinement-v2-en-fr-delete-one-en",
+            "group": "delete",
+            "critical": true,
+            "tool_correct": false,
+            "structured_valid": true
+          },
+          {
+            "id": "management-projet-refinement-v2-en-fr-end-only-fr",
+            "group": "end",
+            "critical": false,
+            "tool_correct": false,
+            "structured_valid": true
+          },
+          {
+            "id": "management-projet-refinement-v2-en-fr-end-only-en",
+            "group": "end",
+            "critical": false,
+            "tool_correct": false,
+            "structured_valid": true
+          },
+          {
+            "id": "management-projet-refinement-v2-en-fr-current-project-status-fr",
+            "group": "current",
+            "critical": true,
+            "tool_correct": false,
+            "structured_valid": true
+          },
+          {
+            "id": "management-projet-refinement-v2-en-fr-current-project-status-en",
+            "group": "current",
+            "critical": true,
+            "tool_correct": false,
+            "structured_valid": true
+          }
+        ],
+        "limitations": [
+          "Separate analysis of frozen events; original benchmark files and scores are unchanged.",
+          "All clarification reason/language and proposed-change arguments must match their labels.",
+          "Knowledge queries are checked only for nonempty text; retrieval factuality is not measured here.",
+          "Bilingual pairs share scenarios; scenario count is not independent statistical certification.",
+          "Original failures informed training categories; originals remain regression tests, not unseen certification.",
+          "No business tools execute here. Native permission, tenant, confirmation and audit tests remain required.",
+          "Passing model targets does not authorize production activation."
+        ]
+      }
+    },
+    {
+      "dataset": "design-workflow-refinement-v2-en-fr--independent.eval.jsonl",
+      "dataset_sha256": "3ec71b47bfda4ba49cb0187fcbd949e651bf883fccd4e6da579f956df08203da",
+      "events_sha256": "7e6376dfcbcd62e47aaa88fd835fa20f2a31de23d6acfc2e8d0ee7581972f371",
+      "assessment": {
+        "metrics": {
+          "count": 16,
+          "counts": {
+            "tool_correct": 4,
+            "structured_valid": 16,
+            "action_matches": 3
+          },
+          "percent": {
+            "tool_correct": 25.0,
+            "structured_valid": 100.0,
+            "action_matches": 18.75
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 12,
+            "percent": 0.0
+          }
+        },
+        "targets": {
+          "tool_selection": false,
+          "exact_arguments": false,
+          "structured_output": true,
+          "clarification_reason_and_language": false,
+          "critical_model_cases": false
+        },
+        "model_targets_passed": false,
+        "clarifications": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 4,
+            "structured_valid": 4,
+            "action_matches": 3
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 75.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        },
+        "critical_model_cases": {
+          "count": 8,
+          "counts": {
+            "tool_correct": 4,
+            "structured_valid": 8,
+            "action_matches": 3
+          },
+          "percent": {
+            "tool_correct": 50.0,
+            "structured_valid": 100.0,
+            "action_matches": 37.5
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 4,
+            "percent": 0.0
+          }
+        },
+        "by_language": {
+          "en": {
+            "count": 8,
+            "counts": {
+              "tool_correct": 2,
+              "structured_valid": 8,
+              "action_matches": 2
+            },
+            "percent": {
+              "tool_correct": 25.0,
+              "structured_valid": 100.0,
+              "action_matches": 25.0
+            },
+            "exact_arguments": {
+              "passed": 0,
+              "count": 6,
+              "percent": 0.0
+            }
+          },
+          "fr": {
+            "count": 8,
+            "counts": {
+              "tool_correct": 2,
+              "structured_valid": 8,
+              "action_matches": 1
+            },
+            "percent": {
+              "tool_correct": 25.0,
+              "structured_valid": 100.0,
+              "action_matches": 12.5
+            },
+            "exact_arguments": {
+              "passed": 0,
+              "count": 6,
+              "percent": 0.0
+            }
+          }
+        },
+        "distinct_bilingual_scenario_ids": 8,
+        "failures": [
+          {
+            "id": "design-workflow-refinement-v2-en-fr-person-and-status-fr",
+            "group": "person",
+            "critical": false,
+            "tool_correct": false,
+            "structured_valid": true
+          },
+          {
+            "id": "design-workflow-refinement-v2-en-fr-person-and-status-en",
+            "group": "person",
+            "critical": false,
+            "tool_correct": false,
+            "structured_valid": true
+          },
+          {
+            "id": "design-workflow-refinement-v2-en-fr-text-person-separate-fr",
+            "group": "text",
+            "critical": false,
+            "tool_correct": false,
+            "structured_valid": true
+          },
+          {
+            "id": "design-workflow-refinement-v2-en-fr-text-person-separate-en",
+            "group": "text",
+            "critical": false,
+            "tool_correct": false,
+            "structured_valid": true
+          },
+          {
+            "id": "design-workflow-refinement-v2-en-fr-board-unambiguous-fr",
+            "group": "board",
+            "critical": false,
+            "tool_correct": false,
+            "structured_valid": true
+          },
+          {
+            "id": "design-workflow-refinement-v2-en-fr-board-unambiguous-en",
+            "group": "board",
+            "critical": false,
+            "tool_correct": false,
+            "structured_valid": true
+          },
+          {
+            "id": "design-workflow-refinement-v2-en-fr-project-own-fr",
+            "group": "project",
+            "critical": false,
+            "tool_correct": false,
+            "structured_valid": true
+          },
+          {
+            "id": "design-workflow-refinement-v2-en-fr-project-own-en",
+            "group": "project",
+            "critical": false,
+            "tool_correct": false,
+            "structured_valid": true
+          },
+          {
+            "id": "design-workflow-refinement-v2-en-fr-edit-date-fr",
+            "group": "edit",
+            "critical": true,
+            "tool_correct": false,
+            "structured_valid": true
+          },
+          {
+            "id": "design-workflow-refinement-v2-en-fr-edit-date-en",
+            "group": "edit",
+            "critical": true,
+            "tool_correct": false,
+            "structured_valid": true
+          },
+          {
+            "id": "design-workflow-refinement-v2-en-fr-edit-two-values-fr",
+            "group": "edit",
+            "critical": true,
+            "tool_correct": false,
+            "structured_valid": true
+          },
+          {
+            "id": "design-workflow-refinement-v2-en-fr-edit-two-values-en",
+            "group": "edit",
+            "critical": true,
+            "tool_correct": false,
+            "structured_valid": true
+          },
+          {
+            "id": "design-workflow-refinement-v2-en-fr-archive-outside-fr",
+            "group": "archive",
+            "critical": true,
+            "tool_correct": true,
+            "structured_valid": true
+          }
+        ],
+        "limitations": [
+          "Separate analysis of frozen events; original benchmark files and scores are unchanged.",
+          "All clarification reason/language and proposed-change arguments must match their labels.",
+          "Knowledge queries are checked only for nonempty text; retrieval factuality is not measured here.",
+          "Bilingual pairs share scenarios; scenario count is not independent statistical certification.",
+          "Original failures informed training categories; originals remain regression tests, not unseen certification.",
+          "No business tools execute here. Native permission, tenant, confirmation and audit tests remain required.",
+          "Passing model targets does not authorize production activation."
+        ]
+      }
+    }
+  ],
+  "private_comparison_sha256": "49aa21b71284670e9790590668af75bf26b0173709d6ebe0f48d1b4230afec4a"
+}

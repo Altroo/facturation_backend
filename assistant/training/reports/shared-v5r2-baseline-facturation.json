@@ -1,0 +1,186 @@
+{
+  "label": "facturation-refinement-baseline-v5",
+  "dataset_sha256": "983b06c7aa815eb04bcd7c092e5b5086019314b1abeb970c341f6bbd370bf5d7",
+  "evaluator_sha256": "dca2abf86b2162ccd99b868108dd957f5ef600fe196a5bf9f21b15cafa4fbe7b",
+  "model_id": "chat-ai-shared-qwen08-v5-en-fr-20261010",
+  "max_output_tokens": 512,
+  "thinking": false,
+  "mode": "native",
+  "metrics": {
+    "count": 12,
+    "counts": {
+      "tool_correct": 10,
+      "arguments_correct": 7,
+      "structured_valid": 12
+    },
+    "percent": {
+      "tool_correct": 83.33,
+      "arguments_correct": 58.33,
+      "structured_valid": 100.0
+    },
+    "exact_arguments": {
+      "passed": 5,
+      "count": 8,
+      "percent": 62.5
+    }
+  },
+  "by_language": {
+    "en": {
+      "count": 6,
+      "counts": {
+        "tool_correct": 5,
+        "arguments_correct": 4,
+        "structured_valid": 6
+      },
+      "percent": {
+        "tool_correct": 83.33,
+        "arguments_correct": 66.67,
+        "structured_valid": 100.0
+      },
+      "exact_arguments": {
+        "passed": 3,
+        "count": 4,
+        "percent": 75.0
+      }
+    },
+    "fr": {
+      "count": 6,
+      "counts": {
+        "tool_correct": 5,
+        "arguments_correct": 3,
+        "structured_valid": 6
+      },
+      "percent": {
+        "tool_correct": 83.33,
+        "arguments_correct": 50.0,
+        "structured_valid": 100.0
+      },
+      "exact_arguments": {
+        "passed": 2,
+        "count": 4,
+        "percent": 50.0
+      }
+    }
+  },
+  "by_category": {
+    "date": {
+      "count": 2,
+      "counts": {
+        "tool_correct": 2,
+        "arguments_correct": 2,
+        "structured_valid": 2
+      },
+      "percent": {
+        "tool_correct": 100.0,
+        "arguments_correct": 100.0,
+        "structured_valid": 100.0
+      },
+      "exact_arguments": {
+        "passed": 2,
+        "count": 2,
+        "percent": 100.0
+      }
+    },
+    "history": {
+      "count": 2,
+      "counts": {
+        "tool_correct": 2,
+        "arguments_correct": 1,
+        "structured_valid": 2
+      },
+      "percent": {
+        "tool_correct": 100.0,
+        "arguments_correct": 50.0,
+        "structured_valid": 100.0
+      },
+      "exact_arguments": {
+        "passed": 1,
+        "count": 2,
+        "percent": 50.0
+      }
+    },
+    "invoice": {
+      "count": 2,
+      "counts": {
+        "tool_correct": 2,
+        "arguments_correct": 0,
+        "structured_valid": 2
+      },
+      "percent": {
+        "tool_correct": 100.0,
+        "arguments_correct": 0.0,
+        "structured_valid": 100.0
+      },
+      "exact_arguments": {
+        "passed": 0,
+        "count": 2,
+        "percent": 0.0
+      }
+    },
+    "payment": {
+      "count": 2,
+      "counts": {
+        "tool_correct": 2,
+        "arguments_correct": 2,
+        "structured_valid": 2
+      },
+      "percent": {
+        "tool_correct": 100.0,
+        "arguments_correct": 100.0,
+        "structured_valid": 100.0
+      },
+      "exact_arguments": {
+        "passed": 2,
+        "count": 2,
+        "percent": 100.0
+      }
+    },
+    "unsafe": {
+      "count": 2,
+      "counts": {
+        "tool_correct": 2,
+        "arguments_correct": 2,
+        "structured_valid": 2
+      },
+      "percent": {
+        "tool_correct": 100.0,
+        "arguments_correct": 100.0,
+        "structured_valid": 100.0
+      },
+      "exact_arguments": {
+        "passed": 0,
+        "count": 0,
+        "percent": null
+      }
+    },
+    "year": {
+      "count": 2,
+      "counts": {
+        "tool_correct": 0,
+        "arguments_correct": 0,
+        "structured_valid": 2
+      },
+      "percent": {
+        "tool_correct": 0.0,
+        "arguments_correct": 0.0,
+        "structured_valid": 100.0
+      },
+      "exact_arguments": {
+        "passed": 0,
+        "count": 0,
+        "percent": null
+      }
+    }
+  },
+  "latency_mean_s": 10.563,
+  "latency_p95_s": 12.388,
+  "first_visible_event_mean_s": 10.553,
+  "completion_tokens_per_wall_second_mean": 6.832,
+  "limitations": [
+    "Synthetic held-out scenarios; no business tools executed.",
+    "Knowledge query wording is scored only for nonempty schema-valid text; retrieval factuality is tested separately. Clarifications must match the expected reason and language.",
+    "Exact arguments exclude knowledge and clarification. Optional default pagination/period arguments are normalized.",
+    "Native Colibri tool buffering means first visible event and wall throughput are not raw decode TTFT/tokens per second.",
+    "No hostname, URL, key, private record or operator path is included in the report."
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "version": "shared-synthetic-v8-en-fr",
+  "applications": [
+    "facturation",
+    "management_projet",
+    "design_workflow",
+    "contrat",
+    "gestion_magasin",
+    "reservation"
+  ],
+  "languages": [
+    "en",
+    "fr"
+  ],
+  "source": "Approved versioned synthetic sources only. No confidential business records or conversation data.",
+  "sources": {
+    "facturation/train.jsonl": "2279c822c34b4e18ec1ee3a5d5e92c076b221becd7ec0e2bc65a4bafb2ad47dc",
+    "management_projet/train.jsonl": "dbde0cce38611d2651be403fcef8d26bd429fda6518124129cdd9768511e3adb",
+    "design_workflow/train.jsonl": "b11cecc6b48c6a6ec57c3dff57a38381c9f8f3bae1d9ca71208d62733f4425d5",
+    "contrat/train.jsonl": "c134e3024a7c01537c206aecf5aa552c825660b93c87450e014c30ee86c07631",
+    "gestion_magasin/train.jsonl": "eb3050d7fb85f1c8862f2f57dc72ab435122dfc5d5a0a142912d14ab82c5b61b",
+    "reservation/train.jsonl": "744313f90b7c9f2186e81fc33337a016a46a69149c3897206eb2d3bdff6b363f",
+    "facturation/valid.jsonl": "1f476c825b9467ad79ad4c6b3bd9f2ed18237d532ea492f5c6c9089e0de75881",
+    "management_projet/valid.jsonl": "7399c74b6c95bee9b0d3a7baef909d1001f2f0a82d3e650905a1c03c62cd6a09",
+    "design_workflow/valid.jsonl": "e82a446887b8813b60b4252a822f9c72a75b77bb451185c30a3b630be8ac21f8",
+    "contrat/valid.jsonl": "c8e6cf50a2a1ada51091b3cdef2379741a3edeb3fa9669b6855cface87fbdd86",
+    "gestion_magasin/valid.jsonl": "c3744e58736761f15189edcf00b5690c39ef99068197049805de41071153d788",
+    "reservation/valid.jsonl": "92c8e02270293866b7c4b77f27c5b938b76143c383e1af612149aaacd66387f6"
+  },
+  "counts": {
+    "facturation/train.jsonl": 410,
+    "management_projet/train.jsonl": 616,
+    "design_workflow/train.jsonl": 292,
+    "contrat/train.jsonl": 122,
+    "gestion_magasin/train.jsonl": 166,
+    "reservation/train.jsonl": 150,
+    "facturation/valid.jsonl": 86,
+    "management_projet/valid.jsonl": 48,
+    "design_workflow/valid.jsonl": 34,
+    "contrat/valid.jsonl": 30,
+    "gestion_magasin/valid.jsonl": 30,
+    "reservation/valid.jsonl": 30
+  },
+  "held_out_exclusion": "All declared independent application acceptance sets excluded by normalized application/prompt key. Per-application near-duplicate limitations remain as stated in their source manifests.",
+  "training_policy": "Continue from a separately recorded existing checkpoint. Use complete epochs for v3, covering every source row; record actual steps and exposure. No candidate is automatically activated.",
+  "files": {
+    "train.jsonl": "92582068b1dace9115b327e515cac8835ae7931b6ce2f84d40c4a06b0b7dc302",
+    "valid.jsonl": "b337ec994c9fc6cea99c362f52808d4313137110cf6fc757df819ac4091e37f9"
+  }
+}

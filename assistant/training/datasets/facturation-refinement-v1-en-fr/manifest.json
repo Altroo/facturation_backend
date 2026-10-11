@@ -1,0 +1,29 @@
+{
+  "version": "facturation-refinement-v1-en-fr",
+  "application": "facturation",
+  "languages": [
+    "en",
+    "fr"
+  ],
+  "counts": {
+    "train": 458,
+    "valid": 92,
+    "independent": 12
+  },
+  "source_dataset": "facturation-v4-en-fr",
+  "source_manifest_sha256": "446e52fb3f2ac431a6bcf50c4679738a8dd84c5169178980d3ae5f0a34f248cb",
+  "generator_sha256": "222cfc9c3dbc15f153b98bb5b7e7fb330f793e33e3a5350eb44b2957d9d06dd0",
+  "files": {
+    "train.eval.jsonl": "1595e7deda730e5d801ce4495b38cdcb7ca24888e6e96c26637fdb803bcd1b37",
+    "train.jsonl": "b07a18fb32fead1b30a5aa3881fd60602906e3dede6a9668d5a18757f89374b2",
+    "valid.eval.jsonl": "2443c7964f24fb16f631323fb7c351955044b1d734a3b0d77be9c08dc2fd0920",
+    "valid.jsonl": "f816de24033c5e1522fe5b7a46e6e46ce4307c578436e2b65db90c29dee8a567",
+    "independent.eval.jsonl": "983b06c7aa815eb04bcd7c092e5b5086019314b1abeb970c341f6bbd370bf5d7"
+  },
+  "frozen_sets": {
+    "facturation-acceptance-en-fr/test.eval.jsonl": "91ca4ad072df31a651c8a87ea51dd9349d0f937f2701bcab3da868d01cfa479a"
+  },
+  "split_policy": "Distinct authored bilingual scenarios. Old frozen failures informed categories, not copied labels. Old sets are regression evidence; new independent cases never enter train or validation. Exact normalized overlaps rejected; semantic similarities remain possible.",
+  "source": "Native permission-narrowed registries and verified fields. Synthetic entities only; all database connections forbidden.",
+  "native_tools_sha256": "e5c59826657605614b973c83a6db749c6f77239b6a0246fc6618a70023a972cd"
+}

@@ -1,0 +1,74 @@
+{
+  "version": "shared-adapter-v2-en-fr",
+  "application": "management_projet",
+  "languages": [
+    "en",
+    "fr"
+  ],
+  "status": "Unmeasured current-adapter diagnostic; no training or acceptance claim.",
+  "methodology": "Original user prompts and expected actions unchanged. Current native system prompt and permission-filtered tool schemas replace historical envelopes. Historical DW capability snapshots gain the native mutate alias when update/archive is present; historical role-profile labels are not a live role simulation. Backend role authorization is tested separately. Calendar anchors are computed from the original trusted date. Synthetic saved IDs are added to four legacy ordinal-opening scenarios that recorded only result count; these IDs do not change their expected ordinal. No business tools execute. Previously reviewed regressions are not unseen certification.",
+  "native_sources": {
+    "chat_ai/tools.py": "4a34fe503ade55e048434ea1aae1a15a025a2578667d54e4ca35111da5d4f688",
+    "chat_ai/planner.py": "9f9551756b3c2bf8ab51f29bcbde91cc0293f0e0d0d9e3ba9f94554e662456fe",
+    "chat_ai/services.py": "075aaecccc567bd502f8270940fddbb503b6b661f86345cb7a255d7793df664f",
+    "chat_ai/shortcuts.py": "3f4968fcfaa3b9627c68e0d1884b6bfb8b289e3e924da3714f4eb40de2f3b4e8"
+  },
+  "shared_sources": {
+    "src/chat_ai_assistant/orchestrator.py": "7b85c9479ac895969f07cb5d7fa1fe7d95fd0f8eee9255222cf96635095a7c4e",
+    "src/chat_ai_assistant/calendar_context.py": "6ee2c0f63ef33c0ba8b8f1ea29fbcd5d6f1e88e4273dc40ece33dab75619aeb9",
+    "src/chat_ai_assistant/routing.py": "1640f46741e967711c7af246d0766b89992c4dc63d48c7a697ef775890d4a811",
+    "training/scripts/build_refinement_v1.py": "222cfc9c3dbc15f153b98bb5b7e7fb330f793e33e3a5350eb44b2957d9d06dd0",
+    "training/scripts/build_dataset_v4.py": "f5f4deb354557d007f13ea23721577ca666aecf492f662bf3233ac6f4db34476"
+  },
+  "generator_sha256": "1f6ca6d395a17aff46bf94fb003f186b09295c6515f5ac6ba39d8c0907da7028",
+  "files": {
+    "management-projet-v1-en-fr--test.eval.jsonl": "4bba62427783498ef0b28c06f2bfe838709551ec84e4e1a1b7528a0d07ea1bc7",
+    "management-projet-v2-en-fr--independent.eval.jsonl": "b2fbbf5925ecb88a467a90643d315d60b89bc19ff62efaf9c29d069cff79ea2a",
+    "management-projet-v3-en-fr--independent.eval.jsonl": "f4e08e2c13d9375309f33da69e7a04eae92917a41d7251ab12689020aa31e4c2",
+    "management-projet-v4-en-fr--independent.eval.jsonl": "d095170c0978b6a4ccc19b584036463ee17868ed6a0396e72849faee74b6c273",
+    "management-projet-refinement-v1-en-fr--independent.eval.jsonl": "e9dfb81a6ff77fa5cea25bbd94fba26b0efca77154316bf8bbca33360aeeabab"
+  },
+  "inputs": {
+    "management-projet-v1-en-fr--test.eval.jsonl": {
+      "original_dataset": "management-projet-v1-en-fr/test.eval.jsonl",
+      "original_sha256": "1c63c39ecb5906f3fa2adf0dd2a74a78c8b814836cf8131d499e0ead88eb0277",
+      "baseline_label": "management-projet-candidate-shared-v5r2-final",
+      "count": 60,
+      "description_changed_rows": 60,
+      "current_adapter": true
+    },
+    "management-projet-v2-en-fr--independent.eval.jsonl": {
+      "original_dataset": "management-projet-v2-en-fr/independent.eval.jsonl",
+      "original_sha256": "c4586a2c6459e02c63557f1e693a5212b51c507eba80d32f2661128a25c3f5d8",
+      "baseline_label": "management-projet-companion-shared-v5r2",
+      "count": 20,
+      "description_changed_rows": 20,
+      "current_adapter": true
+    },
+    "management-projet-v3-en-fr--independent.eval.jsonl": {
+      "original_dataset": "management-projet-v3-en-fr/independent.eval.jsonl",
+      "original_sha256": "12e224a326a40fb185b5bf10cd1b7e38339ca3fa955f72ed3da678fe8df98f41",
+      "baseline_label": "management-projet-fresh-shared-v5r2",
+      "count": 32,
+      "description_changed_rows": 32,
+      "current_adapter": true
+    },
+    "management-projet-v4-en-fr--independent.eval.jsonl": {
+      "original_dataset": "management-projet-v4-en-fr/independent.eval.jsonl",
+      "original_sha256": "993a0bc3aed974fd52b04941efd8e06ee865bc7d7e98761dda6e0d1f7b9dc8e1",
+      "baseline_label": "management-projet-new-holdout-shared-v5r2",
+      "count": 32,
+      "description_changed_rows": 32,
+      "current_adapter": true
+    },
+    "management-projet-refinement-v1-en-fr--independent.eval.jsonl": {
+      "original_dataset": "management-projet-refinement-v1-en-fr/independent.eval.jsonl",
+      "original_sha256": "95e5fb162dd3345b3a817e23e39fa3420b61f0b1188472d648ea028ee5a5ba71",
+      "baseline_label": "management-projet-refinement-candidate-v5r2",
+      "count": 12,
+      "description_changed_rows": 12,
+      "current_adapter": true
+    }
+  },
+  "count": 156
+}

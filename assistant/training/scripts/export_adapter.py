@@ -4,10 +4,11 @@ from pathlib import Path
 import torch
 from peft import PeftModel
 from transformers import AutoTokenizer,Qwen3_5ForConditionalGeneration
-p=argparse.ArgumentParser();p.add_argument('--base',required=True);p.add_argument('--adapter',required=True);p.add_argument('--output',type=Path,required=True);a=p.parse_args()
+p=argparse.ArgumentParser();p.add_argument('--base',required=True);p.add_argument('--adapter',required=True);p.add_argument('--output',type=Path,required=True);p.add_argument('--threads',type=int,default=10);a=p.parse_args()
 if platform.system()!='Linux':raise SystemExit('Export this server-trained artifact on the approved Linux server.')
 if a.output.exists():raise SystemExit('Refusing to overwrite an existing model export.')
-torch.set_num_threads(14)
+if not 1 <= a.threads <= 10:raise SystemExit('Export threads must be between 1 and 10 for the approved CPU budget.')
+torch.set_num_threads(a.threads)
 model=Qwen3_5ForConditionalGeneration.from_pretrained(a.base,local_files_only=True,dtype=torch.float32)
 model=PeftModel.from_pretrained(model,a.adapter,local_files_only=True)
 model=model.merge_and_unload(safe_merge=True)

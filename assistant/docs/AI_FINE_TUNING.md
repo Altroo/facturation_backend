@@ -1,5 +1,7 @@
 # Model training and evaluation
 
+This page describes the deployed Facturation V4 model. Newer shared candidates, including the unaccepted V5r2 refinement and running V5r4 continuation, are tracked in [measured model accuracy](AI_MODEL_ACCURACY.md) and the [sequential training queue](AI_TRAINING_QUEUE.md). They have not replaced production.
+
 The active Facturation assistant supports **English and French only**. It follows the current message automatically, including language changes within a conversation. There is no language selector. Runtime prompts, clarification schemas, API capabilities, the current training dataset and the independent evaluation set all use this scope.
 
 ## Selected model and serving runtime
@@ -70,3 +72,33 @@ Decode throughput excludes prompt prefill. Tool calls are buffered, so the first
 7. Promote only with explicit authorization and an accurate statement of remaining quality gaps. Rollback restores the previous immutable model directory and ID; a training job never activates its own output.
 
 Older superseded experiments are retained as historical evidence, outside this current-scope guide. Their results are not current acceptance scores. The next model-quality work requires new diverse compositional training examples and an independent evaluation; no unrun experiment is claimed successful.
+
+## Prepared serial application trainer
+
+`training/scripts/train_cpu_serial_v1.py` preserves the optimization, checkpointing and provenance behavior of the frozen three-application runner, adding explicit cumulative scopes for the next three stages. Use `--stage contrat`, then `--stage gestion_magasin`, then `--stage reservation`, each with `--complete-epochs`, `--retained-data` pointing to the accepted preceding stage dataset and an independently verified input checkpoint. The runner rejects partial/oversampled epochs, omitted prior applications, extra applications, missing split metadata and languages outside English/French before importing the training framework. The preceding dataset manifest, source hashes and exact train/validation byte prefixes are verified. Its manifest/file hashes, stage and validator hashes are recorded alongside dataset, model and helper hashes.
+
+The launcher must bind `--retained-data` to the accepted predecessor run's recorded dataset hashes and separately enforce single-job execution, previous-stage acceptance, frozen baseline evaluation and the exact server tokenizer/runtime preflight. A valid dataset scope is not proof that those gates passed. This prepared runner has not executed optimization yet. Its scope tests cover the actual V6r2/V7r2/V8r2 datasets and their unchanged retained prefixes; these local metadata tests do not load model weights.
+
+
+## Dialogue curriculum and candidate comparison
+
+The current prepared continuation uses `train_cpu_serial_v2.py` and the cumulative V6r4/V7r4/V8r4 datasets. It retains the full-epoch and application-scope checks above, and binds each exact predecessor manifest and byte prefix. V5r4 is currently training; no later stage has started. Metadata preflight does not establish model accuracy.
+
+After all 438 V5r4 candidate cases finish, `report_dialogue_candidate.py` compares their fresh events with the frozen, measured dialogue baseline. Run it from the repository root:
+
+```sh
+python training/scripts/report_dialogue_candidate.py \
+  --data training/datasets/shared-dialogue-v1-en-fr \
+  --candidate training/evaluations/shared-v5r4-preparation \
+  --baseline training/evaluations/dialogue-v1-preparation \
+  --baseline-report training/reports/shared-dialogue-v1-en-fr-baseline.json \
+  --evaluation-root training/evaluations \
+  --driver-proof training/evaluations/shared-v5r3-preparation/baseline-complete.json \
+  --output training/evaluations/shared-v5r4-preparation/comparison.json
+```
+
+This read-only analysis rejects missing/duplicate cases, changed labels or frozen inputs, mismatched provider/driver evidence, changed pre/post artifact attestations, and a captured process that does not match the pinned Colibri model/runtime/configuration. It recomputes the baseline rather than trusting stored percentages. The driver proof is the earlier frozen baseline evidence also used by the running controller; it is not a new measurement.
+
+Acceptance requires the existing gates for the aggregate and every frozen set. The report includes per-application and per-language results, keeps native security verification explicitly separate, and never activates a model or launches training. Private inputs remain ignored by Git. Published reports must contain only reviewed synthetic scores and hashes, not process commands or infrastructure paths. The baseline retains its explicit 360 reused / 78 newly measured split; no combined latency comparison is inferred.
+
+Verification: 52 shared/training tests and 95 subtests passed, including deliberately mismatched model identities, process arguments, driver evidence and a 96% aggregate hiding a failed application set. The single reviewer found no remaining issues. These tests validate the reporting code; they are not candidate model scores.

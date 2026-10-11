@@ -1,0 +1,36 @@
+{
+  "version": "planner-rules-v1-en-fr",
+  "source_manifest_sha256": "5bfa383c276e28cf3a78a20788d1b51fd7769563243aa26f33fcab7fed9b13e3",
+  "generator_sha256": "611a9cd5828eb7b8674e13f8fc5ed9a6f1d54a2bcbd599db080ab303b0fc86f3",
+  "count_per_arm": 12,
+  "regression_ids": [
+    "design-workflow-v3-en-fr-fresh-assignee-en",
+    "design-workflow-v3-en-fr-fresh-time-en",
+    "design_workflow-refinement-v1-explicit-date-fr",
+    "design_workflow-refinement-v1-explicit-date-en"
+  ],
+  "new_control_ids": [
+    "planner-rules-control-literal-en",
+    "planner-rules-control-literal-fr",
+    "planner-rules-control-century-en",
+    "planner-rules-control-century-fr",
+    "planner-rules-control-missing-en",
+    "planner-rules-control-missing-fr",
+    "planner-rules-control-status-en",
+    "planner-rules-control-status-fr"
+  ],
+  "arms": {
+    "original": "",
+    "names": "Copy lookup names, article/document references and identifiers exactly from the request or authorized context, including accents and spelling. Do not translate these values to match the response language. User-facing explanations follow the current user's language. Canonical status codes and ISO dates still follow the tool schema. Only transform editable prose when the user explicitly requests that transformation; this never grants mutation permission.",
+    "dates": "A named full month plus an explicit four-digit year supplies a complete reporting period, even when that year differs from today's year. For supported date filters, use the inclusive first and last calendar dates of that month in ISO format. Ask for a year only when it is missing or ambiguous; never infer it from today or old messages. Do not discard other requested filters or use a tool that does not support the requested operation.",
+    "both": "Copy lookup names, article/document references and identifiers exactly from the request or authorized context, including accents and spelling. Do not translate these values to match the response language. User-facing explanations follow the current user's language. Canonical status codes and ISO dates still follow the tool schema. Only transform editable prose when the user explicitly requests that transformation; this never grants mutation permission.\nA named full month plus an explicit four-digit year supplies a complete reporting period, even when that year differs from today's year. For supported date filters, use the inclusive first and last calendar dates of that month in ISO format. Ask for a year only when it is missing or ambiguous; never infer it from today or old messages. Do not discard other requested filters or use a tool that does not support the requested operation."
+  },
+  "files": {
+    "original.eval.jsonl": "889b8ebdebb4ceaa521fba218f34de86da11c6d652731ffb577ddbf1382930e9",
+    "names.eval.jsonl": "f455c4a6ca98aa0412b25276d78a3795b424fad3f6c5a3605ed7b25d384b6c97",
+    "dates.eval.jsonl": "c25cd8ba37d41ed818833e8333b9889d6d811f875f7765259763212f2503b6e6",
+    "both.eval.jsonl": "4ad508ef3cfaba9028c9b474198621ba589c2e17ecf2486fe5c07ce7bee52099"
+  },
+  "status": "PREPARED; not measured or trained",
+  "policy": "Instruction-only ablation. No expected target is inserted into prompts. Same tools, permissions, native contexts and original labels per arm. Known failures are regressions; new synthetic controls are not independent certification. Does not replace the full frozen evaluation or authorize deployment."
+}

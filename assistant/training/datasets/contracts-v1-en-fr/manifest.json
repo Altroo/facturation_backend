@@ -1,0 +1,32 @@
+{
+  "version": "contracts-v1-en-fr",
+  "application": "contrat",
+  "languages": [
+    "en",
+    "fr"
+  ],
+  "counts": {
+    "train": 122,
+    "valid": 30,
+    "test": 78
+  },
+  "source": "Verified native Contracts registry, planner, permissions and workflows; synthetic values only; database queries forbidden.",
+  "training_status": "PREPARED ONLY; no training or accuracy result for Contracts",
+  "split_policy": "Separately authored bilingual scenario groups; no normalized exact prompt overlap. No claim of exhaustive semantic independence. Test inputs must remain frozen before baseline and tuning.",
+  "native_metadata_sha256": {
+    "tools.py": "cfdce93dd4cf15a1c99160697f24075f04d47ad86841cee1eeab95a3d3563526",
+    "planner.py": "28fb0ff131b963c8d441ff3763dc02b598d7f0e47c9b27b118a9a116e83e4fcf",
+    "resources.py": "e649d57d16ab1070bba3777185ade4855797431d0a1daf3f0fbace446b9fcce6",
+    "targets.py": "aa724f563c09890151729230fc30bae5397c91406fda5624aaf63ec7bac3bb5f",
+    "security.py": "7a95d6e53f82283babe7a7af2e10aa6c73f9f03a4ce7561b0def5a6ae35ea522"
+  },
+  "generator_sha256": "58b137738c394c98fe64e176069644c8588bf600274e38df658401a2aa4fc3ac",
+  "files": {
+    "train.jsonl": "c134e3024a7c01537c206aecf5aa552c825660b93c87450e014c30ee86c07631",
+    "valid.eval.jsonl": "e1299dfa194bb6c14243d3d0f2b87f037bd9e2a1aba68a8d99f2bc2ca72661ad",
+    "test.eval.jsonl": "bd9ade94e2bc9db098b928387548b06a1863fa46d5284388940e11ae0777cd1a",
+    "train.eval.jsonl": "453d2744118379b40fe6cab377acfcf2f64b7f4a201524759710e3332ff7f9c1",
+    "valid.jsonl": "c8e6cf50a2a1ada51091b3cdef2379741a3edeb3fa9669b6855cface87fbdd86"
+  },
+  "provenance_note": "Native source hashes refreshed after security review and before any model baseline or training; all evaluation and SFT JSONL bytes unchanged."
+}

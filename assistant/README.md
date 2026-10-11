@@ -2,7 +2,7 @@
 
 Self-hosted AI assistant for business applications, with a reusable Python engine, local CPU inference, application tools, conversation history, knowledge retrieval, and a reproducible model fine-tuning pipeline.
 
-The current integration is Facturation. It connects natural-language requests to existing billing workflows while preserving authenticated user access, company scope, native business calculations, and audit history. The interface supports French and English.
+One shared model serves application-specific adapters for `facturation`, `management_projet`, `design_workflow`, `contrat`, `gestion_magasin`, and `reservation`. Each adapter preserves its native authentication, permissions, company or store scope where applicable, business calculations, and audit history. The interface supports French and English. Tested integrations and prepared datasets are tracked separately from model training and acceptance; the later integrations remain disabled pending those gates.
 
 ## What It Shows
 
@@ -16,6 +16,7 @@ The current integration is Facturation. It connects natural-language requests to
 ## Main Components
 
 - `src/chat_ai_assistant`: model provider, orchestrator, tool contracts, and response validation.
+- `frontend/chat-ai`: canonical MUI chat, local SVG robot, composer, messages, and slash help.
 - `knowledge`: reviewed application workflows and terminology.
 - `training`: synthetic datasets, training configurations, export scripts, evaluations, and curated results.
 - `runtime/colibri`: pinned inference runtime source and upstream license notices.
@@ -30,21 +31,23 @@ The current integration is Facturation. It connects natural-language requests to
 - Documented workflow explanations and visible form labels in French and English.
 - User/company-scoped conversations, history, follow-up references, streaming, and cancellation.
 - Supported edit/delete previews with explicit confirmation and attribution to the requesting user.
-- Floating chat interface integrated into Facturation's authenticated layout using its existing UI components.
+- Floating chat interface integrated once into each native authenticated layout, with application-specific suggestions and permitted shortcuts.
 
 ## Stack
 
 - Python 3.12+, JSON Schema
 - Colibri, quantized Qwen3.5 CPU inference
 - PyTorch, Transformers, PEFT/LoRA for model training
-- Django, Django REST Framework, PostgreSQL for the Facturation adapter
-- Next.js, React, TypeScript, MUI for the Facturation interface
+- Django, Django REST Framework, PostgreSQL for native business adapters
+- Next.js, React, TypeScript, MUI for the shared interface
 - pytest, Jest, Testing Library, and MCP Playwright for integration verification
 
 ## Related Repositories
 
 - Backend API and Facturation adapter: [Altroo/facturation_backend](https://github.com/Altroo/facturation_backend)
 - Frontend and chat interface: [Altroo/facturation_frontend](https://github.com/Altroo/facturation_frontend)
+- Management Projet backend adapter: [Altroo/management_projet_backend](https://github.com/Altroo/management_projet_backend)
+- Management Projet frontend: [Altroo/management_projet_frontend](https://github.com/Altroo/management_projet_frontend)
 
 ## Local Setup
 
@@ -58,7 +61,7 @@ pip install -e .
 
 On Windows, activate with `.venv\Scripts\activate`.
 
-The complete assistant uses the existing Facturation backend and frontend. Follow their setup instructions and the [deployment guide](docs/AI_DEPLOYMENT.md) for application integration and private model configuration. Keep environment files and credentials outside source control.
+The complete assistant uses each existing application backend and frontend. Follow the relevant native repository setup instructions and the [deployment guide](docs/AI_DEPLOYMENT.md) for application integration and private model configuration. Keep environment files and credentials outside source control.
 
 ## Tests and Evaluation
 
@@ -66,7 +69,7 @@ Backend and frontend integration tests live in the related application repositor
 
 The model training pipeline runs on Linux and uses synthetic application scenarios. See the [fine-tuning guide](docs/AI_FINE_TUNING.md) for dataset validation, training, export, evaluation, and rollback.
 
-The current fine-tuned model improves on the base model but remains below the broad tool-selection and argument-extraction targets. Actual scores and performance measurements are in the [model comparison](training/reports/qwen08-v4-independent-en-fr/COMPARISON.md). Passing application tests does not imply that every model request is interpreted correctly.
+Broad model acceptance targets remain unmet. The [model accuracy report](docs/AI_MODEL_ACCURACY.md) records measured comparisons and the current shared training run; the [serial training queue](docs/AI_TRAINING_QUEUE.md) separates prepared datasets from executed stages. Passing application tests does not imply that every model request is interpreted correctly.
 
 ## Documentation
 
@@ -78,6 +81,11 @@ The current fine-tuned model improves on the base model but remains below the br
 - [Application knowledge](docs/AI_KNOWLEDGE.md)
 - [Frontend integration](docs/AI_FRONTEND.md)
 - [Implementation status](docs/AI_PROGRESS.md)
+
+- [Management Projet integration status](docs/AI_MANAGEMENT_PROJET_PROGRESS.md)
+- [Contracts integration status](docs/AI_CONTRACTS_PROGRESS.md)
+- [Gestion Magasin integration status](docs/AI_GESTION_MAGASIN_PROGRESS.md)
+- [Réservation integration status](docs/AI_RESERVATION_PROGRESS.md)
 
 ## Portfolio Note
 

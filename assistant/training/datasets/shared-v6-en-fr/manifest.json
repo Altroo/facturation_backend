@@ -1,0 +1,40 @@
+{
+  "version": "shared-synthetic-v6-en-fr",
+  "applications": [
+    "facturation",
+    "management_projet",
+    "design_workflow",
+    "contrat"
+  ],
+  "languages": [
+    "en",
+    "fr"
+  ],
+  "source": "Approved versioned synthetic sources only. No confidential business records or conversation data.",
+  "sources": {
+    "facturation/train.jsonl": "2279c822c34b4e18ec1ee3a5d5e92c076b221becd7ec0e2bc65a4bafb2ad47dc",
+    "management_projet/train.jsonl": "dbde0cce38611d2651be403fcef8d26bd429fda6518124129cdd9768511e3adb",
+    "design_workflow/train.jsonl": "b11cecc6b48c6a6ec57c3dff57a38381c9f8f3bae1d9ca71208d62733f4425d5",
+    "contrat/train.jsonl": "c134e3024a7c01537c206aecf5aa552c825660b93c87450e014c30ee86c07631",
+    "facturation/valid.jsonl": "1f476c825b9467ad79ad4c6b3bd9f2ed18237d532ea492f5c6c9089e0de75881",
+    "management_projet/valid.jsonl": "7399c74b6c95bee9b0d3a7baef909d1001f2f0a82d3e650905a1c03c62cd6a09",
+    "design_workflow/valid.jsonl": "e82a446887b8813b60b4252a822f9c72a75b77bb451185c30a3b630be8ac21f8",
+    "contrat/valid.jsonl": "c8e6cf50a2a1ada51091b3cdef2379741a3edeb3fa9669b6855cface87fbdd86"
+  },
+  "counts": {
+    "facturation/train.jsonl": 410,
+    "management_projet/train.jsonl": 616,
+    "design_workflow/train.jsonl": 292,
+    "contrat/train.jsonl": 122,
+    "facturation/valid.jsonl": 86,
+    "management_projet/valid.jsonl": 48,
+    "design_workflow/valid.jsonl": 34,
+    "contrat/valid.jsonl": 30
+  },
+  "held_out_exclusion": "All declared independent application acceptance sets excluded by normalized application/prompt key. Per-application near-duplicate limitations remain as stated in their source manifests.",
+  "training_policy": "Continue from a separately recorded existing checkpoint. Use complete epochs for v3, covering every source row; record actual steps and exposure. No candidate is automatically activated.",
+  "files": {
+    "train.jsonl": "e96e8b35392ac26a8b69450d1a8f252c89ef8c946224526a06d43f26617d0ab5",
+    "valid.jsonl": "082218e36bfa68acea8d3c22d8d2adbe0748cf5ca18b8e4e172466732404640f"
+  }
+}

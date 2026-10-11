@@ -219,11 +219,12 @@ def period_dates(args):
 
 
 class ChatAIToolExecutor:
-    def __init__(self, user_id, company_id, correlation_id, state=None, context=None, audit=True):
+    def __init__(self, user_id, company_id, correlation_id, state=None, context=None, audit=True, instruction=None):
         self.user_id,self.company_id,self.correlation_id = user_id,company_id,correlation_id
         self.state = dict(state or {})
         self.context = context or {}
         self.audit = audit
+        self.instruction = instruction or ""
         self.registry = registry()
         self.calls = 0
 

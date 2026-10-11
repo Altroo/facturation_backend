@@ -1,0 +1,54 @@
+{
+  "scope": "Failure diagnosis only; ten selected cases include nine known failures and one correct control. Not an accuracy estimate or acceptance result.",
+  "variant_results": {
+    "i8-reference": {
+      "case_count": 20,
+      "structured_valid": 14,
+      "tool_correct": 8,
+      "arguments_correct": 2,
+      "script_sha256": "b332b67436004f49f1fc1970cdf1bd1ba528ae00a84c2e43124678faf78701a4",
+      "cases_sha256": "b1b6fd0f34e8e09dcc0192986fb1fbda0226ba618a85ba4717918ec8ae8ca0d6",
+      "manifest_sha256": "503d7b4522d2e18fd6460a16001a5029e8b730a8407b68bb51a098bb180086db",
+      "events_sha256": "22859306e197144a53018504ec497a306b42f8014eb7e91aaffcc6eca8605a58"
+    },
+    "i8-off": {
+      "case_count": 10,
+      "structured_valid": 7,
+      "tool_correct": 4,
+      "arguments_correct": 2,
+      "script_sha256": "b332b67436004f49f1fc1970cdf1bd1ba528ae00a84c2e43124678faf78701a4",
+      "cases_sha256": "b1b6fd0f34e8e09dcc0192986fb1fbda0226ba618a85ba4717918ec8ae8ca0d6",
+      "manifest_sha256": "503d7b4522d2e18fd6460a16001a5029e8b730a8407b68bb51a098bb180086db",
+      "events_sha256": "82470ba81fcda7f5faef653f96809455988265a66cfe8f4769d931b4bfc656f4"
+    },
+    "hf-merged-fp32": {
+      "case_count": 10,
+      "structured_valid": 7,
+      "tool_correct": 4,
+      "arguments_correct": 2,
+      "script_sha256": "b332b67436004f49f1fc1970cdf1bd1ba528ae00a84c2e43124678faf78701a4",
+      "cases_sha256": "b1b6fd0f34e8e09dcc0192986fb1fbda0226ba618a85ba4717918ec8ae8ca0d6",
+      "manifest_sha256": "503d7b4522d2e18fd6460a16001a5029e8b730a8407b68bb51a098bb180086db",
+      "events_sha256": "aa389051a872e2efca660b0ba17e8973a00d9a6c12dbc72793117220d864326b"
+    },
+    "hf-adapter-bf16": {
+      "case_count": 10,
+      "structured_valid": 7,
+      "tool_correct": 4,
+      "arguments_correct": 2,
+      "script_sha256": "b332b67436004f49f1fc1970cdf1bd1ba528ae00a84c2e43124678faf78701a4",
+      "cases_sha256": "b1b6fd0f34e8e09dcc0192986fb1fbda0226ba618a85ba4717918ec8ae8ca0d6",
+      "manifest_sha256": "503d7b4522d2e18fd6460a16001a5029e8b730a8407b68bb51a098bb180086db",
+      "events_sha256": "615e246a112c71063afd2f0a3dad8cda6e6040e030d9fa42adebe471a67e5ab4"
+    }
+  },
+  "observations": [
+    "Actual native Colibri tokenizer IDs match training tokenizer IDs on all 328 frozen prompts.",
+    "Original BF16 adapter, merged FP32 model and Colibri integer-inference-off variant have identical parsed actions/errors on all ten selected cases.",
+    "Two archived-project repetition loops occur in the original adapter and both exported runtimes; they are not introduced by conversion.",
+    "Disabling integer inference recovers one selected assignee-filter case. Main tool, filter and missing-year failures persist.",
+    "Integer-on reference repeated twice with identical outputs, usage and finish reasons for each of the ten cases."
+  ],
+  "next_action": "Refine synthetic coverage and continue the same shared checkpoint; preserve frozen tests and require full acceptance.",
+  "production_model_changed": false
+}

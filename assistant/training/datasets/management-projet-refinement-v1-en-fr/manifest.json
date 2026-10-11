@@ -1,0 +1,32 @@
+{
+  "version": "management-projet-refinement-v1-en-fr",
+  "application": "management_projet",
+  "languages": [
+    "en",
+    "fr"
+  ],
+  "counts": {
+    "train": 664,
+    "valid": 54,
+    "independent": 12
+  },
+  "source_dataset": "management-projet-v4-en-fr",
+  "source_manifest_sha256": "354353e7eade78bb5b240432af77cbd6f95154b8afdbcf18b9aec4f204f534e5",
+  "generator_sha256": "222cfc9c3dbc15f153b98bb5b7e7fb330f793e33e3a5350eb44b2957d9d06dd0",
+  "files": {
+    "train.eval.jsonl": "76b19dbe61e270ce359eb2523fc957d19996a709029517847a635a8402216148",
+    "train.jsonl": "cd137fad32cf38b4620e6192b31601859d21af738fc55c04e3d559d86320d38d",
+    "valid.eval.jsonl": "73eb6f50697012858c1157371c38556b985273b1b12b4cb02f82d2b5253f3bdc",
+    "valid.jsonl": "ff82209cedcc73813c1cca3331d49df2e7385c075e66325f09a9bddb02b596c2",
+    "independent.eval.jsonl": "95e5fb162dd3345b3a817e23e39fa3420b61f0b1188472d648ea028ee5a5ba71"
+  },
+  "frozen_sets": {
+    "management-projet-v1-en-fr/test.eval.jsonl": "1c63c39ecb5906f3fa2adf0dd2a74a78c8b814836cf8131d499e0ead88eb0277",
+    "management-projet-v2-en-fr/independent.eval.jsonl": "c4586a2c6459e02c63557f1e693a5212b51c507eba80d32f2661128a25c3f5d8",
+    "management-projet-v3-en-fr/independent.eval.jsonl": "12e224a326a40fb185b5bf10cd1b7e38339ca3fa955f72ed3da678fe8df98f41",
+    "management-projet-v4-en-fr/independent.eval.jsonl": "993a0bc3aed974fd52b04941efd8e06ee865bc7d7e98761dda6e0d1f7b9dc8e1"
+  },
+  "split_policy": "Distinct authored bilingual scenarios. Old frozen failures informed categories, not copied labels. Old sets are regression evidence; new independent cases never enter train or validation. Exact normalized overlaps rejected; semantic similarities remain possible.",
+  "source": "Native permission-narrowed registries and verified fields. Synthetic entities only; all database connections forbidden.",
+  "native_tools_sha256": "33ad0a9629e7740900b328385521e2a88b0c852456cec4ef865db760c086b3ae"
+}

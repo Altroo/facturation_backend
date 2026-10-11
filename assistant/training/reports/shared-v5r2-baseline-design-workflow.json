@@ -1,0 +1,168 @@
+{
+  "label": "design-workflow-refinement-baseline-v5",
+  "dataset_sha256": "a432864c18ccc4a2604ae1fec1b718f61da4f71848b4c3c92516b1d266fc5e2d",
+  "evaluator_sha256": "dca2abf86b2162ccd99b868108dd957f5ef600fe196a5bf9f21b15cafa4fbe7b",
+  "model_id": "chat-ai-shared-qwen08-v5-en-fr-20261010",
+  "max_output_tokens": 512,
+  "thinking": false,
+  "mode": "native",
+  "metrics": {
+    "count": 10,
+    "counts": {
+      "tool_correct": 6,
+      "arguments_correct": 0,
+      "structured_valid": 8
+    },
+    "percent": {
+      "tool_correct": 60.0,
+      "arguments_correct": 0.0,
+      "structured_valid": 80.0
+    },
+    "exact_arguments": {
+      "passed": 0,
+      "count": 8,
+      "percent": 0.0
+    }
+  },
+  "by_language": {
+    "en": {
+      "count": 5,
+      "counts": {
+        "tool_correct": 3,
+        "arguments_correct": 0,
+        "structured_valid": 4
+      },
+      "percent": {
+        "tool_correct": 60.0,
+        "arguments_correct": 0.0,
+        "structured_valid": 80.0
+      },
+      "exact_arguments": {
+        "passed": 0,
+        "count": 4,
+        "percent": 0.0
+      }
+    },
+    "fr": {
+      "count": 5,
+      "counts": {
+        "tool_correct": 3,
+        "arguments_correct": 0,
+        "structured_valid": 4
+      },
+      "percent": {
+        "tool_correct": 60.0,
+        "arguments_correct": 0.0,
+        "structured_valid": 80.0
+      },
+      "exact_arguments": {
+        "passed": 0,
+        "count": 4,
+        "percent": 0.0
+      }
+    }
+  },
+  "by_category": {
+    "archive": {
+      "count": 2,
+      "counts": {
+        "tool_correct": 0,
+        "arguments_correct": 0,
+        "structured_valid": 0
+      },
+      "percent": {
+        "tool_correct": 0.0,
+        "arguments_correct": 0.0,
+        "structured_valid": 0.0
+      },
+      "exact_arguments": {
+        "passed": 0,
+        "count": 2,
+        "percent": 0.0
+      }
+    },
+    "assigned": {
+      "count": 2,
+      "counts": {
+        "tool_correct": 2,
+        "arguments_correct": 0,
+        "structured_valid": 2
+      },
+      "percent": {
+        "tool_correct": 100.0,
+        "arguments_correct": 0.0,
+        "structured_valid": 100.0
+      },
+      "exact_arguments": {
+        "passed": 0,
+        "count": 2,
+        "percent": 0.0
+      }
+    },
+    "explicit": {
+      "count": 2,
+      "counts": {
+        "tool_correct": 2,
+        "arguments_correct": 0,
+        "structured_valid": 2
+      },
+      "percent": {
+        "tool_correct": 100.0,
+        "arguments_correct": 0.0,
+        "structured_valid": 100.0
+      },
+      "exact_arguments": {
+        "passed": 0,
+        "count": 2,
+        "percent": 0.0
+      }
+    },
+    "review": {
+      "count": 2,
+      "counts": {
+        "tool_correct": 2,
+        "arguments_correct": 0,
+        "structured_valid": 2
+      },
+      "percent": {
+        "tool_correct": 100.0,
+        "arguments_correct": 0.0,
+        "structured_valid": 100.0
+      },
+      "exact_arguments": {
+        "passed": 0,
+        "count": 2,
+        "percent": 0.0
+      }
+    },
+    "year": {
+      "count": 2,
+      "counts": {
+        "tool_correct": 0,
+        "arguments_correct": 0,
+        "structured_valid": 2
+      },
+      "percent": {
+        "tool_correct": 0.0,
+        "arguments_correct": 0.0,
+        "structured_valid": 100.0
+      },
+      "exact_arguments": {
+        "passed": 0,
+        "count": 0,
+        "percent": null
+      }
+    }
+  },
+  "latency_mean_s": 9.35,
+  "latency_p95_s": 13.246,
+  "first_visible_event_mean_s": 8.371,
+  "completion_tokens_per_wall_second_mean": 8.006,
+  "limitations": [
+    "Synthetic held-out scenarios; no business tools executed.",
+    "Knowledge query wording is scored only for nonempty schema-valid text; retrieval factuality is tested separately. Clarifications must match the expected reason and language.",
+    "Exact arguments exclude knowledge and clarification. Optional default pagination/period arguments are normalized.",
+    "Native Colibri tool buffering means first visible event and wall throughput are not raw decode TTFT/tokens per second.",
+    "No hostname, URL, key, private record or operator path is included in the report."
+  ]
+}

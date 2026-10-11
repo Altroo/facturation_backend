@@ -1,0 +1,78 @@
+{
+  "version": "management-projet-v4-en-fr",
+  "application": "management_projet",
+  "languages": [
+    "en",
+    "fr"
+  ],
+  "source": "Actual native registry/planner and reviewed form/status metadata. Synthetic scenarios only; database queries forbidden.",
+  "source_dataset": "management-projet-v3-en-fr",
+  "source_manifest_sha256": "2045fd7083dd501e231df69a696d2cd81aa03815efe23392535f475c66dcbe28",
+  "generator_sha256": "c12137bdef2f6777dae5b9b4d5d7960e7d5c9e817d7f55bc8e10ee7681919630",
+  "builder_sha256": "7753da665415b1a917ed6bf4023be917f801862e022bc734c51fac4935c9ffd2",
+  "native_metadata_sha256": {
+    "tools.py": "33ad0a9629e7740900b328385521e2a88b0c852456cec4ef865db760c086b3ae",
+    "planner.py": "5e2a8b8a1556f8a96027a5eb1835e9c5b5ed81b544e87f02c01aff8fb2d2620f",
+    "resources.py": "3e8b0c1d816dc230ec7761fe482a90c2c5cd680ae1a786f5c70620706e73fb84",
+    "targets.py": "1c3dcc602e21b0abcca815450955e872038662acfa589ff083069b5e2529289c"
+  },
+  "counts": {
+    "train": 616,
+    "valid": 48,
+    "independent": 32
+  },
+  "categories": {
+    "list": 28,
+    "projectfilter": 12,
+    "name": 4,
+    "combined": 14,
+    "status": 64,
+    "metric": 36,
+    "navigation": 12,
+    "context": 14,
+    "followup": 4,
+    "write": 2,
+    "delete": 12,
+    "print": 2,
+    "knowledge": 8,
+    "clarify": 76,
+    "client": 12,
+    "dated": 12,
+    "lookup": 4,
+    "supplier": 4,
+    "full": 4,
+    "stage": 4,
+    "projectmetric": 8,
+    "custommetric": 8,
+    "budget": 2,
+    "estimates": 2,
+    "ordinal": 4,
+    "edit": 34,
+    "described": 22,
+    "denied": 36,
+    "total": 40,
+    "and": 4,
+    "before": 4,
+    "after": 4,
+    "read": 10,
+    "allowed": 10,
+    "records": 36,
+    "bound": 24,
+    "summary": 20,
+    "known": 10,
+    "current": 10
+  },
+  "frozen_sets": {
+    "management-projet-v1-en-fr/test.eval.jsonl": "1c63c39ecb5906f3fa2adf0dd2a74a78c8b814836cf8131d499e0ead88eb0277",
+    "management-projet-v2-en-fr/independent.eval.jsonl": "c4586a2c6459e02c63557f1e693a5212b51c507eba80d32f2661128a25c3f5d8",
+    "management-projet-v3-en-fr/independent.eval.jsonl": "12e224a326a40fb185b5bf10cd1b7e38339ca3fa955f72ed3da678fe8df98f41"
+  },
+  "split_policy": "Bilingual pairs remain together. All old frozen acceptance/companion prompts excluded by normalized exact key. New independent labels never enter SFT or validation. Failure categories informed adaptation; old tests are regressions. Semantic similarity is not exhaustively excluded.",
+  "files": {
+    "train.jsonl": "dbde0cce38611d2651be403fcef8d26bd429fda6518124129cdd9768511e3adb",
+    "valid.eval.jsonl": "0fd5776875a26e6447f8edf5e46c22cc153fb0ff64ece8c0bfcb597904fe27f5",
+    "independent.eval.jsonl": "993a0bc3aed974fd52b04941efd8e06ee865bc7d7e98761dda6e0d1f7b9dc8e1",
+    "train.eval.jsonl": "6ca910afa2b6a98f88e29868aa80eab66f41cccb092395b9762004696449241b",
+    "valid.jsonl": "7399c74b6c95bee9b0d3a7baef909d1001f2f0a82d3e650905a1c03c62cd6a09"
+  }
+}

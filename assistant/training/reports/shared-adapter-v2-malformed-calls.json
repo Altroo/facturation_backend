@@ -1,0 +1,47 @@
+{
+  "version": "shared-adapter-v2-malformed-calls",
+  "count": 8,
+  "business_tools_executed": false,
+  "benchmark_results_replaced": false,
+  "model_process_unchanged": true,
+  "provider_hashes_checked": true,
+  "groups": {
+    "unsupported_financial_filter": {
+      "count": 4,
+      "case_ids": [
+        "management-projet-v4-en-fr-fresh-supplier-total-fr",
+        "management-projet-v4-en-fr-fresh-supplier-total-en",
+        "management_projet-refinement-v1-unsupported-total-fr",
+        "management_projet-refinement-v1-unsupported-total-en"
+      ]
+    },
+    "wrong_change_field_name": {
+      "count": 2,
+      "case_ids": [
+        "second-quote-amount-fr",
+        "second-quote-amount-en"
+      ]
+    },
+    "missing_required_operation": {
+      "count": 1,
+      "case_ids": [
+        "v2-audit-change-en"
+      ]
+    },
+    "unsupported_previous_result_operation": {
+      "count": 1,
+      "case_ids": [
+        "third-customer-delete-en"
+      ]
+    }
+  },
+  "evidence_sha256": {
+    "malformed-call-probes.jsonl": "bdf4eb5b5a50014329dfd3c770110de9c87d25b7fb4446bde766b84eeedc56f2",
+    "parser-rejections-file.json": "fb3b20f1140143b0a6a1fdd73f63d0525728925acb54818a6ebb404041e9c8b0"
+  },
+  "limitations": [
+    "Same eight previously failed synthetic inputs replayed on the isolated candidate; not a fresh accuracy sample.",
+    "The missing-operation diagnosis combines an empty parsed tool-call stream with the isolated runtime parser rejection log.",
+    "No schema was loosened, action rewritten, business tool executed, or production model replaced. Raw model traces remain private."
+  ]
+}

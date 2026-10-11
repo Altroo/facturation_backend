@@ -1,6 +1,6 @@
 # Facturation deployment and verification
 
-The user has explicitly authorized completion, testing, pushes to all three remotes, deployment and production verification. Release remains gated on resolving critical test failures; Phase 2 is not authorized. Existing development, translation and grammar model services have not been changed. The assistant would be the fifth installed model and fourth normal active model according to the user's inventory; isolated training/evaluation processes are not a production rollout.
+The user has explicitly authorized completion, testing, pushes to all three remotes, deployment and production verification. Release remains gated on resolving critical test failures; The later Management Projet integration and shared-model Design Workflow training are tracked separately; their production activation is not implied by this Facturation release. Existing development, translation and grammar model services have not been changed. The assistant would be the fifth installed model and fourth normal active model according to the user's inventory; isolated training/evaluation processes are not a production rollout.
 
 ## Build artifacts
 
@@ -32,12 +32,12 @@ Watch model health, latency/P95, queue/BUSY rates, invalid tool calls, timeouts,
 
 ## Rollback
 
-Disable both feature flags, stop only the new assistant inference service, restore the previous reviewed backend/frontend images and accepted model directory. The current feature remains isolated from the other five applications. Preserve conversation and audit tables unless a separately reviewed migration rollback is required; never discard actor history as part of a UI rollback. Existing dev/translation/grammar services remain untouched.
+For an application rollback, disable its assistant feature flag and restore only its reviewed backend/frontend images. The inference service is shared: do not stop or replace it as part of a single-app rollback. A model rollback requires a separately approved shared-service change and regression checks for every enabled adapter. Preserve conversation and audit tables unless a separately reviewed migration rollback is required; never discard actor history as part of a UI rollback. Existing dev/translation/grammar services remain untouched.
 
 Build safety: `.env` and `.env.*` are excluded from the backend build context. Static collection uses synthetic build-only configuration, never production secrets. The model Dockerfile uses architecture-appropriate CPU flags, explicitly allows only the private service hostname, and has a restricted Docker build context excluding training datasets and model weights.
 
-## Service-scoped release hooks
-Reviewed hooks in `deploy/hooks/` build images before service replacement, fail on errors, and verify health. The backend hook migrates and synchronizes approved knowledge before replacing web/workers. The frontend hook replaces only its web service and gracefully reloads the existing proxy to refresh upstream DNS. Neither runs `compose down` or recreates shared Nginx. The service hooks used for the release were backed up, reviewed and installed on 2026-10-08. The current portable templates additionally resolve checkout and health configuration from private repository-local Git settings; installing a template requires those values to be configured first. The database backup (7,218,880bytes) passed pg_restore listing, and previous application images have explicit rollback tags. Facturation web/workers and frontend were replaced through their Git hooks after successful builds/checks; the existing proxy was reloaded without recreation. Other applications and AI services were not replaced.
+## Facturation service-scoped release hooks
+Reviewed Facturation hooks in `deploy/hooks/` build images before service replacement, fail on errors, and verify health. The backend hook migrates and synchronizes approved knowledge before replacing web/workers. The frontend hook replaces only its web service and gracefully reloads the existing proxy to refresh upstream DNS. Neither runs `compose down` or recreates shared Nginx. The service hooks used for the release were backed up, reviewed and installed on 2026-10-08. The current portable templates additionally resolve checkout and health configuration from private repository-local Git settings; installing a template requires those values to be configured first. The database backup (7,218,880bytes) passed pg_restore listing, and previous application images have explicit rollback tags. Facturation web/workers and frontend were replaced through their Git hooks after successful builds/checks; the existing proxy was reloaded without recreation. Other applications and AI services were not replaced.
 
 
 ## Public repository boundary
@@ -52,3 +52,11 @@ V4 broad model targets are unmet; the authorized deployment is evaluated against
 Before installing a hook, configure the bare repository's `chatAI.sourceWorkTree` with the intended absolute checkout directory. The frontend deployment hook also requires an HTTPS `chatAI.healthURL`. These values are repository-local operator configuration and are not source files. The central source hook only updates its checkout; it does not run training or replace model services.
 
 Public report copies omit hostnames, service-unit identifiers and absolute artifact paths. Original evaluation evidence stays in private storage. Artifact hashes and measured scores remain unchanged.
+
+## Subsequent application releases
+
+Native source changes originate locally, then reach company/personal/production through normal Git pushes after fetching and merging current heads. Inspect each actual hook; the Facturation templates above do not describe every app. Gestion Magasin and Réservation use their existing application deployment hooks, which may briefly stop their own Compose stack without removing volumes. Do not replace hooks or shared infrastructure merely to match the template.
+
+New adapter releases preserve a private verified database restore file and compare business-table counts around additive assistant migrations. Apply `migrate chat_ai` and `sync_ai_knowledge` when the native hook does not do so. Verify deployed source, model/worker health, the unchanged shared inference process and the intended disabled feature flag. A successful Git push alone is not release evidence.
+
+Prepared adapters do not authorize activation of unaccepted models. Management Projet remains disabled under the user's explicit choice; Contracts, Gestion Magasin and Réservation also remain disabled pending measured acceptance and activation authorization. Read per-app progress reports for current verified status. Environment files, restore files, raw evidence and connection details remain outside public repositories.

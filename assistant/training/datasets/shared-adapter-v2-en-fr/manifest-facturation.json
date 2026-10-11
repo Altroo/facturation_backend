@@ -1,0 +1,46 @@
+{
+  "version": "shared-adapter-v2-en-fr",
+  "application": "facturation",
+  "languages": [
+    "en",
+    "fr"
+  ],
+  "status": "Unmeasured current-adapter diagnostic; no training or acceptance claim.",
+  "methodology": "Original user prompts and expected actions unchanged. Current native system prompt and permission-filtered tool schemas replace historical envelopes. Historical DW capability snapshots gain the native mutate alias when update/archive is present; historical role-profile labels are not a live role simulation. Backend role authorization is tested separately. Calendar anchors are computed from the original trusted date. Synthetic saved IDs are added to four legacy ordinal-opening scenarios that recorded only result count; these IDs do not change their expected ordinal. No business tools execute. Previously reviewed regressions are not unseen certification.",
+  "native_sources": {
+    "chat_ai/tools.py": "1c31c67ce5c23380108619c1f49ad18d96039fd97c3ad63aceae5c3da51d1b5e",
+    "chat_ai/services.py": "dfd35601ef6f2112359f77b0de2972d1a4eca4fa99dc1c2e5421295bc0be44e9",
+    "chat_ai/shortcuts.py": "5c0c47bfccec21c8e7d7d56ad108d676834a34f52331e42ab99e633c5e7387d8"
+  },
+  "shared_sources": {
+    "src/chat_ai_assistant/orchestrator.py": "7b85c9479ac895969f07cb5d7fa1fe7d95fd0f8eee9255222cf96635095a7c4e",
+    "src/chat_ai_assistant/calendar_context.py": "6ee2c0f63ef33c0ba8b8f1ea29fbcd5d6f1e88e4273dc40ece33dab75619aeb9",
+    "src/chat_ai_assistant/routing.py": "1640f46741e967711c7af246d0766b89992c4dc63d48c7a697ef775890d4a811",
+    "training/scripts/build_refinement_v1.py": "222cfc9c3dbc15f153b98bb5b7e7fb330f793e33e3a5350eb44b2957d9d06dd0",
+    "training/scripts/build_dataset_v4.py": "f5f4deb354557d007f13ea23721577ca666aecf492f662bf3233ac6f4db34476"
+  },
+  "generator_sha256": "1f6ca6d395a17aff46bf94fb003f186b09295c6515f5ac6ba39d8c0907da7028",
+  "files": {
+    "facturation-acceptance-en-fr--test.eval.jsonl": "a98d2d5c114b709b68ea856e8251c1007071d8585f69c0f41bae5f98e924d75b",
+    "facturation-refinement-v1-en-fr--independent.eval.jsonl": "daf215fa0ee8f00793bc1b92eaf4857240b419fbdd4ace45674e6f2f77cc81f4"
+  },
+  "inputs": {
+    "facturation-acceptance-en-fr--test.eval.jsonl": {
+      "original_dataset": "facturation-acceptance-en-fr/test.eval.jsonl",
+      "original_sha256": "91ca4ad072df31a651c8a87ea51dd9349d0f937f2701bcab3da868d01cfa479a",
+      "baseline_label": "facturation-candidate-shared-v5r2-final",
+      "count": 80,
+      "description_changed_rows": 18,
+      "current_adapter": true
+    },
+    "facturation-refinement-v1-en-fr--independent.eval.jsonl": {
+      "original_dataset": "facturation-refinement-v1-en-fr/independent.eval.jsonl",
+      "original_sha256": "983b06c7aa815eb04bcd7c092e5b5086019314b1abeb970c341f6bbd370bf5d7",
+      "baseline_label": "facturation-refinement-candidate-v5r2",
+      "count": 12,
+      "description_changed_rows": 2,
+      "current_adapter": true
+    }
+  },
+  "count": 92
+}

@@ -1,0 +1,35 @@
+{
+  "version": "shared-synthetic-v4-en-fr",
+  "applications": [
+    "facturation",
+    "management_projet",
+    "design_workflow"
+  ],
+  "languages": [
+    "en",
+    "fr"
+  ],
+  "source": "Approved versioned synthetic sources only. No confidential business records or conversation data.",
+  "sources": {
+    "facturation/train.jsonl": "2279c822c34b4e18ec1ee3a5d5e92c076b221becd7ec0e2bc65a4bafb2ad47dc",
+    "management_projet/train.jsonl": "6c35038f4d4d802b6480e114f9b4b4b8ef3816d813116b614b15b070da1bbfe1",
+    "design_workflow/train.jsonl": "75c48a23a78cb45937113b85710097979ad4e9f6fcaa534223cf5a19e94ff28d",
+    "facturation/valid.jsonl": "1f476c825b9467ad79ad4c6b3bd9f2ed18237d532ea492f5c6c9089e0de75881",
+    "management_projet/valid.jsonl": "264244b2faebd4ed98cb61d8f4a0308ae979f6e7f54b44ffdccd0967aac21a7a",
+    "design_workflow/valid.jsonl": "c72008d4bc87408c76a3e82a2b2d8aaedcfd3708384c3265d2acf86e04e252b2"
+  },
+  "counts": {
+    "facturation/train.jsonl": 410,
+    "management_projet/train.jsonl": 446,
+    "design_workflow/train.jsonl": 204,
+    "facturation/valid.jsonl": 86,
+    "management_projet/valid.jsonl": 32,
+    "design_workflow/valid.jsonl": 24
+  },
+  "held_out_exclusion": "All declared independent application acceptance sets excluded by normalized application/prompt key. Per-application near-duplicate limitations remain as stated in their source manifests.",
+  "training_policy": "Continue from a separately recorded existing checkpoint. Use complete epochs for v3, covering every source row; record actual steps and exposure. No candidate is automatically activated.",
+  "files": {
+    "train.jsonl": "ee63ca68a91c011cf46501d40876e8de7a50c6ff74e63e453ad7a6a6a1e5d278",
+    "valid.jsonl": "c8d2161eddc357fc6e1e2f9ce3227bcd114c1390532bef0e8b5e6e49ba457730"
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "version": "shared-synthetic-v6r2-en-fr",
+  "applications": [
+    "facturation",
+    "management_projet",
+    "design_workflow",
+    "contrat"
+  ],
+  "languages": [
+    "en",
+    "fr"
+  ],
+  "source": "Approved versioned synthetic sources only. No confidential business records or conversation data.",
+  "sources": {
+    "facturation/train.jsonl": "b07a18fb32fead1b30a5aa3881fd60602906e3dede6a9668d5a18757f89374b2",
+    "management_projet/train.jsonl": "cd137fad32cf38b4620e6192b31601859d21af738fc55c04e3d559d86320d38d",
+    "design_workflow/train.jsonl": "2064da57f75c14e1e4d9ac3b75d7b546723f705a0cb97af57376ba526a3a0a6c",
+    "contrat/train.jsonl": "c134e3024a7c01537c206aecf5aa552c825660b93c87450e014c30ee86c07631",
+    "facturation/valid.jsonl": "f816de24033c5e1522fe5b7a46e6e46ce4307c578436e2b65db90c29dee8a567",
+    "management_projet/valid.jsonl": "ff82209cedcc73813c1cca3331d49df2e7385c075e66325f09a9bddb02b596c2",
+    "design_workflow/valid.jsonl": "19cd3f65c86a12b1833687d0446e776b3a0699516fcd1a8a66bc6f3575dd4ac2",
+    "contrat/valid.jsonl": "c8e6cf50a2a1ada51091b3cdef2379741a3edeb3fa9669b6855cface87fbdd86"
+  },
+  "counts": {
+    "facturation/train.jsonl": 458,
+    "management_projet/train.jsonl": 664,
+    "design_workflow/train.jsonl": 332,
+    "contrat/train.jsonl": 122,
+    "facturation/valid.jsonl": 92,
+    "management_projet/valid.jsonl": 54,
+    "design_workflow/valid.jsonl": 40,
+    "contrat/valid.jsonl": 30
+  },
+  "held_out_exclusion": "All declared independent application acceptance sets excluded by normalized application/prompt key. Per-application near-duplicate limitations remain as stated in their source manifests.",
+  "training_policy": "Continue from a separately recorded existing checkpoint. Use complete epochs for v3, covering every source row; record actual steps and exposure. No candidate is automatically activated.",
+  "files": {
+    "train.jsonl": "3e7590f95efb92ea6fea386796e07502bc13d86b2949f60282044a2351a33a6c",
+    "valid.jsonl": "1922c6f8481c97a57f55eccb80d0349987546ca4c3deb72bc954777bcbc698b9"
+  }
+}

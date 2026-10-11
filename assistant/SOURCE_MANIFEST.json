@@ -3,13 +3,13 @@
     "revision_hint": "4a4f7a73",
     "revision_verified_from_git": false,
     "source_identity": "Exact included file hashes; historical revision hint only.",
-    "tree_sha256": "f0704cd1517a7da10e556d2d32148cfdc12d66bbc32d4e4f3379752ddda646e1"
+    "tree_sha256": "79fe303776c3aa6871ca0f738f60835ef81bace948fa462772b86a621a9c2625"
   },
   "files": {
     "README.md": {
       "mode": 420,
-      "sha256": "6408588beaaa0fc8ce1d24b8e6ef2bbb4c2a84ce2aca1bfea3f537fd0f295e00",
-      "size_bytes": 4943
+      "sha256": "5ff7ac913932a0a1a91e26dcd773af335df93c9e5e6c758d6b6f113e48410e82",
+      "size_bytes": 5886
     },
     "SNAPSHOT.md": {
       "mode": 420,
@@ -58,8 +58,8 @@
     },
     "docs/AI_API.md": {
       "mode": 420,
-      "sha256": "291df0eb86299ff5ec0724276423c81120ee5bc98963b2fc4ab1fec5b3b6d4a3",
-      "size_bytes": 18448
+      "sha256": "4cfdebe588614e57e6a16d8eb30c7ab22c2fee507d421f6dc2af8b2757f64200",
+      "size_bytes": 18881
     },
     "docs/AI_APPLICATION_DISCOVERY.md": {
       "mode": 420,
@@ -68,33 +68,68 @@
     },
     "docs/AI_ARCHITECTURE.md": {
       "mode": 420,
-      "sha256": "a48f1d95620bf36f7ea62dcbd3085eab974e6e92ae90615de8b083bb866b79c3",
-      "size_bytes": 4513
+      "sha256": "94bc293611aa09083f313f4c599cb1784655719b5d2870c68d5fbe33158c664f",
+      "size_bytes": 7030
     },
     "docs/AI_AUDIT_HISTORY.md": {
       "mode": 420,
       "sha256": "e881eccdf5c13a3041dd69048312a5ead830bf6a1228178e47c9eb5e1894f286",
       "size_bytes": 2090
     },
+    "docs/AI_CONTRACTS_DISCOVERY.md": {
+      "mode": 420,
+      "sha256": "6829aad80ef92ff2c78f09dbbc2801a64640b9b99aec701203c7a51d77377889",
+      "size_bytes": 4508
+    },
+    "docs/AI_CONTRACTS_PROGRESS.md": {
+      "mode": 420,
+      "sha256": "3b82442aaf0ada38a7557ff66aed1f6865b7327cd128fe0cf77781e232f6a052",
+      "size_bytes": 6637
+    },
     "docs/AI_DEPLOYMENT.md": {
       "mode": 420,
-      "sha256": "4fe441798f73ec480a0fff42c521b98fba135a22baea1ea588a7ab7877cf539e",
-      "size_bytes": 7767
+      "sha256": "eb3288e999b38d34a18ad07f56f659f262fbf48fef98506a27f82f0870f6af02",
+      "size_bytes": 9376
+    },
+    "docs/AI_DESIGN_WORKFLOW_TRAINING.md": {
+      "mode": 420,
+      "sha256": "34182291a348035fda39bbdc8e752ef983f34edb9a1b331ff2daba2665ce63ad",
+      "size_bytes": 3091
     },
     "docs/AI_FINE_TUNING.md": {
       "mode": 420,
-      "sha256": "34d9d7efeb7c0ca2a076ed2e4368134e7aa5110a20e39f446cdc20c9b7379617",
-      "size_bytes": 7428
+      "sha256": "7992cf949f228258b679a3ca642835afd0abce17c50c2fd95c529909b870f836",
+      "size_bytes": 11532
     },
     "docs/AI_FRONTEND.md": {
       "mode": 420,
-      "sha256": "0b5c8b735923d7d8c52bd13a70cafdba2faba044c1694521a3ab0081109748b4",
-      "size_bytes": 17678
+      "sha256": "e6b27340720e0d7fba37322a9cefca5831528e865b187a29ed4a5b50b01de769",
+      "size_bytes": 18426
+    },
+    "docs/AI_GESTION_MAGASIN_DISCOVERY.md": {
+      "mode": 420,
+      "sha256": "05227c5f04ab198534077c68223324d4c445c35f454a79de4f354a9f44dd3e5d",
+      "size_bytes": 10643
+    },
+    "docs/AI_GESTION_MAGASIN_PROGRESS.md": {
+      "mode": 420,
+      "sha256": "33f0e15de3e5f4a81471045e9f999d083affe11d01c573d30ccc0ea753c71483",
+      "size_bytes": 7587
     },
     "docs/AI_KNOWLEDGE.md": {
       "mode": 420,
       "sha256": "2011281f3f8c82c22a5197cb467e7d7076a33da0fafff86decdeb1497e1bfc68",
       "size_bytes": 4895
+    },
+    "docs/AI_MANAGEMENT_PROJET_PROGRESS.md": {
+      "mode": 420,
+      "sha256": "871e83f1eff802c28ea2eb8db9d81e138f1c25eeecb9de02c896f81a387e1f31",
+      "size_bytes": 10468
+    },
+    "docs/AI_MODEL_ACCURACY.md": {
+      "mode": 420,
+      "sha256": "1df2946a90f7f0b360e124101981c1684486ceb07ffe5c738cb3f12ce588062c",
+      "size_bytes": 32685
     },
     "docs/AI_PHASE1_REPORT.md": {
       "mode": 420,
@@ -103,28 +138,48 @@
     },
     "docs/AI_PROGRESS.md": {
       "mode": 420,
-      "sha256": "1d4edade6ccf70496fb1d3f3000f0a9dc9bf724d9e45ab909655b0456ee82487",
-      "size_bytes": 6659
+      "sha256": "e94112c468431042d58c08f892b5627cc129d28f92d874bbc6133eeccc02499d",
+      "size_bytes": 44524
     },
     "docs/AI_PROGRESS_HISTORY.md": {
       "mode": 420,
       "sha256": "22481490e8f34f886572222e77bac2a8a290aaeea8d1fa65e9999b81123e56ec",
       "size_bytes": 17616
     },
+    "docs/AI_RESERVATION_DISCOVERY.md": {
+      "mode": 420,
+      "sha256": "f3d43cabea76fc632da319f68a756833809b49beaa339bc57e50c5a488a6986a",
+      "size_bytes": 6251
+    },
+    "docs/AI_RESERVATION_PROGRESS.md": {
+      "mode": 420,
+      "sha256": "89a3b540a0070a88daff9a4c2148001fc13785a26de05d9be8a519a0fa30d91c",
+      "size_bytes": 9354
+    },
     "docs/AI_SECURITY.md": {
       "mode": 420,
       "sha256": "dc1e030e9dcf2c2d68bbaaeef6497806507523cdac923fe8124b695231068bb9",
       "size_bytes": 15274
     },
+    "docs/AI_SHARED_MODEL_RESULTS.md": {
+      "mode": 420,
+      "sha256": "cfbba3dcec3ec12a6d34e34efd622292d23d452f22de21f6d4c83884dd079050",
+      "size_bytes": 5165
+    },
     "docs/AI_TESTING.md": {
       "mode": 420,
-      "sha256": "68486368ac95eb2270ee172bc04c59f6e5c8323d9a7b692376bdc8bb21b892ce",
-      "size_bytes": 11778
+      "sha256": "d252e477d224ce9ba61a557b9a1c7631cbed89fa5ee425662980c446b4062f06",
+      "size_bytes": 13691
     },
     "docs/AI_TOOLS.md": {
       "mode": 420,
       "sha256": "5c6eaa4398b3546ac8cc1767455f5156b45b1d884e5e333e475b908bdeb88795",
       "size_bytes": 16730
+    },
+    "docs/AI_TRAINING_QUEUE.md": {
+      "mode": 420,
+      "sha256": "bb267d542bfc4868b60ea52646555205723820c109ea4e07d5d9ca1ace64f921",
+      "size_bytes": 32552
     },
     "docs/implementation-files.json": {
       "mode": 420,
@@ -198,7 +253,7 @@
     },
     "pyproject.toml": {
       "mode": 420,
-      "sha256": "a1f914343d77ca9f4834788f7711ba5b06ade9ae732962ac91288ce6a540becc",
+      "sha256": "743f9349e53ec5e110d06d4b3ce7f31710e43e7fc7dca8fa51ff9568ad3a5122",
       "size_bytes": 330
     },
     "runtime/colibri/LICENSE": {
@@ -738,8 +793,8 @@
     },
     "runtime/colibri/c/openai_server.py": {
       "mode": 420,
-      "sha256": "0628d6e228a2f69964d1fbc6a922981f62c57acdffe69ab70c9f5dee8f72cf60",
-      "size_bytes": 449461
+      "sha256": "b72c440a9dbf59b475aed255d5707dfcd547c7c47a4840fde92e7c1f5b8c2c18",
+      "size_bytes": 452020
     },
     "runtime/colibri/c/oracle.h": {
       "mode": 420,
@@ -2098,18 +2153,28 @@
     },
     "scripts/package_core.py": {
       "mode": 420,
-      "sha256": "4ec80c4ff097afa0694593d0f9f9416b4a574cc7af94c3ebdfbc2534a6e389d1",
-      "size_bytes": 1015
+      "sha256": "667c68b4accd61037934498433fefcc14208c305c781976c6e5f9241d415af99",
+      "size_bytes": 1127
     },
     "scripts/package_source.py": {
       "mode": 420,
       "sha256": "f80cf613485c81f2094d9802f639cbd6516b81f3350fbe91732180bc5dca3146",
       "size_bytes": 14144
     },
+    "scripts/sync_frontend.py": {
+      "mode": 420,
+      "sha256": "89820bb7659764b856eb826f6b1ff725c3d8440626ca2ec0b4426ad3efa78a1a",
+      "size_bytes": 2277
+    },
     "src/chat_ai_assistant/__init__.py": {
       "mode": 420,
       "sha256": "89de2438dbe666b8ce112a701c89faf82ef9afec7c7a61c9ec1bbfc9da5192e1",
       "size_bytes": 109
+    },
+    "src/chat_ai_assistant/calendar_context.py": {
+      "mode": 420,
+      "sha256": "6ee2c0f63ef33c0ba8b8f1ea29fbcd5d6f1e88e4273dc40ece33dab75619aeb9",
+      "size_bytes": 1162
     },
     "src/chat_ai_assistant/clarifications.py": {
       "mode": 420,
@@ -2123,8 +2188,13 @@
     },
     "src/chat_ai_assistant/orchestrator.py": {
       "mode": 420,
-      "sha256": "eb88daad55dbc52d9d2b4fc9adbbdfff43fb761475a9ae4e6c2a87812101e05e",
-      "size_bytes": 8483
+      "sha256": "f8fb0bc7764ec027599e4d109bab57964b17132ebd2827e0097b251af6b70af6",
+      "size_bytes": 8629
+    },
+    "src/chat_ai_assistant/planning_messages.py": {
+      "mode": 420,
+      "sha256": "d7024d3c9af58d501f680f2c79ae1e5108a6ec19faa92a2ba49b6c67893d1395",
+      "size_bytes": 1795
     },
     "src/chat_ai_assistant/presentation.py": {
       "mode": 420,
@@ -2141,10 +2211,255 @@
       "sha256": "1640f46741e967711c7af246d0766b89992c4dc63d48c7a697ef775890d4a811",
       "size_bytes": 3390
     },
+    "src/chat_ai_assistant/selection_context.py": {
+      "mode": 420,
+      "sha256": "0fe2f1ca934c6915cc21cef11ac37e73bab89a598f801e6d1a057889d2efee15",
+      "size_bytes": 6516
+    },
     "training/configs/server-requirements.lock": {
       "mode": 420,
       "sha256": "f0528236ba3d67740113e6e9ceb3c4529d0debd777184f8a69b30313d233841f",
       "size_bytes": 714
+    },
+    "training/datasets/contracts-dialogue-v2-en-fr/manifest.json": {
+      "mode": 420,
+      "sha256": "2a53e873aa6a416239fcbfe29e1cf16b20e4089a3095e9cbd01d6f4e8117aae0",
+      "size_bytes": 13538
+    },
+    "training/datasets/contracts-dialogue-v2-en-fr/test.eval.jsonl": {
+      "mode": 420,
+      "sha256": "56862df3ed3ca7780582956590608bfa636d88a2ba10e63aebd03fc6a87b2616",
+      "size_bytes": 501977
+    },
+    "training/datasets/contracts-dialogue-v2-en-fr/train.eval.jsonl": {
+      "mode": 420,
+      "sha256": "a2578d4dee849618906230bd21dc4bf16d32f4040a66b56b9ccdaabd911ca408",
+      "size_bytes": 778830
+    },
+    "training/datasets/contracts-dialogue-v2-en-fr/train.jsonl": {
+      "mode": 420,
+      "sha256": "93610b8fb6eb861f7cef5d5b2dcc2e87e6b0cfa3876cc1fda51ee7c72476233a",
+      "size_bytes": 951529
+    },
+    "training/datasets/contracts-dialogue-v2-en-fr/valid.eval.jsonl": {
+      "mode": 420,
+      "sha256": "2b37137e6e8b20b36e48b4cac6de00286d62f966331ef506e9f288c192d86e37",
+      "size_bytes": 191387
+    },
+    "training/datasets/contracts-dialogue-v2-en-fr/valid.jsonl": {
+      "mode": 420,
+      "sha256": "cf6a95799633dec2821de3b4a34d6ce8933be7d07c6b2e6bf9f03d3a8bc2199d",
+      "size_bytes": 274293
+    },
+    "training/datasets/contracts-v1-en-fr/manifest.json": {
+      "mode": 420,
+      "sha256": "aaaf22a6b8e4daa51bc1660f5a92aca6af0103d806f2d13362fab0a2c456bbc2",
+      "size_bytes": 1794
+    },
+    "training/datasets/contracts-v1-en-fr/test.eval.jsonl": {
+      "mode": 420,
+      "sha256": "bd9ade94e2bc9db098b928387548b06a1863fa46d5284388940e11ae0777cd1a",
+      "size_bytes": 449077
+    },
+    "training/datasets/contracts-v1-en-fr/train.eval.jsonl": {
+      "mode": 420,
+      "sha256": "453d2744118379b40fe6cab377acfcf2f64b7f4a201524759710e3332ff7f9c1",
+      "size_bytes": 696234
+    },
+    "training/datasets/contracts-v1-en-fr/train.jsonl": {
+      "mode": 420,
+      "sha256": "c134e3024a7c01537c206aecf5aa552c825660b93c87450e014c30ee86c07631",
+      "size_bytes": 707485
+    },
+    "training/datasets/contracts-v1-en-fr/valid.eval.jsonl": {
+      "mode": 420,
+      "sha256": "e1299dfa194bb6c14243d3d0f2b87f037bd9e2a1aba68a8d99f2bc2ca72661ad",
+      "size_bytes": 171015
+    },
+    "training/datasets/contracts-v1-en-fr/valid.jsonl": {
+      "mode": 420,
+      "sha256": "c8e6cf50a2a1ada51091b3cdef2379741a3edeb3fa9669b6855cface87fbdd86",
+      "size_bytes": 173865
+    },
+    "training/datasets/design-workflow-metadata-v2-en-fr/manifest.json": {
+      "mode": 420,
+      "sha256": "d50bd8ee54567f8c961e3804df7c0106a5bc13ffc0313e14320d0a8f230ff6b5",
+      "size_bytes": 2348
+    },
+    "training/datasets/design-workflow-metadata-v2-en-fr/train.eval.jsonl": {
+      "mode": 420,
+      "sha256": "3c90ea45e521593c3e0898579710a7171fc011624260a04910a0bcc266331cf6",
+      "size_bytes": 2944476
+    },
+    "training/datasets/design-workflow-metadata-v2-en-fr/train.jsonl": {
+      "mode": 420,
+      "sha256": "468c8c209092b24bda5fd6cbefb8206aace60ada45f6ef54e030f9f2e7f903de",
+      "size_bytes": 2854368
+    },
+    "training/datasets/design-workflow-metadata-v2-en-fr/valid.eval.jsonl": {
+      "mode": 420,
+      "sha256": "3c3ec2fccc121e85cc57e65ab17553fe087f6027b32a7c1e4d9bea64a1fad57e",
+      "size_bytes": 358299
+    },
+    "training/datasets/design-workflow-metadata-v2-en-fr/valid.jsonl": {
+      "mode": 420,
+      "sha256": "a8a0f1a4419c583ee8662f926b2e71f27ade47b6e76ccf652114582c483292d7",
+      "size_bytes": 347309
+    },
+    "training/datasets/design-workflow-refinement-v1-en-fr/independent.eval.jsonl": {
+      "mode": 420,
+      "sha256": "a432864c18ccc4a2604ae1fec1b718f61da4f71848b4c3c92516b1d266fc5e2d",
+      "size_bytes": 73097
+    },
+    "training/datasets/design-workflow-refinement-v1-en-fr/manifest.json": {
+      "mode": 420,
+      "sha256": "af59436d50a4592766763a13525dc99430796bbe772a4f305717417a3d1810a4",
+      "size_bytes": 1812
+    },
+    "training/datasets/design-workflow-refinement-v1-en-fr/train.eval.jsonl": {
+      "mode": 420,
+      "sha256": "458c4d592af4d3777834f31dcff22a7cce36ab2e7aef8ce1a187197f5d9af907",
+      "size_bytes": 2329184
+    },
+    "training/datasets/design-workflow-refinement-v1-en-fr/train.jsonl": {
+      "mode": 420,
+      "sha256": "2064da57f75c14e1e4d9ac3b75d7b546723f705a0cb97af57376ba526a3a0a6c",
+      "size_bytes": 2334028
+    },
+    "training/datasets/design-workflow-refinement-v1-en-fr/valid.eval.jsonl": {
+      "mode": 420,
+      "sha256": "f737d7e9af721eec3a3ed4cc5e834e8579171249af28b83818966492b78f4ca7",
+      "size_bytes": 283963
+    },
+    "training/datasets/design-workflow-refinement-v1-en-fr/valid.jsonl": {
+      "mode": 420,
+      "sha256": "19cd3f65c86a12b1833687d0446e776b3a0699516fcd1a8a66bc6f3575dd4ac2",
+      "size_bytes": 284413
+    },
+    "training/datasets/design-workflow-refinement-v2-en-fr/independent.eval.jsonl": {
+      "mode": 420,
+      "sha256": "9231e09df49101a1fcae4f76368f78dd28dd81cfeaa6d2d29a7f2cffe4b9dc2f",
+      "size_bytes": 137152
+    },
+    "training/datasets/design-workflow-refinement-v2-en-fr/manifest.json": {
+      "mode": 420,
+      "sha256": "feb3ee946b89e65bebdd036bb2730badfc36d2799025910a227f56e0ef6dc420",
+      "size_bytes": 4192
+    },
+    "training/datasets/design-workflow-refinement-v2-en-fr/train.eval.jsonl": {
+      "mode": 420,
+      "sha256": "2ae8258882b3a68ea7334a2c9c1a9b85393b83b0f58cd8715f531f06089ace7d",
+      "size_bytes": 3171967
+    },
+    "training/datasets/design-workflow-refinement-v2-en-fr/train.jsonl": {
+      "mode": 420,
+      "sha256": "3e091f44c1d36beba75b7f274f872c00300dfdd8c99d4f320c80bbe1f037ab27",
+      "size_bytes": 3072937
+    },
+    "training/datasets/design-workflow-refinement-v2-en-fr/valid.eval.jsonl": {
+      "mode": 420,
+      "sha256": "342219db2fe6dc10238fecda5aab77016865ebc6ff9d29674be4cfd04f3d566b",
+      "size_bytes": 456789
+    },
+    "training/datasets/design-workflow-refinement-v2-en-fr/valid.jsonl": {
+      "mode": 420,
+      "sha256": "f22df28bc80a27fc9ee274a9ed6a6910609b107915c77f6be6e1cbe77dea4c4c",
+      "size_bytes": 442011
+    },
+    "training/datasets/design-workflow-v1-en-fr/manifest.json": {
+      "mode": 420,
+      "sha256": "bff6fd3f8dc10d6b8881a1c3ef27c9be97521c3494ded54f9512adfa49159230",
+      "size_bytes": 2554
+    },
+    "training/datasets/design-workflow-v1-en-fr/test.eval.jsonl": {
+      "mode": 420,
+      "sha256": "4bb23c2a24f4434663f54c8dfbf94f55f00557a91115ed9d08f84a5ec95de045",
+      "size_bytes": 405272
+    },
+    "training/datasets/design-workflow-v1-en-fr/tool-schemas.json": {
+      "mode": 420,
+      "sha256": "e9307b4784425be6d76eb41a7bb720d00b8dd8bc3f66099f247aea6c9f4dd914",
+      "size_bytes": 6422
+    },
+    "training/datasets/design-workflow-v1-en-fr/train.eval.jsonl": {
+      "mode": 420,
+      "sha256": "fc9881771d214ce2cf4c9287db1ba6602d3dd08e5fda4cb82b574dc4d720ded0",
+      "size_bytes": 826814
+    },
+    "training/datasets/design-workflow-v1-en-fr/train.jsonl": {
+      "mode": 420,
+      "sha256": "c7be68a0ce65ce75bd56ab341debcbac8b2828cde31d59338a50af2b44417ef0",
+      "size_bytes": 814210
+    },
+    "training/datasets/design-workflow-v1-en-fr/valid.eval.jsonl": {
+      "mode": 420,
+      "sha256": "f306bd02fdef6f3a8949f92220ed49b1b801d35d6ed25590a2ad703f729896b6",
+      "size_bytes": 108247
+    },
+    "training/datasets/design-workflow-v1-en-fr/valid.jsonl": {
+      "mode": 420,
+      "sha256": "6ad5699e1891739d8def2206296b0610a392885736e072efe70c6ee4aeeae099",
+      "size_bytes": 106671
+    },
+    "training/datasets/design-workflow-v2-en-fr/independent.eval.jsonl": {
+      "mode": 420,
+      "sha256": "68fca7d1c02da3f6755e71ba016c235c5c0df1d16ff560730f210e281355dea9",
+      "size_bytes": 168837
+    },
+    "training/datasets/design-workflow-v2-en-fr/manifest.json": {
+      "mode": 420,
+      "sha256": "819c6f506be41231dc111f93ea63893ed9ee00dd9d4f1997b2ad40750a1e03ec",
+      "size_bytes": 2151
+    },
+    "training/datasets/design-workflow-v2-en-fr/train.eval.jsonl": {
+      "mode": 420,
+      "sha256": "6b948f46b8d015150156da2ff3dede6eafe648aa0083467bcfe7a6488169eda8",
+      "size_bytes": 1438947
+    },
+    "training/datasets/design-workflow-v2-en-fr/train.jsonl": {
+      "mode": 420,
+      "sha256": "75c48a23a78cb45937113b85710097979ad4e9f6fcaa534223cf5a19e94ff28d",
+      "size_bytes": 1440953
+    },
+    "training/datasets/design-workflow-v2-en-fr/valid.eval.jsonl": {
+      "mode": 420,
+      "sha256": "eb0beb13164a329b230181f2ed45507ee90da88cf1a42ca44c44026fb97a5887",
+      "size_bytes": 167471
+    },
+    "training/datasets/design-workflow-v2-en-fr/valid.jsonl": {
+      "mode": 420,
+      "sha256": "c72008d4bc87408c76a3e82a2b2d8aaedcfd3708384c3265d2acf86e04e252b2",
+      "size_bytes": 167869
+    },
+    "training/datasets/design-workflow-v3-en-fr/independent.eval.jsonl": {
+      "mode": 420,
+      "sha256": "67632837aa5a9069a1fddcb503569e0f1c8f48dfc10ae65b54e3da2d188b58fb",
+      "size_bytes": 138253
+    },
+    "training/datasets/design-workflow-v3-en-fr/manifest.json": {
+      "mode": 420,
+      "sha256": "4174c39d4fe423af89217ae5948a85d42869540546ecc2d2c8d2443df617e70b",
+      "size_bytes": 2331
+    },
+    "training/datasets/design-workflow-v3-en-fr/train.eval.jsonl": {
+      "mode": 420,
+      "sha256": "18df8ee63077c387a75fd04706505c7a2a3c8eb20cd4521b09e632189bffc0b4",
+      "size_bytes": 2040520
+    },
+    "training/datasets/design-workflow-v3-en-fr/train.jsonl": {
+      "mode": 420,
+      "sha256": "b11cecc6b48c6a6ec57c3dff57a38381c9f8f3bae1d9ca71208d62733f4425d5",
+      "size_bytes": 2044988
+    },
+    "training/datasets/design-workflow-v3-en-fr/valid.eval.jsonl": {
+      "mode": 420,
+      "sha256": "2d7c7f72773dbd9223809fc362e88c2a14e15864cc305e23378c957afe112a5a",
+      "size_bytes": 240227
+    },
+    "training/datasets/design-workflow-v3-en-fr/valid.jsonl": {
+      "mode": 420,
+      "sha256": "e82a446887b8813b60b4252a822f9c72a75b77bb451185c30a3b630be8ac21f8",
+      "size_bytes": 240647
     },
     "training/datasets/facturation-acceptance-en-fr/manifest.json": {
       "mode": 420,
@@ -2180,6 +2495,91 @@
       "mode": 420,
       "sha256": "4319de5c2f849444171077495315724bc233a475bd83c7212d82821d1b0f97f0",
       "size_bytes": 26326
+    },
+    "training/datasets/facturation-metadata-v2-en-fr/manifest.json": {
+      "mode": 420,
+      "sha256": "6a6d75c9396ac4c1b16c73bbaaaa5b5a036ddcde654e8229670044b1ad71ef6c",
+      "size_bytes": 2242
+    },
+    "training/datasets/facturation-metadata-v2-en-fr/train.eval.jsonl": {
+      "mode": 420,
+      "sha256": "11adb08196b0301074cfd52f9c96d6bc37e3d2751d22a2187e43035bc43f1337",
+      "size_bytes": 5127316
+    },
+    "training/datasets/facturation-metadata-v2-en-fr/train.jsonl": {
+      "mode": 420,
+      "sha256": "4e91eb2d123d2d3b73da3c11b90f898051ecd3dfe6f23a7510016dec4af8e176",
+      "size_bytes": 5043078
+    },
+    "training/datasets/facturation-metadata-v2-en-fr/valid.eval.jsonl": {
+      "mode": 420,
+      "sha256": "eb3d10ee67f67612fe914f28dad3dacf6e2f586e5f063b44dc0792ea7cbd3109",
+      "size_bytes": 979678
+    },
+    "training/datasets/facturation-metadata-v2-en-fr/valid.jsonl": {
+      "mode": 420,
+      "sha256": "05b781d775008952b59f9c0dc3da9eb2a75effd970c8b3866681c8a300a63b07",
+      "size_bytes": 962050
+    },
+    "training/datasets/facturation-refinement-v1-en-fr/independent.eval.jsonl": {
+      "mode": 420,
+      "sha256": "983b06c7aa815eb04bcd7c092e5b5086019314b1abeb970c341f6bbd370bf5d7",
+      "size_bytes": 106965
+    },
+    "training/datasets/facturation-refinement-v1-en-fr/manifest.json": {
+      "mode": 420,
+      "sha256": "b334b46cee8c3dd1f8dc85d0115fdac5b9f51bf12c2f2e877398e7f2e91fcf30",
+      "size_bytes": 1558
+    },
+    "training/datasets/facturation-refinement-v1-en-fr/train.eval.jsonl": {
+      "mode": 420,
+      "sha256": "1595e7deda730e5d801ce4495b38cdcb7ca24888e6e96c26637fdb803bcd1b37",
+      "size_bytes": 3681396
+    },
+    "training/datasets/facturation-refinement-v1-en-fr/train.jsonl": {
+      "mode": 420,
+      "sha256": "b07a18fb32fead1b30a5aa3881fd60602906e3dede6a9668d5a18757f89374b2",
+      "size_bytes": 3810178
+    },
+    "training/datasets/facturation-refinement-v1-en-fr/valid.eval.jsonl": {
+      "mode": 420,
+      "sha256": "2443c7964f24fb16f631323fb7c351955044b1d734a3b0d77be9c08dc2fd0920",
+      "size_bytes": 722223
+    },
+    "training/datasets/facturation-refinement-v1-en-fr/valid.jsonl": {
+      "mode": 420,
+      "sha256": "f816de24033c5e1522fe5b7a46e6e46ce4307c578436e2b65db90c29dee8a567",
+      "size_bytes": 747979
+    },
+    "training/datasets/facturation-refinement-v2-en-fr/independent.eval.jsonl": {
+      "mode": 420,
+      "sha256": "19bb4d8ba6b8055bef6692440ddcbe944f49dd7bc42f9751a2f62a069b3931a8",
+      "size_bytes": 157965
+    },
+    "training/datasets/facturation-refinement-v2-en-fr/manifest.json": {
+      "mode": 420,
+      "sha256": "bf6d6213d4bdce55a217258ea0dea2abc52823a18eefd636797252afe4715673",
+      "size_bytes": 4052
+    },
+    "training/datasets/facturation-refinement-v2-en-fr/train.eval.jsonl": {
+      "mode": 420,
+      "sha256": "301816a60bd4cc17e78f3402bdd5f9ed0aefa5898ad22e13dab2f149b97f9b3b",
+      "size_bytes": 5450271
+    },
+    "training/datasets/facturation-refinement-v2-en-fr/train.jsonl": {
+      "mode": 420,
+      "sha256": "b0aebe262dbea77145600fdefbe1fec614fc25ee4f84a8c7724277640f698df0",
+      "size_bytes": 5356833
+    },
+    "training/datasets/facturation-refinement-v2-en-fr/valid.eval.jsonl": {
+      "mode": 420,
+      "sha256": "ea8a050712e8b9073d1eb5f7db3d1dbfffb8485c0c2f0448199c1a1ddf7cb9ca",
+      "size_bytes": 1098191
+    },
+    "training/datasets/facturation-refinement-v2-en-fr/valid.jsonl": {
+      "mode": 420,
+      "sha256": "211ce9394a80a1fdef86b6dfe795d0bf33e9461094602e0a2ca2f5c786ef3e45",
+      "size_bytes": 1077071
     },
     "training/datasets/facturation-v2-preflight/manifest.json": {
       "mode": 420,
@@ -2376,6 +2776,876 @@
       "sha256": "ce5f3c73ab93b0a28923e22c9a516e2c6b95372c0c683d40264e4109380efdb0",
       "size_bytes": 125085
     },
+    "training/datasets/gestion-magasin-dialogue-v2-en-fr/manifest.json": {
+      "mode": 420,
+      "sha256": "9254028cb3dafd49ab23a79c76b95eb894aa90d8f9a136d01e9cca2e3fcb614a",
+      "size_bytes": 13923
+    },
+    "training/datasets/gestion-magasin-dialogue-v2-en-fr/test.eval.jsonl": {
+      "mode": 420,
+      "sha256": "e01b4c5d5c6e93ffcb406d3f92000ecd21ad48e1a435b3ff6be3263233d7d42c",
+      "size_bytes": 821881
+    },
+    "training/datasets/gestion-magasin-dialogue-v2-en-fr/train.eval.jsonl": {
+      "mode": 420,
+      "sha256": "39ab4bf6709129758c89254083b72d96298fbb4f7d7b66753426b0112f56b186",
+      "size_bytes": 1524853
+    },
+    "training/datasets/gestion-magasin-dialogue-v2-en-fr/train.jsonl": {
+      "mode": 420,
+      "sha256": "66b3ef43a2c9d06cf7ebcca47f281dc45e8e1bf74e499f9d932077c3a9e7dd3a",
+      "size_bytes": 1719860
+    },
+    "training/datasets/gestion-magasin-dialogue-v2-en-fr/valid.eval.jsonl": {
+      "mode": 420,
+      "sha256": "f148d0d215096d82b7f6b2722b611c331a5c3b2110705276e5ef78f9eb9af80e",
+      "size_bytes": 279750
+    },
+    "training/datasets/gestion-magasin-dialogue-v2-en-fr/valid.jsonl": {
+      "mode": 420,
+      "sha256": "01293f7ceae54722db11280198ddb463fdcbfcb4c43ccff65cc6b64dd4974814",
+      "size_bytes": 379154
+    },
+    "training/datasets/gestion-magasin-v1-en-fr/manifest.json": {
+      "mode": 420,
+      "sha256": "a2656ba0e8be4bce02806404eff622f024b10a757592901c1c87f923e9dddfe2",
+      "size_bytes": 1654
+    },
+    "training/datasets/gestion-magasin-v1-en-fr/test.eval.jsonl": {
+      "mode": 420,
+      "sha256": "c4d01b46e4d481adefd7e60753139dbd575538b452d4bfa0b96448e4a2ce2c63",
+      "size_bytes": 760955
+    },
+    "training/datasets/gestion-magasin-v1-en-fr/train.eval.jsonl": {
+      "mode": 420,
+      "sha256": "49f5cc5216312e751926c25aacb0c6b432363eafd124755889e547160e0ea643",
+      "size_bytes": 1412663
+    },
+    "training/datasets/gestion-magasin-v1-en-fr/train.jsonl": {
+      "mode": 420,
+      "sha256": "eb3050d7fb85f1c8862f2f57dc72ab435122dfc5d5a0a142912d14ab82c5b61b",
+      "size_bytes": 1374525
+    },
+    "training/datasets/gestion-magasin-v1-en-fr/valid.eval.jsonl": {
+      "mode": 420,
+      "sha256": "8f91b5382c94ab8e7b62997d190bf02d1282084f484f2a98555b9a1920877bf4",
+      "size_bytes": 259530
+    },
+    "training/datasets/gestion-magasin-v1-en-fr/valid.jsonl": {
+      "mode": 420,
+      "sha256": "c3744e58736761f15189edcf00b5690c39ef99068197049805de41071153d788",
+      "size_bytes": 252699
+    },
+    "training/datasets/management-projet-followup-v1-en-fr/independent.eval.jsonl": {
+      "mode": 420,
+      "sha256": "6d2d7f3896299af4f93383f080da4b0666dab964a8af29d8462eb48bcb3053fe",
+      "size_bytes": 309261
+    },
+    "training/datasets/management-projet-followup-v1-en-fr/manifest.json": {
+      "mode": 420,
+      "sha256": "a1af5e9321125b14d2a27ea56a0c2dc4d4541630e5e8c3e70d4f9ee71d8e56a3",
+      "size_bytes": 1295
+    },
+    "training/datasets/management-projet-metadata-v2-en-fr/manifest.json": {
+      "mode": 420,
+      "sha256": "7a1a92e252fa67f137dc086f4d38b0fb568940523745104f4401c120b9df8f43",
+      "size_bytes": 3610
+    },
+    "training/datasets/management-projet-metadata-v2-en-fr/train.eval.jsonl": {
+      "mode": 420,
+      "sha256": "a2a178ccd00c2e5348f9d3b2710b5d77ce36bbabf1226997532255eaaf674d49",
+      "size_bytes": 6436206
+    },
+    "training/datasets/management-projet-metadata-v2-en-fr/train.jsonl": {
+      "mode": 420,
+      "sha256": "14b9e7f7f2f86324429b7e477626915e3b19230b7cdf773b5c702e287aa00d56",
+      "size_bytes": 6271241
+    },
+    "training/datasets/management-projet-metadata-v2-en-fr/valid.eval.jsonl": {
+      "mode": 420,
+      "sha256": "c7dd8bea712f100d8da834fa6d7ca60fccd9dea627bf0abb84c95fd31d95e77f",
+      "size_bytes": 517420
+    },
+    "training/datasets/management-projet-metadata-v2-en-fr/valid.jsonl": {
+      "mode": 420,
+      "sha256": "d600881616cef45a7bcfa3fe06fb89295a30e1bc59763cfe13b2fea8b4f9cd44",
+      "size_bytes": 504412
+    },
+    "training/datasets/management-projet-refinement-v1-en-fr/independent.eval.jsonl": {
+      "mode": 420,
+      "sha256": "95e5fb162dd3345b3a817e23e39fa3420b61f0b1188472d648ea028ee5a5ba71",
+      "size_bytes": 80798
+    },
+    "training/datasets/management-projet-refinement-v1-en-fr/manifest.json": {
+      "mode": 420,
+      "sha256": "c54a00d7a98544aa38d601c0775ac11b6e0967eb495bc9239ea09c1c8b933084",
+      "size_bytes": 1949
+    },
+    "training/datasets/management-projet-refinement-v1-en-fr/train.eval.jsonl": {
+      "mode": 420,
+      "sha256": "76b19dbe61e270ce359eb2523fc957d19996a709029517847a635a8402216148",
+      "size_bytes": 4372028
+    },
+    "training/datasets/management-projet-refinement-v1-en-fr/train.jsonl": {
+      "mode": 420,
+      "sha256": "cd137fad32cf38b4620e6192b31601859d21af738fc55c04e3d559d86320d38d",
+      "size_bytes": 4453819
+    },
+    "training/datasets/management-projet-refinement-v1-en-fr/valid.eval.jsonl": {
+      "mode": 420,
+      "sha256": "73eb6f50697012858c1157371c38556b985273b1b12b4cb02f82d2b5253f3bdc",
+      "size_bytes": 350343
+    },
+    "training/datasets/management-projet-refinement-v1-en-fr/valid.jsonl": {
+      "mode": 420,
+      "sha256": "ff82209cedcc73813c1cca3331d49df2e7385c075e66325f09a9bddb02b596c2",
+      "size_bytes": 357477
+    },
+    "training/datasets/management-projet-refinement-v2-en-fr/independent.eval.jsonl": {
+      "mode": 420,
+      "sha256": "f82d52637162db6aa3a857b8176de87049c9adb23fbe0665bc29d03700bc1446",
+      "size_bytes": 176807
+    },
+    "training/datasets/management-projet-refinement-v2-en-fr/manifest.json": {
+      "mode": 420,
+      "sha256": "51afb0a17f841335f3a7f3e830db515c731ac8efea749bd1856f3a2d1e0dea87",
+      "size_bytes": 4937
+    },
+    "training/datasets/management-projet-refinement-v2-en-fr/train.eval.jsonl": {
+      "mode": 420,
+      "sha256": "2f9c929b6bea16e538677c2670cbfce3b6fb18f64ed9215e619bd51e1e0e1462",
+      "size_bytes": 7153843
+    },
+    "training/datasets/management-projet-refinement-v2-en-fr/train.jsonl": {
+      "mode": 420,
+      "sha256": "88a567dc7f3bef3bebfed62f7cbf226a37d860b8bd4e407ae709592dd7a58696",
+      "size_bytes": 6968330
+    },
+    "training/datasets/management-projet-refinement-v2-en-fr/valid.eval.jsonl": {
+      "mode": 420,
+      "sha256": "0a16a4b458206b30010a8a4c7ada0ee64b717172abffded66959847069ece5fa",
+      "size_bytes": 645475
+    },
+    "training/datasets/management-projet-refinement-v2-en-fr/valid.jsonl": {
+      "mode": 420,
+      "sha256": "eb9a879f5d78457c3b34ad4c53c913c14167d910c95aade253137f6036a7888a",
+      "size_bytes": 628671
+    },
+    "training/datasets/management-projet-v1-en-fr/manifest.json": {
+      "mode": 420,
+      "sha256": "819f179d1e3a96e931c43c9db156b16e30c5b153421f598462a5170489c4a925",
+      "size_bytes": 1081
+    },
+    "training/datasets/management-projet-v1-en-fr/test.eval.jsonl": {
+      "mode": 420,
+      "sha256": "1c63c39ecb5906f3fa2adf0dd2a74a78c8b814836cf8131d499e0ead88eb0277",
+      "size_bytes": 363476
+    },
+    "training/datasets/management-projet-v1-en-fr/tool-schemas.json": {
+      "mode": 420,
+      "sha256": "5601d0c7b6df65736ba0bc6102ec8819813353075344af5c3c3efff4f01b03fb",
+      "size_bytes": 8933
+    },
+    "training/datasets/management-projet-v1-en-fr/train.eval.jsonl": {
+      "mode": 420,
+      "sha256": "75ee69256804861214e09182adb5b16c5515af2ec29993cd62963ead06f787c1",
+      "size_bytes": 480154
+    },
+    "training/datasets/management-projet-v1-en-fr/train.jsonl": {
+      "mode": 420,
+      "sha256": "c061f5fb75eba784005db3766286d203a5e290fac73bee47a2d1344991749ec9",
+      "size_bytes": 504720
+    },
+    "training/datasets/management-projet-v1-en-fr/valid.eval.jsonl": {
+      "mode": 420,
+      "sha256": "1f15f5f844f0ae8901bf4d5b8ed7d8a6effc115b3f120767a213f9987aa5d47b",
+      "size_bytes": 62347
+    },
+    "training/datasets/management-projet-v1-en-fr/valid.jsonl": {
+      "mode": 420,
+      "sha256": "844109040fb40e948f3c41867ff1f55fb6ec22c8d5eca88e290a4d40820079ec",
+      "size_bytes": 65287
+    },
+    "training/datasets/management-projet-v2-en-fr/independent.eval.jsonl": {
+      "mode": 420,
+      "sha256": "c4586a2c6459e02c63557f1e693a5212b51c507eba80d32f2661128a25c3f5d8",
+      "size_bytes": 121033
+    },
+    "training/datasets/management-projet-v2-en-fr/manifest.json": {
+      "mode": 420,
+      "sha256": "e406da6ab3edcbf88c1acf852493913f95a63202e7cf2f2b1a5fa4a6654e4f3c",
+      "size_bytes": 1821
+    },
+    "training/datasets/management-projet-v2-en-fr/train.eval.jsonl": {
+      "mode": 420,
+      "sha256": "0787ebbe8a718e3d5df7395d0d7174464557d51087060e524ebee25f35bc4bd9",
+      "size_bytes": 1613344
+    },
+    "training/datasets/management-projet-v2-en-fr/train.jsonl": {
+      "mode": 420,
+      "sha256": "18b4090c646388edc80eff132de5ce61977095f475a1697a76a075fe871133d3",
+      "size_bytes": 1719839
+    },
+    "training/datasets/management-projet-v2-en-fr/valid.eval.jsonl": {
+      "mode": 420,
+      "sha256": "1b47e89df4b8414c2e7db66b2e7b1996c743a841c1ff1ab4e777e82bfa1e9ea8",
+      "size_bytes": 132040
+    },
+    "training/datasets/management-projet-v2-en-fr/valid.jsonl": {
+      "mode": 420,
+      "sha256": "fff5b83cadd018363852ac70bee6f9bfe2c2c4177b272692094dc2afb2dc49ab",
+      "size_bytes": 141064
+    },
+    "training/datasets/management-projet-v3-en-fr/independent.eval.jsonl": {
+      "mode": 420,
+      "sha256": "12e224a326a40fb185b5bf10cd1b7e38339ca3fa955f72ed3da678fe8df98f41",
+      "size_bytes": 203995
+    },
+    "training/datasets/management-projet-v3-en-fr/manifest.json": {
+      "mode": 420,
+      "sha256": "2045fd7083dd501e231df69a696d2cd81aa03815efe23392535f475c66dcbe28",
+      "size_bytes": 2634
+    },
+    "training/datasets/management-projet-v3-en-fr/train.eval.jsonl": {
+      "mode": 420,
+      "sha256": "0787651bf7b52619150586bdd5b55e9de9cabb08e57fba514e7226c1329e0e22",
+      "size_bytes": 2781881
+    },
+    "training/datasets/management-projet-v3-en-fr/train.jsonl": {
+      "mode": 420,
+      "sha256": "6c35038f4d4d802b6480e114f9b4b4b8ef3816d813116b614b15b070da1bbfe1",
+      "size_bytes": 2909241
+    },
+    "training/datasets/management-projet-v3-en-fr/valid.eval.jsonl": {
+      "mode": 420,
+      "sha256": "c65d19365028c1a6c54fe8008e0cc5ee116630d4c3ad05587342f040221df420",
+      "size_bytes": 195367
+    },
+    "training/datasets/management-projet-v3-en-fr/valid.jsonl": {
+      "mode": 420,
+      "sha256": "264244b2faebd4ed98cb61d8f4a0308ae979f6e7f54b44ffdccd0967aac21a7a",
+      "size_bytes": 205775
+    },
+    "training/datasets/management-projet-v4-en-fr/independent.eval.jsonl": {
+      "mode": 420,
+      "sha256": "993a0bc3aed974fd52b04941efd8e06ee865bc7d7e98761dda6e0d1f7b9dc8e1",
+      "size_bytes": 214853
+    },
+    "training/datasets/management-projet-v4-en-fr/manifest.json": {
+      "mode": 420,
+      "sha256": "354353e7eade78bb5b240432af77cbd6f95154b8afdbcf18b9aec4f204f534e5",
+      "size_bytes": 2937
+    },
+    "training/datasets/management-projet-v4-en-fr/train.eval.jsonl": {
+      "mode": 420,
+      "sha256": "6ca910afa2b6a98f88e29868aa80eab66f41cccb092395b9762004696449241b",
+      "size_bytes": 4046231
+    },
+    "training/datasets/management-projet-v4-en-fr/train.jsonl": {
+      "mode": 420,
+      "sha256": "dbde0cce38611d2651be403fcef8d26bd429fda6518124129cdd9768511e3adb",
+      "size_bytes": 4122734
+    },
+    "training/datasets/management-projet-v4-en-fr/valid.eval.jsonl": {
+      "mode": 420,
+      "sha256": "0fd5776875a26e6447f8edf5e46c22cc153fb0ff64ece8c0bfcb597904fe27f5",
+      "size_bytes": 310679
+    },
+    "training/datasets/management-projet-v4-en-fr/valid.jsonl": {
+      "mode": 420,
+      "sha256": "7399c74b6c95bee9b0d3a7baef909d1001f2f0a82d3e650905a1c03c62cd6a09",
+      "size_bytes": 317107
+    },
+    "training/datasets/planner-history-v1-en-fr/current_first.eval.jsonl": {
+      "mode": 420,
+      "sha256": "60ed0ee24de6b1c710936af187baa346f1d034f79587986057a97b3ee96d2793",
+      "size_bytes": 124415
+    },
+    "training/datasets/planner-history-v1-en-fr/current_only.eval.jsonl": {
+      "mode": 420,
+      "sha256": "e9e4c8e9b4ff5f5466ec343a3ed348cf158e331d8730456808a801ecf13232ec",
+      "size_bytes": 123397
+    },
+    "training/datasets/planner-history-v1-en-fr/long_greeting.eval.jsonl": {
+      "mode": 420,
+      "sha256": "0a903cd5d727496bfddf465e6c57d097f530c08f3db30882e48ff1c6b9a05f76",
+      "size_bytes": 124603
+    },
+    "training/datasets/planner-history-v1-en-fr/manifest.json": {
+      "mode": 420,
+      "sha256": "675772bd928f0f252d128b124474603e9293cc486e364985279d40db0c5cf4fe",
+      "size_bytes": 4597
+    },
+    "training/datasets/planner-history-v1-en-fr/original.eval.jsonl": {
+      "mode": 420,
+      "sha256": "b1532eba3e3a4111f523c8646a33794905ef37a699dc50214ef3d7aab9123e96",
+      "size_bytes": 124415
+    },
+    "training/datasets/planner-rules-v1-en-fr/both.eval.jsonl": {
+      "mode": 420,
+      "sha256": "4ad508ef3cfaba9028c9b474198621ba589c2e17ecf2486fe5c07ce7bee52099",
+      "size_bytes": 121630
+    },
+    "training/datasets/planner-rules-v1-en-fr/dates.eval.jsonl": {
+      "mode": 420,
+      "sha256": "c25cd8ba37d41ed818833e8333b9889d6d811f875f7765259763212f2503b6e6",
+      "size_bytes": 116134
+    },
+    "training/datasets/planner-rules-v1-en-fr/manifest.json": {
+      "mode": 420,
+      "sha256": "3ed457b0427378b62d86504b3941c9bd7724016b54da15f210f316fdab1c18f9",
+      "size_bytes": 3452
+    },
+    "training/datasets/planner-rules-v1-en-fr/names.eval.jsonl": {
+      "mode": 420,
+      "sha256": "f455c4a6ca98aa0412b25276d78a3795b424fad3f6c5a3605ed7b25d384b6c97",
+      "size_bytes": 116362
+    },
+    "training/datasets/planner-rules-v1-en-fr/original.eval.jsonl": {
+      "mode": 420,
+      "sha256": "889b8ebdebb4ceaa521fba218f34de86da11c6d652731ffb577ddbf1382930e9",
+      "size_bytes": 110530
+    },
+    "training/datasets/reservation-dialogue-v2-en-fr/manifest.json": {
+      "mode": 420,
+      "sha256": "cfffd13aa6e959fd06a276d9f15b04b4e97be580b3ee62559ec054bfe67d434e",
+      "size_bytes": 12454
+    },
+    "training/datasets/reservation-dialogue-v2-en-fr/test.eval.jsonl": {
+      "mode": 420,
+      "sha256": "c19d78ef3714deb67f12a5f6712ec34f9fc3212ad9b271063591fd66821f4e25",
+      "size_bytes": 724985
+    },
+    "training/datasets/reservation-dialogue-v2-en-fr/train.eval.jsonl": {
+      "mode": 420,
+      "sha256": "017eb663dae9b957ae79a7874014127262eca6b971a32b6979aecf0a4c17d7ac",
+      "size_bytes": 1304320
+    },
+    "training/datasets/reservation-dialogue-v2-en-fr/train.jsonl": {
+      "mode": 420,
+      "sha256": "b671c87866ed25f29d6a1d3d5346c9bd652d5b0ba3f445c8ff12dcfa505baa34",
+      "size_bytes": 1507588
+    },
+    "training/datasets/reservation-dialogue-v2-en-fr/valid.eval.jsonl": {
+      "mode": 420,
+      "sha256": "d4dec4ab17d621a146be8909f469fcd3483db8082fe641e43963da1fd67c9767",
+      "size_bytes": 258118
+    },
+    "training/datasets/reservation-dialogue-v2-en-fr/valid.jsonl": {
+      "mode": 420,
+      "sha256": "a4ee6d63ae8c886a18accb22d5be085eb6fd0377ac9d962b2ae37ae8247a91dd",
+      "size_bytes": 333288
+    },
+    "training/datasets/reservation-v1-en-fr/manifest.json": {
+      "mode": 420,
+      "sha256": "5d45841b9f3b443b21d4838c20674020ce18f059c2658ad7172d0f7f311633cb",
+      "size_bytes": 1648
+    },
+    "training/datasets/reservation-v1-en-fr/test.eval.jsonl": {
+      "mode": 420,
+      "sha256": "1a27d3aa2051db1eb9182ededdaf1a36592e3c670ec18e50f88148af3127d9d0",
+      "size_bytes": 668139
+    },
+    "training/datasets/reservation-v1-en-fr/train.eval.jsonl": {
+      "mode": 420,
+      "sha256": "06807cf0a47e4d0d89ba5221374a20c94774efa53a4d235c8ec1bb57de333948",
+      "size_bytes": 1202914
+    },
+    "training/datasets/reservation-v1-en-fr/train.jsonl": {
+      "mode": 420,
+      "sha256": "744313f90b7c9f2186e81fc33337a016a46a69149c3897206eb2d3bdff6b363f",
+      "size_bytes": 1193303
+    },
+    "training/datasets/reservation-v1-en-fr/valid.eval.jsonl": {
+      "mode": 420,
+      "sha256": "d43e4dc73908bfa3f6185a0962d9a39ccf8bc4ff53259613a45a038ff85019b7",
+      "size_bytes": 237898
+    },
+    "training/datasets/reservation-v1-en-fr/valid.jsonl": {
+      "mode": 420,
+      "sha256": "92c8e02270293866b7c4b77f27c5b938b76143c383e1af612149aaacd66387f6",
+      "size_bytes": 235916
+    },
+    "training/datasets/shared-adapter-v2-en-fr/design-workflow-refinement-v1-en-fr--independent.eval.jsonl": {
+      "mode": 420,
+      "sha256": "1e7c759c1b96fe2ef63c7923734dea1e0a36537d6c84a9a12c438678e8a57745",
+      "size_bytes": 92287
+    },
+    "training/datasets/shared-adapter-v2-en-fr/design-workflow-v1-en-fr--test.eval.jsonl": {
+      "mode": 420,
+      "sha256": "a68b97ede98f06de515569a639cfa015b7face6e22c127da975040220d112a1f",
+      "size_bytes": 536053
+    },
+    "training/datasets/shared-adapter-v2-en-fr/design-workflow-v2-en-fr--independent.eval.jsonl": {
+      "mode": 420,
+      "sha256": "be4a6391ca373b8101fe60daabee8c92990e5bae6b6a3ab161a4ddbd70345e57",
+      "size_bytes": 212469
+    },
+    "training/datasets/shared-adapter-v2-en-fr/design-workflow-v3-en-fr--independent.eval.jsonl": {
+      "mode": 420,
+      "sha256": "5ea89a4858b2b83292d9db8659f41fe61fa246886e4822e43c94302dcc4b0ab1",
+      "size_bytes": 174209
+    },
+    "training/datasets/shared-adapter-v2-en-fr/facturation-acceptance-en-fr--test.eval.jsonl": {
+      "mode": 420,
+      "sha256": "a98d2d5c114b709b68ea856e8251c1007071d8585f69c0f41bae5f98e924d75b",
+      "size_bytes": 847910
+    },
+    "training/datasets/shared-adapter-v2-en-fr/facturation-refinement-v1-en-fr--independent.eval.jsonl": {
+      "mode": 420,
+      "sha256": "daf215fa0ee8f00793bc1b92eaf4857240b419fbdd4ace45674e6f2f77cc81f4",
+      "size_bytes": 139739
+    },
+    "training/datasets/shared-adapter-v2-en-fr/management-projet-followup-v1-en-fr--independent.eval.jsonl": {
+      "mode": 420,
+      "sha256": "6d2d7f3896299af4f93383f080da4b0666dab964a8af29d8462eb48bcb3053fe",
+      "size_bytes": 309261
+    },
+    "training/datasets/shared-adapter-v2-en-fr/management-projet-refinement-v1-en-fr--independent.eval.jsonl": {
+      "mode": 420,
+      "sha256": "e9dfb81a6ff77fa5cea25bbd94fba26b0efca77154316bf8bbca33360aeeabab",
+      "size_bytes": 120720
+    },
+    "training/datasets/shared-adapter-v2-en-fr/management-projet-v1-en-fr--test.eval.jsonl": {
+      "mode": 420,
+      "sha256": "4bba62427783498ef0b28c06f2bfe838709551ec84e4e1a1b7528a0d07ea1bc7",
+      "size_bytes": 566386
+    },
+    "training/datasets/shared-adapter-v2-en-fr/management-projet-v2-en-fr--independent.eval.jsonl": {
+      "mode": 420,
+      "sha256": "b2fbbf5925ecb88a467a90643d315d60b89bc19ff62efaf9c29d069cff79ea2a",
+      "size_bytes": 187454
+    },
+    "training/datasets/shared-adapter-v2-en-fr/management-projet-v3-en-fr--independent.eval.jsonl": {
+      "mode": 420,
+      "sha256": "f4e08e2c13d9375309f33da69e7a04eae92917a41d7251ab12689020aa31e4c2",
+      "size_bytes": 303599
+    },
+    "training/datasets/shared-adapter-v2-en-fr/management-projet-v4-en-fr--independent.eval.jsonl": {
+      "mode": 420,
+      "sha256": "d095170c0978b6a4ccc19b584036463ee17868ed6a0396e72849faee74b6c273",
+      "size_bytes": 315105
+    },
+    "training/datasets/shared-adapter-v2-en-fr/manifest-design_workflow.json": {
+      "mode": 420,
+      "sha256": "934ef9a194704431a91dffc316f833e8e6fa37f8a0c94b4b924d4edced667a18",
+      "size_bytes": 4087
+    },
+    "training/datasets/shared-adapter-v2-en-fr/manifest-facturation.json": {
+      "mode": 420,
+      "sha256": "3cbe3dcf5029309bdcd1469d981e5f7ccfb2c9c9b74beea92999780a15458b51",
+      "size_bytes": 2959
+    },
+    "training/datasets/shared-adapter-v2-en-fr/manifest-management_projet.json": {
+      "mode": 420,
+      "sha256": "fb096d4467e95854c29f9700f847c1a0bd89a94de3f26a8b7e71919652900f2d",
+      "size_bytes": 4640
+    },
+    "training/datasets/shared-adapter-v2-en-fr/manifest.json": {
+      "mode": 420,
+      "sha256": "7c6d2cd0ec2e36568fd7a696271b26561d50d54e994b31f104b23e237ca68f11",
+      "size_bytes": 11264
+    },
+    "training/datasets/shared-dialogue-v1-en-fr/changed.eval.jsonl": {
+      "mode": 420,
+      "sha256": "e27fc68e561b9a4ae40fd841b820a1d5826b558dd0e080402b698e8b108eb331",
+      "size_bytes": 833727
+    },
+    "training/datasets/shared-dialogue-v1-en-fr/design-workflow-refinement-v2-en-fr--independent.eval.jsonl": {
+      "mode": 420,
+      "sha256": "3ec71b47bfda4ba49cb0187fcbd949e651bf883fccd4e6da579f956df08203da",
+      "size_bytes": 137680
+    },
+    "training/datasets/shared-dialogue-v1-en-fr/facturation-refinement-v2-en-fr--independent.eval.jsonl": {
+      "mode": 420,
+      "sha256": "3f8745eab65f545ab55ca31b8b3c78219bae0f988b7d0ed3d1278b1146eead0d",
+      "size_bytes": 158493
+    },
+    "training/datasets/shared-dialogue-v1-en-fr/management-projet-refinement-v2-en-fr--independent.eval.jsonl": {
+      "mode": 420,
+      "sha256": "35ea0592763e6c5fec0d3a72f51887d19d68de1fe94dfaf10685b4ee6e424cba",
+      "size_bytes": 177335
+    },
+    "training/datasets/shared-dialogue-v1-en-fr/manifest.json": {
+      "mode": 420,
+      "sha256": "5bfa383c276e28cf3a78a20788d1b51fd7769563243aa26f33fcab7fed9b13e3",
+      "size_bytes": 13856
+    },
+    "training/datasets/shared-dialogue-v1-en-fr/shared-adapter-v2-en-fr--design-workflow-refinement-v1-en-fr--independent.eval.jsonl": {
+      "mode": 420,
+      "sha256": "1e7c759c1b96fe2ef63c7923734dea1e0a36537d6c84a9a12c438678e8a57745",
+      "size_bytes": 92287
+    },
+    "training/datasets/shared-dialogue-v1-en-fr/shared-adapter-v2-en-fr--design-workflow-v1-en-fr--test.eval.jsonl": {
+      "mode": 420,
+      "sha256": "a68b97ede98f06de515569a639cfa015b7face6e22c127da975040220d112a1f",
+      "size_bytes": 536053
+    },
+    "training/datasets/shared-dialogue-v1-en-fr/shared-adapter-v2-en-fr--design-workflow-v2-en-fr--independent.eval.jsonl": {
+      "mode": 420,
+      "sha256": "76a49dd3f16a3f8747d2a27e72136a8638bb7e9bfaa0464fe074d30b35474965",
+      "size_bytes": 212535
+    },
+    "training/datasets/shared-dialogue-v1-en-fr/shared-adapter-v2-en-fr--design-workflow-v3-en-fr--independent.eval.jsonl": {
+      "mode": 420,
+      "sha256": "03dd38836643543de70dcbd000f282bc8086fbba9ddffb532f3b5ed9d2db3523",
+      "size_bytes": 174275
+    },
+    "training/datasets/shared-dialogue-v1-en-fr/shared-adapter-v2-en-fr--facturation-acceptance-en-fr--test.eval.jsonl": {
+      "mode": 420,
+      "sha256": "5032ad514fa56ec971eafa72e3589d135debc12ca1f6272342460d9230837a42",
+      "size_bytes": 848372
+    },
+    "training/datasets/shared-dialogue-v1-en-fr/shared-adapter-v2-en-fr--facturation-refinement-v1-en-fr--independent.eval.jsonl": {
+      "mode": 420,
+      "sha256": "51f86d89eb3d5dc325c2a785aad7bf593be38cf6440a2ba2affb0601a19c280c",
+      "size_bytes": 139805
+    },
+    "training/datasets/shared-dialogue-v1-en-fr/shared-adapter-v2-en-fr--management-projet-followup-v1-en-fr--independent.eval.jsonl": {
+      "mode": 420,
+      "sha256": "f1307c78f473ea28af89d0968ab4d022ddec3334d50435cfe6260f57f2a8e145",
+      "size_bytes": 309393
+    },
+    "training/datasets/shared-dialogue-v1-en-fr/shared-adapter-v2-en-fr--management-projet-refinement-v1-en-fr--independent.eval.jsonl": {
+      "mode": 420,
+      "sha256": "e9dfb81a6ff77fa5cea25bbd94fba26b0efca77154316bf8bbca33360aeeabab",
+      "size_bytes": 120720
+    },
+    "training/datasets/shared-dialogue-v1-en-fr/shared-adapter-v2-en-fr--management-projet-v1-en-fr--test.eval.jsonl": {
+      "mode": 420,
+      "sha256": "4bba62427783498ef0b28c06f2bfe838709551ec84e4e1a1b7528a0d07ea1bc7",
+      "size_bytes": 566386
+    },
+    "training/datasets/shared-dialogue-v1-en-fr/shared-adapter-v2-en-fr--management-projet-v2-en-fr--independent.eval.jsonl": {
+      "mode": 420,
+      "sha256": "cd50078a995961c76f8205f78be66a2fc3242280b554343b308a24fae183e8e8",
+      "size_bytes": 187520
+    },
+    "training/datasets/shared-dialogue-v1-en-fr/shared-adapter-v2-en-fr--management-projet-v3-en-fr--independent.eval.jsonl": {
+      "mode": 420,
+      "sha256": "d239c5be3d914669e65a5cc7fba3044ac73ee0fe31ae3ab6a86c2e1c673486d5",
+      "size_bytes": 303665
+    },
+    "training/datasets/shared-dialogue-v1-en-fr/shared-adapter-v2-en-fr--management-projet-v4-en-fr--independent.eval.jsonl": {
+      "mode": 420,
+      "sha256": "66b337ebdd4d859d3c15330f040444d1b3b2b820ea4585359f21eadf5cee1c96",
+      "size_bytes": 315171
+    },
+    "training/datasets/shared-metadata-v1-en-fr/design-workflow-refinement-v1-en-fr--independent.eval.jsonl": {
+      "mode": 420,
+      "sha256": "cbc3edd4c79c315425449eb66a92c5ef303f245a66ccaaa309cf3287fd3bf0db",
+      "size_bytes": 85217
+    },
+    "training/datasets/shared-metadata-v1-en-fr/design-workflow-v1-en-fr--test.eval.jsonl": {
+      "mode": 420,
+      "sha256": "312b8b4d8480e57ab4e49d92bb20b112788bc731c05b68cf2ff756401cb1b0f9",
+      "size_bytes": 477992
+    },
+    "training/datasets/shared-metadata-v1-en-fr/design-workflow-v2-en-fr--independent.eval.jsonl": {
+      "mode": 420,
+      "sha256": "96783ca6c8fa1e24ec9023063fb3bf7724701c133a6943e064ae21392d9f5485",
+      "size_bytes": 195501
+    },
+    "training/datasets/shared-metadata-v1-en-fr/design-workflow-v3-en-fr--independent.eval.jsonl": {
+      "mode": 420,
+      "sha256": "393f33f780e3d5b36e13878d0854424c75ef5fa111db7866759ebbebd67b4d0d",
+      "size_bytes": 160069
+    },
+    "training/datasets/shared-metadata-v1-en-fr/facturation-acceptance-en-fr--test.eval.jsonl": {
+      "mode": 420,
+      "sha256": "f325774b1f16b96531e2df1b81ed4425c5ffcd34c3f494dde942744681ea4f06",
+      "size_bytes": 667432
+    },
+    "training/datasets/shared-metadata-v1-en-fr/facturation-refinement-v1-en-fr--independent.eval.jsonl": {
+      "mode": 420,
+      "sha256": "90a1d046387e3fe788886eb0892dde109a9d18971faf6bd977bb7fe25ef0eaaf",
+      "size_bytes": 112133
+    },
+    "training/datasets/shared-metadata-v1-en-fr/management-projet-refinement-v1-en-fr--independent.eval.jsonl": {
+      "mode": 420,
+      "sha256": "840aa56d224283a07092e0cb49fc61d3128e5def66a53fd087215f70848aaaf2",
+      "size_bytes": 107364
+    },
+    "training/datasets/shared-metadata-v1-en-fr/management-projet-v1-en-fr--test.eval.jsonl": {
+      "mode": 420,
+      "sha256": "8b98db8509d07084f64b3dcbf107cd39a8cf6a731a38e6939c3d9bdc7571bf8c",
+      "size_bytes": 476564
+    },
+    "training/datasets/shared-metadata-v1-en-fr/management-projet-v2-en-fr--independent.eval.jsonl": {
+      "mode": 420,
+      "sha256": "21a611bd49e7167316ccb3b77ba0ce06c45f6b843bbc3e51b9f00da604b14183",
+      "size_bytes": 157584
+    },
+    "training/datasets/shared-metadata-v1-en-fr/management-projet-v3-en-fr--independent.eval.jsonl": {
+      "mode": 420,
+      "sha256": "c84b533d647bfde4ee59a40653e8cfd55b9249e315aea2fccc5404befbfef5f0",
+      "size_bytes": 264111
+    },
+    "training/datasets/shared-metadata-v1-en-fr/management-projet-v4-en-fr--independent.eval.jsonl": {
+      "mode": 420,
+      "sha256": "7098adf753f7cfe3cfba3e83298f8eecfb45357767892de13d13671564281839",
+      "size_bytes": 279489
+    },
+    "training/datasets/shared-metadata-v1-en-fr/manifest.json": {
+      "mode": 420,
+      "sha256": "02f50cec12408a97c392ab577cde26dee75bed1067d99a7cb8e1e89f033f6750",
+      "size_bytes": 6553
+    },
+    "training/datasets/shared-v1-en-fr/manifest.json": {
+      "mode": 420,
+      "sha256": "5c929a16948917fa854a7c51b762ac68891e596a79918958920d2850af897e34",
+      "size_bytes": 1505
+    },
+    "training/datasets/shared-v1-en-fr/train.jsonl": {
+      "mode": 420,
+      "sha256": "55719d7c45e7e9ba2d8be1dfe62c5838eb17ccf792c1b4ac77fa459197bd08a3",
+      "size_bytes": 3906320
+    },
+    "training/datasets/shared-v1-en-fr/valid.jsonl": {
+      "mode": 420,
+      "sha256": "d88b1c184cd84497927bfbef50032131654382d6f7c69fb61537819064496df9",
+      "size_bytes": 769140
+    },
+    "training/datasets/shared-v2-en-fr/manifest.json": {
+      "mode": 420,
+      "sha256": "e4b88d4929fe02279479425fd08a8aff3a63df5154f5ab193a5f3f6e2db75e80",
+      "size_bytes": 1822
+    },
+    "training/datasets/shared-v2-en-fr/train.jsonl": {
+      "mode": 420,
+      "sha256": "89a96b16db08b9f057b4a8a80dfa2e3b27e5c5f9ba859033838a5b24fc1db6a8",
+      "size_bytes": 4724678
+    },
+    "training/datasets/shared-v2-en-fr/valid.jsonl": {
+      "mode": 420,
+      "sha256": "60d0c705752e685d69c8957b63c8f3013cd5614f47ba76450751d1663d9f8b77",
+      "size_bytes": 876355
+    },
+    "training/datasets/shared-v3-en-fr/manifest.json": {
+      "mode": 420,
+      "sha256": "461f3c731d9ef50694e6f887f6da437040870cb2199e459b56b4d6c75f0424a2",
+      "size_bytes": 1790
+    },
+    "training/datasets/shared-v3-en-fr/train.jsonl": {
+      "mode": 420,
+      "sha256": "acf1e2f92269e88eb7ddd3dfa812e73a50485008d4c531f1de9c8a540f76d79a",
+      "size_bytes": 5946421
+    },
+    "training/datasets/shared-v3-en-fr/valid.jsonl": {
+      "mode": 420,
+      "sha256": "20a8675d59bdf41dde4c5ab706a373034e4d2b854f63c5f017540c8427c65445",
+      "size_bytes": 952564
+    },
+    "training/datasets/shared-v4-en-fr/manifest.json": {
+      "mode": 420,
+      "sha256": "9d5ee4347e93df2d58b4e72fa673f03fe0d6881444d9b26e0986ca70a36ead17",
+      "size_bytes": 1790
+    },
+    "training/datasets/shared-v4-en-fr/train.jsonl": {
+      "mode": 420,
+      "sha256": "ee63ca68a91c011cf46501d40876e8de7a50c6ff74e63e453ad7a6a6a1e5d278",
+      "size_bytes": 7771834
+    },
+    "training/datasets/shared-v4-en-fr/valid.jsonl": {
+      "mode": 420,
+      "sha256": "c8d2161eddc357fc6e1e2f9ce3227bcd114c1390532bef0e8b5e6e49ba457730",
+      "size_bytes": 1079105
+    },
+    "training/datasets/shared-v5-en-fr/manifest.json": {
+      "mode": 420,
+      "sha256": "ef2f9cea1ae5fac97003e20473536aaf930f781d6c868b7c31274234fd61611f",
+      "size_bytes": 1790
+    },
+    "training/datasets/shared-v5-en-fr/train.jsonl": {
+      "mode": 420,
+      "sha256": "884142e39d6c47b50cea06a4d425f4790b25115a0068584f2e435436b84332ee",
+      "size_bytes": 9598474
+    },
+    "training/datasets/shared-v5-en-fr/valid.jsonl": {
+      "mode": 420,
+      "sha256": "a179428d8d3fc2ddeea8435b785e94cd22bf613712b20124849af082c4aa9295",
+      "size_bytes": 1264131
+    },
+    "training/datasets/shared-v5r2-en-fr/manifest.json": {
+      "mode": 420,
+      "sha256": "3c81fb37d6f24c8c65df62c1d74f1383f7ae398f566d19878fb188feb8f986bf",
+      "size_bytes": 1792
+    },
+    "training/datasets/shared-v5r2-en-fr/train.jsonl": {
+      "mode": 420,
+      "sha256": "2369d802ab3cf3ed9171958cacead8f33eefc814ea2fd0399474bc1c9bdc6359",
+      "size_bytes": 10646957
+    },
+    "training/datasets/shared-v5r2-en-fr/valid.jsonl": {
+      "mode": 420,
+      "sha256": "a32984f4899c8b9c8895e140003f734e5aec95aff9d470960533e3d2ce91a646",
+      "size_bytes": 1395933
+    },
+    "training/datasets/shared-v5r3-en-fr/manifest.json": {
+      "mode": 420,
+      "sha256": "bd5cf1905f6a67823e111115fa33ce598cfa3cdcee4b0f70587496856a518828",
+      "size_bytes": 7206
+    },
+    "training/datasets/shared-v5r3-en-fr/train.jsonl": {
+      "mode": 420,
+      "sha256": "a2d2d61501b925850f1670208c960bc004ee7fa99ca60dc7249be6328c93a7ce",
+      "size_bytes": 15451176
+    },
+    "training/datasets/shared-v5r3-en-fr/valid.jsonl": {
+      "mode": 420,
+      "sha256": "4d4f03eaa097897beeae0d53f5dba994bb73d8c8129fbd895e2c659aab3b5ca4",
+      "size_bytes": 2155017
+    },
+    "training/datasets/shared-v5r4-en-fr/manifest.json": {
+      "mode": 420,
+      "sha256": "b6fda0e10796ae0b990554d847f0b3bb78feff61bf460212fc84cd298784d023",
+      "size_bytes": 28023
+    },
+    "training/datasets/shared-v5r4-en-fr/train.jsonl": {
+      "mode": 420,
+      "sha256": "8c14bd4618b2445c11b8785742f749d32e088ca6f6c15cfb0e4c8e7ae42537c1",
+      "size_bytes": 16756386
+    },
+    "training/datasets/shared-v5r4-en-fr/valid.jsonl": {
+      "mode": 420,
+      "sha256": "a42cba6d1d6decdb7376ba69a98959e553321fb5a8a2704c5b3e00f0cfc4e4a3",
+      "size_bytes": 2656975
+    },
+    "training/datasets/shared-v6-en-fr/manifest.json": {
+      "mode": 420,
+      "sha256": "63b9fbdedbeae44750a708feb8c671fb2950f699867560fc7c506c227f4c95a9",
+      "size_bytes": 2058
+    },
+    "training/datasets/shared-v6-en-fr/train.jsonl": {
+      "mode": 420,
+      "sha256": "e96e8b35392ac26a8b69450d1a8f252c89ef8c946224526a06d43f26617d0ab5",
+      "size_bytes": 10309131
+    },
+    "training/datasets/shared-v6-en-fr/valid.jsonl": {
+      "mode": 420,
+      "sha256": "082218e36bfa68acea8d3c22d8d2adbe0748cf5ca18b8e4e172466732404640f",
+      "size_bytes": 1438776
+    },
+    "training/datasets/shared-v6r2-en-fr/manifest.json": {
+      "mode": 420,
+      "sha256": "494c579e5e50c22fca993c57984e91ee9e1ada54b174282fedb6b8c68553a8db",
+      "size_bytes": 2060
+    },
+    "training/datasets/shared-v6r2-en-fr/train.jsonl": {
+      "mode": 420,
+      "sha256": "3e7590f95efb92ea6fea386796e07502bc13d86b2949f60282044a2351a33a6c",
+      "size_bytes": 11357614
+    },
+    "training/datasets/shared-v6r2-en-fr/valid.jsonl": {
+      "mode": 420,
+      "sha256": "1922c6f8481c97a57f55eccb80d0349987546ca4c3deb72bc954777bcbc698b9",
+      "size_bytes": 1570578
+    },
+    "training/datasets/shared-v6r4-en-fr/manifest.json": {
+      "mode": 420,
+      "sha256": "d3804d131b058e2f3341731ce5e2268c5b660beef42ee9ad0579f5f71f8ff54f",
+      "size_bytes": 6049
+    },
+    "training/datasets/shared-v6r4-en-fr/train.jsonl": {
+      "mode": 420,
+      "sha256": "daf496cfec70e1285938cd4a84cfe22b623100ce98b1a8de18d1ca372f05e57c",
+      "size_bytes": 17707915
+    },
+    "training/datasets/shared-v6r4-en-fr/valid.jsonl": {
+      "mode": 420,
+      "sha256": "7c5d3449b1d483462e63aa95b14dabebf33cb6ae8e35d09976d3a9d587731229",
+      "size_bytes": 2931268
+    },
+    "training/datasets/shared-v7-en-fr/manifest.json": {
+      "mode": 420,
+      "sha256": "02de0a1c804f10206e5dff2137f697525d51207a970b9dcecd6c56e54f38af62",
+      "size_bytes": 2366
+    },
+    "training/datasets/shared-v7-en-fr/train.jsonl": {
+      "mode": 420,
+      "sha256": "9a6c42858c1a40b8bae22bce8be7c2f8e3e29db1811a95ce0d634a0cf222eec9",
+      "size_bytes": 11689300
+    },
+    "training/datasets/shared-v7-en-fr/valid.jsonl": {
+      "mode": 420,
+      "sha256": "d3b6da3df3bbd9096a8a586b6728fa3d65efb8db79aeab50bfe11040bb74e0f8",
+      "size_bytes": 1692495
+    },
+    "training/datasets/shared-v7r2-en-fr/manifest.json": {
+      "mode": 420,
+      "sha256": "4857c51567fc5340dbabcc750651742c4fe19586e276c8074d9ba578ca65d2b1",
+      "size_bytes": 2368
+    },
+    "training/datasets/shared-v7r2-en-fr/train.jsonl": {
+      "mode": 420,
+      "sha256": "357e73652097451e8a2ae87a780dc060684f27f601daf3fd4bf03087d3d60523",
+      "size_bytes": 12737783
+    },
+    "training/datasets/shared-v7r2-en-fr/valid.jsonl": {
+      "mode": 420,
+      "sha256": "543b5922809dbc53ba131ea9a3d27cfc2b6d69be0e79a487d1fd442338e635d3",
+      "size_bytes": 1824297
+    },
+    "training/datasets/shared-v7r4-en-fr/manifest.json": {
+      "mode": 420,
+      "sha256": "d7e444346fbd8a7545e0633cb9f0cda2eafec5b158f7b6ce0cd9712903309aa0",
+      "size_bytes": 6323
+    },
+    "training/datasets/shared-v7r4-en-fr/train.jsonl": {
+      "mode": 420,
+      "sha256": "b955ea85d559ff1fa98fff93242300313bdb7f9b1dcf6ee18d95d166f9499428",
+      "size_bytes": 19427775
+    },
+    "training/datasets/shared-v7r4-en-fr/valid.jsonl": {
+      "mode": 420,
+      "sha256": "fa365cd1b86ac4ced168305646f2f3613d38e15154a95ede2cc97fb57b5a0194",
+      "size_bytes": 3310422
+    },
+    "training/datasets/shared-v8-en-fr/manifest.json": {
+      "mode": 420,
+      "sha256": "7a6f70fc26bb09df388138a123e73853fc130a9ef146841ed0f729d22f72b59e",
+      "size_bytes": 2654
+    },
+    "training/datasets/shared-v8-en-fr/train.jsonl": {
+      "mode": 420,
+      "sha256": "92582068b1dace9115b327e515cac8835ae7931b6ce2f84d40c4a06b0b7dc302",
+      "size_bytes": 12887103
+    },
+    "training/datasets/shared-v8-en-fr/valid.jsonl": {
+      "mode": 420,
+      "sha256": "b337ec994c9fc6cea99c362f52808d4313137110cf6fc757df819ac4091e37f9",
+      "size_bytes": 1929311
+    },
+    "training/datasets/shared-v8r2-en-fr/manifest.json": {
+      "mode": 420,
+      "sha256": "7ac51a996c3cd69135c9216f9214b3c5aca346e5b7178a92faac69ef056e8885",
+      "size_bytes": 2656
+    },
+    "training/datasets/shared-v8r2-en-fr/train.jsonl": {
+      "mode": 420,
+      "sha256": "86eec440e31a8fa6a194a76203074a4a618e4e7618b755cd598132857f081344",
+      "size_bytes": 13935586
+    },
+    "training/datasets/shared-v8r2-en-fr/valid.jsonl": {
+      "mode": 420,
+      "sha256": "549e02a515823409eb74a9483f1e3ff4fa9bcb73fd17f3fbbaf35503d5b5225c",
+      "size_bytes": 2061113
+    },
+    "training/datasets/shared-v8r4-en-fr/manifest.json": {
+      "mode": 420,
+      "sha256": "364d3a4d4b3b7ba61ac9e8cd6c63de33c509cdc32b3ec82a8869845e25251369",
+      "size_bytes": 6571
+    },
+    "training/datasets/shared-v8r4-en-fr/train.jsonl": {
+      "mode": 420,
+      "sha256": "36c07afad156aabf0dbaa82a9598300b6d12a412da2812fccab301dd0b774037",
+      "size_bytes": 20935363
+    },
+    "training/datasets/shared-v8r4-en-fr/valid.jsonl": {
+      "mode": 420,
+      "sha256": "aed1603c340c5f0929663594d5a684cf5e2241a1cd4c4d4e6f931368aaf77f67",
+      "size_bytes": 3643710
+    },
     "training/reports/application-release-tests.json": {
       "mode": 420,
       "sha256": "97ca3d5346bfe6c077654a6b55f7bf02d5eab639651f8a367d865ba85dfaabcd",
@@ -2386,10 +3656,70 @@
       "sha256": "38453de5b3e5ab98b766e8f504bf7e60a904e7bbe6582583c383c126d79361aa",
       "size_bytes": 508
     },
+    "training/reports/cpu-training-precision-v1.json": {
+      "mode": 420,
+      "sha256": "e638d47b3fc5017d6c55070c8e2b4fe3989b254c2d86d01b65863b3edcacad55",
+      "size_bytes": 1522
+    },
+    "training/reports/design-workflow-baseline-v4-en-fr.json": {
+      "mode": 420,
+      "sha256": "26b0787b0065130f802b9dd2c1cecc85e8c6e855936462f3470f1cea94aecb92",
+      "size_bytes": 6137
+    },
+    "training/reports/design_workflow-shared-v2-baseline.json": {
+      "mode": 420,
+      "sha256": "26b0787b0065130f802b9dd2c1cecc85e8c6e855936462f3470f1cea94aecb92",
+      "size_bytes": 6137
+    },
+    "training/reports/design_workflow-shared-v2-candidate.json": {
+      "mode": 420,
+      "sha256": "a1ec7ba53f465918958b01a0766ef3a046ccb3626ac4abc13d1256e49f4e12f7",
+      "size_bytes": 6148
+    },
     "training/reports/docker-validation.json": {
       "mode": 420,
       "sha256": "fe12199bd3df0e6dc15b5e6ce70690cf5281350f87aa667c04b2e0d4ce5f0829",
       "size_bytes": 486
+    },
+    "training/reports/facturation-shared-v2-baseline.json": {
+      "mode": 420,
+      "sha256": "dab1428808dacd22e87d5bfd8e6e4d30e43bfd967b5480d6adfb87b242a0fc93",
+      "size_bytes": 10594
+    },
+    "training/reports/facturation-shared-v2-candidate.json": {
+      "mode": 420,
+      "sha256": "09ab0ab1a0956183eb68cd78e5940fec79af18c7a3a1ae88eb4a439b96493f89",
+      "size_bytes": 10596
+    },
+    "training/reports/management_projet-shared-v2-baseline.json": {
+      "mode": 420,
+      "sha256": "8f49f982960b2d419cfba62f23b1fce5401899c06bde479766cb4d65f3585cd1",
+      "size_bytes": 6448
+    },
+    "training/reports/management_projet-shared-v2-candidate.json": {
+      "mode": 420,
+      "sha256": "a554f3646fec0d70d2cf856ef2948959b9c5bd0734f59488c7704586a34bd0bd",
+      "size_bytes": 6531
+    },
+    "training/reports/native-metadata-v2-en-fr-preflight.json": {
+      "mode": 420,
+      "sha256": "40b45cf31e5d54c84169e069dc73b69903692c12d2ddb70b932381f52fa23595",
+      "size_bytes": 2961
+    },
+    "training/reports/planner-history-v1-en-fr-preflight.json": {
+      "mode": 420,
+      "sha256": "9e6adb0ba95d81a481b95ea62a518928e71e230b5eee8f8d43c4f46b4baed9f6",
+      "size_bytes": 2094
+    },
+    "training/reports/planner-rules-v1-en-fr-preflight.json": {
+      "mode": 420,
+      "sha256": "1d5f9acbd81d4a425ce25620214c853b322035b6f95e16e328889c73a2c19e02",
+      "size_bytes": 2066
+    },
+    "training/reports/planner-rules-v1-en-fr-results.json": {
+      "mode": 420,
+      "sha256": "cd212b04ca9cd7c16ee6d6fd57790282e68eb69497089920900f2554eace38a1",
+      "size_bytes": 56376
     },
     "training/reports/production-module-shortcuts-checks.json": {
       "mode": 420,
@@ -2511,6 +3841,291 @@
       "sha256": "734fc170ab518abd310685a2e13c985ea495dae7f41619336b5f0ddfd4fcfd3c",
       "size_bytes": 5215
     },
+    "training/reports/shared-adapter-v2-en-fr-comparison.json": {
+      "mode": 420,
+      "sha256": "0fd51b1c3968ca713ed9894179b2f8d0851fa3eeab80e8be93c5464a112707de",
+      "size_bytes": 82239
+    },
+    "training/reports/shared-adapter-v2-malformed-calls.json": {
+      "mode": 420,
+      "sha256": "8fa42c952b5927675129ca4669cefa61bdf7c7a1e72d450fc70de14a20b30516",
+      "size_bytes": 1617
+    },
+    "training/reports/shared-dialogue-v1-en-fr-baseline.json": {
+      "mode": 420,
+      "sha256": "6ada567fcd7c9d34908fa1b279e812115bbb280f2419b0d4658d0757f2b06aee",
+      "size_bytes": 262237
+    },
+    "training/reports/shared-metadata-v1-en-fr-comparison.json": {
+      "mode": 420,
+      "sha256": "352f560fe313ce589d83edf567880b550631f111e4bd1afaf91201894b68fc90",
+      "size_bytes": 72001
+    },
+    "training/reports/shared-refinement-v2-en-fr-baseline.json": {
+      "mode": 420,
+      "sha256": "375711a3d0201edda7b3b73f9a5dd4fcbfe123e4d70434aa01c07c7b4f1e275a",
+      "size_bytes": 5051
+    },
+    "training/reports/shared-v2-en-fr-comparison.json": {
+      "mode": 420,
+      "sha256": "0cb206374cd3da6d0a9de4fc72431954240c8dceaed7fd4f64152ca4511e6906",
+      "size_bytes": 71172
+    },
+    "training/reports/shared-v2-en-fr-performance.json": {
+      "mode": 420,
+      "sha256": "71a909fb91e4e7a69b054c7f12dd779ab3223affc891a81ffdc093349b4160a5",
+      "size_bytes": 7567
+    },
+    "training/reports/shared-v2-en-fr-training.json": {
+      "mode": 420,
+      "sha256": "9983190cc46ae5c7b867c1f46202176ead338d58b0e792380169005014b07271",
+      "size_bytes": 1830
+    },
+    "training/reports/shared-v3-design_workflow-evaluation.json": {
+      "mode": 420,
+      "sha256": "36e1704858fd8b600467c6f3f538157713d929f72fb3a13360b78f4724a18146",
+      "size_bytes": 6156
+    },
+    "training/reports/shared-v3-en-fr-comparison.json": {
+      "mode": 420,
+      "sha256": "acf25a0f62c6f042b5095cc0e6dbfb3c926a9238a4ac441fb535e9c5cf30fef0",
+      "size_bytes": 82616
+    },
+    "training/reports/shared-v3-en-fr-performance.json": {
+      "mode": 420,
+      "sha256": "11dad9c957970127f55382420b734f3fc47a59269aa95b6940a6601327e7a29a",
+      "size_bytes": 5234
+    },
+    "training/reports/shared-v3-en-fr-training.json": {
+      "mode": 420,
+      "sha256": "e242eb8812c96c456d25029593ae19161c4cacc624a0524cc341abcb18769db8",
+      "size_bytes": 6488
+    },
+    "training/reports/shared-v3-facturation-evaluation.json": {
+      "mode": 420,
+      "sha256": "91b608ba48809b9c3c9f3046b9eb385b9bb59b8cfd72621f56850fa91535bb41",
+      "size_bytes": 10607
+    },
+    "training/reports/shared-v3-management-projet-companion.json": {
+      "mode": 420,
+      "sha256": "ebdd962a35c57813d521793bfacd58ce59a429bafdcd5e91707b2d38fed55ba0",
+      "size_bytes": 5715
+    },
+    "training/reports/shared-v3-management_projet-evaluation.json": {
+      "mode": 420,
+      "sha256": "b4c96f8bf32717fbd03589331851d9d1fa01d038d563a076f78aa568bd93cfb3",
+      "size_bytes": 6548
+    },
+    "training/reports/shared-v3-parser-control.json": {
+      "mode": 420,
+      "sha256": "e14d807cc5044ca5da00a2b57923827d86464f2d4415e13e0d9ef396055fcd3d",
+      "size_bytes": 11719
+    },
+    "training/reports/shared-v3-preflight.json": {
+      "mode": 420,
+      "sha256": "88b1058f7c573940cda4e2020ba923b700957b828f84428d8b19093c94ebdb0d",
+      "size_bytes": 605
+    },
+    "training/reports/shared-v4-companion-acceptance.json": {
+      "mode": 420,
+      "sha256": "382b425d2440b38c805b63ccdce78816d419590511fc96fe7abd74e0341c8337",
+      "size_bytes": 7235
+    },
+    "training/reports/shared-v4-dw-acceptance.json": {
+      "mode": 420,
+      "sha256": "5f99eb387b7976d385935f6e33b71d9279bad9e4dcc34915839236a45768dce8",
+      "size_bytes": 9162
+    },
+    "training/reports/shared-v4-dw-fresh-acceptance.json": {
+      "mode": 420,
+      "sha256": "66c34d971a1d637f4898c0e4b94f96a81fbc50b82d1af2aa21278fa748b483b7",
+      "size_bytes": 8606
+    },
+    "training/reports/shared-v4-en-fr-comparison.json": {
+      "mode": 420,
+      "sha256": "3050982055e7f0ad95d61777ccc8845d317aba00b7650aab462ede79f40be593",
+      "size_bytes": 37406
+    },
+    "training/reports/shared-v4-en-fr-performance.json": {
+      "mode": 420,
+      "sha256": "be201479516edbec3febfa0b3a3c3494bf64c2b1a7e8f2eda0dafd78c08df767",
+      "size_bytes": 5236
+    },
+    "training/reports/shared-v4-en-fr-training.json": {
+      "mode": 420,
+      "sha256": "eb32626cd0120fa714ad7bf555264ca9c7acb5504420c61a1d04438b7f9417e4",
+      "size_bytes": 7348
+    },
+    "training/reports/shared-v4-facturation-acceptance.json": {
+      "mode": 420,
+      "sha256": "1c1ee010c3044d1157a47227b89e4c38ba54213e99ac9904a60ba6f57e30ebd4",
+      "size_bytes": 16794
+    },
+    "training/reports/shared-v4-mg-acceptance.json": {
+      "mode": 420,
+      "sha256": "c069bc7d5aa00ec7ebe87a49e091f0e0ab25fa107075a8fc40a08443bf8c4fa3",
+      "size_bytes": 9657
+    },
+    "training/reports/shared-v4-mg-fresh-acceptance.json": {
+      "mode": 420,
+      "sha256": "1bb6d582faa2cdd1fe0aaeab81ea7a3fe85afa68dd0903a40a2309268890b666",
+      "size_bytes": 7872
+    },
+    "training/reports/shared-v5-baseline-design-workflow.json": {
+      "mode": 420,
+      "sha256": "39c41f16fc8ffef0055ab36020f57015d12863743ef7eeb3a465915d1d8bb8cb",
+      "size_bytes": 2772
+    },
+    "training/reports/shared-v5-baseline-management-projet.json": {
+      "mode": 420,
+      "sha256": "61e1754e902225086e0e2ef34e3e0ef8281d0220b4e6c40f0f4db2c1ba7ae19e",
+      "size_bytes": 2785
+    },
+    "training/reports/shared-v5-en-fr-capacity.json": {
+      "mode": 420,
+      "sha256": "b2d2953d5d1bea793d9b11453ad1dd712daf9fccb8cd13ae8cb5c66ba21a5e96",
+      "size_bytes": 3761
+    },
+    "training/reports/shared-v5-en-fr-comparison.json": {
+      "mode": 420,
+      "sha256": "c9d0769f9e23472f6417df4d5c68d1c01a30e46927f86832c6859c41ba7ffccc",
+      "size_bytes": 119204
+    },
+    "training/reports/shared-v5-en-fr-diagnostics.json": {
+      "mode": 420,
+      "sha256": "b86f8558c11ed080504efdcd8b4958eb93c1a4b524b7ffedd4589cffe203555e",
+      "size_bytes": 3036
+    },
+    "training/reports/shared-v5-en-fr-performance.json": {
+      "mode": 420,
+      "sha256": "fae517f02b0355d83a5867489a9af523b625f9a693c1d73cc5ef0b7f19916557",
+      "size_bytes": 5233
+    },
+    "training/reports/shared-v5-en-fr-training.json": {
+      "mode": 420,
+      "sha256": "bf1ca34635d5291b98014a56c22e1da2f24c44010bd67592d47adb8adb7eeb2b",
+      "size_bytes": 7360
+    },
+    "training/reports/shared-v5r2-baseline-design-workflow.json": {
+      "mode": 420,
+      "sha256": "5d06ff18571038eb9be8fd7d79ae5c38beab6ba187fd260a942d716cb0020308",
+      "size_bytes": 4168
+    },
+    "training/reports/shared-v5r2-baseline-facturation.json": {
+      "mode": 420,
+      "sha256": "a7904c21ee2ee042d2a13c769393ed91a14b364cd325a6402f18474f2cf71e8b",
+      "size_bytes": 4579
+    },
+    "training/reports/shared-v5r2-baseline-management-projet.json": {
+      "mode": 420,
+      "sha256": "dc33f82c6598a35c12dc44c7e734b64e888b9616ff959c1a8e772a81573e0fd8",
+      "size_bytes": 4585
+    },
+    "training/reports/shared-v5r2-en-fr-comparison.json": {
+      "mode": 420,
+      "sha256": "dfacf442c86962f5f01d1ab6e0335d9077eadcd5415de5fe412046eb877fdec6",
+      "size_bytes": 208808
+    },
+    "training/reports/shared-v5r2-en-fr-performance.json": {
+      "mode": 420,
+      "sha256": "dcff5b1e380255c3709971050cd18bac0162855f6b57ab6d60a53bcb14a7f916",
+      "size_bytes": 5237
+    },
+    "training/reports/shared-v5r2-en-fr-preflight.json": {
+      "mode": 420,
+      "sha256": "6dcf98eda1373a6e4d2487755e6cff76e13bfa8ab3a2e9df111e41783c914448",
+      "size_bytes": 752
+    },
+    "training/reports/shared-v5r2-en-fr-training.json": {
+      "mode": 420,
+      "sha256": "540c9854369c9d15641a431d4b216b2c37ac46edff52e92d54abcd8f3a390122",
+      "size_bytes": 7615
+    },
+    "training/reports/shared-v5r3-en-fr-metadata-preflight.json": {
+      "mode": 420,
+      "sha256": "02711735dc721ad19368ebbb0bc31c312ea45fa3b1511b975efb255e21dba645",
+      "size_bytes": 1291
+    },
+    "training/reports/shared-v5r4-en-fr-capacity.json": {
+      "mode": 420,
+      "sha256": "d92525434db2b4fdd77c55b82edd5a1b64e0599e7ea23561b5520fd9dc6f5e79",
+      "size_bytes": 4016
+    },
+    "training/reports/shared-v5r4-en-fr-evaluation.json": {
+      "mode": 420,
+      "sha256": "c33899e6ed7f4dcc10864c3f017f51689c6b59676bcbfab5109d7c7a32fd4717",
+      "size_bytes": 159387
+    },
+    "training/reports/shared-v5r4-en-fr-malformed-calls.json": {
+      "mode": 420,
+      "sha256": "6b653bb36d257e5fe8a2d113815e5c32a0fce4f8f900b715437d271b5f669b22",
+      "size_bytes": 2236
+    },
+    "training/reports/shared-v5r4-en-fr-metadata-preflight.json": {
+      "mode": 420,
+      "sha256": "610405343c74402cd258a554af4ae4252769f8a3d2f7bd166ead1160af3a3b01",
+      "size_bytes": 1292
+    },
+    "training/reports/shared-v5r4-en-fr-performance.json": {
+      "mode": 420,
+      "sha256": "e2d52a95955e6769befe7940737b2b1db390af0afbd7a02245b6fd01b1d54b1a",
+      "size_bytes": 4320
+    },
+    "training/reports/shared-v5r4-en-fr-server-preflight.json": {
+      "mode": 420,
+      "sha256": "703608f9fc07791b5991f9835e0ab15b2305297b29a0a6b54ebbd6560b86bace",
+      "size_bytes": 752
+    },
+    "training/reports/shared-v5r4-en-fr-training.json": {
+      "mode": 420,
+      "sha256": "0f9d5b3a9b745da26b129baaec8d4e2cf51587a9dacdf541a811fc15392a28ab",
+      "size_bytes": 2598
+    },
+    "training/reports/shared-v8-en-fr-preflight.json": {
+      "mode": 420,
+      "sha256": "34fb8dc1e89a4c19c56ac103eefe2ba6686d03437ba7c96c2707256012d7df69",
+      "size_bytes": 752
+    },
+    "training/reports/shared-v8r2-en-fr-metadata-preflight.json": {
+      "mode": 420,
+      "sha256": "ed1bb5c199c931df7ae69c0509729839b1fdd7fbafffd3cabe87099ecf6c18e2",
+      "size_bytes": 1138
+    },
+    "training/reports/shared-v8r2-en-fr-server-preflight.json": {
+      "mode": 420,
+      "sha256": "ba20f433fb6c84d8f4759fb41e3120c77116bbecfc52a29ddb3dac10025e099b",
+      "size_bytes": 1430
+    },
+    "training/reports/shared-v8r4-en-fr-metadata-preflight.json": {
+      "mode": 420,
+      "sha256": "f53f583bf5aba89efb862de9b4cb630c8be00becf0b01366c5e0e34505a8aee3",
+      "size_bytes": 1626
+    },
+    "training/reports/shared-v8r4-en-fr-server-preflight.json": {
+      "mode": 420,
+      "sha256": "3067f5c0e451e168067dd286ceccccba419f6f435f6be7e809d9c6f43b021154",
+      "size_bytes": 2757
+    },
+    "training/scripts/archive/capacity_v4/probe_cpu_capacity.py": {
+      "mode": 420,
+      "sha256": "38cca9a6611fcdece47018b7413fa1125e39f30c5d1161afb63f4feff8f7b98c",
+      "size_bytes": 7407
+    },
+    "training/scripts/archive/capacity_v4/text_lora.py": {
+      "mode": 420,
+      "sha256": "806b1ccfd267f4ce23b498b13b2303223c5b4320cd7603f07343fdcc84d52b47",
+      "size_bytes": 1768
+    },
+    "training/scripts/archive/train_cpu_shared_v3.py": {
+      "mode": 420,
+      "sha256": "2ea0a5e937d8e60e38eb9115038495d1623710fead967cd16d16b872b297ce39",
+      "size_bytes": 15006
+    },
+    "training/scripts/archive/training_schedule.py": {
+      "mode": 420,
+      "sha256": "0df6692fa360c6ee0f194275941908e89c62496bdc0627fd6d0731e829b7bb83",
+      "size_bytes": 652
+    },
     "training/scripts/attest_colibri.py": {
       "mode": 420,
       "sha256": "0f17fcb624839a3b38658733490d159b8d76aaba0b800cfc296f690cc6908f09",
@@ -2525,6 +4140,16 @@
       "mode": 420,
       "sha256": "1c2ddb9da8499af88c1fca276f476e5cfa023df016ea569b656aaeca2a9a07a9",
       "size_bytes": 25848
+    },
+    "training/scripts/build_adapter_diagnostic.py": {
+      "mode": 420,
+      "sha256": "1f6ca6d395a17aff46bf94fb003f186b09295c6515f5ac6ba39d8c0907da7028",
+      "size_bytes": 8351
+    },
+    "training/scripts/build_contracts.py": {
+      "mode": 420,
+      "sha256": "58b137738c394c98fe64e176069644c8588bf600274e38df658401a2aa4fc3ac",
+      "size_bytes": 26843
     },
     "training/scripts/build_dataset.py": {
       "mode": 420,
@@ -2546,6 +4171,81 @@
       "sha256": "f5f4deb354557d007f13ea23721577ca666aecf492f662bf3233ac6f4db34476",
       "size_bytes": 57443
     },
+    "training/scripts/build_design_workflow.py": {
+      "mode": 420,
+      "sha256": "ecd592754e5d8b8298e841a03427a2475503aa843101c8be2a6f0ee2b6f6a826",
+      "size_bytes": 21865
+    },
+    "training/scripts/build_design_workflow_v2.py": {
+      "mode": 420,
+      "sha256": "b533764d492712008412c03f8f8d7079073e99e390072fc7776a34a7f474d857",
+      "size_bytes": 11767
+    },
+    "training/scripts/build_design_workflow_v3.py": {
+      "mode": 420,
+      "sha256": "3a15f9b117f8207ead5c52fbe64c8e638c1c7a322b3af30bf87984d18312e3ec",
+      "size_bytes": 13406
+    },
+    "training/scripts/build_dialogue_v1.py": {
+      "mode": 420,
+      "sha256": "2dcb6179735d96acd338e002e7006e4d85056e41281a119c5046a9283b987a5a",
+      "size_bytes": 6585
+    },
+    "training/scripts/build_gestion_magasin.py": {
+      "mode": 420,
+      "sha256": "42b03bf0abfda39f0a5b7c51f396fc7fc32b6d1b6fde050f951ef0b719528335",
+      "size_bytes": 26274
+    },
+    "training/scripts/build_management_followup_eval.py": {
+      "mode": 420,
+      "sha256": "95c53fcfc4f234330343ce1740e782f0c7240b5c332bab918d2c4af64864a868",
+      "size_bytes": 9922
+    },
+    "training/scripts/build_management_projet.py": {
+      "mode": 420,
+      "sha256": "3734483ede672384f8de5ce9e2b9a6517bc11808cd43ffee6b85cfd35c4b4216",
+      "size_bytes": 16052
+    },
+    "training/scripts/build_management_projet_v2.py": {
+      "mode": 420,
+      "sha256": "8be00fe85dffc31b6915e0346e625b7616b6ff3a6c299394f4d844fa2158d075",
+      "size_bytes": 18096
+    },
+    "training/scripts/build_management_projet_v3.py": {
+      "mode": 420,
+      "sha256": "7498c7b7852b0ebe7ad32068757f4f80fba44d1f8ebb2cc7caad7cabb9304a3b",
+      "size_bytes": 16248
+    },
+    "training/scripts/build_management_projet_v4.py": {
+      "mode": 420,
+      "sha256": "c12137bdef2f6777dae5b9b4d5d7960e7d5c9e817d7f55bc8e10ee7681919630",
+      "size_bytes": 22478
+    },
+    "training/scripts/build_refinement_v1.py": {
+      "mode": 420,
+      "sha256": "222cfc9c3dbc15f153b98bb5b7e7fb330f793e33e3a5350eb44b2957d9d06dd0",
+      "size_bytes": 32157
+    },
+    "training/scripts/build_refinement_v2.py": {
+      "mode": 420,
+      "sha256": "1a7a5f45b6b31d0b426e0acfe03a16faacc8e781403508aafa3180b19d96d598",
+      "size_bytes": 30564
+    },
+    "training/scripts/build_reservation.py": {
+      "mode": 420,
+      "sha256": "603e80788a2df50fcfea8851c8663af8c84d1cda7b45702c3770016e0d29bf3e",
+      "size_bytes": 24392
+    },
+    "training/scripts/build_shared_dataset.py": {
+      "mode": 420,
+      "sha256": "e9dcb9d619a235fd981fd0b16ba9218b0e0bb3fe52c8611ccd6a1a3d02112c4d",
+      "size_bytes": 7349
+    },
+    "training/scripts/build_shared_v5r3.py": {
+      "mode": 420,
+      "sha256": "98660f431de448ebfeb1daf31679cf2be931c82c30163da731f4ee7eee19dfe7",
+      "size_bytes": 4555
+    },
     "training/scripts/download_model.py": {
       "mode": 420,
       "sha256": "bd8f5b96cd40fb1bd23e4b3aaf8ddef6f6f3d20637261f0d8f9d6c94fa7ba0c6",
@@ -2556,6 +4256,11 @@
       "sha256": "8015e384258f5adc327a70d788f9f52a31b929a0c46a1c0f049911b4d22558cb",
       "size_bytes": 5049
     },
+    "training/scripts/evaluate_snapshot.py": {
+      "mode": 420,
+      "sha256": "dca2abf86b2162ccd99b868108dd957f5ef600fe196a5bf9f21b15cafa4fbe7b",
+      "size_bytes": 5720
+    },
     "training/scripts/evaluate_v2.py": {
       "mode": 420,
       "sha256": "672242f36b487603c10a9250747ea60fcd55c8f81c78c0389988c4d8fac37b3d",
@@ -2563,13 +4268,103 @@
     },
     "training/scripts/export_adapter.py": {
       "mode": 420,
-      "sha256": "75f9b3f32acd703086df42928f601ffe0db80d9ec791e84444ec32f6ea51600b",
-      "size_bytes": 1282
+      "sha256": "0090b1b5cd8938c87c7163eb0b074bd748808e3cbffbaaf0c598c1ceccd2dfb2",
+      "size_bytes": 1454
+    },
+    "training/scripts/model_acceptance.py": {
+      "mode": 420,
+      "sha256": "c9efde5b48a32d2900ed581477e65e677865a875b08400fe67fe70a521fcaebc",
+      "size_bytes": 9194
+    },
+    "training/scripts/preflight_training.py": {
+      "mode": 420,
+      "sha256": "c2db6d4b20e12b30948f6bbda3016fe05f290dad9e9804c0ab195a189e330c5b",
+      "size_bytes": 5380
+    },
+    "training/scripts/prepare_history_diagnostic.py": {
+      "mode": 420,
+      "sha256": "a5997293a431affc4a1df852b31cd8605d862a78327383458b9266953721cb4e",
+      "size_bytes": 5357
+    },
+    "training/scripts/prepare_next_dialogue.py": {
+      "mode": 420,
+      "sha256": "2403d04b5101b4ea5e25b3dfa41cd2ec83ae66bbc405ca7622aac308c5983eda",
+      "size_bytes": 8561
+    },
+    "training/scripts/prepare_prompt_rules_diagnostic.py": {
+      "mode": 420,
+      "sha256": "611a9cd5828eb7b8674e13f8fc5ed9a6f1d54a2bcbd599db080ab303b0fc86f3",
+      "size_bytes": 7292
+    },
+    "training/scripts/prepare_serial_dialogue.py": {
+      "mode": 420,
+      "sha256": "225cfa4e87baec918d322c333ebb3bc5c3812a39720279ee063311cb4e990153",
+      "size_bytes": 6343
+    },
+    "training/scripts/probe_cpu_capacity.py": {
+      "mode": 420,
+      "sha256": "e0a280fe0415ccf5df5cb2e9e738286c5bb1fdee74ffadfdbbe3463b03d9e46b",
+      "size_bytes": 9050
+    },
+    "training/scripts/refresh_training_metadata.py": {
+      "mode": 420,
+      "sha256": "fb4bfac79d895699fc4d18ece140d77cfcc2f83952ad367d6012a38248b36b3d",
+      "size_bytes": 8614
+    },
+    "training/scripts/report_dialogue_candidate.py": {
+      "mode": 420,
+      "sha256": "56223505cecb5db5f5a83468fe6bab51b439f850611c6a0e54c5054cc12186c4",
+      "size_bytes": 9715
+    },
+    "training/scripts/semantic_loss.py": {
+      "mode": 420,
+      "sha256": "03b2918106c5e7f9dca0b323cb476b4d8fa241f229543fdb6e49d2312319af12",
+      "size_bytes": 1071
+    },
+    "training/scripts/serial_scope_v1.py": {
+      "mode": 420,
+      "sha256": "1770509f1032beae96468073ba2847353658d5cf3e48d157368bc3a56a3b4fe2",
+      "size_bytes": 4238
+    },
+    "training/scripts/serial_scope_v2.py": {
+      "mode": 420,
+      "sha256": "459dab06b7b5dbb6c4d101c3f1d1eba1728593f5f346d444a6f70ea2091c6344",
+      "size_bytes": 4684
+    },
+    "training/scripts/synthetic_curriculum.py": {
+      "mode": 420,
+      "sha256": "7753da665415b1a917ed6bf4023be917f801862e022bc734c51fac4935c9ffd2",
+      "size_bytes": 7424
+    },
+    "training/scripts/text_lora.py": {
+      "mode": 420,
+      "sha256": "806b1ccfd267f4ce23b498b13b2303223c5b4320cd7603f07343fdcc84d52b47",
+      "size_bytes": 1768
     },
     "training/scripts/train_cpu.py": {
       "mode": 420,
-      "sha256": "5d1d178d3a2fc1cb275ab5ebca79483966645206ed2eb6f46f525fec53ca2f34",
-      "size_bytes": 11272
+      "sha256": "b06d801bfd100180b0365309ed5f9d0da5f3102ab3aaf08b610d63cfcfdf5260",
+      "size_bytes": 16701
+    },
+    "training/scripts/train_cpu_serial_v1.py": {
+      "mode": 420,
+      "sha256": "126d277dc6b870dedc29d4c4ba7af680d59095c50bb127e563dc407a4fcc8a58",
+      "size_bytes": 16343
+    },
+    "training/scripts/train_cpu_serial_v2.py": {
+      "mode": 420,
+      "sha256": "be1ebb88e4ccc0fc0e5a3122be515ff9e87cbc4cbb46201e07c31265e2c351d1",
+      "size_bytes": 16343
+    },
+    "training/scripts/training_contracts.py": {
+      "mode": 420,
+      "sha256": "3a6001309a329d3c3644d1ab608dbaf542cef7a7be91612643d157ad5ce11382",
+      "size_bytes": 273
+    },
+    "training/scripts/training_schedule.py": {
+      "mode": 420,
+      "sha256": "0df6692fa360c6ee0f194275941908e89c62496bdc0627fd6d0731e829b7bb83",
+      "size_bytes": 652
     },
     "training/tool-schemas.json": {
       "mode": 420,
@@ -2579,5 +4374,5 @@
   },
   "format_version": 1,
   "managed_by": "chat-ai-assistant-source-snapshot",
-  "tree_sha256": "488199af12acfb6a1f87a6abf1a2b437b2928f0967db3876b4de43140974b82e"
+  "tree_sha256": "b056eb2ecdfea987ad084955e66289a194481bbe1a80a3f159f113f987b0dc91"
 }

@@ -1,6 +1,8 @@
 # Chat AI Assistant — Facturation API
 
-Status at 2026-10-09: implemented contracts inspected in the current checkout. The latest chat frontend client/component run passed 112 tests, TypeScript and a production build. This document is not a production deployment or complete model/end-to-end acceptance report. Only `facturation` is integrated.
+This detailed contract describes Facturation. Later adapters reuse the endpoint family with native scope differences; consult their backend `docs/AI_ASSISTANT.md` and central progress reports. In particular, Réservation conversation creation uses `{}` and listing has no company/scope query. Its backend resolves identity and its internal application partition; it rejects supplied user/company/scope fields.
+
+Status at 2026-10-09: implemented contracts inspected in the current checkout. The latest chat frontend client/component run passed 112 tests, TypeScript and a production build. This document is not a production deployment or complete model/end-to-end acceptance report. These recorded counts describe the Facturation adapter.
 
 ## Location, authentication, and scope
 

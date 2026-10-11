@@ -1,0 +1,2804 @@
+{
+  "status": "Acceptance targets unmet; candidate not activated",
+  "model": {
+    "model_id": "chat-ai-shared-qwen08-v3-en-fr-20261009",
+    "weights_sha256": "619e0daf31f5541d6070e1c63e4e1d7dedc6ecbcb3e7c82183ad857a3733cef1",
+    "tokenizer_sha256": "a5ab4c5fca17ea9ed852f68cdcc4d583e4507086a5799861c3f66cb22a48df2c",
+    "config_sha256": "d23728a0322a445a79e1cc94553698fe2d84063f108ece16f165d7aab596b062",
+    "runtime_sha256": "ad9da4a77237056269ddf600cce337990bf7c51ce343f74c6f8f26e03db13a35",
+    "ctx": 8192,
+    "max_tokens": 512,
+    "thinking": false,
+    "threads": 4,
+    "runtime_options": "Qwen engine; dense int8; GPU none; temperature 0; one KV slot"
+  },
+  "protocol": {
+    "languages": [
+      "en",
+      "fr"
+    ],
+    "temperature": 0,
+    "maximum_output_tokens": 512,
+    "thinking": false,
+    "exact_argument_exclusions": [
+      "knowledge",
+      "clarify"
+    ],
+    "default_argument_normalization": [
+      "limit=10",
+      "offset=0",
+      "period=all_time",
+      "unpaid=false"
+    ],
+    "business_tools_executed": false
+  },
+  "applications": {
+    "management_projet": {
+      "baseline_shared_v2": {
+        "label": "management-projet-candidate-shared-v2-final",
+        "dataset_sha256": "1c63c39ecb5906f3fa2adf0dd2a74a78c8b814836cf8131d499e0ead88eb0277",
+        "evaluator_sha256": "dca2abf86b2162ccd99b868108dd957f5ef600fe196a5bf9f21b15cafa4fbe7b",
+        "model_id": "chat-ai-shared-qwen08-v2-en-fr-20261009",
+        "max_output_tokens": 512,
+        "thinking": false,
+        "mode": "native",
+        "metrics": {
+          "count": 60,
+          "counts": {
+            "tool_correct": 44,
+            "arguments_correct": 30,
+            "structured_valid": 60
+          },
+          "percent": {
+            "tool_correct": 73.33,
+            "arguments_correct": 50.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 27,
+            "count": 50,
+            "percent": 54.0
+          }
+        },
+        "by_language": {
+          "en": {
+            "count": 30,
+            "counts": {
+              "tool_correct": 23,
+              "arguments_correct": 16,
+              "structured_valid": 30
+            },
+            "percent": {
+              "tool_correct": 76.67,
+              "arguments_correct": 53.33,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 14,
+              "count": 25,
+              "percent": 56.0
+            }
+          },
+          "fr": {
+            "count": 30,
+            "counts": {
+              "tool_correct": 21,
+              "arguments_correct": 14,
+              "structured_valid": 30
+            },
+            "percent": {
+              "tool_correct": 70.0,
+              "arguments_correct": 46.67,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 13,
+              "count": 25,
+              "percent": 52.0
+            }
+          }
+        },
+        "by_category": {
+          "clarify": {
+            "count": 4,
+            "counts": {
+              "tool_correct": 0,
+              "arguments_correct": 0,
+              "structured_valid": 4
+            },
+            "percent": {
+              "tool_correct": 0.0,
+              "arguments_correct": 0.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 0,
+              "count": 0,
+              "percent": null
+            }
+          },
+          "context": {
+            "count": 2,
+            "counts": {
+              "tool_correct": 1,
+              "arguments_correct": 0,
+              "structured_valid": 2
+            },
+            "percent": {
+              "tool_correct": 50.0,
+              "arguments_correct": 0.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 0,
+              "count": 2,
+              "percent": 0.0
+            }
+          },
+          "delete": {
+            "count": 2,
+            "counts": {
+              "tool_correct": 2,
+              "arguments_correct": 2,
+              "structured_valid": 2
+            },
+            "percent": {
+              "tool_correct": 100.0,
+              "arguments_correct": 100.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 2,
+              "count": 2,
+              "percent": 100.0
+            }
+          },
+          "edit": {
+            "count": 2,
+            "counts": {
+              "tool_correct": 0,
+              "arguments_correct": 0,
+              "structured_valid": 2
+            },
+            "percent": {
+              "tool_correct": 0.0,
+              "arguments_correct": 0.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 0,
+              "count": 2,
+              "percent": 0.0
+            }
+          },
+          "followup": {
+            "count": 2,
+            "counts": {
+              "tool_correct": 2,
+              "arguments_correct": 0,
+              "structured_valid": 2
+            },
+            "percent": {
+              "tool_correct": 100.0,
+              "arguments_correct": 0.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 0,
+              "count": 2,
+              "percent": 0.0
+            }
+          },
+          "knowledge": {
+            "count": 4,
+            "counts": {
+              "tool_correct": 3,
+              "arguments_correct": 3,
+              "structured_valid": 4
+            },
+            "percent": {
+              "tool_correct": 75.0,
+              "arguments_correct": 75.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 0,
+              "count": 0,
+              "percent": null
+            }
+          },
+          "metric": {
+            "count": 12,
+            "counts": {
+              "tool_correct": 6,
+              "arguments_correct": 6,
+              "structured_valid": 12
+            },
+            "percent": {
+              "tool_correct": 50.0,
+              "arguments_correct": 50.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 6,
+              "count": 12,
+              "percent": 50.0
+            }
+          },
+          "navigate": {
+            "count": 4,
+            "counts": {
+              "tool_correct": 4,
+              "arguments_correct": 4,
+              "structured_valid": 4
+            },
+            "percent": {
+              "tool_correct": 100.0,
+              "arguments_correct": 100.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 4,
+              "count": 4,
+              "percent": 100.0
+            }
+          },
+          "pdf": {
+            "count": 2,
+            "counts": {
+              "tool_correct": 2,
+              "arguments_correct": 2,
+              "structured_valid": 2
+            },
+            "percent": {
+              "tool_correct": 100.0,
+              "arguments_correct": 100.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 2,
+              "count": 2,
+              "percent": 100.0
+            }
+          },
+          "search": {
+            "count": 24,
+            "counts": {
+              "tool_correct": 24,
+              "arguments_correct": 13,
+              "structured_valid": 24
+            },
+            "percent": {
+              "tool_correct": 100.0,
+              "arguments_correct": 54.17,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 13,
+              "count": 24,
+              "percent": 54.17
+            }
+          },
+          "security": {
+            "count": 2,
+            "counts": {
+              "tool_correct": 0,
+              "arguments_correct": 0,
+              "structured_valid": 2
+            },
+            "percent": {
+              "tool_correct": 0.0,
+              "arguments_correct": 0.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 0,
+              "count": 0,
+              "percent": null
+            }
+          }
+        },
+        "latency_mean_s": 7.899,
+        "latency_p95_s": 9.375,
+        "first_visible_event_mean_s": 7.891,
+        "completion_tokens_per_wall_second_mean": 5.252,
+        "limitations": [
+          "Synthetic held-out scenarios; no business tools executed.",
+          "Knowledge query wording is scored only for nonempty schema-valid text; retrieval factuality is tested separately. Clarifications must match the expected reason and language.",
+          "Exact arguments exclude knowledge and clarification. Optional default pagination/period arguments are normalized.",
+          "Native Colibri tool buffering means first visible event and wall throughput are not raw decode TTFT/tokens per second.",
+          "No hostname, URL, key, private record or operator path is included in the report."
+        ]
+      },
+      "candidate_shared_v3": {
+        "label": "management-projet-candidate-shared-v3-final",
+        "dataset_sha256": "1c63c39ecb5906f3fa2adf0dd2a74a78c8b814836cf8131d499e0ead88eb0277",
+        "evaluator_sha256": "dca2abf86b2162ccd99b868108dd957f5ef600fe196a5bf9f21b15cafa4fbe7b",
+        "model_id": "chat-ai-shared-qwen08-v3-en-fr-20261009",
+        "max_output_tokens": 512,
+        "thinking": false,
+        "mode": "native",
+        "metrics": {
+          "count": 60,
+          "counts": {
+            "tool_correct": 43,
+            "arguments_correct": 34,
+            "structured_valid": 60
+          },
+          "percent": {
+            "tool_correct": 71.67,
+            "arguments_correct": 56.67,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 28,
+            "count": 50,
+            "percent": 56.0
+          }
+        },
+        "by_language": {
+          "en": {
+            "count": 30,
+            "counts": {
+              "tool_correct": 23,
+              "arguments_correct": 18,
+              "structured_valid": 30
+            },
+            "percent": {
+              "tool_correct": 76.67,
+              "arguments_correct": 60.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 15,
+              "count": 25,
+              "percent": 60.0
+            }
+          },
+          "fr": {
+            "count": 30,
+            "counts": {
+              "tool_correct": 20,
+              "arguments_correct": 16,
+              "structured_valid": 30
+            },
+            "percent": {
+              "tool_correct": 66.67,
+              "arguments_correct": 53.33,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 13,
+              "count": 25,
+              "percent": 52.0
+            }
+          }
+        },
+        "by_category": {
+          "clarify": {
+            "count": 4,
+            "counts": {
+              "tool_correct": 2,
+              "arguments_correct": 2,
+              "structured_valid": 4
+            },
+            "percent": {
+              "tool_correct": 50.0,
+              "arguments_correct": 50.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 0,
+              "count": 0,
+              "percent": null
+            }
+          },
+          "context": {
+            "count": 2,
+            "counts": {
+              "tool_correct": 2,
+              "arguments_correct": 2,
+              "structured_valid": 2
+            },
+            "percent": {
+              "tool_correct": 100.0,
+              "arguments_correct": 100.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 2,
+              "count": 2,
+              "percent": 100.0
+            }
+          },
+          "delete": {
+            "count": 2,
+            "counts": {
+              "tool_correct": 2,
+              "arguments_correct": 2,
+              "structured_valid": 2
+            },
+            "percent": {
+              "tool_correct": 100.0,
+              "arguments_correct": 100.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 2,
+              "count": 2,
+              "percent": 100.0
+            }
+          },
+          "edit": {
+            "count": 2,
+            "counts": {
+              "tool_correct": 0,
+              "arguments_correct": 0,
+              "structured_valid": 2
+            },
+            "percent": {
+              "tool_correct": 0.0,
+              "arguments_correct": 0.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 0,
+              "count": 2,
+              "percent": 0.0
+            }
+          },
+          "followup": {
+            "count": 2,
+            "counts": {
+              "tool_correct": 2,
+              "arguments_correct": 2,
+              "structured_valid": 2
+            },
+            "percent": {
+              "tool_correct": 100.0,
+              "arguments_correct": 100.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 2,
+              "count": 2,
+              "percent": 100.0
+            }
+          },
+          "knowledge": {
+            "count": 4,
+            "counts": {
+              "tool_correct": 4,
+              "arguments_correct": 4,
+              "structured_valid": 4
+            },
+            "percent": {
+              "tool_correct": 100.0,
+              "arguments_correct": 100.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 0,
+              "count": 0,
+              "percent": null
+            }
+          },
+          "metric": {
+            "count": 12,
+            "counts": {
+              "tool_correct": 2,
+              "arguments_correct": 2,
+              "structured_valid": 12
+            },
+            "percent": {
+              "tool_correct": 16.67,
+              "arguments_correct": 16.67,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 2,
+              "count": 12,
+              "percent": 16.67
+            }
+          },
+          "navigate": {
+            "count": 4,
+            "counts": {
+              "tool_correct": 4,
+              "arguments_correct": 4,
+              "structured_valid": 4
+            },
+            "percent": {
+              "tool_correct": 100.0,
+              "arguments_correct": 100.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 4,
+              "count": 4,
+              "percent": 100.0
+            }
+          },
+          "pdf": {
+            "count": 2,
+            "counts": {
+              "tool_correct": 2,
+              "arguments_correct": 2,
+              "structured_valid": 2
+            },
+            "percent": {
+              "tool_correct": 100.0,
+              "arguments_correct": 100.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 2,
+              "count": 2,
+              "percent": 100.0
+            }
+          },
+          "search": {
+            "count": 24,
+            "counts": {
+              "tool_correct": 23,
+              "arguments_correct": 14,
+              "structured_valid": 24
+            },
+            "percent": {
+              "tool_correct": 95.83,
+              "arguments_correct": 58.33,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 14,
+              "count": 24,
+              "percent": 58.33
+            }
+          },
+          "security": {
+            "count": 2,
+            "counts": {
+              "tool_correct": 0,
+              "arguments_correct": 0,
+              "structured_valid": 2
+            },
+            "percent": {
+              "tool_correct": 0.0,
+              "arguments_correct": 0.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 0,
+              "count": 0,
+              "percent": null
+            }
+          }
+        },
+        "latency_mean_s": 6.992,
+        "latency_p95_s": 8.152,
+        "first_visible_event_mean_s": 6.986,
+        "completion_tokens_per_wall_second_mean": 5.834,
+        "limitations": [
+          "Synthetic held-out scenarios; no business tools executed.",
+          "Knowledge query wording is scored only for nonempty schema-valid text; retrieval factuality is tested separately. Clarifications must match the expected reason and language.",
+          "Exact arguments exclude knowledge and clarification. Optional default pagination/period arguments are normalized.",
+          "Native Colibri tool buffering means first visible event and wall throughput are not raw decode TTFT/tokens per second.",
+          "No hostname, URL, key, private record or operator path is included in the report."
+        ]
+      }
+    },
+    "design_workflow": {
+      "baseline_shared_v2": {
+        "label": "design-workflow-candidate-shared-v2-final",
+        "dataset_sha256": "4bb23c2a24f4434663f54c8dfbf94f55f00557a91115ed9d08f84a5ec95de045",
+        "evaluator_sha256": "dca2abf86b2162ccd99b868108dd957f5ef600fe196a5bf9f21b15cafa4fbe7b",
+        "model_id": "chat-ai-shared-qwen08-v2-en-fr-20261009",
+        "max_output_tokens": 512,
+        "thinking": false,
+        "mode": "native",
+        "metrics": {
+          "count": 60,
+          "counts": {
+            "tool_correct": 41,
+            "arguments_correct": 27,
+            "structured_valid": 60
+          },
+          "percent": {
+            "tool_correct": 68.33,
+            "arguments_correct": 45.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 23,
+            "count": 48,
+            "percent": 47.92
+          }
+        },
+        "by_language": {
+          "en": {
+            "count": 30,
+            "counts": {
+              "tool_correct": 22,
+              "arguments_correct": 15,
+              "structured_valid": 30
+            },
+            "percent": {
+              "tool_correct": 73.33,
+              "arguments_correct": 50.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 13,
+              "count": 24,
+              "percent": 54.17
+            }
+          },
+          "fr": {
+            "count": 30,
+            "counts": {
+              "tool_correct": 19,
+              "arguments_correct": 12,
+              "structured_valid": 30
+            },
+            "percent": {
+              "tool_correct": 63.33,
+              "arguments_correct": 40.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 10,
+              "count": 24,
+              "percent": 41.67
+            }
+          }
+        },
+        "by_category": {
+          "archive": {
+            "count": 2,
+            "counts": {
+              "tool_correct": 2,
+              "arguments_correct": 2,
+              "structured_valid": 2
+            },
+            "percent": {
+              "tool_correct": 100.0,
+              "arguments_correct": 100.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 2,
+              "count": 2,
+              "percent": 100.0
+            }
+          },
+          "clarify": {
+            "count": 8,
+            "counts": {
+              "tool_correct": 0,
+              "arguments_correct": 0,
+              "structured_valid": 8
+            },
+            "percent": {
+              "tool_correct": 0.0,
+              "arguments_correct": 0.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 0,
+              "count": 0,
+              "percent": null
+            }
+          },
+          "context": {
+            "count": 4,
+            "counts": {
+              "tool_correct": 0,
+              "arguments_correct": 0,
+              "structured_valid": 4
+            },
+            "percent": {
+              "tool_correct": 0.0,
+              "arguments_correct": 0.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 0,
+              "count": 4,
+              "percent": 0.0
+            }
+          },
+          "followup": {
+            "count": 2,
+            "counts": {
+              "tool_correct": 2,
+              "arguments_correct": 2,
+              "structured_valid": 2
+            },
+            "percent": {
+              "tool_correct": 100.0,
+              "arguments_correct": 100.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 2,
+              "count": 2,
+              "percent": 100.0
+            }
+          },
+          "knowledge": {
+            "count": 4,
+            "counts": {
+              "tool_correct": 4,
+              "arguments_correct": 4,
+              "structured_valid": 4
+            },
+            "percent": {
+              "tool_correct": 100.0,
+              "arguments_correct": 100.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 0,
+              "count": 0,
+              "percent": null
+            }
+          },
+          "navigate": {
+            "count": 8,
+            "counts": {
+              "tool_correct": 6,
+              "arguments_correct": 6,
+              "structured_valid": 8
+            },
+            "percent": {
+              "tool_correct": 75.0,
+              "arguments_correct": 75.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 6,
+              "count": 8,
+              "percent": 75.0
+            }
+          },
+          "search": {
+            "count": 20,
+            "counts": {
+              "tool_correct": 17,
+              "arguments_correct": 6,
+              "structured_valid": 20
+            },
+            "percent": {
+              "tool_correct": 85.0,
+              "arguments_correct": 30.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 6,
+              "count": 20,
+              "percent": 30.0
+            }
+          },
+          "time": {
+            "count": 4,
+            "counts": {
+              "tool_correct": 4,
+              "arguments_correct": 4,
+              "structured_valid": 4
+            },
+            "percent": {
+              "tool_correct": 100.0,
+              "arguments_correct": 100.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 4,
+              "count": 4,
+              "percent": 100.0
+            }
+          },
+          "workload": {
+            "count": 4,
+            "counts": {
+              "tool_correct": 2,
+              "arguments_correct": 0,
+              "structured_valid": 4
+            },
+            "percent": {
+              "tool_correct": 50.0,
+              "arguments_correct": 0.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 0,
+              "count": 4,
+              "percent": 0.0
+            }
+          },
+          "write": {
+            "count": 4,
+            "counts": {
+              "tool_correct": 4,
+              "arguments_correct": 3,
+              "structured_valid": 4
+            },
+            "percent": {
+              "tool_correct": 100.0,
+              "arguments_correct": 75.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 3,
+              "count": 4,
+              "percent": 75.0
+            }
+          }
+        },
+        "latency_mean_s": 7.803,
+        "latency_p95_s": 8.741,
+        "first_visible_event_mean_s": 7.794,
+        "completion_tokens_per_wall_second_mean": 4.975,
+        "limitations": [
+          "Synthetic held-out scenarios; no business tools executed.",
+          "Knowledge query wording is scored only for nonempty schema-valid text; retrieval factuality is tested separately. Clarifications must match the expected reason and language.",
+          "Exact arguments exclude knowledge and clarification. Optional default pagination/period arguments are normalized.",
+          "Native Colibri tool buffering means first visible event and wall throughput are not raw decode TTFT/tokens per second.",
+          "No hostname, URL, key, private record or operator path is included in the report."
+        ]
+      },
+      "candidate_shared_v3": {
+        "label": "design-workflow-candidate-shared-v3-final",
+        "dataset_sha256": "4bb23c2a24f4434663f54c8dfbf94f55f00557a91115ed9d08f84a5ec95de045",
+        "evaluator_sha256": "dca2abf86b2162ccd99b868108dd957f5ef600fe196a5bf9f21b15cafa4fbe7b",
+        "model_id": "chat-ai-shared-qwen08-v3-en-fr-20261009",
+        "max_output_tokens": 512,
+        "thinking": false,
+        "mode": "native",
+        "metrics": {
+          "count": 60,
+          "counts": {
+            "tool_correct": 46,
+            "arguments_correct": 29,
+            "structured_valid": 60
+          },
+          "percent": {
+            "tool_correct": 76.67,
+            "arguments_correct": 48.33,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 25,
+            "count": 48,
+            "percent": 52.08
+          }
+        },
+        "by_language": {
+          "en": {
+            "count": 30,
+            "counts": {
+              "tool_correct": 24,
+              "arguments_correct": 16,
+              "structured_valid": 30
+            },
+            "percent": {
+              "tool_correct": 80.0,
+              "arguments_correct": 53.33,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 14,
+              "count": 24,
+              "percent": 58.33
+            }
+          },
+          "fr": {
+            "count": 30,
+            "counts": {
+              "tool_correct": 22,
+              "arguments_correct": 13,
+              "structured_valid": 30
+            },
+            "percent": {
+              "tool_correct": 73.33,
+              "arguments_correct": 43.33,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 11,
+              "count": 24,
+              "percent": 45.83
+            }
+          }
+        },
+        "by_category": {
+          "archive": {
+            "count": 2,
+            "counts": {
+              "tool_correct": 2,
+              "arguments_correct": 2,
+              "structured_valid": 2
+            },
+            "percent": {
+              "tool_correct": 100.0,
+              "arguments_correct": 100.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 2,
+              "count": 2,
+              "percent": 100.0
+            }
+          },
+          "clarify": {
+            "count": 8,
+            "counts": {
+              "tool_correct": 0,
+              "arguments_correct": 0,
+              "structured_valid": 8
+            },
+            "percent": {
+              "tool_correct": 0.0,
+              "arguments_correct": 0.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 0,
+              "count": 0,
+              "percent": null
+            }
+          },
+          "context": {
+            "count": 4,
+            "counts": {
+              "tool_correct": 4,
+              "arguments_correct": 2,
+              "structured_valid": 4
+            },
+            "percent": {
+              "tool_correct": 100.0,
+              "arguments_correct": 50.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 2,
+              "count": 4,
+              "percent": 50.0
+            }
+          },
+          "followup": {
+            "count": 2,
+            "counts": {
+              "tool_correct": 2,
+              "arguments_correct": 2,
+              "structured_valid": 2
+            },
+            "percent": {
+              "tool_correct": 100.0,
+              "arguments_correct": 100.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 2,
+              "count": 2,
+              "percent": 100.0
+            }
+          },
+          "knowledge": {
+            "count": 4,
+            "counts": {
+              "tool_correct": 4,
+              "arguments_correct": 4,
+              "structured_valid": 4
+            },
+            "percent": {
+              "tool_correct": 100.0,
+              "arguments_correct": 100.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 0,
+              "count": 0,
+              "percent": null
+            }
+          },
+          "navigate": {
+            "count": 8,
+            "counts": {
+              "tool_correct": 6,
+              "arguments_correct": 6,
+              "structured_valid": 8
+            },
+            "percent": {
+              "tool_correct": 75.0,
+              "arguments_correct": 75.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 6,
+              "count": 8,
+              "percent": 75.0
+            }
+          },
+          "search": {
+            "count": 20,
+            "counts": {
+              "tool_correct": 19,
+              "arguments_correct": 5,
+              "structured_valid": 20
+            },
+            "percent": {
+              "tool_correct": 95.0,
+              "arguments_correct": 25.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 5,
+              "count": 20,
+              "percent": 25.0
+            }
+          },
+          "time": {
+            "count": 4,
+            "counts": {
+              "tool_correct": 4,
+              "arguments_correct": 4,
+              "structured_valid": 4
+            },
+            "percent": {
+              "tool_correct": 100.0,
+              "arguments_correct": 100.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 4,
+              "count": 4,
+              "percent": 100.0
+            }
+          },
+          "workload": {
+            "count": 4,
+            "counts": {
+              "tool_correct": 1,
+              "arguments_correct": 0,
+              "structured_valid": 4
+            },
+            "percent": {
+              "tool_correct": 25.0,
+              "arguments_correct": 0.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 0,
+              "count": 4,
+              "percent": 0.0
+            }
+          },
+          "write": {
+            "count": 4,
+            "counts": {
+              "tool_correct": 4,
+              "arguments_correct": 4,
+              "structured_valid": 4
+            },
+            "percent": {
+              "tool_correct": 100.0,
+              "arguments_correct": 100.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 4,
+              "count": 4,
+              "percent": 100.0
+            }
+          }
+        },
+        "latency_mean_s": 7.444,
+        "latency_p95_s": 8.082,
+        "first_visible_event_mean_s": 7.436,
+        "completion_tokens_per_wall_second_mean": 5.346,
+        "limitations": [
+          "Synthetic held-out scenarios; no business tools executed.",
+          "Knowledge query wording is scored only for nonempty schema-valid text; retrieval factuality is tested separately. Clarifications must match the expected reason and language.",
+          "Exact arguments exclude knowledge and clarification. Optional default pagination/period arguments are normalized.",
+          "Native Colibri tool buffering means first visible event and wall throughput are not raw decode TTFT/tokens per second.",
+          "No hostname, URL, key, private record or operator path is included in the report."
+        ]
+      }
+    },
+    "facturation": {
+      "baseline_shared_v2": {
+        "label": "facturation-candidate-shared-v2-final",
+        "dataset_sha256": "91ca4ad072df31a651c8a87ea51dd9349d0f937f2701bcab3da868d01cfa479a",
+        "evaluator_sha256": "dca2abf86b2162ccd99b868108dd957f5ef600fe196a5bf9f21b15cafa4fbe7b",
+        "model_id": "chat-ai-shared-qwen08-v2-en-fr-20261009",
+        "max_output_tokens": 512,
+        "thinking": false,
+        "mode": "native",
+        "metrics": {
+          "count": 80,
+          "counts": {
+            "tool_correct": 55,
+            "arguments_correct": 32,
+            "structured_valid": 76
+          },
+          "percent": {
+            "tool_correct": 68.75,
+            "arguments_correct": 40.0,
+            "structured_valid": 95.0
+          },
+          "exact_arguments": {
+            "passed": 29,
+            "count": 66,
+            "percent": 43.94
+          }
+        },
+        "by_language": {
+          "en": {
+            "count": 40,
+            "counts": {
+              "tool_correct": 29,
+              "arguments_correct": 18,
+              "structured_valid": 39
+            },
+            "percent": {
+              "tool_correct": 72.5,
+              "arguments_correct": 45.0,
+              "structured_valid": 97.5
+            },
+            "exact_arguments": {
+              "passed": 16,
+              "count": 33,
+              "percent": 48.48
+            }
+          },
+          "fr": {
+            "count": 40,
+            "counts": {
+              "tool_correct": 26,
+              "arguments_correct": 14,
+              "structured_valid": 37
+            },
+            "percent": {
+              "tool_correct": 65.0,
+              "arguments_correct": 35.0,
+              "structured_valid": 92.5
+            },
+            "exact_arguments": {
+              "passed": 13,
+              "count": 33,
+              "percent": 39.39
+            }
+          }
+        },
+        "by_category": {
+          "capability_boundary": {
+            "count": 4,
+            "counts": {
+              "tool_correct": 0,
+              "arguments_correct": 0,
+              "structured_valid": 4
+            },
+            "percent": {
+              "tool_correct": 0.0,
+              "arguments_correct": 0.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 0,
+              "count": 0,
+              "percent": null
+            }
+          },
+          "catalog_filters": {
+            "count": 4,
+            "counts": {
+              "tool_correct": 4,
+              "arguments_correct": 1,
+              "structured_valid": 4
+            },
+            "percent": {
+              "tool_correct": 100.0,
+              "arguments_correct": 25.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 1,
+              "count": 4,
+              "percent": 25.0
+            }
+          },
+          "confirmed_mutation_proposal": {
+            "count": 4,
+            "counts": {
+              "tool_correct": 4,
+              "arguments_correct": 2,
+              "structured_valid": 4
+            },
+            "percent": {
+              "tool_correct": 100.0,
+              "arguments_correct": 50.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 2,
+              "count": 4,
+              "percent": 50.0
+            }
+          },
+          "customer_lookup": {
+            "count": 2,
+            "counts": {
+              "tool_correct": 2,
+              "arguments_correct": 2,
+              "structured_valid": 2
+            },
+            "percent": {
+              "tool_correct": 100.0,
+              "arguments_correct": 100.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 2,
+              "count": 2,
+              "percent": 100.0
+            }
+          },
+          "document_filters": {
+            "count": 4,
+            "counts": {
+              "tool_correct": 4,
+              "arguments_correct": 2,
+              "structured_valid": 4
+            },
+            "percent": {
+              "tool_correct": 100.0,
+              "arguments_correct": 50.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 2,
+              "count": 4,
+              "percent": 50.0
+            }
+          },
+          "exact_reference": {
+            "count": 4,
+            "counts": {
+              "tool_correct": 2,
+              "arguments_correct": 2,
+              "structured_valid": 4
+            },
+            "percent": {
+              "tool_correct": 50.0,
+              "arguments_correct": 50.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 2,
+              "count": 4,
+              "percent": 50.0
+            }
+          },
+          "explicit_record_reference": {
+            "count": 2,
+            "counts": {
+              "tool_correct": 2,
+              "arguments_correct": 2,
+              "structured_valid": 2
+            },
+            "percent": {
+              "tool_correct": 100.0,
+              "arguments_correct": 100.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 2,
+              "count": 2,
+              "percent": 100.0
+            }
+          },
+          "financial_metric": {
+            "count": 8,
+            "counts": {
+              "tool_correct": 8,
+              "arguments_correct": 6,
+              "structured_valid": 8
+            },
+            "percent": {
+              "tool_correct": 100.0,
+              "arguments_correct": 75.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 6,
+              "count": 8,
+              "percent": 75.0
+            }
+          },
+          "language_switch_clarification": {
+            "count": 4,
+            "counts": {
+              "tool_correct": 0,
+              "arguments_correct": 0,
+              "structured_valid": 4
+            },
+            "percent": {
+              "tool_correct": 0.0,
+              "arguments_correct": 0.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 0,
+              "count": 0,
+              "percent": null
+            }
+          },
+          "mutation_target_discovery": {
+            "count": 2,
+            "counts": {
+              "tool_correct": 2,
+              "arguments_correct": 0,
+              "structured_valid": 2
+            },
+            "percent": {
+              "tool_correct": 100.0,
+              "arguments_correct": 0.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 0,
+              "count": 2,
+              "percent": 0.0
+            }
+          },
+          "navigation": {
+            "count": 4,
+            "counts": {
+              "tool_correct": 0,
+              "arguments_correct": 0,
+              "structured_valid": 4
+            },
+            "percent": {
+              "tool_correct": 0.0,
+              "arguments_correct": 0.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 0,
+              "count": 4,
+              "percent": 0.0
+            }
+          },
+          "operational_filters": {
+            "count": 10,
+            "counts": {
+              "tool_correct": 8,
+              "arguments_correct": 2,
+              "structured_valid": 8
+            },
+            "percent": {
+              "tool_correct": 80.0,
+              "arguments_correct": 20.0,
+              "structured_valid": 80.0
+            },
+            "exact_arguments": {
+              "passed": 2,
+              "count": 10,
+              "percent": 20.0
+            }
+          },
+          "page_context": {
+            "count": 4,
+            "counts": {
+              "tool_correct": 2,
+              "arguments_correct": 2,
+              "structured_valid": 4
+            },
+            "percent": {
+              "tool_correct": 50.0,
+              "arguments_correct": 50.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 2,
+              "count": 4,
+              "percent": 50.0
+            }
+          },
+          "payment_filters": {
+            "count": 4,
+            "counts": {
+              "tool_correct": 4,
+              "arguments_correct": 2,
+              "structured_valid": 4
+            },
+            "percent": {
+              "tool_correct": 100.0,
+              "arguments_correct": 50.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 2,
+              "count": 4,
+              "percent": 50.0
+            }
+          },
+          "payment_listing": {
+            "count": 2,
+            "counts": {
+              "tool_correct": 2,
+              "arguments_correct": 2,
+              "structured_valid": 2
+            },
+            "percent": {
+              "tool_correct": 100.0,
+              "arguments_correct": 100.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 2,
+              "count": 2,
+              "percent": 100.0
+            }
+          },
+          "printing": {
+            "count": 2,
+            "counts": {
+              "tool_correct": 2,
+              "arguments_correct": 2,
+              "structured_valid": 2
+            },
+            "percent": {
+              "tool_correct": 100.0,
+              "arguments_correct": 100.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 2,
+              "count": 2,
+              "percent": 100.0
+            }
+          },
+          "relative_search_dates": {
+            "count": 2,
+            "counts": {
+              "tool_correct": 2,
+              "arguments_correct": 0,
+              "structured_valid": 2
+            },
+            "percent": {
+              "tool_correct": 100.0,
+              "arguments_correct": 0.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 0,
+              "count": 2,
+              "percent": 0.0
+            }
+          },
+          "staff_lookup": {
+            "count": 2,
+            "counts": {
+              "tool_correct": 2,
+              "arguments_correct": 0,
+              "structured_valid": 2
+            },
+            "percent": {
+              "tool_correct": 100.0,
+              "arguments_correct": 0.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 0,
+              "count": 2,
+              "percent": 0.0
+            }
+          },
+          "structured_memory": {
+            "count": 6,
+            "counts": {
+              "tool_correct": 2,
+              "arguments_correct": 2,
+              "structured_valid": 6
+            },
+            "percent": {
+              "tool_correct": 33.33,
+              "arguments_correct": 33.33,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 2,
+              "count": 6,
+              "percent": 33.33
+            }
+          },
+          "unsupported_operation": {
+            "count": 2,
+            "counts": {
+              "tool_correct": 0,
+              "arguments_correct": 0,
+              "structured_valid": 0
+            },
+            "percent": {
+              "tool_correct": 0.0,
+              "arguments_correct": 0.0,
+              "structured_valid": 0.0
+            },
+            "exact_arguments": {
+              "passed": 0,
+              "count": 0,
+              "percent": null
+            }
+          },
+          "workflow_knowledge": {
+            "count": 4,
+            "counts": {
+              "tool_correct": 3,
+              "arguments_correct": 3,
+              "structured_valid": 4
+            },
+            "percent": {
+              "tool_correct": 75.0,
+              "arguments_correct": 75.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 0,
+              "count": 0,
+              "percent": null
+            }
+          }
+        },
+        "latency_mean_s": 9.335,
+        "latency_p95_s": 15.145,
+        "first_visible_event_mean_s": 9.325,
+        "completion_tokens_per_wall_second_mean": 6.33,
+        "limitations": [
+          "Synthetic held-out scenarios; no business tools executed.",
+          "Knowledge query wording is scored only for nonempty schema-valid text; retrieval factuality is tested separately. Clarifications must match the expected reason and language.",
+          "Exact arguments exclude knowledge and clarification. Optional default pagination/period arguments are normalized.",
+          "Native Colibri tool buffering means first visible event and wall throughput are not raw decode TTFT/tokens per second.",
+          "No hostname, URL, key, private record or operator path is included in the report."
+        ]
+      },
+      "candidate_shared_v3": {
+        "label": "facturation-candidate-shared-v3-final",
+        "dataset_sha256": "91ca4ad072df31a651c8a87ea51dd9349d0f937f2701bcab3da868d01cfa479a",
+        "evaluator_sha256": "dca2abf86b2162ccd99b868108dd957f5ef600fe196a5bf9f21b15cafa4fbe7b",
+        "model_id": "chat-ai-shared-qwen08-v3-en-fr-20261009",
+        "max_output_tokens": 512,
+        "thinking": false,
+        "mode": "native",
+        "metrics": {
+          "count": 80,
+          "counts": {
+            "tool_correct": 59,
+            "arguments_correct": 34,
+            "structured_valid": 78
+          },
+          "percent": {
+            "tool_correct": 73.75,
+            "arguments_correct": 42.5,
+            "structured_valid": 97.5
+          },
+          "exact_arguments": {
+            "passed": 30,
+            "count": 66,
+            "percent": 45.45
+          }
+        },
+        "by_language": {
+          "en": {
+            "count": 40,
+            "counts": {
+              "tool_correct": 30,
+              "arguments_correct": 19,
+              "structured_valid": 39
+            },
+            "percent": {
+              "tool_correct": 75.0,
+              "arguments_correct": 47.5,
+              "structured_valid": 97.5
+            },
+            "exact_arguments": {
+              "passed": 17,
+              "count": 33,
+              "percent": 51.52
+            }
+          },
+          "fr": {
+            "count": 40,
+            "counts": {
+              "tool_correct": 29,
+              "arguments_correct": 15,
+              "structured_valid": 39
+            },
+            "percent": {
+              "tool_correct": 72.5,
+              "arguments_correct": 37.5,
+              "structured_valid": 97.5
+            },
+            "exact_arguments": {
+              "passed": 13,
+              "count": 33,
+              "percent": 39.39
+            }
+          }
+        },
+        "by_category": {
+          "capability_boundary": {
+            "count": 4,
+            "counts": {
+              "tool_correct": 2,
+              "arguments_correct": 0,
+              "structured_valid": 4
+            },
+            "percent": {
+              "tool_correct": 50.0,
+              "arguments_correct": 0.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 0,
+              "count": 0,
+              "percent": null
+            }
+          },
+          "catalog_filters": {
+            "count": 4,
+            "counts": {
+              "tool_correct": 4,
+              "arguments_correct": 2,
+              "structured_valid": 4
+            },
+            "percent": {
+              "tool_correct": 100.0,
+              "arguments_correct": 50.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 2,
+              "count": 4,
+              "percent": 50.0
+            }
+          },
+          "confirmed_mutation_proposal": {
+            "count": 4,
+            "counts": {
+              "tool_correct": 4,
+              "arguments_correct": 2,
+              "structured_valid": 4
+            },
+            "percent": {
+              "tool_correct": 100.0,
+              "arguments_correct": 50.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 2,
+              "count": 4,
+              "percent": 50.0
+            }
+          },
+          "customer_lookup": {
+            "count": 2,
+            "counts": {
+              "tool_correct": 2,
+              "arguments_correct": 2,
+              "structured_valid": 2
+            },
+            "percent": {
+              "tool_correct": 100.0,
+              "arguments_correct": 100.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 2,
+              "count": 2,
+              "percent": 100.0
+            }
+          },
+          "document_filters": {
+            "count": 4,
+            "counts": {
+              "tool_correct": 4,
+              "arguments_correct": 2,
+              "structured_valid": 4
+            },
+            "percent": {
+              "tool_correct": 100.0,
+              "arguments_correct": 50.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 2,
+              "count": 4,
+              "percent": 50.0
+            }
+          },
+          "exact_reference": {
+            "count": 4,
+            "counts": {
+              "tool_correct": 2,
+              "arguments_correct": 2,
+              "structured_valid": 4
+            },
+            "percent": {
+              "tool_correct": 50.0,
+              "arguments_correct": 50.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 2,
+              "count": 4,
+              "percent": 50.0
+            }
+          },
+          "explicit_record_reference": {
+            "count": 2,
+            "counts": {
+              "tool_correct": 2,
+              "arguments_correct": 2,
+              "structured_valid": 2
+            },
+            "percent": {
+              "tool_correct": 100.0,
+              "arguments_correct": 100.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 2,
+              "count": 2,
+              "percent": 100.0
+            }
+          },
+          "financial_metric": {
+            "count": 8,
+            "counts": {
+              "tool_correct": 4,
+              "arguments_correct": 4,
+              "structured_valid": 8
+            },
+            "percent": {
+              "tool_correct": 50.0,
+              "arguments_correct": 50.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 4,
+              "count": 8,
+              "percent": 50.0
+            }
+          },
+          "language_switch_clarification": {
+            "count": 4,
+            "counts": {
+              "tool_correct": 2,
+              "arguments_correct": 0,
+              "structured_valid": 4
+            },
+            "percent": {
+              "tool_correct": 50.0,
+              "arguments_correct": 0.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 0,
+              "count": 0,
+              "percent": null
+            }
+          },
+          "mutation_target_discovery": {
+            "count": 2,
+            "counts": {
+              "tool_correct": 2,
+              "arguments_correct": 0,
+              "structured_valid": 2
+            },
+            "percent": {
+              "tool_correct": 100.0,
+              "arguments_correct": 0.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 0,
+              "count": 2,
+              "percent": 0.0
+            }
+          },
+          "navigation": {
+            "count": 4,
+            "counts": {
+              "tool_correct": 2,
+              "arguments_correct": 2,
+              "structured_valid": 4
+            },
+            "percent": {
+              "tool_correct": 50.0,
+              "arguments_correct": 50.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 2,
+              "count": 4,
+              "percent": 50.0
+            }
+          },
+          "operational_filters": {
+            "count": 10,
+            "counts": {
+              "tool_correct": 10,
+              "arguments_correct": 3,
+              "structured_valid": 10
+            },
+            "percent": {
+              "tool_correct": 100.0,
+              "arguments_correct": 30.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 3,
+              "count": 10,
+              "percent": 30.0
+            }
+          },
+          "page_context": {
+            "count": 4,
+            "counts": {
+              "tool_correct": 2,
+              "arguments_correct": 2,
+              "structured_valid": 4
+            },
+            "percent": {
+              "tool_correct": 50.0,
+              "arguments_correct": 50.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 2,
+              "count": 4,
+              "percent": 50.0
+            }
+          },
+          "payment_filters": {
+            "count": 4,
+            "counts": {
+              "tool_correct": 4,
+              "arguments_correct": 1,
+              "structured_valid": 4
+            },
+            "percent": {
+              "tool_correct": 100.0,
+              "arguments_correct": 25.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 1,
+              "count": 4,
+              "percent": 25.0
+            }
+          },
+          "payment_listing": {
+            "count": 2,
+            "counts": {
+              "tool_correct": 1,
+              "arguments_correct": 1,
+              "structured_valid": 2
+            },
+            "percent": {
+              "tool_correct": 50.0,
+              "arguments_correct": 50.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 1,
+              "count": 2,
+              "percent": 50.0
+            }
+          },
+          "printing": {
+            "count": 2,
+            "counts": {
+              "tool_correct": 2,
+              "arguments_correct": 2,
+              "structured_valid": 2
+            },
+            "percent": {
+              "tool_correct": 100.0,
+              "arguments_correct": 100.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 2,
+              "count": 2,
+              "percent": 100.0
+            }
+          },
+          "relative_search_dates": {
+            "count": 2,
+            "counts": {
+              "tool_correct": 2,
+              "arguments_correct": 1,
+              "structured_valid": 2
+            },
+            "percent": {
+              "tool_correct": 100.0,
+              "arguments_correct": 50.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 1,
+              "count": 2,
+              "percent": 50.0
+            }
+          },
+          "staff_lookup": {
+            "count": 2,
+            "counts": {
+              "tool_correct": 2,
+              "arguments_correct": 0,
+              "structured_valid": 2
+            },
+            "percent": {
+              "tool_correct": 100.0,
+              "arguments_correct": 0.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 0,
+              "count": 2,
+              "percent": 0.0
+            }
+          },
+          "structured_memory": {
+            "count": 6,
+            "counts": {
+              "tool_correct": 2,
+              "arguments_correct": 2,
+              "structured_valid": 6
+            },
+            "percent": {
+              "tool_correct": 33.33,
+              "arguments_correct": 33.33,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 2,
+              "count": 6,
+              "percent": 33.33
+            }
+          },
+          "unsupported_operation": {
+            "count": 2,
+            "counts": {
+              "tool_correct": 0,
+              "arguments_correct": 0,
+              "structured_valid": 0
+            },
+            "percent": {
+              "tool_correct": 0.0,
+              "arguments_correct": 0.0,
+              "structured_valid": 0.0
+            },
+            "exact_arguments": {
+              "passed": 0,
+              "count": 0,
+              "percent": null
+            }
+          },
+          "workflow_knowledge": {
+            "count": 4,
+            "counts": {
+              "tool_correct": 4,
+              "arguments_correct": 4,
+              "structured_valid": 4
+            },
+            "percent": {
+              "tool_correct": 100.0,
+              "arguments_correct": 100.0,
+              "structured_valid": 100.0
+            },
+            "exact_arguments": {
+              "passed": 0,
+              "count": 0,
+              "percent": null
+            }
+          }
+        },
+        "latency_mean_s": 10.339,
+        "latency_p95_s": 20.167,
+        "first_visible_event_mean_s": 10.328,
+        "completion_tokens_per_wall_second_mean": 5.84,
+        "limitations": [
+          "Synthetic held-out scenarios; no business tools executed.",
+          "Knowledge query wording is scored only for nonempty schema-valid text; retrieval factuality is tested separately. Clarifications must match the expected reason and language.",
+          "Exact arguments exclude knowledge and clarification. Optional default pagination/period arguments are normalized.",
+          "Native Colibri tool buffering means first visible event and wall throughput are not raw decode TTFT/tokens per second.",
+          "No hostname, URL, key, private record or operator path is included in the report."
+        ]
+      }
+    }
+  },
+  "management_projet_companion": {
+    "v2": {
+      "label": "management-projet-companion-shared-v2",
+      "dataset_sha256": "c4586a2c6459e02c63557f1e693a5212b51c507eba80d32f2661128a25c3f5d8",
+      "evaluator_sha256": "dca2abf86b2162ccd99b868108dd957f5ef600fe196a5bf9f21b15cafa4fbe7b",
+      "model_id": "chat-ai-shared-qwen08-v2-en-fr-20261009",
+      "max_output_tokens": 512,
+      "thinking": false,
+      "mode": "native",
+      "metrics": {
+        "count": 20,
+        "counts": {
+          "tool_correct": 9,
+          "arguments_correct": 3,
+          "structured_valid": 18
+        },
+        "percent": {
+          "tool_correct": 45.0,
+          "arguments_correct": 15.0,
+          "structured_valid": 90.0
+        },
+        "exact_arguments": {
+          "passed": 3,
+          "count": 14,
+          "percent": 21.43
+        }
+      },
+      "by_language": {
+        "en": {
+          "count": 10,
+          "counts": {
+            "tool_correct": 4,
+            "arguments_correct": 1,
+            "structured_valid": 8
+          },
+          "percent": {
+            "tool_correct": 40.0,
+            "arguments_correct": 10.0,
+            "structured_valid": 80.0
+          },
+          "exact_arguments": {
+            "passed": 1,
+            "count": 7,
+            "percent": 14.29
+          }
+        },
+        "fr": {
+          "count": 10,
+          "counts": {
+            "tool_correct": 5,
+            "arguments_correct": 2,
+            "structured_valid": 10
+          },
+          "percent": {
+            "tool_correct": 50.0,
+            "arguments_correct": 20.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 7,
+            "percent": 28.57
+          }
+        }
+      },
+      "by_category": {
+        "audit": {
+          "count": 20,
+          "counts": {
+            "tool_correct": 9,
+            "arguments_correct": 3,
+            "structured_valid": 18
+          },
+          "percent": {
+            "tool_correct": 45.0,
+            "arguments_correct": 15.0,
+            "structured_valid": 90.0
+          },
+          "exact_arguments": {
+            "passed": 3,
+            "count": 14,
+            "percent": 21.43
+          }
+        }
+      },
+      "latency_mean_s": 14.558,
+      "latency_p95_s": 16.494,
+      "first_visible_event_mean_s": 14.547,
+      "completion_tokens_per_wall_second_mean": 3.431,
+      "limitations": [
+        "Synthetic held-out scenarios; no business tools executed.",
+        "Knowledge query wording is scored only for nonempty schema-valid text; retrieval factuality is tested separately. Clarifications must match the expected reason and language.",
+        "Exact arguments exclude knowledge and clarification. Optional default pagination/period arguments are normalized.",
+        "Native Colibri tool buffering means first visible event and wall throughput are not raw decode TTFT/tokens per second.",
+        "No hostname, URL, key, private record or operator path is included in the report."
+      ]
+    },
+    "v3": {
+      "label": "management-projet-companion-shared-v3",
+      "dataset_sha256": "c4586a2c6459e02c63557f1e693a5212b51c507eba80d32f2661128a25c3f5d8",
+      "evaluator_sha256": "dca2abf86b2162ccd99b868108dd957f5ef600fe196a5bf9f21b15cafa4fbe7b",
+      "model_id": "chat-ai-shared-qwen08-v3-en-fr-20261009",
+      "max_output_tokens": 512,
+      "thinking": false,
+      "mode": "native",
+      "metrics": {
+        "count": 20,
+        "counts": {
+          "tool_correct": 10,
+          "arguments_correct": 4,
+          "structured_valid": 19
+        },
+        "percent": {
+          "tool_correct": 50.0,
+          "arguments_correct": 20.0,
+          "structured_valid": 95.0
+        },
+        "exact_arguments": {
+          "passed": 4,
+          "count": 14,
+          "percent": 28.57
+        }
+      },
+      "by_language": {
+        "en": {
+          "count": 10,
+          "counts": {
+            "tool_correct": 4,
+            "arguments_correct": 3,
+            "structured_valid": 9
+          },
+          "percent": {
+            "tool_correct": 40.0,
+            "arguments_correct": 30.0,
+            "structured_valid": 90.0
+          },
+          "exact_arguments": {
+            "passed": 3,
+            "count": 7,
+            "percent": 42.86
+          }
+        },
+        "fr": {
+          "count": 10,
+          "counts": {
+            "tool_correct": 6,
+            "arguments_correct": 1,
+            "structured_valid": 10
+          },
+          "percent": {
+            "tool_correct": 60.0,
+            "arguments_correct": 10.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 1,
+            "count": 7,
+            "percent": 14.29
+          }
+        }
+      },
+      "by_category": {
+        "audit": {
+          "count": 20,
+          "counts": {
+            "tool_correct": 10,
+            "arguments_correct": 4,
+            "structured_valid": 19
+          },
+          "percent": {
+            "tool_correct": 50.0,
+            "arguments_correct": 20.0,
+            "structured_valid": 95.0
+          },
+          "exact_arguments": {
+            "passed": 4,
+            "count": 14,
+            "percent": 28.57
+          }
+        }
+      },
+      "latency_mean_s": 7.16,
+      "latency_p95_s": 8.153,
+      "first_visible_event_mean_s": 7.153,
+      "completion_tokens_per_wall_second_mean": 6.579,
+      "limitations": [
+        "Synthetic held-out scenarios; no business tools executed.",
+        "Knowledge query wording is scored only for nonempty schema-valid text; retrieval factuality is tested separately. Clarifications must match the expected reason and language.",
+        "Exact arguments exclude knowledge and clarification. Optional default pagination/period arguments are normalized.",
+        "Native Colibri tool buffering means first visible event and wall throughput are not raw decode TTFT/tokens per second.",
+        "No hostname, URL, key, private record or operator path is included in the report."
+      ]
+    }
+  },
+  "failure_examples": {
+    "management_projet": [
+      {
+        "id": "search-project-status-fr",
+        "language": "fr",
+        "category": "search",
+        "expected": {
+          "tool": "search_records",
+          "arguments": {
+            "resource": "project",
+            "status": "En pause"
+          }
+        },
+        "action": {
+          "tool": "search_records",
+          "arguments": {
+            "resource": "project",
+            "status": "pause"
+          }
+        },
+        "tool_correct": true,
+        "arguments_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "search-project-status-en",
+        "language": "en",
+        "category": "search",
+        "expected": {
+          "tool": "search_records",
+          "arguments": {
+            "resource": "project",
+            "status": "En pause"
+          }
+        },
+        "action": {
+          "tool": "search_records",
+          "arguments": {
+            "resource": "project",
+            "status": "paused"
+          }
+        },
+        "tool_correct": true,
+        "arguments_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "search-quote-status-fr",
+        "language": "fr",
+        "category": "search",
+        "expected": {
+          "tool": "search_records",
+          "arguments": {
+            "resource": "quote",
+            "project_name": "Cobalt",
+            "status": "rejected"
+          }
+        },
+        "action": {
+          "tool": "search_records",
+          "arguments": {
+            "resource": "quote",
+            "project_name": "Cobalt"
+          }
+        },
+        "tool_correct": true,
+        "arguments_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "search-expense-en",
+        "language": "en",
+        "category": "search",
+        "expected": {
+          "tool": "search_records",
+          "arguments": {
+            "resource": "expense",
+            "project_name": "Cobalt",
+            "supplier_name": "Demo Acier",
+            "date_from": "2026-04-01",
+            "date_to": "2026-04-30"
+          }
+        },
+        "action": {
+          "tool": "search_records",
+          "arguments": {
+            "resource": "expense",
+            "project_name": "Cobalt",
+            "date_from": "2026-04-01",
+            "date_to": "2026-04-30"
+          }
+        },
+        "tool_correct": true,
+        "arguments_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "search-schedule-en",
+        "language": "en",
+        "category": "search",
+        "expected": {
+          "tool": "search_records",
+          "arguments": {
+            "resource": "payment_schedule",
+            "project_name": "Cobalt",
+            "date_to": "2026-11-01"
+          }
+        },
+        "action": {
+          "tool": "search_records",
+          "arguments": {
+            "resource": "payment_schedule",
+            "project_name": "Cobalt",
+            "date_from": "2026-10-09",
+            "date_to": "2026-11-01"
+          }
+        },
+        "tool_correct": true,
+        "arguments_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "search-budget-fr",
+        "language": "fr",
+        "category": "search",
+        "expected": {
+          "tool": "search_records",
+          "arguments": {
+            "resource": "budget_entry",
+            "project_name": "Cobalt",
+            "query": "Peinture"
+          }
+        },
+        "action": {
+          "tool": "search_records",
+          "arguments": {
+            "resource": "budget_entry",
+            "query": "Cobalt",
+            "project_name": "Cobalt"
+          }
+        },
+        "tool_correct": true,
+        "arguments_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "search-budget-en",
+        "language": "en",
+        "category": "search",
+        "expected": {
+          "tool": "search_records",
+          "arguments": {
+            "resource": "budget_entry",
+            "project_name": "Cobalt",
+            "query": "Peinture"
+          }
+        },
+        "action": {
+          "tool": "search_records",
+          "arguments": {
+            "resource": "budget_entry",
+            "project_name": "Cobalt",
+            "status": "Peinture"
+          }
+        },
+        "tool_correct": true,
+        "arguments_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "metric-revenue-fr",
+        "language": "fr",
+        "category": "metric",
+        "expected": {
+          "tool": "financial_summary",
+          "arguments": {
+            "metric": "revenue",
+            "period": "current_year"
+          }
+        },
+        "action": {
+          "tool": "clarify",
+          "message": "Parlez-vous du montant facturé, des encaissements ou du solde restant ? Pour quelle période ? Le bénéfice n’est pas un calcul disponible ici."
+        },
+        "tool_correct": false,
+        "arguments_correct": false,
+        "structured_valid": true
+      }
+    ],
+    "design_workflow": [
+      {
+        "id": "test-search-own-fr",
+        "language": "fr",
+        "category": "search",
+        "expected": {
+          "tool": "search_records",
+          "arguments": {
+            "resource": "task",
+            "mine": true
+          }
+        },
+        "action": {
+          "tool": "search_records",
+          "arguments": {
+            "resource": "task",
+            "query": "J’aimerais retrouver les tâches qui me concernent."
+          }
+        },
+        "tool_correct": true,
+        "arguments_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "test-search-review-fr",
+        "language": "fr",
+        "category": "search",
+        "expected": {
+          "tool": "search_records",
+          "arguments": {
+            "resource": "task",
+            "project_name": "Cobalt",
+            "status": "in_review"
+          }
+        },
+        "action": {
+          "tool": "search_records",
+          "arguments": {
+            "resource": "project",
+            "query": "Cobalt"
+          }
+        },
+        "tool_correct": true,
+        "arguments_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "test-search-review-en",
+        "language": "en",
+        "category": "search",
+        "expected": {
+          "tool": "search_records",
+          "arguments": {
+            "resource": "task",
+            "project_name": "Cobalt",
+            "status": "in_review"
+          }
+        },
+        "action": {
+          "tool": "search_records",
+          "arguments": {
+            "resource": "project",
+            "query": "Cobalt"
+          }
+        },
+        "tool_correct": true,
+        "arguments_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "test-search-blocked-en",
+        "language": "en",
+        "category": "search",
+        "expected": {
+          "tool": "search_records",
+          "arguments": {
+            "resource": "task",
+            "status": "blocked",
+            "assignee_name": "Demo Nora"
+          }
+        },
+        "action": {
+          "tool": "search_records",
+          "arguments": {
+            "resource": "task",
+            "query": "blocked",
+            "mine": true
+          }
+        },
+        "tool_correct": true,
+        "arguments_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "test-search-late-fr",
+        "language": "fr",
+        "category": "search",
+        "expected": {
+          "tool": "search_records",
+          "arguments": {
+            "resource": "task",
+            "mine": true,
+            "overdue": true,
+            "project_name": "Cobalt"
+          }
+        },
+        "action": {
+          "tool": "search_records",
+          "arguments": {
+            "resource": "task",
+            "query": "Cobalt",
+            "overdue": true
+          }
+        },
+        "tool_correct": true,
+        "arguments_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "test-search-late-en",
+        "language": "en",
+        "category": "search",
+        "expected": {
+          "tool": "search_records",
+          "arguments": {
+            "resource": "task",
+            "mine": true,
+            "overdue": true,
+            "project_name": "Cobalt"
+          }
+        },
+        "action": {
+          "tool": "search_records",
+          "arguments": {
+            "resource": "task",
+            "query": "overdue",
+            "mine": true
+          }
+        },
+        "tool_correct": true,
+        "arguments_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "test-search-title-fr",
+        "language": "fr",
+        "category": "search",
+        "expected": {
+          "tool": "search_records",
+          "arguments": {
+            "resource": "task",
+            "query": "Plan salon",
+            "project_name": "Cobalt"
+          }
+        },
+        "action": {
+          "tool": "search_records",
+          "arguments": {
+            "resource": "project",
+            "query": "Plan salon"
+          }
+        },
+        "tool_correct": true,
+        "arguments_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "test-search-title-en",
+        "language": "en",
+        "category": "search",
+        "expected": {
+          "tool": "search_records",
+          "arguments": {
+            "resource": "task",
+            "query": "Plan salon",
+            "project_name": "Cobalt"
+          }
+        },
+        "action": {
+          "tool": "search_records",
+          "arguments": {
+            "resource": "message",
+            "query": "Plan salon"
+          }
+        },
+        "tool_correct": true,
+        "arguments_correct": false,
+        "structured_valid": true
+      }
+    ],
+    "facturation": [
+      {
+        "id": "acceptance-invoice_combined-en",
+        "language": "en",
+        "category": "document_filters",
+        "expected": {
+          "tool": "search_invoices",
+          "arguments": {
+            "client_name": "Syn Liseron",
+            "product_name": "SYN-JOINT-17",
+            "unpaid": true,
+            "date_from": "2026-08-12",
+            "date_to": "2026-08-24",
+            "limit": 3
+          }
+        },
+        "action": {
+          "tool": "search_invoices",
+          "arguments": {
+            "client_name": "Syn Liseron",
+            "product_name": "SYN-JOINT-17",
+            "date_from": "2026-08-12",
+            "date_to": "2026-08-24",
+            "unpaid": true
+          }
+        },
+        "tool_correct": true,
+        "arguments_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "acceptance-invoice_combined-fr",
+        "language": "fr",
+        "category": "document_filters",
+        "expected": {
+          "tool": "search_invoices",
+          "arguments": {
+            "client_name": "Syn Liseron",
+            "product_name": "SYN-JOINT-17",
+            "unpaid": true,
+            "date_from": "2026-08-12",
+            "date_to": "2026-08-24",
+            "limit": 3
+          }
+        },
+        "action": {
+          "tool": "search_invoices",
+          "arguments": {
+            "client_name": "SYN Liseron",
+            "product_name": "SYN-JOINT-17",
+            "date_from": "2026-08-12",
+            "date_to": "2026-08-24",
+            "unpaid": true,
+            "limit": 3
+          }
+        },
+        "tool_correct": true,
+        "arguments_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "acceptance-invoice_number-en",
+        "language": "en",
+        "category": "exact_reference",
+        "expected": {
+          "tool": "search_invoices",
+          "arguments": {
+            "invoice_number": "0783/26"
+          }
+        },
+        "action": {
+          "tool": "get_invoice",
+          "arguments": {}
+        },
+        "tool_correct": false,
+        "arguments_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "acceptance-invoice_number-fr",
+        "language": "fr",
+        "category": "exact_reference",
+        "expected": {
+          "tool": "search_invoices",
+          "arguments": {
+            "invoice_number": "0783/26"
+          }
+        },
+        "action": {
+          "tool": "get_invoice",
+          "arguments": {
+            "invoice_id": 78326
+          }
+        },
+        "tool_correct": false,
+        "arguments_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "acceptance-proforma_delete_search-en",
+        "language": "en",
+        "category": "mutation_target_discovery",
+        "expected": {
+          "tool": "search_documents",
+          "arguments": {
+            "resource": "proforma",
+            "client_name": "Syn Brume",
+            "product_name": "SYN-TUILE-9"
+          }
+        },
+        "action": {
+          "tool": "search_documents",
+          "arguments": {
+            "resource": "proforma",
+            "product_name": "SYN-TUILE-9"
+          }
+        },
+        "tool_correct": true,
+        "arguments_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "acceptance-proforma_delete_search-fr",
+        "language": "fr",
+        "category": "mutation_target_discovery",
+        "expected": {
+          "tool": "search_documents",
+          "arguments": {
+            "resource": "proforma",
+            "client_name": "Syn Brume",
+            "product_name": "SYN-TUILE-9"
+          }
+        },
+        "action": {
+          "tool": "search_documents",
+          "arguments": {
+            "resource": "proforma",
+            "product_name": "SYN-TUILE-9"
+          }
+        },
+        "tool_correct": true,
+        "arguments_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "acceptance-delivery_relative_dates-fr",
+        "language": "fr",
+        "category": "relative_search_dates",
+        "expected": {
+          "tool": "search_documents",
+          "arguments": {
+            "resource": "delivery_note",
+            "client_name": "Syn Opaline",
+            "product_name": "SYN-CERAM-4",
+            "date_from": "2026-09-01",
+            "date_to": "2026-10-07"
+          }
+        },
+        "action": {
+          "tool": "search_documents",
+          "arguments": {
+            "resource": "delivery_note",
+            "client_name": "Syn Opaline",
+            "product_name": "SYN-CERAM-4",
+            "date_from": "2026-09-01",
+            "date_to": "2026-10-08"
+          }
+        },
+        "tool_correct": true,
+        "arguments_correct": false,
+        "structured_valid": true
+      },
+      {
+        "id": "acceptance-archived_service-en",
+        "language": "en",
+        "category": "catalog_filters",
+        "expected": {
+          "tool": "search_articles",
+          "arguments": {
+            "product_name": "SYN-DIAGNOSTIC",
+            "type_article": "Service",
+            "archived": true
+          }
+        },
+        "action": {
+          "tool": "search_articles",
+          "arguments": {
+            "query": "SYN-DIAGNOSTIC",
+            "type_article": "Service",
+            "archived": true
+          }
+        },
+        "tool_correct": true,
+        "arguments_correct": false,
+        "structured_valid": true
+      }
+    ]
+  },
+  "limitations": [
+    "Synthetic held-out scenarios, with paired translations; counts are not all independent business scenarios.",
+    "Model planner accuracy is separate from backend authorization and trusted shortcut/greeting/workflow handlers.",
+    "Evaluation latencies include overlapping server evaluation and local browser QA, not an uncontended capacity benchmark.",
+    "Facturation historical exact-argument denominator was 76; the current frozen evaluator excludes clarification as well as knowledge, giving 66. Scores across protocols are not directly interchangeable.",
+    "Design Workflow trusted-context identifiers remain strict in exact-argument scoring; semantically equivalent omitted context identifiers can fail.",
+    "Original failure categories informed this curriculum. Original acceptance tests are regression checks; the new20-case companion set is small and does not certify broad reliability.",
+    "Parser-control and companion-v2 latency overlap server training and are not comparative performance evidence.",
+    "Pre/post artifact hashes and candidate process identity were verified; no application business operations were executed."
+  ]
+}

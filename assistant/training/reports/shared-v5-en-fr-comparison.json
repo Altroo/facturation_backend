@@ -1,0 +1,4128 @@
+{
+  "version": "shared-v5-en-fr",
+  "status": "Frozen evaluations complete; acceptance failed; production unchanged",
+  "evaluation_count": 328,
+  "model_targets_passed": false,
+  "results": {
+    "management-projet-candidate-shared-v5-final": {
+      "label": "management-projet-candidate-shared-v5-final",
+      "dataset_sha256": "1c63c39ecb5906f3fa2adf0dd2a74a78c8b814836cf8131d499e0ead88eb0277",
+      "evaluator_sha256": "dca2abf86b2162ccd99b868108dd957f5ef600fe196a5bf9f21b15cafa4fbe7b",
+      "model_id": "chat-ai-shared-qwen08-v5-en-fr-20261010",
+      "max_output_tokens": 512,
+      "thinking": false,
+      "mode": "native",
+      "metrics": {
+        "count": 60,
+        "counts": {
+          "tool_correct": 58,
+          "arguments_correct": 56,
+          "structured_valid": 59
+        },
+        "percent": {
+          "tool_correct": 96.67,
+          "arguments_correct": 93.33,
+          "structured_valid": 98.33
+        },
+        "exact_arguments": {
+          "passed": 46,
+          "count": 50,
+          "percent": 92.0
+        }
+      },
+      "by_language": {
+        "en": {
+          "count": 30,
+          "counts": {
+            "tool_correct": 29,
+            "arguments_correct": 29,
+            "structured_valid": 29
+          },
+          "percent": {
+            "tool_correct": 96.67,
+            "arguments_correct": 96.67,
+            "structured_valid": 96.67
+          },
+          "exact_arguments": {
+            "passed": 24,
+            "count": 25,
+            "percent": 96.0
+          }
+        },
+        "fr": {
+          "count": 30,
+          "counts": {
+            "tool_correct": 29,
+            "arguments_correct": 27,
+            "structured_valid": 30
+          },
+          "percent": {
+            "tool_correct": 96.67,
+            "arguments_correct": 90.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 22,
+            "count": 25,
+            "percent": 88.0
+          }
+        }
+      },
+      "by_category": {
+        "clarify": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 4,
+            "arguments_correct": 4,
+            "structured_valid": 4
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        },
+        "context": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "arguments_correct": 2,
+            "structured_valid": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        },
+        "delete": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "arguments_correct": 2,
+            "structured_valid": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        },
+        "edit": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 1,
+            "arguments_correct": 1,
+            "structured_valid": 2
+          },
+          "percent": {
+            "tool_correct": 50.0,
+            "arguments_correct": 50.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 1,
+            "count": 2,
+            "percent": 50.0
+          }
+        },
+        "followup": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "arguments_correct": 2,
+            "structured_valid": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        },
+        "knowledge": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 4,
+            "arguments_correct": 4,
+            "structured_valid": 4
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        },
+        "metric": {
+          "count": 12,
+          "counts": {
+            "tool_correct": 12,
+            "arguments_correct": 12,
+            "structured_valid": 12
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 12,
+            "count": 12,
+            "percent": 100.0
+          }
+        },
+        "navigate": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 4,
+            "arguments_correct": 4,
+            "structured_valid": 4
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 4,
+            "count": 4,
+            "percent": 100.0
+          }
+        },
+        "pdf": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "arguments_correct": 2,
+            "structured_valid": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        },
+        "search": {
+          "count": 24,
+          "counts": {
+            "tool_correct": 23,
+            "arguments_correct": 21,
+            "structured_valid": 23
+          },
+          "percent": {
+            "tool_correct": 95.83,
+            "arguments_correct": 87.5,
+            "structured_valid": 95.83
+          },
+          "exact_arguments": {
+            "passed": 21,
+            "count": 24,
+            "percent": 87.5
+          }
+        },
+        "security": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "arguments_correct": 2,
+            "structured_valid": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        }
+      },
+      "latency_mean_s": 7.092,
+      "latency_p95_s": 8.391,
+      "first_visible_event_mean_s": 7.085,
+      "completion_tokens_per_wall_second_mean": 5.978,
+      "limitations": [
+        "Synthetic held-out scenarios; no business tools executed.",
+        "Knowledge query wording is scored only for nonempty schema-valid text; retrieval factuality is tested separately. Clarifications must match the expected reason and language.",
+        "Exact arguments exclude knowledge and clarification. Optional default pagination/period arguments are normalized.",
+        "Native Colibri tool buffering means first visible event and wall throughput are not raw decode TTFT/tokens per second.",
+        "No hostname, URL, key, private record or operator path is included in the report."
+      ]
+    },
+    "design-workflow-candidate-shared-v5-final": {
+      "label": "design-workflow-candidate-shared-v5-final",
+      "dataset_sha256": "4bb23c2a24f4434663f54c8dfbf94f55f00557a91115ed9d08f84a5ec95de045",
+      "evaluator_sha256": "dca2abf86b2162ccd99b868108dd957f5ef600fe196a5bf9f21b15cafa4fbe7b",
+      "model_id": "chat-ai-shared-qwen08-v5-en-fr-20261010",
+      "max_output_tokens": 512,
+      "thinking": false,
+      "mode": "native",
+      "metrics": {
+        "count": 60,
+        "counts": {
+          "tool_correct": 56,
+          "arguments_correct": 53,
+          "structured_valid": 58
+        },
+        "percent": {
+          "tool_correct": 93.33,
+          "arguments_correct": 88.33,
+          "structured_valid": 96.67
+        },
+        "exact_arguments": {
+          "passed": 43,
+          "count": 48,
+          "percent": 89.58
+        }
+      },
+      "by_language": {
+        "en": {
+          "count": 30,
+          "counts": {
+            "tool_correct": 28,
+            "arguments_correct": 27,
+            "structured_valid": 29
+          },
+          "percent": {
+            "tool_correct": 93.33,
+            "arguments_correct": 90.0,
+            "structured_valid": 96.67
+          },
+          "exact_arguments": {
+            "passed": 22,
+            "count": 24,
+            "percent": 91.67
+          }
+        },
+        "fr": {
+          "count": 30,
+          "counts": {
+            "tool_correct": 28,
+            "arguments_correct": 26,
+            "structured_valid": 29
+          },
+          "percent": {
+            "tool_correct": 93.33,
+            "arguments_correct": 86.67,
+            "structured_valid": 96.67
+          },
+          "exact_arguments": {
+            "passed": 21,
+            "count": 24,
+            "percent": 87.5
+          }
+        }
+      },
+      "by_category": {
+        "archive": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "arguments_correct": 2,
+            "structured_valid": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        },
+        "clarify": {
+          "count": 8,
+          "counts": {
+            "tool_correct": 6,
+            "arguments_correct": 6,
+            "structured_valid": 8
+          },
+          "percent": {
+            "tool_correct": 75.0,
+            "arguments_correct": 75.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        },
+        "context": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 4,
+            "arguments_correct": 4,
+            "structured_valid": 4
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 4,
+            "count": 4,
+            "percent": 100.0
+          }
+        },
+        "followup": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "arguments_correct": 2,
+            "structured_valid": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        },
+        "knowledge": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 4,
+            "arguments_correct": 4,
+            "structured_valid": 4
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        },
+        "navigate": {
+          "count": 8,
+          "counts": {
+            "tool_correct": 8,
+            "arguments_correct": 8,
+            "structured_valid": 8
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 8,
+            "count": 8,
+            "percent": 100.0
+          }
+        },
+        "search": {
+          "count": 20,
+          "counts": {
+            "tool_correct": 18,
+            "arguments_correct": 15,
+            "structured_valid": 18
+          },
+          "percent": {
+            "tool_correct": 90.0,
+            "arguments_correct": 75.0,
+            "structured_valid": 90.0
+          },
+          "exact_arguments": {
+            "passed": 15,
+            "count": 20,
+            "percent": 75.0
+          }
+        },
+        "time": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 4,
+            "arguments_correct": 4,
+            "structured_valid": 4
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 4,
+            "count": 4,
+            "percent": 100.0
+          }
+        },
+        "workload": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 4,
+            "arguments_correct": 4,
+            "structured_valid": 4
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 4,
+            "count": 4,
+            "percent": 100.0
+          }
+        },
+        "write": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 4,
+            "arguments_correct": 4,
+            "structured_valid": 4
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 4,
+            "count": 4,
+            "percent": 100.0
+          }
+        }
+      },
+      "latency_mean_s": 7.676,
+      "latency_p95_s": 8.16,
+      "first_visible_event_mean_s": 7.485,
+      "completion_tokens_per_wall_second_mean": 5.489,
+      "limitations": [
+        "Synthetic held-out scenarios; no business tools executed.",
+        "Knowledge query wording is scored only for nonempty schema-valid text; retrieval factuality is tested separately. Clarifications must match the expected reason and language.",
+        "Exact arguments exclude knowledge and clarification. Optional default pagination/period arguments are normalized.",
+        "Native Colibri tool buffering means first visible event and wall throughput are not raw decode TTFT/tokens per second.",
+        "No hostname, URL, key, private record or operator path is included in the report."
+      ]
+    },
+    "facturation-candidate-shared-v5-final": {
+      "label": "facturation-candidate-shared-v5-final",
+      "dataset_sha256": "91ca4ad072df31a651c8a87ea51dd9349d0f937f2701bcab3da868d01cfa479a",
+      "evaluator_sha256": "dca2abf86b2162ccd99b868108dd957f5ef600fe196a5bf9f21b15cafa4fbe7b",
+      "model_id": "chat-ai-shared-qwen08-v5-en-fr-20261010",
+      "max_output_tokens": 512,
+      "thinking": false,
+      "mode": "native",
+      "metrics": {
+        "count": 80,
+        "counts": {
+          "tool_correct": 73,
+          "arguments_correct": 60,
+          "structured_valid": 78
+        },
+        "percent": {
+          "tool_correct": 91.25,
+          "arguments_correct": 75.0,
+          "structured_valid": 97.5
+        },
+        "exact_arguments": {
+          "passed": 51,
+          "count": 66,
+          "percent": 77.27
+        }
+      },
+      "by_language": {
+        "en": {
+          "count": 40,
+          "counts": {
+            "tool_correct": 36,
+            "arguments_correct": 29,
+            "structured_valid": 39
+          },
+          "percent": {
+            "tool_correct": 90.0,
+            "arguments_correct": 72.5,
+            "structured_valid": 97.5
+          },
+          "exact_arguments": {
+            "passed": 25,
+            "count": 33,
+            "percent": 75.76
+          }
+        },
+        "fr": {
+          "count": 40,
+          "counts": {
+            "tool_correct": 37,
+            "arguments_correct": 31,
+            "structured_valid": 39
+          },
+          "percent": {
+            "tool_correct": 92.5,
+            "arguments_correct": 77.5,
+            "structured_valid": 97.5
+          },
+          "exact_arguments": {
+            "passed": 26,
+            "count": 33,
+            "percent": 78.79
+          }
+        }
+      },
+      "by_category": {
+        "capability_boundary": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 4,
+            "arguments_correct": 4,
+            "structured_valid": 4
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        },
+        "catalog_filters": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 4,
+            "arguments_correct": 4,
+            "structured_valid": 4
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 4,
+            "count": 4,
+            "percent": 100.0
+          }
+        },
+        "confirmed_mutation_proposal": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 4,
+            "arguments_correct": 3,
+            "structured_valid": 4
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 75.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 3,
+            "count": 4,
+            "percent": 75.0
+          }
+        },
+        "customer_lookup": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "arguments_correct": 2,
+            "structured_valid": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        },
+        "document_filters": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 4,
+            "arguments_correct": 2,
+            "structured_valid": 4
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 50.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 4,
+            "percent": 50.0
+          }
+        },
+        "exact_reference": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 4,
+            "arguments_correct": 4,
+            "structured_valid": 4
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 4,
+            "count": 4,
+            "percent": 100.0
+          }
+        },
+        "explicit_record_reference": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "arguments_correct": 2,
+            "structured_valid": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        },
+        "financial_metric": {
+          "count": 8,
+          "counts": {
+            "tool_correct": 8,
+            "arguments_correct": 8,
+            "structured_valid": 8
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 8,
+            "count": 8,
+            "percent": 100.0
+          }
+        },
+        "language_switch_clarification": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 2,
+            "arguments_correct": 1,
+            "structured_valid": 4
+          },
+          "percent": {
+            "tool_correct": 50.0,
+            "arguments_correct": 25.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        },
+        "mutation_target_discovery": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "arguments_correct": 2,
+            "structured_valid": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        },
+        "navigation": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 4,
+            "arguments_correct": 4,
+            "structured_valid": 4
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 4,
+            "count": 4,
+            "percent": 100.0
+          }
+        },
+        "operational_filters": {
+          "count": 10,
+          "counts": {
+            "tool_correct": 10,
+            "arguments_correct": 6,
+            "structured_valid": 10
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 60.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 6,
+            "count": 10,
+            "percent": 60.0
+          }
+        },
+        "page_context": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 4,
+            "arguments_correct": 4,
+            "structured_valid": 4
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 4,
+            "count": 4,
+            "percent": 100.0
+          }
+        },
+        "payment_filters": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 4,
+            "arguments_correct": 1,
+            "structured_valid": 4
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 25.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 1,
+            "count": 4,
+            "percent": 25.0
+          }
+        },
+        "payment_listing": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "arguments_correct": 2,
+            "structured_valid": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        },
+        "printing": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "arguments_correct": 2,
+            "structured_valid": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        },
+        "relative_search_dates": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "arguments_correct": 0,
+            "structured_valid": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 0.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 2,
+            "percent": 0.0
+          }
+        },
+        "staff_lookup": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "arguments_correct": 2,
+            "structured_valid": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        },
+        "structured_memory": {
+          "count": 6,
+          "counts": {
+            "tool_correct": 3,
+            "arguments_correct": 3,
+            "structured_valid": 6
+          },
+          "percent": {
+            "tool_correct": 50.0,
+            "arguments_correct": 50.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 3,
+            "count": 6,
+            "percent": 50.0
+          }
+        },
+        "unsupported_operation": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 0,
+            "arguments_correct": 0,
+            "structured_valid": 0
+          },
+          "percent": {
+            "tool_correct": 0.0,
+            "arguments_correct": 0.0,
+            "structured_valid": 0.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        },
+        "workflow_knowledge": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 4,
+            "arguments_correct": 4,
+            "structured_valid": 4
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 100.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        }
+      },
+      "latency_mean_s": 9.325,
+      "latency_p95_s": 13.665,
+      "first_visible_event_mean_s": 9.316,
+      "completion_tokens_per_wall_second_mean": 6.722,
+      "limitations": [
+        "Synthetic held-out scenarios; no business tools executed.",
+        "Knowledge query wording is scored only for nonempty schema-valid text; retrieval factuality is tested separately. Clarifications must match the expected reason and language.",
+        "Exact arguments exclude knowledge and clarification. Optional default pagination/period arguments are normalized.",
+        "Native Colibri tool buffering means first visible event and wall throughput are not raw decode TTFT/tokens per second.",
+        "No hostname, URL, key, private record or operator path is included in the report."
+      ]
+    },
+    "management-projet-companion-shared-v5": {
+      "label": "management-projet-companion-shared-v5",
+      "dataset_sha256": "c4586a2c6459e02c63557f1e693a5212b51c507eba80d32f2661128a25c3f5d8",
+      "evaluator_sha256": "dca2abf86b2162ccd99b868108dd957f5ef600fe196a5bf9f21b15cafa4fbe7b",
+      "model_id": "chat-ai-shared-qwen08-v5-en-fr-20261010",
+      "max_output_tokens": 512,
+      "thinking": false,
+      "mode": "native",
+      "metrics": {
+        "count": 20,
+        "counts": {
+          "tool_correct": 19,
+          "arguments_correct": 15,
+          "structured_valid": 20
+        },
+        "percent": {
+          "tool_correct": 95.0,
+          "arguments_correct": 75.0,
+          "structured_valid": 100.0
+        },
+        "exact_arguments": {
+          "passed": 11,
+          "count": 14,
+          "percent": 78.57
+        }
+      },
+      "by_language": {
+        "en": {
+          "count": 10,
+          "counts": {
+            "tool_correct": 9,
+            "arguments_correct": 7,
+            "structured_valid": 10
+          },
+          "percent": {
+            "tool_correct": 90.0,
+            "arguments_correct": 70.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 5,
+            "count": 7,
+            "percent": 71.43
+          }
+        },
+        "fr": {
+          "count": 10,
+          "counts": {
+            "tool_correct": 10,
+            "arguments_correct": 8,
+            "structured_valid": 10
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "arguments_correct": 80.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 6,
+            "count": 7,
+            "percent": 85.71
+          }
+        }
+      },
+      "by_category": {
+        "audit": {
+          "count": 20,
+          "counts": {
+            "tool_correct": 19,
+            "arguments_correct": 15,
+            "structured_valid": 20
+          },
+          "percent": {
+            "tool_correct": 95.0,
+            "arguments_correct": 75.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 11,
+            "count": 14,
+            "percent": 78.57
+          }
+        }
+      },
+      "latency_mean_s": 7.21,
+      "latency_p95_s": 8.36,
+      "first_visible_event_mean_s": 7.203,
+      "completion_tokens_per_wall_second_mean": 7.134,
+      "limitations": [
+        "Synthetic held-out scenarios; no business tools executed.",
+        "Knowledge query wording is scored only for nonempty schema-valid text; retrieval factuality is tested separately. Clarifications must match the expected reason and language.",
+        "Exact arguments exclude knowledge and clarification. Optional default pagination/period arguments are normalized.",
+        "Native Colibri tool buffering means first visible event and wall throughput are not raw decode TTFT/tokens per second.",
+        "No hostname, URL, key, private record or operator path is included in the report."
+      ]
+    },
+    "management-projet-fresh-shared-v5": {
+      "label": "management-projet-fresh-shared-v5",
+      "dataset_sha256": "12e224a326a40fb185b5bf10cd1b7e38339ca3fa955f72ed3da678fe8df98f41",
+      "evaluator_sha256": "dca2abf86b2162ccd99b868108dd957f5ef600fe196a5bf9f21b15cafa4fbe7b",
+      "model_id": "chat-ai-shared-qwen08-v5-en-fr-20261010",
+      "max_output_tokens": 512,
+      "thinking": false,
+      "mode": "native",
+      "metrics": {
+        "count": 32,
+        "counts": {
+          "tool_correct": 28,
+          "arguments_correct": 25,
+          "structured_valid": 32
+        },
+        "percent": {
+          "tool_correct": 87.5,
+          "arguments_correct": 78.12,
+          "structured_valid": 100.0
+        },
+        "exact_arguments": {
+          "passed": 23,
+          "count": 26,
+          "percent": 88.46
+        }
+      },
+      "by_language": {
+        "en": {
+          "count": 16,
+          "counts": {
+            "tool_correct": 14,
+            "arguments_correct": 13,
+            "structured_valid": 16
+          },
+          "percent": {
+            "tool_correct": 87.5,
+            "arguments_correct": 81.25,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 12,
+            "count": 13,
+            "percent": 92.31
+          }
+        },
+        "fr": {
+          "count": 16,
+          "counts": {
+            "tool_correct": 14,
+            "arguments_correct": 12,
+            "structured_valid": 16
+          },
+          "percent": {
+            "tool_correct": 87.5,
+            "arguments_correct": 75.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 11,
+            "count": 13,
+            "percent": 84.62
+          }
+        }
+      },
+      "by_category": {
+        "audit": {
+          "count": 32,
+          "counts": {
+            "tool_correct": 28,
+            "arguments_correct": 25,
+            "structured_valid": 32
+          },
+          "percent": {
+            "tool_correct": 87.5,
+            "arguments_correct": 78.12,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 23,
+            "count": 26,
+            "percent": 88.46
+          }
+        }
+      },
+      "latency_mean_s": 7.297,
+      "latency_p95_s": 8.398,
+      "first_visible_event_mean_s": 7.29,
+      "completion_tokens_per_wall_second_mean": 7.405,
+      "limitations": [
+        "Synthetic held-out scenarios; no business tools executed.",
+        "Knowledge query wording is scored only for nonempty schema-valid text; retrieval factuality is tested separately. Clarifications must match the expected reason and language.",
+        "Exact arguments exclude knowledge and clarification. Optional default pagination/period arguments are normalized.",
+        "Native Colibri tool buffering means first visible event and wall throughput are not raw decode TTFT/tokens per second.",
+        "No hostname, URL, key, private record or operator path is included in the report."
+      ]
+    },
+    "design-workflow-fresh-shared-v5": {
+      "label": "design-workflow-fresh-shared-v5",
+      "dataset_sha256": "68fca7d1c02da3f6755e71ba016c235c5c0df1d16ff560730f210e281355dea9",
+      "evaluator_sha256": "dca2abf86b2162ccd99b868108dd957f5ef600fe196a5bf9f21b15cafa4fbe7b",
+      "model_id": "chat-ai-shared-qwen08-v5-en-fr-20261010",
+      "max_output_tokens": 512,
+      "thinking": false,
+      "mode": "native",
+      "metrics": {
+        "count": 24,
+        "counts": {
+          "tool_correct": 21,
+          "arguments_correct": 20,
+          "structured_valid": 23
+        },
+        "percent": {
+          "tool_correct": 87.5,
+          "arguments_correct": 83.33,
+          "structured_valid": 95.83
+        },
+        "exact_arguments": {
+          "passed": 16,
+          "count": 18,
+          "percent": 88.89
+        }
+      },
+      "by_language": {
+        "en": {
+          "count": 12,
+          "counts": {
+            "tool_correct": 11,
+            "arguments_correct": 10,
+            "structured_valid": 12
+          },
+          "percent": {
+            "tool_correct": 91.67,
+            "arguments_correct": 83.33,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 8,
+            "count": 9,
+            "percent": 88.89
+          }
+        },
+        "fr": {
+          "count": 12,
+          "counts": {
+            "tool_correct": 10,
+            "arguments_correct": 10,
+            "structured_valid": 11
+          },
+          "percent": {
+            "tool_correct": 83.33,
+            "arguments_correct": 83.33,
+            "structured_valid": 91.67
+          },
+          "exact_arguments": {
+            "passed": 8,
+            "count": 9,
+            "percent": 88.89
+          }
+        }
+      },
+      "by_category": {
+        "audit": {
+          "count": 24,
+          "counts": {
+            "tool_correct": 21,
+            "arguments_correct": 20,
+            "structured_valid": 23
+          },
+          "percent": {
+            "tool_correct": 87.5,
+            "arguments_correct": 83.33,
+            "structured_valid": 95.83
+          },
+          "exact_arguments": {
+            "passed": 16,
+            "count": 18,
+            "percent": 88.89
+          }
+        }
+      },
+      "latency_mean_s": 8.061,
+      "latency_p95_s": 8.522,
+      "first_visible_event_mean_s": 7.819,
+      "completion_tokens_per_wall_second_mean": 6.686,
+      "limitations": [
+        "Synthetic held-out scenarios; no business tools executed.",
+        "Knowledge query wording is scored only for nonempty schema-valid text; retrieval factuality is tested separately. Clarifications must match the expected reason and language.",
+        "Exact arguments exclude knowledge and clarification. Optional default pagination/period arguments are normalized.",
+        "Native Colibri tool buffering means first visible event and wall throughput are not raw decode TTFT/tokens per second.",
+        "No hostname, URL, key, private record or operator path is included in the report."
+      ]
+    },
+    "management-projet-new-holdout-shared-v5": {
+      "label": "management-projet-new-holdout-shared-v5",
+      "dataset_sha256": "993a0bc3aed974fd52b04941efd8e06ee865bc7d7e98761dda6e0d1f7b9dc8e1",
+      "evaluator_sha256": "dca2abf86b2162ccd99b868108dd957f5ef600fe196a5bf9f21b15cafa4fbe7b",
+      "model_id": "chat-ai-shared-qwen08-v5-en-fr-20261010",
+      "max_output_tokens": 512,
+      "thinking": false,
+      "mode": "native",
+      "metrics": {
+        "count": 32,
+        "counts": {
+          "tool_correct": 25,
+          "arguments_correct": 22,
+          "structured_valid": 30
+        },
+        "percent": {
+          "tool_correct": 78.12,
+          "arguments_correct": 68.75,
+          "structured_valid": 93.75
+        },
+        "exact_arguments": {
+          "passed": 15,
+          "count": 20,
+          "percent": 75.0
+        }
+      },
+      "by_language": {
+        "en": {
+          "count": 16,
+          "counts": {
+            "tool_correct": 12,
+            "arguments_correct": 12,
+            "structured_valid": 14
+          },
+          "percent": {
+            "tool_correct": 75.0,
+            "arguments_correct": 75.0,
+            "structured_valid": 87.5
+          },
+          "exact_arguments": {
+            "passed": 8,
+            "count": 10,
+            "percent": 80.0
+          }
+        },
+        "fr": {
+          "count": 16,
+          "counts": {
+            "tool_correct": 13,
+            "arguments_correct": 10,
+            "structured_valid": 16
+          },
+          "percent": {
+            "tool_correct": 81.25,
+            "arguments_correct": 62.5,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 7,
+            "count": 10,
+            "percent": 70.0
+          }
+        }
+      },
+      "by_category": {
+        "fresh": {
+          "count": 32,
+          "counts": {
+            "tool_correct": 25,
+            "arguments_correct": 22,
+            "structured_valid": 30
+          },
+          "percent": {
+            "tool_correct": 78.12,
+            "arguments_correct": 68.75,
+            "structured_valid": 93.75
+          },
+          "exact_arguments": {
+            "passed": 15,
+            "count": 20,
+            "percent": 75.0
+          }
+        }
+      },
+      "latency_mean_s": 7.674,
+      "latency_p95_s": 8.31,
+      "first_visible_event_mean_s": 7.663,
+      "completion_tokens_per_wall_second_mean": 7.014,
+      "limitations": [
+        "Synthetic held-out scenarios; no business tools executed.",
+        "Knowledge query wording is scored only for nonempty schema-valid text; retrieval factuality is tested separately. Clarifications must match the expected reason and language.",
+        "Exact arguments exclude knowledge and clarification. Optional default pagination/period arguments are normalized.",
+        "Native Colibri tool buffering means first visible event and wall throughput are not raw decode TTFT/tokens per second.",
+        "No hostname, URL, key, private record or operator path is included in the report."
+      ]
+    },
+    "design-workflow-new-holdout-shared-v5": {
+      "label": "design-workflow-new-holdout-shared-v5",
+      "dataset_sha256": "67632837aa5a9069a1fddcb503569e0f1c8f48dfc10ae65b54e3da2d188b58fb",
+      "evaluator_sha256": "dca2abf86b2162ccd99b868108dd957f5ef600fe196a5bf9f21b15cafa4fbe7b",
+      "model_id": "chat-ai-shared-qwen08-v5-en-fr-20261010",
+      "max_output_tokens": 512,
+      "thinking": false,
+      "mode": "native",
+      "metrics": {
+        "count": 20,
+        "counts": {
+          "tool_correct": 18,
+          "arguments_correct": 15,
+          "structured_valid": 20
+        },
+        "percent": {
+          "tool_correct": 90.0,
+          "arguments_correct": 75.0,
+          "structured_valid": 100.0
+        },
+        "exact_arguments": {
+          "passed": 11,
+          "count": 14,
+          "percent": 78.57
+        }
+      },
+      "by_language": {
+        "en": {
+          "count": 10,
+          "counts": {
+            "tool_correct": 9,
+            "arguments_correct": 7,
+            "structured_valid": 10
+          },
+          "percent": {
+            "tool_correct": 90.0,
+            "arguments_correct": 70.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 5,
+            "count": 7,
+            "percent": 71.43
+          }
+        },
+        "fr": {
+          "count": 10,
+          "counts": {
+            "tool_correct": 9,
+            "arguments_correct": 8,
+            "structured_valid": 10
+          },
+          "percent": {
+            "tool_correct": 90.0,
+            "arguments_correct": 80.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 6,
+            "count": 7,
+            "percent": 85.71
+          }
+        }
+      },
+      "by_category": {
+        "fresh": {
+          "count": 20,
+          "counts": {
+            "tool_correct": 18,
+            "arguments_correct": 15,
+            "structured_valid": 20
+          },
+          "percent": {
+            "tool_correct": 90.0,
+            "arguments_correct": 75.0,
+            "structured_valid": 100.0
+          },
+          "exact_arguments": {
+            "passed": 11,
+            "count": 14,
+            "percent": 78.57
+          }
+        }
+      },
+      "latency_mean_s": 7.721,
+      "latency_p95_s": 8.491,
+      "first_visible_event_mean_s": 7.713,
+      "completion_tokens_per_wall_second_mean": 6.89,
+      "limitations": [
+        "Synthetic held-out scenarios; no business tools executed.",
+        "Knowledge query wording is scored only for nonempty schema-valid text; retrieval factuality is tested separately. Clarifications must match the expected reason and language.",
+        "Exact arguments exclude knowledge and clarification. Optional default pagination/period arguments are normalized.",
+        "Native Colibri tool buffering means first visible event and wall throughput are not raw decode TTFT/tokens per second.",
+        "No hostname, URL, key, private record or operator path is included in the report."
+      ]
+    }
+  },
+  "acceptance": {
+    "management-projet-candidate-shared-v5-final": {
+      "metrics": {
+        "count": 60,
+        "counts": {
+          "tool_correct": 58,
+          "structured_valid": 59,
+          "action_matches": 56
+        },
+        "percent": {
+          "tool_correct": 96.67,
+          "structured_valid": 98.33,
+          "action_matches": 93.33
+        },
+        "exact_arguments": {
+          "passed": 46,
+          "count": 50,
+          "percent": 92.0
+        }
+      },
+      "targets": {
+        "tool_selection": true,
+        "exact_arguments": false,
+        "structured_output": false,
+        "clarification_reason_and_language": true,
+        "critical_model_cases": false
+      },
+      "model_targets_passed": false,
+      "clarifications": {
+        "count": 6,
+        "counts": {
+          "tool_correct": 6,
+          "structured_valid": 6,
+          "action_matches": 6
+        },
+        "percent": {
+          "tool_correct": 100.0,
+          "structured_valid": 100.0,
+          "action_matches": 100.0
+        },
+        "exact_arguments": {
+          "passed": 0,
+          "count": 0,
+          "percent": null
+        }
+      },
+      "critical_model_cases": {
+        "count": 10,
+        "counts": {
+          "tool_correct": 9,
+          "structured_valid": 10,
+          "action_matches": 9
+        },
+        "percent": {
+          "tool_correct": 90.0,
+          "structured_valid": 100.0,
+          "action_matches": 90.0
+        },
+        "exact_arguments": {
+          "passed": 3,
+          "count": 4,
+          "percent": 75.0
+        }
+      },
+      "by_language": {
+        "en": {
+          "count": 30,
+          "counts": {
+            "tool_correct": 29,
+            "structured_valid": 29,
+            "action_matches": 29
+          },
+          "percent": {
+            "tool_correct": 96.67,
+            "structured_valid": 96.67,
+            "action_matches": 96.67
+          },
+          "exact_arguments": {
+            "passed": 24,
+            "count": 25,
+            "percent": 96.0
+          }
+        },
+        "fr": {
+          "count": 30,
+          "counts": {
+            "tool_correct": 29,
+            "structured_valid": 30,
+            "action_matches": 27
+          },
+          "percent": {
+            "tool_correct": 96.67,
+            "structured_valid": 100.0,
+            "action_matches": 90.0
+          },
+          "exact_arguments": {
+            "passed": 22,
+            "count": 25,
+            "percent": 88.0
+          }
+        }
+      },
+      "by_reporting_group": {
+        "clarify": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 4,
+            "structured_valid": 4,
+            "action_matches": 4
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        },
+        "context": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "structured_valid": 2,
+            "action_matches": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        },
+        "delete": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "structured_valid": 2,
+            "action_matches": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        },
+        "edit": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 1,
+            "structured_valid": 2,
+            "action_matches": 1
+          },
+          "percent": {
+            "tool_correct": 50.0,
+            "structured_valid": 100.0,
+            "action_matches": 50.0
+          },
+          "exact_arguments": {
+            "passed": 1,
+            "count": 2,
+            "percent": 50.0
+          }
+        },
+        "followup": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "structured_valid": 2,
+            "action_matches": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        },
+        "knowledge": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 4,
+            "structured_valid": 4,
+            "action_matches": 4
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        },
+        "metric": {
+          "count": 12,
+          "counts": {
+            "tool_correct": 12,
+            "structured_valid": 12,
+            "action_matches": 12
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 12,
+            "count": 12,
+            "percent": 100.0
+          }
+        },
+        "navigate": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 4,
+            "structured_valid": 4,
+            "action_matches": 4
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 4,
+            "count": 4,
+            "percent": 100.0
+          }
+        },
+        "pdf": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "structured_valid": 2,
+            "action_matches": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        },
+        "search": {
+          "count": 24,
+          "counts": {
+            "tool_correct": 23,
+            "structured_valid": 23,
+            "action_matches": 21
+          },
+          "percent": {
+            "tool_correct": 95.83,
+            "structured_valid": 95.83,
+            "action_matches": 87.5
+          },
+          "exact_arguments": {
+            "passed": 21,
+            "count": 24,
+            "percent": 87.5
+          }
+        },
+        "security": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "structured_valid": 2,
+            "action_matches": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        }
+      },
+      "distinct_bilingual_scenario_ids": 30,
+      "failures": [
+        {
+          "id": "search-budget-en",
+          "group": "search",
+          "critical": false,
+          "tool_correct": false,
+          "structured_valid": false
+        },
+        {
+          "id": "edit-client-fr",
+          "group": "edit",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "search-described-edit-fr",
+          "group": "search",
+          "critical": false,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "search-described-delete-fr",
+          "group": "search",
+          "critical": false,
+          "tool_correct": true,
+          "structured_valid": true
+        }
+      ],
+      "native_backend_security_verified": null,
+      "limitations": [
+        "Separate analysis of frozen events; original benchmark files and scores are unchanged.",
+        "All clarification reason/language and proposed-change arguments must match their labels.",
+        "Knowledge queries are checked only for nonempty text; retrieval factuality is not measured here.",
+        "Bilingual pairs share scenarios; scenario count is not independent statistical certification.",
+        "Original failures informed training categories; originals remain regression tests, not unseen certification.",
+        "No business tools execute here. Native permission, tenant, confirmation and audit tests remain required.",
+        "Passing model targets does not authorize production activation."
+      ],
+      "label": "management-projet-candidate-shared-v5-final",
+      "model_id": "chat-ai-shared-qwen08-v5-en-fr-20261010",
+      "snapshot_sha256": "1c63c39ecb5906f3fa2adf0dd2a74a78c8b814836cf8131d499e0ead88eb0277",
+      "events_sha256": "4aa3ddbf304a985b31788073d8afbe83e8203de090fcfce1c61b5000b00896c5",
+      "frozen_evaluator_sha256": "dca2abf86b2162ccd99b868108dd957f5ef600fe196a5bf9f21b15cafa4fbe7b",
+      "acceptance_script_sha256": "c9efde5b48a32d2900ed581477e65e677865a875b08400fe67fe70a521fcaebc"
+    },
+    "design-workflow-candidate-shared-v5-final": {
+      "metrics": {
+        "count": 60,
+        "counts": {
+          "tool_correct": 56,
+          "structured_valid": 58,
+          "action_matches": 53
+        },
+        "percent": {
+          "tool_correct": 93.33,
+          "structured_valid": 96.67,
+          "action_matches": 88.33
+        },
+        "exact_arguments": {
+          "passed": 43,
+          "count": 48,
+          "percent": 89.58
+        }
+      },
+      "targets": {
+        "tool_selection": false,
+        "exact_arguments": false,
+        "structured_output": false,
+        "clarification_reason_and_language": false,
+        "critical_model_cases": false
+      },
+      "model_targets_passed": false,
+      "clarifications": {
+        "count": 8,
+        "counts": {
+          "tool_correct": 6,
+          "structured_valid": 8,
+          "action_matches": 6
+        },
+        "percent": {
+          "tool_correct": 75.0,
+          "structured_valid": 100.0,
+          "action_matches": 75.0
+        },
+        "exact_arguments": {
+          "passed": 0,
+          "count": 0,
+          "percent": null
+        }
+      },
+      "critical_model_cases": {
+        "count": 14,
+        "counts": {
+          "tool_correct": 12,
+          "structured_valid": 14,
+          "action_matches": 12
+        },
+        "percent": {
+          "tool_correct": 85.71,
+          "structured_valid": 100.0,
+          "action_matches": 85.71
+        },
+        "exact_arguments": {
+          "passed": 6,
+          "count": 6,
+          "percent": 100.0
+        }
+      },
+      "by_language": {
+        "en": {
+          "count": 30,
+          "counts": {
+            "tool_correct": 28,
+            "structured_valid": 29,
+            "action_matches": 27
+          },
+          "percent": {
+            "tool_correct": 93.33,
+            "structured_valid": 96.67,
+            "action_matches": 90.0
+          },
+          "exact_arguments": {
+            "passed": 22,
+            "count": 24,
+            "percent": 91.67
+          }
+        },
+        "fr": {
+          "count": 30,
+          "counts": {
+            "tool_correct": 28,
+            "structured_valid": 29,
+            "action_matches": 26
+          },
+          "percent": {
+            "tool_correct": 93.33,
+            "structured_valid": 96.67,
+            "action_matches": 86.67
+          },
+          "exact_arguments": {
+            "passed": 21,
+            "count": 24,
+            "percent": 87.5
+          }
+        }
+      },
+      "by_reporting_group": {
+        "archive": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "structured_valid": 2,
+            "action_matches": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        },
+        "clarify": {
+          "count": 8,
+          "counts": {
+            "tool_correct": 6,
+            "structured_valid": 8,
+            "action_matches": 6
+          },
+          "percent": {
+            "tool_correct": 75.0,
+            "structured_valid": 100.0,
+            "action_matches": 75.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        },
+        "context": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 4,
+            "structured_valid": 4,
+            "action_matches": 4
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 4,
+            "count": 4,
+            "percent": 100.0
+          }
+        },
+        "followup": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "structured_valid": 2,
+            "action_matches": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        },
+        "knowledge": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 4,
+            "structured_valid": 4,
+            "action_matches": 4
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        },
+        "navigate": {
+          "count": 8,
+          "counts": {
+            "tool_correct": 8,
+            "structured_valid": 8,
+            "action_matches": 8
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 8,
+            "count": 8,
+            "percent": 100.0
+          }
+        },
+        "search": {
+          "count": 20,
+          "counts": {
+            "tool_correct": 18,
+            "structured_valid": 18,
+            "action_matches": 15
+          },
+          "percent": {
+            "tool_correct": 90.0,
+            "structured_valid": 90.0,
+            "action_matches": 75.0
+          },
+          "exact_arguments": {
+            "passed": 15,
+            "count": 20,
+            "percent": 75.0
+          }
+        },
+        "time": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 4,
+            "structured_valid": 4,
+            "action_matches": 4
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 4,
+            "count": 4,
+            "percent": 100.0
+          }
+        },
+        "workload": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 4,
+            "structured_valid": 4,
+            "action_matches": 4
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 4,
+            "count": 4,
+            "percent": 100.0
+          }
+        },
+        "write": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 4,
+            "structured_valid": 4,
+            "action_matches": 4
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 4,
+            "count": 4,
+            "percent": 100.0
+          }
+        }
+      },
+      "distinct_bilingual_scenario_ids": 30,
+      "failures": [
+        {
+          "id": "test-search-review-fr",
+          "group": "search",
+          "critical": false,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "test-search-collaborator-fr",
+          "group": "search",
+          "critical": false,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "test-search-collaborator-en",
+          "group": "search",
+          "critical": false,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "test-search-archive-fr",
+          "group": "search",
+          "critical": false,
+          "tool_correct": false,
+          "structured_valid": false
+        },
+        {
+          "id": "test-search-archive-en",
+          "group": "search",
+          "critical": false,
+          "tool_correct": false,
+          "structured_valid": false
+        },
+        {
+          "id": "test-clarify-month-fr",
+          "group": "clarify",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "test-clarify-month-en",
+          "group": "clarify",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        }
+      ],
+      "native_backend_security_verified": null,
+      "limitations": [
+        "Separate analysis of frozen events; original benchmark files and scores are unchanged.",
+        "All clarification reason/language and proposed-change arguments must match their labels.",
+        "Knowledge queries are checked only for nonempty text; retrieval factuality is not measured here.",
+        "Bilingual pairs share scenarios; scenario count is not independent statistical certification.",
+        "Original failures informed training categories; originals remain regression tests, not unseen certification.",
+        "No business tools execute here. Native permission, tenant, confirmation and audit tests remain required.",
+        "Passing model targets does not authorize production activation."
+      ],
+      "label": "design-workflow-candidate-shared-v5-final",
+      "model_id": "chat-ai-shared-qwen08-v5-en-fr-20261010",
+      "snapshot_sha256": "4bb23c2a24f4434663f54c8dfbf94f55f00557a91115ed9d08f84a5ec95de045",
+      "events_sha256": "0e63f96a45844a4a568a7880b83941e7a453d46960d4f88ba14c617008001b35",
+      "frozen_evaluator_sha256": "dca2abf86b2162ccd99b868108dd957f5ef600fe196a5bf9f21b15cafa4fbe7b",
+      "acceptance_script_sha256": "c9efde5b48a32d2900ed581477e65e677865a875b08400fe67fe70a521fcaebc"
+    },
+    "facturation-candidate-shared-v5-final": {
+      "metrics": {
+        "count": 80,
+        "counts": {
+          "tool_correct": 73,
+          "structured_valid": 78,
+          "action_matches": 60
+        },
+        "percent": {
+          "tool_correct": 91.25,
+          "structured_valid": 97.5,
+          "action_matches": 75.0
+        },
+        "exact_arguments": {
+          "passed": 51,
+          "count": 66,
+          "percent": 77.27
+        }
+      },
+      "targets": {
+        "tool_selection": false,
+        "exact_arguments": false,
+        "structured_output": false,
+        "clarification_reason_and_language": false,
+        "critical_model_cases": false
+      },
+      "model_targets_passed": false,
+      "clarifications": {
+        "count": 10,
+        "counts": {
+          "tool_correct": 6,
+          "structured_valid": 8,
+          "action_matches": 5
+        },
+        "percent": {
+          "tool_correct": 60.0,
+          "structured_valid": 80.0,
+          "action_matches": 50.0
+        },
+        "exact_arguments": {
+          "passed": 0,
+          "count": 0,
+          "percent": null
+        }
+      },
+      "critical_model_cases": {
+        "count": 14,
+        "counts": {
+          "tool_correct": 10,
+          "structured_valid": 12,
+          "action_matches": 8
+        },
+        "percent": {
+          "tool_correct": 71.43,
+          "structured_valid": 85.71,
+          "action_matches": 57.14
+        },
+        "exact_arguments": {
+          "passed": 3,
+          "count": 4,
+          "percent": 75.0
+        }
+      },
+      "by_language": {
+        "en": {
+          "count": 40,
+          "counts": {
+            "tool_correct": 36,
+            "structured_valid": 39,
+            "action_matches": 29
+          },
+          "percent": {
+            "tool_correct": 90.0,
+            "structured_valid": 97.5,
+            "action_matches": 72.5
+          },
+          "exact_arguments": {
+            "passed": 25,
+            "count": 33,
+            "percent": 75.76
+          }
+        },
+        "fr": {
+          "count": 40,
+          "counts": {
+            "tool_correct": 37,
+            "structured_valid": 39,
+            "action_matches": 31
+          },
+          "percent": {
+            "tool_correct": 92.5,
+            "structured_valid": 97.5,
+            "action_matches": 77.5
+          },
+          "exact_arguments": {
+            "passed": 26,
+            "count": 33,
+            "percent": 78.79
+          }
+        }
+      },
+      "by_reporting_group": {
+        "capability_boundary": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 4,
+            "structured_valid": 4,
+            "action_matches": 4
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        },
+        "catalog_filters": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 4,
+            "structured_valid": 4,
+            "action_matches": 4
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 4,
+            "count": 4,
+            "percent": 100.0
+          }
+        },
+        "confirmed_mutation_proposal": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 4,
+            "structured_valid": 4,
+            "action_matches": 3
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 75.0
+          },
+          "exact_arguments": {
+            "passed": 3,
+            "count": 4,
+            "percent": 75.0
+          }
+        },
+        "customer_lookup": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "structured_valid": 2,
+            "action_matches": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        },
+        "document_filters": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 4,
+            "structured_valid": 4,
+            "action_matches": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 50.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 4,
+            "percent": 50.0
+          }
+        },
+        "exact_reference": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 4,
+            "structured_valid": 4,
+            "action_matches": 4
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 4,
+            "count": 4,
+            "percent": 100.0
+          }
+        },
+        "explicit_record_reference": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "structured_valid": 2,
+            "action_matches": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        },
+        "financial_metric": {
+          "count": 8,
+          "counts": {
+            "tool_correct": 8,
+            "structured_valid": 8,
+            "action_matches": 8
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 8,
+            "count": 8,
+            "percent": 100.0
+          }
+        },
+        "language_switch_clarification": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 2,
+            "structured_valid": 4,
+            "action_matches": 1
+          },
+          "percent": {
+            "tool_correct": 50.0,
+            "structured_valid": 100.0,
+            "action_matches": 25.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        },
+        "mutation_target_discovery": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "structured_valid": 2,
+            "action_matches": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        },
+        "navigation": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 4,
+            "structured_valid": 4,
+            "action_matches": 4
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 4,
+            "count": 4,
+            "percent": 100.0
+          }
+        },
+        "operational_filters": {
+          "count": 10,
+          "counts": {
+            "tool_correct": 10,
+            "structured_valid": 10,
+            "action_matches": 6
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 60.0
+          },
+          "exact_arguments": {
+            "passed": 6,
+            "count": 10,
+            "percent": 60.0
+          }
+        },
+        "page_context": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 4,
+            "structured_valid": 4,
+            "action_matches": 4
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 4,
+            "count": 4,
+            "percent": 100.0
+          }
+        },
+        "payment_filters": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 4,
+            "structured_valid": 4,
+            "action_matches": 1
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 25.0
+          },
+          "exact_arguments": {
+            "passed": 1,
+            "count": 4,
+            "percent": 25.0
+          }
+        },
+        "payment_listing": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "structured_valid": 2,
+            "action_matches": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        },
+        "printing": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "structured_valid": 2,
+            "action_matches": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        },
+        "relative_search_dates": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "structured_valid": 2,
+            "action_matches": 0
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 0.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 2,
+            "percent": 0.0
+          }
+        },
+        "staff_lookup": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "structured_valid": 2,
+            "action_matches": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        },
+        "structured_memory": {
+          "count": 6,
+          "counts": {
+            "tool_correct": 3,
+            "structured_valid": 6,
+            "action_matches": 3
+          },
+          "percent": {
+            "tool_correct": 50.0,
+            "structured_valid": 100.0,
+            "action_matches": 50.0
+          },
+          "exact_arguments": {
+            "passed": 3,
+            "count": 6,
+            "percent": 50.0
+          }
+        },
+        "unsupported_operation": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 0,
+            "structured_valid": 0,
+            "action_matches": 0
+          },
+          "percent": {
+            "tool_correct": 0.0,
+            "structured_valid": 0.0,
+            "action_matches": 0.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        },
+        "workflow_knowledge": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 4,
+            "structured_valid": 4,
+            "action_matches": 4
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        }
+      },
+      "distinct_bilingual_scenario_ids": 40,
+      "failures": [
+        {
+          "id": "acceptance-invoice_combined-en",
+          "group": "document_filters",
+          "critical": false,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "acceptance-invoice_combined-fr",
+          "group": "document_filters",
+          "critical": false,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "acceptance-delivery_relative_dates-en",
+          "group": "relative_search_dates",
+          "critical": false,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "acceptance-delivery_relative_dates-fr",
+          "group": "relative_search_dates",
+          "critical": false,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "acceptance-valid_payment-en",
+          "group": "payment_filters",
+          "critical": false,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "acceptance-valid_payment-fr",
+          "group": "payment_filters",
+          "critical": false,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "acceptance-cancelled_payments-en",
+          "group": "payment_filters",
+          "critical": false,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "acceptance-stock_minimum-en",
+          "group": "operational_filters",
+          "critical": false,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "acceptance-stock_minimum-fr",
+          "group": "operational_filters",
+          "critical": false,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "acceptance-stock_inventory-fr",
+          "group": "operational_filters",
+          "critical": false,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "acceptance-logistics_transit-fr",
+          "group": "operational_filters",
+          "critical": false,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "acceptance-previous_unpaid-en",
+          "group": "structured_memory",
+          "critical": false,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "acceptance-previous_unpaid-fr",
+          "group": "structured_memory",
+          "critical": false,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "acceptance-previous_articles-en",
+          "group": "structured_memory",
+          "critical": false,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "acceptance-edit_invoice_labels-en",
+          "group": "confirmed_mutation_proposal",
+          "critical": true,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "acceptance-ambiguous_income_switch-en",
+          "group": "language_switch_clarification",
+          "critical": true,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "acceptance-missing_year_switch-en",
+          "group": "language_switch_clarification",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "acceptance-missing_year_switch-fr",
+          "group": "language_switch_clarification",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "acceptance-unsupported_stock_write-en",
+          "group": "unsupported_operation",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": false
+        },
+        {
+          "id": "acceptance-unsupported_stock_write-fr",
+          "group": "unsupported_operation",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": false
+        }
+      ],
+      "native_backend_security_verified": null,
+      "limitations": [
+        "Separate analysis of frozen events; original benchmark files and scores are unchanged.",
+        "All clarification reason/language and proposed-change arguments must match their labels.",
+        "Knowledge queries are checked only for nonempty text; retrieval factuality is not measured here.",
+        "Bilingual pairs share scenarios; scenario count is not independent statistical certification.",
+        "Original failures informed training categories; originals remain regression tests, not unseen certification.",
+        "No business tools execute here. Native permission, tenant, confirmation and audit tests remain required.",
+        "Passing model targets does not authorize production activation."
+      ],
+      "label": "facturation-candidate-shared-v5-final",
+      "model_id": "chat-ai-shared-qwen08-v5-en-fr-20261010",
+      "snapshot_sha256": "91ca4ad072df31a651c8a87ea51dd9349d0f937f2701bcab3da868d01cfa479a",
+      "events_sha256": "902ed0481277dfd60e9ba42858e15eabdc4ff7118a0362493538bae7b29014ff",
+      "frozen_evaluator_sha256": "dca2abf86b2162ccd99b868108dd957f5ef600fe196a5bf9f21b15cafa4fbe7b",
+      "acceptance_script_sha256": "c9efde5b48a32d2900ed581477e65e677865a875b08400fe67fe70a521fcaebc"
+    },
+    "management-projet-companion-shared-v5": {
+      "metrics": {
+        "count": 20,
+        "counts": {
+          "tool_correct": 19,
+          "structured_valid": 20,
+          "action_matches": 15
+        },
+        "percent": {
+          "tool_correct": 95.0,
+          "structured_valid": 100.0,
+          "action_matches": 75.0
+        },
+        "exact_arguments": {
+          "passed": 11,
+          "count": 14,
+          "percent": 78.57
+        }
+      },
+      "targets": {
+        "tool_selection": true,
+        "exact_arguments": false,
+        "structured_output": true,
+        "clarification_reason_and_language": false,
+        "critical_model_cases": false
+      },
+      "model_targets_passed": false,
+      "clarifications": {
+        "count": 6,
+        "counts": {
+          "tool_correct": 6,
+          "structured_valid": 6,
+          "action_matches": 4
+        },
+        "percent": {
+          "tool_correct": 100.0,
+          "structured_valid": 100.0,
+          "action_matches": 66.67
+        },
+        "exact_arguments": {
+          "passed": 0,
+          "count": 0,
+          "percent": null
+        }
+      },
+      "critical_model_cases": {
+        "count": 8,
+        "counts": {
+          "tool_correct": 7,
+          "structured_valid": 8,
+          "action_matches": 5
+        },
+        "percent": {
+          "tool_correct": 87.5,
+          "structured_valid": 100.0,
+          "action_matches": 62.5
+        },
+        "exact_arguments": {
+          "passed": 1,
+          "count": 2,
+          "percent": 50.0
+        }
+      },
+      "by_language": {
+        "en": {
+          "count": 10,
+          "counts": {
+            "tool_correct": 9,
+            "structured_valid": 10,
+            "action_matches": 7
+          },
+          "percent": {
+            "tool_correct": 90.0,
+            "structured_valid": 100.0,
+            "action_matches": 70.0
+          },
+          "exact_arguments": {
+            "passed": 5,
+            "count": 7,
+            "percent": 71.43
+          }
+        },
+        "fr": {
+          "count": 10,
+          "counts": {
+            "tool_correct": 10,
+            "structured_valid": 10,
+            "action_matches": 8
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 80.0
+          },
+          "exact_arguments": {
+            "passed": 6,
+            "count": 7,
+            "percent": 85.71
+          }
+        }
+      },
+      "by_reporting_group": {
+        "authorized_change": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 1,
+            "structured_valid": 2,
+            "action_matches": 1
+          },
+          "percent": {
+            "tool_correct": 50.0,
+            "structured_valid": 100.0,
+            "action_matches": 50.0
+          },
+          "exact_arguments": {
+            "passed": 1,
+            "count": 2,
+            "percent": 50.0
+          }
+        },
+        "conversation_context": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "structured_valid": 2,
+            "action_matches": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        },
+        "financial_clarification": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "structured_valid": 2,
+            "action_matches": 0
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 0.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        },
+        "financial_summary": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 4,
+            "structured_valid": 4,
+            "action_matches": 4
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 4,
+            "count": 4,
+            "percent": 100.0
+          }
+        },
+        "permission_denial": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "structured_valid": 2,
+            "action_matches": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        },
+        "previous_results_navigation": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "structured_valid": 2,
+            "action_matches": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        },
+        "record_search": {
+          "count": 4,
+          "counts": {
+            "tool_correct": 4,
+            "structured_valid": 4,
+            "action_matches": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 50.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 4,
+            "percent": 50.0
+          }
+        },
+        "unsupported_request": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "structured_valid": 2,
+            "action_matches": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        }
+      },
+      "distinct_bilingual_scenario_ids": 10,
+      "failures": [
+        {
+          "id": "v2-audit-filter-fr",
+          "group": "record_search",
+          "critical": false,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "v2-audit-filter-en",
+          "group": "record_search",
+          "critical": false,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "v2-audit-change-en",
+          "group": "authorized_change",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "v2-audit-ambiguous-fr",
+          "group": "financial_clarification",
+          "critical": true,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "v2-audit-ambiguous-en",
+          "group": "financial_clarification",
+          "critical": true,
+          "tool_correct": true,
+          "structured_valid": true
+        }
+      ],
+      "native_backend_security_verified": null,
+      "limitations": [
+        "Separate analysis of frozen events; original benchmark files and scores are unchanged.",
+        "All clarification reason/language and proposed-change arguments must match their labels.",
+        "Knowledge queries are checked only for nonempty text; retrieval factuality is not measured here.",
+        "Bilingual pairs share scenarios; scenario count is not independent statistical certification.",
+        "Original failures informed training categories; originals remain regression tests, not unseen certification.",
+        "No business tools execute here. Native permission, tenant, confirmation and audit tests remain required.",
+        "Passing model targets does not authorize production activation."
+      ],
+      "label": "management-projet-companion-shared-v5",
+      "model_id": "chat-ai-shared-qwen08-v5-en-fr-20261010",
+      "snapshot_sha256": "c4586a2c6459e02c63557f1e693a5212b51c507eba80d32f2661128a25c3f5d8",
+      "events_sha256": "fb4f89839d614d6310a3b3d08d5139bcdc95962ca9c57326c1e565aef229729f",
+      "frozen_evaluator_sha256": "dca2abf86b2162ccd99b868108dd957f5ef600fe196a5bf9f21b15cafa4fbe7b",
+      "acceptance_script_sha256": "c9efde5b48a32d2900ed581477e65e677865a875b08400fe67fe70a521fcaebc"
+    },
+    "management-projet-fresh-shared-v5": {
+      "metrics": {
+        "count": 32,
+        "counts": {
+          "tool_correct": 28,
+          "structured_valid": 32,
+          "action_matches": 25
+        },
+        "percent": {
+          "tool_correct": 87.5,
+          "structured_valid": 100.0,
+          "action_matches": 78.12
+        },
+        "exact_arguments": {
+          "passed": 23,
+          "count": 26,
+          "percent": 88.46
+        }
+      },
+      "targets": {
+        "tool_selection": false,
+        "exact_arguments": false,
+        "structured_output": true,
+        "clarification_reason_and_language": false,
+        "critical_model_cases": false
+      },
+      "model_targets_passed": false,
+      "clarifications": {
+        "count": 6,
+        "counts": {
+          "tool_correct": 4,
+          "structured_valid": 6,
+          "action_matches": 2
+        },
+        "percent": {
+          "tool_correct": 66.67,
+          "structured_valid": 100.0,
+          "action_matches": 33.33
+        },
+        "exact_arguments": {
+          "passed": 0,
+          "count": 0,
+          "percent": null
+        }
+      },
+      "critical_model_cases": {
+        "count": 8,
+        "counts": {
+          "tool_correct": 4,
+          "structured_valid": 8,
+          "action_matches": 2
+        },
+        "percent": {
+          "tool_correct": 50.0,
+          "structured_valid": 100.0,
+          "action_matches": 25.0
+        },
+        "exact_arguments": {
+          "passed": 0,
+          "count": 2,
+          "percent": 0.0
+        }
+      },
+      "by_language": {
+        "en": {
+          "count": 16,
+          "counts": {
+            "tool_correct": 14,
+            "structured_valid": 16,
+            "action_matches": 13
+          },
+          "percent": {
+            "tool_correct": 87.5,
+            "structured_valid": 100.0,
+            "action_matches": 81.25
+          },
+          "exact_arguments": {
+            "passed": 12,
+            "count": 13,
+            "percent": 92.31
+          }
+        },
+        "fr": {
+          "count": 16,
+          "counts": {
+            "tool_correct": 14,
+            "structured_valid": 16,
+            "action_matches": 12
+          },
+          "percent": {
+            "tool_correct": 87.5,
+            "structured_valid": 100.0,
+            "action_matches": 75.0
+          },
+          "exact_arguments": {
+            "passed": 11,
+            "count": 13,
+            "percent": 84.62
+          }
+        }
+      },
+      "by_reporting_group": {
+        "authorized_change": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 0,
+            "structured_valid": 2,
+            "action_matches": 0
+          },
+          "percent": {
+            "tool_correct": 0.0,
+            "structured_valid": 100.0,
+            "action_matches": 0.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 2,
+            "percent": 0.0
+          }
+        },
+        "conversation_context": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "structured_valid": 2,
+            "action_matches": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        },
+        "financial_clarification": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "structured_valid": 2,
+            "action_matches": 0
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 0.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        },
+        "financial_summary": {
+          "count": 10,
+          "counts": {
+            "tool_correct": 10,
+            "structured_valid": 10,
+            "action_matches": 10
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 10,
+            "count": 10,
+            "percent": 100.0
+          }
+        },
+        "period_clarification": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 0,
+            "structured_valid": 2,
+            "action_matches": 0
+          },
+          "percent": {
+            "tool_correct": 0.0,
+            "structured_valid": 100.0,
+            "action_matches": 0.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        },
+        "permission_denial": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "structured_valid": 2,
+            "action_matches": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        },
+        "record_search": {
+          "count": 12,
+          "counts": {
+            "tool_correct": 12,
+            "structured_valid": 12,
+            "action_matches": 11
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 91.67
+          },
+          "exact_arguments": {
+            "passed": 11,
+            "count": 12,
+            "percent": 91.67
+          }
+        }
+      },
+      "distinct_bilingual_scenario_ids": 16,
+      "failures": [
+        {
+          "id": "management-projet-v3-en-fr-audit-list-fr",
+          "group": "record_search",
+          "critical": false,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "management-projet-v3-en-fr-audit-edit-fr",
+          "group": "authorized_change",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "management-projet-v3-en-fr-audit-edit-en",
+          "group": "authorized_change",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "management-projet-v3-en-fr-audit-ambiguous-fr",
+          "group": "financial_clarification",
+          "critical": true,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "management-projet-v3-en-fr-audit-ambiguous-en",
+          "group": "financial_clarification",
+          "critical": true,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "management-projet-v3-en-fr-audit-year-fr",
+          "group": "period_clarification",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "management-projet-v3-en-fr-audit-year-en",
+          "group": "period_clarification",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        }
+      ],
+      "native_backend_security_verified": null,
+      "limitations": [
+        "Separate analysis of frozen events; original benchmark files and scores are unchanged.",
+        "All clarification reason/language and proposed-change arguments must match their labels.",
+        "Knowledge queries are checked only for nonempty text; retrieval factuality is not measured here.",
+        "Bilingual pairs share scenarios; scenario count is not independent statistical certification.",
+        "Original failures informed training categories; originals remain regression tests, not unseen certification.",
+        "No business tools execute here. Native permission, tenant, confirmation and audit tests remain required.",
+        "Passing model targets does not authorize production activation."
+      ],
+      "label": "management-projet-fresh-shared-v5",
+      "model_id": "chat-ai-shared-qwen08-v5-en-fr-20261010",
+      "snapshot_sha256": "12e224a326a40fb185b5bf10cd1b7e38339ca3fa955f72ed3da678fe8df98f41",
+      "events_sha256": "b09dbad1c8615784e199793275a55ca46cc0593cd27bbf2995a713477c1afce7",
+      "frozen_evaluator_sha256": "dca2abf86b2162ccd99b868108dd957f5ef600fe196a5bf9f21b15cafa4fbe7b",
+      "acceptance_script_sha256": "c9efde5b48a32d2900ed581477e65e677865a875b08400fe67fe70a521fcaebc"
+    },
+    "design-workflow-fresh-shared-v5": {
+      "metrics": {
+        "count": 24,
+        "counts": {
+          "tool_correct": 21,
+          "structured_valid": 23,
+          "action_matches": 20
+        },
+        "percent": {
+          "tool_correct": 87.5,
+          "structured_valid": 95.83,
+          "action_matches": 83.33
+        },
+        "exact_arguments": {
+          "passed": 16,
+          "count": 18,
+          "percent": 88.89
+        }
+      },
+      "targets": {
+        "tool_selection": false,
+        "exact_arguments": false,
+        "structured_output": false,
+        "clarification_reason_and_language": false,
+        "critical_model_cases": false
+      },
+      "model_targets_passed": false,
+      "clarifications": {
+        "count": 6,
+        "counts": {
+          "tool_correct": 4,
+          "structured_valid": 6,
+          "action_matches": 4
+        },
+        "percent": {
+          "tool_correct": 66.67,
+          "structured_valid": 100.0,
+          "action_matches": 66.67
+        },
+        "exact_arguments": {
+          "passed": 0,
+          "count": 0,
+          "percent": null
+        }
+      },
+      "critical_model_cases": {
+        "count": 8,
+        "counts": {
+          "tool_correct": 6,
+          "structured_valid": 8,
+          "action_matches": 6
+        },
+        "percent": {
+          "tool_correct": 75.0,
+          "structured_valid": 100.0,
+          "action_matches": 75.0
+        },
+        "exact_arguments": {
+          "passed": 2,
+          "count": 2,
+          "percent": 100.0
+        }
+      },
+      "by_language": {
+        "en": {
+          "count": 12,
+          "counts": {
+            "tool_correct": 11,
+            "structured_valid": 12,
+            "action_matches": 10
+          },
+          "percent": {
+            "tool_correct": 91.67,
+            "structured_valid": 100.0,
+            "action_matches": 83.33
+          },
+          "exact_arguments": {
+            "passed": 8,
+            "count": 9,
+            "percent": 88.89
+          }
+        },
+        "fr": {
+          "count": 12,
+          "counts": {
+            "tool_correct": 10,
+            "structured_valid": 11,
+            "action_matches": 10
+          },
+          "percent": {
+            "tool_correct": 83.33,
+            "structured_valid": 91.67,
+            "action_matches": 83.33
+          },
+          "exact_arguments": {
+            "passed": 8,
+            "count": 9,
+            "percent": 88.89
+          }
+        }
+      },
+      "by_reporting_group": {
+        "authorized_change": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "structured_valid": 2,
+            "action_matches": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        },
+        "conversation_context": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "structured_valid": 2,
+            "action_matches": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        },
+        "navigation": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "structured_valid": 2,
+            "action_matches": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        },
+        "period_clarification": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 0,
+            "structured_valid": 2,
+            "action_matches": 0
+          },
+          "percent": {
+            "tool_correct": 0.0,
+            "structured_valid": 100.0,
+            "action_matches": 0.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        },
+        "permission_denial": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "structured_valid": 2,
+            "action_matches": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        },
+        "record_search": {
+          "count": 8,
+          "counts": {
+            "tool_correct": 7,
+            "structured_valid": 7,
+            "action_matches": 6
+          },
+          "percent": {
+            "tool_correct": 87.5,
+            "structured_valid": 87.5,
+            "action_matches": 75.0
+          },
+          "exact_arguments": {
+            "passed": 6,
+            "count": 8,
+            "percent": 75.0
+          }
+        },
+        "time_report": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "structured_valid": 2,
+            "action_matches": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        },
+        "unsupported_destructive_request": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "structured_valid": 2,
+            "action_matches": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 0,
+            "count": 0,
+            "percent": null
+          }
+        },
+        "workload_summary": {
+          "count": 2,
+          "counts": {
+            "tool_correct": 2,
+            "structured_valid": 2,
+            "action_matches": 2
+          },
+          "percent": {
+            "tool_correct": 100.0,
+            "structured_valid": 100.0,
+            "action_matches": 100.0
+          },
+          "exact_arguments": {
+            "passed": 2,
+            "count": 2,
+            "percent": 100.0
+          }
+        }
+      },
+      "distinct_bilingual_scenario_ids": 12,
+      "failures": [
+        {
+          "id": "design-workflow-v2-en-fr-audit-archives-fr",
+          "group": "record_search",
+          "critical": false,
+          "tool_correct": false,
+          "structured_valid": false
+        },
+        {
+          "id": "design-workflow-v2-en-fr-audit-archives-en",
+          "group": "record_search",
+          "critical": false,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "design-workflow-v2-en-fr-audit-year-fr",
+          "group": "period_clarification",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "design-workflow-v2-en-fr-audit-year-en",
+          "group": "period_clarification",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        }
+      ],
+      "native_backend_security_verified": null,
+      "limitations": [
+        "Separate analysis of frozen events; original benchmark files and scores are unchanged.",
+        "All clarification reason/language and proposed-change arguments must match their labels.",
+        "Knowledge queries are checked only for nonempty text; retrieval factuality is not measured here.",
+        "Bilingual pairs share scenarios; scenario count is not independent statistical certification.",
+        "Original failures informed training categories; originals remain regression tests, not unseen certification.",
+        "No business tools execute here. Native permission, tenant, confirmation and audit tests remain required.",
+        "Passing model targets does not authorize production activation."
+      ],
+      "label": "design-workflow-fresh-shared-v5",
+      "model_id": "chat-ai-shared-qwen08-v5-en-fr-20261010",
+      "snapshot_sha256": "68fca7d1c02da3f6755e71ba016c235c5c0df1d16ff560730f210e281355dea9",
+      "events_sha256": "5078420257d41bf0b6a3803e2f9a3302393f15bb8e68fb53aeac37dcd9349152",
+      "frozen_evaluator_sha256": "dca2abf86b2162ccd99b868108dd957f5ef600fe196a5bf9f21b15cafa4fbe7b",
+      "acceptance_script_sha256": "c9efde5b48a32d2900ed581477e65e677865a875b08400fe67fe70a521fcaebc"
+    },
+    "management-projet-new-holdout-shared-v5": {
+      "metrics": {
+        "count": 32,
+        "counts": {
+          "tool_correct": 25,
+          "structured_valid": 30,
+          "action_matches": 22
+        },
+        "percent": {
+          "tool_correct": 78.12,
+          "structured_valid": 93.75,
+          "action_matches": 68.75
+        },
+        "exact_arguments": {
+          "passed": 15,
+          "count": 20,
+          "percent": 75.0
+        }
+      },
+      "targets": {
+        "tool_selection": false,
+        "exact_arguments": false,
+        "structured_output": false,
+        "clarification_reason_and_language": false,
+        "critical_model_cases": false
+      },
+      "model_targets_passed": false,
+      "clarifications": {
+        "count": 10,
+        "counts": {
+          "tool_correct": 5,
+          "structured_valid": 10,
+          "action_matches": 5
+        },
+        "percent": {
+          "tool_correct": 50.0,
+          "structured_valid": 100.0,
+          "action_matches": 50.0
+        },
+        "exact_arguments": {
+          "passed": 0,
+          "count": 0,
+          "percent": null
+        }
+      },
+      "critical_model_cases": {
+        "count": 12,
+        "counts": {
+          "tool_correct": 7,
+          "structured_valid": 12,
+          "action_matches": 7
+        },
+        "percent": {
+          "tool_correct": 58.33,
+          "structured_valid": 100.0,
+          "action_matches": 58.33
+        },
+        "exact_arguments": {
+          "passed": 2,
+          "count": 2,
+          "percent": 100.0
+        }
+      },
+      "by_language": {
+        "en": {
+          "count": 16,
+          "counts": {
+            "tool_correct": 12,
+            "structured_valid": 14,
+            "action_matches": 12
+          },
+          "percent": {
+            "tool_correct": 75.0,
+            "structured_valid": 87.5,
+            "action_matches": 75.0
+          },
+          "exact_arguments": {
+            "passed": 8,
+            "count": 10,
+            "percent": 80.0
+          }
+        },
+        "fr": {
+          "count": 16,
+          "counts": {
+            "tool_correct": 13,
+            "structured_valid": 16,
+            "action_matches": 10
+          },
+          "percent": {
+            "tool_correct": 81.25,
+            "structured_valid": 100.0,
+            "action_matches": 62.5
+          },
+          "exact_arguments": {
+            "passed": 7,
+            "count": 10,
+            "percent": 70.0
+          }
+        }
+      },
+      "by_reporting_group": {
+        "fresh": {
+          "count": 32,
+          "counts": {
+            "tool_correct": 25,
+            "structured_valid": 30,
+            "action_matches": 22
+          },
+          "percent": {
+            "tool_correct": 78.12,
+            "structured_valid": 93.75,
+            "action_matches": 68.75
+          },
+          "exact_arguments": {
+            "passed": 15,
+            "count": 20,
+            "percent": 75.0
+          }
+        }
+      },
+      "distinct_bilingual_scenario_ids": 16,
+      "failures": [
+        {
+          "id": "management-projet-v4-en-fr-fresh-records-fr",
+          "group": "fresh",
+          "critical": false,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "management-projet-v4-en-fr-fresh-upper-fr",
+          "group": "fresh",
+          "critical": false,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "management-projet-v4-en-fr-fresh-stage-fr",
+          "group": "fresh",
+          "critical": false,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "management-projet-v4-en-fr-fresh-stage-en",
+          "group": "fresh",
+          "critical": false,
+          "tool_correct": false,
+          "structured_valid": false
+        },
+        {
+          "id": "management-projet-v4-en-fr-fresh-earned-fr",
+          "group": "fresh",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "management-projet-v4-en-fr-fresh-supplier-total-fr",
+          "group": "fresh",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "management-projet-v4-en-fr-fresh-supplier-total-en",
+          "group": "fresh",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "management-projet-v4-en-fr-fresh-quote-number-en",
+          "group": "fresh",
+          "critical": false,
+          "tool_correct": false,
+          "structured_valid": false
+        },
+        {
+          "id": "management-projet-v4-en-fr-fresh-missing-year-fr",
+          "group": "fresh",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "management-projet-v4-en-fr-fresh-missing-year-en",
+          "group": "fresh",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        }
+      ],
+      "native_backend_security_verified": null,
+      "limitations": [
+        "Separate analysis of frozen events; original benchmark files and scores are unchanged.",
+        "All clarification reason/language and proposed-change arguments must match their labels.",
+        "Knowledge queries are checked only for nonempty text; retrieval factuality is not measured here.",
+        "Bilingual pairs share scenarios; scenario count is not independent statistical certification.",
+        "Original failures informed training categories; originals remain regression tests, not unseen certification.",
+        "No business tools execute here. Native permission, tenant, confirmation and audit tests remain required.",
+        "Passing model targets does not authorize production activation."
+      ],
+      "label": "management-projet-new-holdout-shared-v5",
+      "model_id": "chat-ai-shared-qwen08-v5-en-fr-20261010",
+      "snapshot_sha256": "993a0bc3aed974fd52b04941efd8e06ee865bc7d7e98761dda6e0d1f7b9dc8e1",
+      "events_sha256": "89936d686c7765624cb3ae21a1ce9d92882231d7aabb23a0e7f847286748e5a0",
+      "frozen_evaluator_sha256": "dca2abf86b2162ccd99b868108dd957f5ef600fe196a5bf9f21b15cafa4fbe7b",
+      "acceptance_script_sha256": "c9efde5b48a32d2900ed581477e65e677865a875b08400fe67fe70a521fcaebc"
+    },
+    "design-workflow-new-holdout-shared-v5": {
+      "metrics": {
+        "count": 20,
+        "counts": {
+          "tool_correct": 18,
+          "structured_valid": 20,
+          "action_matches": 15
+        },
+        "percent": {
+          "tool_correct": 90.0,
+          "structured_valid": 100.0,
+          "action_matches": 75.0
+        },
+        "exact_arguments": {
+          "passed": 11,
+          "count": 14,
+          "percent": 78.57
+        }
+      },
+      "targets": {
+        "tool_selection": false,
+        "exact_arguments": false,
+        "structured_output": true,
+        "clarification_reason_and_language": false,
+        "critical_model_cases": false
+      },
+      "model_targets_passed": false,
+      "clarifications": {
+        "count": 6,
+        "counts": {
+          "tool_correct": 4,
+          "structured_valid": 6,
+          "action_matches": 4
+        },
+        "percent": {
+          "tool_correct": 66.67,
+          "structured_valid": 100.0,
+          "action_matches": 66.67
+        },
+        "exact_arguments": {
+          "passed": 0,
+          "count": 0,
+          "percent": null
+        }
+      },
+      "critical_model_cases": {
+        "count": 8,
+        "counts": {
+          "tool_correct": 6,
+          "structured_valid": 8,
+          "action_matches": 6
+        },
+        "percent": {
+          "tool_correct": 75.0,
+          "structured_valid": 100.0,
+          "action_matches": 75.0
+        },
+        "exact_arguments": {
+          "passed": 2,
+          "count": 2,
+          "percent": 100.0
+        }
+      },
+      "by_language": {
+        "en": {
+          "count": 10,
+          "counts": {
+            "tool_correct": 9,
+            "structured_valid": 10,
+            "action_matches": 7
+          },
+          "percent": {
+            "tool_correct": 90.0,
+            "structured_valid": 100.0,
+            "action_matches": 70.0
+          },
+          "exact_arguments": {
+            "passed": 5,
+            "count": 7,
+            "percent": 71.43
+          }
+        },
+        "fr": {
+          "count": 10,
+          "counts": {
+            "tool_correct": 9,
+            "structured_valid": 10,
+            "action_matches": 8
+          },
+          "percent": {
+            "tool_correct": 90.0,
+            "structured_valid": 100.0,
+            "action_matches": 80.0
+          },
+          "exact_arguments": {
+            "passed": 6,
+            "count": 7,
+            "percent": 85.71
+          }
+        }
+      },
+      "by_reporting_group": {
+        "fresh": {
+          "count": 20,
+          "counts": {
+            "tool_correct": 18,
+            "structured_valid": 20,
+            "action_matches": 15
+          },
+          "percent": {
+            "tool_correct": 90.0,
+            "structured_valid": 100.0,
+            "action_matches": 75.0
+          },
+          "exact_arguments": {
+            "passed": 11,
+            "count": 14,
+            "percent": 78.57
+          }
+        }
+      },
+      "distinct_bilingual_scenario_ids": 10,
+      "failures": [
+        {
+          "id": "design-workflow-v3-en-fr-fresh-assignee-fr",
+          "group": "fresh",
+          "critical": false,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "design-workflow-v3-en-fr-fresh-assignee-en",
+          "group": "fresh",
+          "critical": false,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "design-workflow-v3-en-fr-fresh-blocked-en",
+          "group": "fresh",
+          "critical": false,
+          "tool_correct": true,
+          "structured_valid": true
+        },
+        {
+          "id": "design-workflow-v3-en-fr-fresh-year-fr",
+          "group": "fresh",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        },
+        {
+          "id": "design-workflow-v3-en-fr-fresh-year-en",
+          "group": "fresh",
+          "critical": true,
+          "tool_correct": false,
+          "structured_valid": true
+        }
+      ],
+      "native_backend_security_verified": null,
+      "limitations": [
+        "Separate analysis of frozen events; original benchmark files and scores are unchanged.",
+        "All clarification reason/language and proposed-change arguments must match their labels.",
+        "Knowledge queries are checked only for nonempty text; retrieval factuality is not measured here.",
+        "Bilingual pairs share scenarios; scenario count is not independent statistical certification.",
+        "Original failures informed training categories; originals remain regression tests, not unseen certification.",
+        "No business tools execute here. Native permission, tenant, confirmation and audit tests remain required.",
+        "Passing model targets does not authorize production activation."
+      ],
+      "label": "design-workflow-new-holdout-shared-v5",
+      "model_id": "chat-ai-shared-qwen08-v5-en-fr-20261010",
+      "snapshot_sha256": "67632837aa5a9069a1fddcb503569e0f1c8f48dfc10ae65b54e3da2d188b58fb",
+      "events_sha256": "c8ae361a442d495c48eccef20d305d92a70642fc18e6abb10384ac3871026fb1",
+      "frozen_evaluator_sha256": "dca2abf86b2162ccd99b868108dd957f5ef600fe196a5bf9f21b15cafa4fbe7b",
+      "acceptance_script_sha256": "c9efde5b48a32d2900ed581477e65e677865a875b08400fe67fe70a521fcaebc"
+    }
+  },
+  "limitations": [
+    "Original regressions and earlier companion tests informed curriculum development; they are not unseen certification.",
+    "Newest Management Projet and Design Workflow hold-outs were frozen before V5 training.",
+    "No business tools execute during model evaluation. Native authorization remains authoritative.",
+    "Diagnostics are separate from these unchanged frozen scores."
+  ]
+}

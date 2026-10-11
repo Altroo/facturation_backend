@@ -157,7 +157,7 @@ class ChatAIConversationService:
             if conv.messages.count()>=60:raise ChatAIError('CONTEXT_LIMIT')
             user_message,created=Message.objects.get_or_create(conversation=conv,request_id=request_id,role='user',defaults={'text':text})
             if not created and user_message.text!=text:raise ChatAIError('INVALID_ARGUMENTS')
-            executor=ChatAIToolExecutor(user_id,conv.company_id,request_id,conv.references,context)
+            executor=ChatAIToolExecutor(user_id,conv.company_id,request_id,conv.references,context,instruction=text)
             # Only user utterances, not historic business output, enter planner context.
             history=list(conv.messages.filter(role='user').exclude(pk=user_message.pk).order_by('-created_at')[:4])
             trusted={'application':'facturation','today':timezone.localdate().isoformat(),

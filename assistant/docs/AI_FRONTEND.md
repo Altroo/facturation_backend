@@ -1,10 +1,12 @@
-# Chat AI Assistant — Facturation frontend
+# Chat AI Assistant — shared frontend and Facturation adapter
 
-Status at 2026-10-08: IMPLEMENTED, tested and deployed to Facturation through Git. Production inspection confirmed one bottom-right FAB and opening panel. The Phase1 report records the completed live workflows and remaining model/acceptance limits. No other application is integrated.
+Status at 2026-10-10: the Design Workflow-based shared MUI interface is implemented and locally verified in Facturation, Management Projet, Contracts, Gestion Magasin and Réservation. The Design Workflow interface is the visual reference. This revision is published to all configured remotes; frontend builds, deployed source checks, container health and anonymous login routes passed. Authenticated visual verification used local synthetic accounts. Management Projet, Contracts, Gestion Magasin and Réservation production activation remains disabled pending model acceptance. Réservation omits company controls; Gestion Magasin follows its native store tab. See each application progress report for native source and verification details. The existing Facturation deployment and earlier live checks are historical evidence, not verification of this new UI revision.
+
+The detailed routes, company contract, cards and historical checks below describe the Facturation adapter. Other adapters retain their native contracts and supported operations.
 
 ## Source and integration
 
-The frontend lives in `../facturation/facturation_frontend/`. The reusable Python package remains in this central repository; UI code belongs to the existing Facturation application.
+Canonical UI source lives in `frontend/chat-ai/`; `scripts/sync_frontend.py` copies or verifies byte-identical files and a checksum manifest in each existing MUI application. Native adapters retain authentication, API calls, company context, permissions and business cards. No additional design or icon library is installed. Small line icons use the existing MUI SvgIcon component.
 
 | Source | Responsibility |
 | --- | --- |
@@ -15,7 +17,7 @@ The frontend lives in `../facturation/facturation_frontend/`. The reusable Pytho
 | `src/components/chat-ai/company-context.ts` | In-memory bridge from the active application company tab. |
 | `src/components/chat-ai/api.ts` | Existing-session authenticated requests, SSE parsing, strict navigation, existing PDF downloads. |
 | `src/components/chat-ai/types.ts` | Typed API messages, cards, records, navigation, and capabilities. |
-| `src/components/chat-ai/chat-ai.module.sass` | Styling using existing Sass tokens and the current MUI primary color. |
+| `frontend/chat-ai/` and native `src/components/chat-ai/shared/` | Canonical shell, header, robot icon, message boxes, composer, shortcuts and scoped light/dark CSS. |
 
 The root also requires the existing access token, authenticated profile identifier, successful capabilities request, and a dashboard pathname. Login and other public routes do not mount the assistant. The backend independently requires its `CHAT_AI_ASSISTANT_ENABLED` flag and authenticates every request; hiding a frontend control is not authorization.
 
@@ -23,13 +25,15 @@ The panel renders through the existing MUI Portal. The workspace is keyed by aut
 
 ## Approved visual integration
 
-The UI reuses MUI, existing `TextButton`, `DarkTooltip`, `ActionModals`, `DashboardStatCard`, the application theme, and Poppins. It preserves the user-approved light-blue primary background with white floating/send icons. The earlier browser baseline measured the active primary color as `rgba(2, 116, 215, 0.5)`; the component reads the theme rather than hardcoding that color. Small text controls use the existing readable `#525256` foreground.
+The shared UI reproduces Design Workflow's Roboto typography, spacing, rounded surfaces and palette while using existing MUI primitives. Its scoped accent is `#4F46E5` in light mode and `#6159E6` in dark mode; enabled floating/send icons are white. Browser computed colors were checked against the reference. Host application theme controls remain unchanged.
 
-The FAB is 56 × 56 CSS pixels, fixed at right/bottom 24px on desktop; mobile uses right 16px and `max(16px, env(safe-area-inset-bottom))`. On logistics routes, its bottom offset becomes 96px to avoid the existing floating controls. It has an accessible name, expanded state, tooltip, focus outline, and a reduced-motion rule.
+The FAB is 56 × 56 CSS pixels, fixed at right/bottom 24px on desktop and right 16px with safe-area bottom spacing on mobile. Facturation logistics retains a 96px bottom offset. The open panel replaces the launcher and measures 392 × 602 CSS pixels, constrained by the viewport. Mobile fills the visual viewport with safe-area support; its 16px composer text avoids focus zoom. Six-line input is bounded by MUI TextareaAutosize rather than an incompatible CSS height cap. Close minimizes without discarding state; existing native dialogs take priority.
 
-The desktop panel is 440 × 630 CSS pixels, right 24px and bottom 92px, constrained to the viewport. Logistics uses bottom 164px and the corresponding smaller maximum height. Mobile is full-width and uses `visualViewport.height`/`offsetTop`, falling back to `100dvh`, plus safe-area padding. The FAB and panel use `theme.zIndex.drawer + 1` and `+ 2`; they remain below normal MUI modal stacking. There is no separate decorative minimize control or maximize feature. Close/FAB toggle hide the panel without destroying its conversation.
+The header contains the robot, application name and close button; a separate toolbar labels new conversation and history. Only applications with company tabs render a company row: Facturation keeps it, while Management Projet uses its trusted singleton context internally. User and assistant bubbles retain bold author labels at the user's request. The same bold labels are now applied to the native Design Workflow reference, as requested.
 
-The header has explicit “Nouvelle conversation” and “Historique” text controls on their own compact row. Company context is a separate row. User and assistant messages both have labeled message boxes (“Vous” and “AI Assistant”). The empty state displays complete questions supplied by the backend for the selected company and native English/French interface language. Clicking a question immediately submits its full text through the normal authenticated chat flow; it does not require a second Send click. Member suggestions cover unpaid invoices, latest quotes, recent logistics and the native “Stock minimum” status, followed by invoice-creation guidance when creation is permitted or recent validated payments otherwise. Native stock-only superuser contexts receive stock/movement questions only. The frontend does not insert extra unscoped suggestions or fictional client/product examples. Slash-menu selection still fills the composer for the user to add search details. The planner offers the saved-result follow-up tool only after a nonempty result set, so a new invoice search cannot mistakenly request nonexistent prior results. Cards retain the existing outlined Paper appearance.
+The empty state displays at most four complete, permission-filtered questions. Clicking one sends it immediately through the authenticated flow. The `/ Raccourcis` helper inserts `/` only into an empty draft, activates Send, and opens the permitted command catalogue. Existing prose is preserved; switching commands replaces only the command token. Selection fills the composer without sending; explicit Send submits it. Bare `/` returns the existing permission-filtered help in English or French. Sending, creating a conversation or leaving history closes the picker; Escape dismisses it before minimizing the panel.
+
+Both adapters preserve current-session authorization, route/company validation, streaming, cancellation, retry and confirmation/audit behavior. The shared component does not perform business operations. Screenshots and local authentication state are ignored by Git.
 
 ## Company and permission behavior
 

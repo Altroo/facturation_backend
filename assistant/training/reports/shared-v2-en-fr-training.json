@@ -1,0 +1,44 @@
+{
+  "steps": 366,
+  "threads": 10,
+  "seed": 17,
+  "lora_rank": 8,
+  "lora_alpha": 16,
+  "trainable_parameters": 1187840,
+  "dataset_sha256": "89a96b16db08b9f057b4a8a80dfa2e3b27e5c5f9ba859033838a5b24fc1db6a8",
+  "validation_sha256": "60d0c705752e685d69c8957b63c8f3013cd5614f47ba76450751d1663d9f8b77",
+  "baseline_validation_loss": 0.0928661889005785,
+  "final_validation_loss": 0.07552657633797415,
+  "duration_seconds": 3970.34782076627,
+  "peak_rss_kib": 17637220,
+  "application_exposure": {
+    "design_workflow": {
+      "steps": 122,
+      "unique_examples": 122
+    },
+    "facturation": {
+      "steps": 122,
+      "unique_examples": 122
+    },
+    "management_projet": {
+      "steps": 122,
+      "unique_examples": 82
+    }
+  },
+  "peak_rss_gib": 16.82,
+  "status": "Training, export, all retained application comparisons and CPU probe executed; acceptance targets unmet; candidate not activated.",
+  "duration_note": "Recorded wall time and any summed step timings include the user-requested pause; no uncontended training throughput is claimed.",
+  "inference": {
+    "model_id": "chat-ai-shared-qwen08-v2-en-fr-20261009",
+    "weights_sha256": "ac79c16daf38f3662189b5e85569b12286bc079ab0446b307d15cf0a7bc8bfd4",
+    "tokenizer_sha256": "a5ab4c5fca17ea9ed852f68cdcc4d583e4507086a5799861c3f66cb22a48df2c",
+    "config_sha256": "d23728a0322a445a79e1cc94553698fe2d84063f108ece16f165d7aab596b062",
+    "runtime_sha256": "e4c2fdd82767454df567176533f2547fe9ba9e5099b87afe19396f6453ecd746",
+    "ctx": 8192,
+    "max_tokens": 512,
+    "thinking": false,
+    "threads": 4,
+    "runtime_options": "Qwen engine; dense int8; GPU none; temperature 0; one KV slot"
+  },
+  "post_evaluation_artifact_verification": "Weights, tokenizer, configuration and runtime matched the pre-evaluation hashes; same isolated inference process."
+}

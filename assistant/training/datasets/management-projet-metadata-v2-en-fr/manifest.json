@@ -1,0 +1,79 @@
+{
+  "version": "management-projet-metadata-v2-en-fr",
+  "application": "management_projet",
+  "languages": [
+    "en",
+    "fr"
+  ],
+  "counts": {
+    "train": 664,
+    "valid": 54
+  },
+  "source_dataset": "management-projet-refinement-v1-en-fr",
+  "source_manifest_sha256": "c54a00d7a98544aa38d601c0775ac11b6e0967eb495bc9239ea09c1c8b933084",
+  "generator_sha256": "fb4bfac79d895699fc4d18ece140d77cfcc2f83952ad367d6012a38248b36b3d",
+  "native_sources": {
+    "chat_ai/tools.py": "4a34fe503ade55e048434ea1aae1a15a025a2578667d54e4ca35111da5d4f688",
+    "chat_ai/planner.py": "9f9551756b3c2bf8ab51f29bcbde91cc0293f0e0d0d9e3ba9f94554e662456fe",
+    "chat_ai/services.py": "075aaecccc567bd502f8270940fddbb503b6b661f86345cb7a255d7793df664f",
+    "chat_ai/shortcuts.py": "3f4968fcfaa3b9627c68e0d1884b6bfb8b289e3e924da3714f4eb40de2f3b4e8"
+  },
+  "shared_sources": {
+    "src/chat_ai_assistant/orchestrator.py": "7b85c9479ac895969f07cb5d7fa1fe7d95fd0f8eee9255222cf96635095a7c4e",
+    "src/chat_ai_assistant/routing.py": "1640f46741e967711c7af246d0766b89992c4dc63d48c7a697ef775890d4a811",
+    "src/chat_ai_assistant/calendar_context.py": "6ee2c0f63ef33c0ba8b8f1ea29fbcd5d6f1e88e4273dc40ece33dab75619aeb9",
+    "training/scripts/training_contracts.py": "3a6001309a329d3c3644d1ab608dbaf542cef7a7be91612643d157ad5ce11382",
+    "training/scripts/build_dataset_v4.py": "f5f4deb354557d007f13ea23721577ca666aecf492f662bf3233ac6f4db34476"
+  },
+  "files": {
+    "train.eval.jsonl": "a2a178ccd00c2e5348f9d3b2710b5d77ce36bbabf1226997532255eaaf674d49",
+    "train.jsonl": "14b9e7f7f2f86324429b7e477626915e3b19230b7cdf773b5c702e287aa00d56",
+    "valid.eval.jsonl": "c7dd8bea712f100d8da834fa6d7ca60fccd9dea627bf0abb84c95fd31d95e77f",
+    "valid.jsonl": "d600881616cef45a7bcfa3fe06fb89295a30e1bc59763cfe13b2fea8b4f9cd44"
+  },
+  "context_repairs": [
+    {
+      "split": "train",
+      "id": "followup-open-fr",
+      "change": "Synthetic saved IDs added in display order; ordinal label unchanged."
+    },
+    {
+      "split": "train",
+      "id": "followup-open-en",
+      "change": "Synthetic saved IDs added in display order; ordinal label unchanged."
+    },
+    {
+      "split": "train",
+      "id": "v2-ordinal-1-fr",
+      "change": "Synthetic saved IDs added in display order; ordinal label unchanged."
+    },
+    {
+      "split": "train",
+      "id": "v2-ordinal-1-en",
+      "change": "Synthetic saved IDs added in display order; ordinal label unchanged."
+    },
+    {
+      "split": "train",
+      "id": "v2-ordinal-4-fr",
+      "change": "Synthetic saved IDs added in display order; ordinal label unchanged."
+    },
+    {
+      "split": "train",
+      "id": "v2-ordinal-4-en",
+      "change": "Synthetic saved IDs added in display order; ordinal label unchanged."
+    },
+    {
+      "split": "train",
+      "id": "v2-followup-repeat-fr",
+      "change": "Synthetic saved IDs added in display order; ordinal label unchanged."
+    },
+    {
+      "split": "train",
+      "id": "v2-followup-repeat-en",
+      "change": "Synthetic saved IDs added in display order; ordinal label unchanged."
+    }
+  ],
+  "status": "Prepared only; no model training or acceptance claim.",
+  "methodology": "All source user messages, action labels and split membership preserved. Current native tool schemas, planner prompt, derived calendar and documented synthetic context repairs replace historical envelopes. No held-out rows enter training or validation.",
+  "security_scope": "Synthetic capability snapshots are not live role simulations. Native backend authorization and confirmed writes are tested separately. Database access prohibited."
+}

@@ -1,0 +1,59 @@
+{
+  "manifest_sha256": "3ed457b0427378b62d86504b3941c9bd7724016b54da15f210f316fdab1c18f9",
+  "tokenizer_and_runtime_match_both_server_candidates": true,
+  "scope": "Metadata only; no weights, local inference or optimization.",
+  "arms": {
+    "original.eval.jsonl": {
+      "count": 12,
+      "round_trip_passed": 12,
+      "runtime_prefix_parity_passed": 12,
+      "loss_boundary_passed": 12,
+      "semantic_alignment_passed": 12,
+      "semantic_loss_weight": 4,
+      "maximum_tokens": 2436,
+      "sha256": "02bb23f51040560920d8418b5b7232170795b16342df65bfdef90d692b5b1c1d",
+      "maximum_prompt_tokens": 2362,
+      "reserved_output_tokens": 512,
+      "maximum_request_bytes": 9033
+    },
+    "names.eval.jsonl": {
+      "count": 12,
+      "round_trip_passed": 12,
+      "runtime_prefix_parity_passed": 12,
+      "loss_boundary_passed": 12,
+      "semantic_alignment_passed": 12,
+      "semantic_loss_weight": 4,
+      "maximum_tokens": 2515,
+      "sha256": "aeb0d5f8631edbfc22da3bd92b0fc3bc2d0e523428d7b8aa924f1f3d8e7347b6",
+      "maximum_prompt_tokens": 2441,
+      "reserved_output_tokens": 512,
+      "maximum_request_bytes": 9519
+    },
+    "dates.eval.jsonl": {
+      "count": 12,
+      "round_trip_passed": 12,
+      "runtime_prefix_parity_passed": 12,
+      "loss_boundary_passed": 12,
+      "semantic_alignment_passed": 12,
+      "semantic_loss_weight": 4,
+      "maximum_tokens": 2527,
+      "sha256": "071ff00b54ca38294fe2d266473f44a464aa13fbabedc6d9453a6c9571eabd4e",
+      "maximum_prompt_tokens": 2453,
+      "reserved_output_tokens": 512,
+      "maximum_request_bytes": 9500
+    },
+    "both.eval.jsonl": {
+      "count": 12,
+      "round_trip_passed": 12,
+      "runtime_prefix_parity_passed": 12,
+      "loss_boundary_passed": 12,
+      "semantic_alignment_passed": 12,
+      "semantic_loss_weight": 4,
+      "maximum_tokens": 2601,
+      "sha256": "bf3ded41981896f6e4a39da7d1d76a5859d10538767a52e551299c933a49d4d4",
+      "maximum_prompt_tokens": 2527,
+      "reserved_output_tokens": 512,
+      "maximum_request_bytes": 9958
+    }
+  }
+}
