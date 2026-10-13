@@ -1,11 +1,11 @@
 {
-  "version": "0.2.2",
-  "file": "chat_ai_assistant-0.2.2-py3-none-any.whl",
-  "sha256": "cb7683557d82a0a91c39bdc8e50a01d2708b2808c3aa54208a8234ae22b8eaa8",
+  "version": "0.2.3",
+  "file": "chat_ai_assistant-0.2.3-py3-none-any.whl",
+  "sha256": "bf4e00c22ba987981efe4dbace0711fd8e2538768d49093932c180ff49e4b6ff",
   "source_files": {
     "src/chat_ai_assistant/__init__.py": "89de2438dbe666b8ce112a701c89faf82ef9afec7c7a61c9ec1bbfc9da5192e1",
     "src/chat_ai_assistant/calendar_context.py": "6ee2c0f63ef33c0ba8b8f1ea29fbcd5d6f1e88e4273dc40ece33dab75619aeb9",
-    "src/chat_ai_assistant/clarifications.py": "e5cb817facdb8e440538cc0ed9b252ff127f6d8e470bb630574e5530e7a31a7d",
+    "src/chat_ai_assistant/clarifications.py": "7103f85ac6e2d988508749e1664796d94875ce564f95c97a1e034bc6a87a1ed9",
     "src/chat_ai_assistant/contracts.py": "ab31f8ff3f2f20b776ca412436e0730dc8fa00e892801772e863400bab4b6fa3",
     "src/chat_ai_assistant/orchestrator.py": "f8fb0bc7764ec027599e4d109bab57964b17132ebd2827e0097b251af6b70af6",
     "src/chat_ai_assistant/planning_messages.py": "d7024d3c9af58d501f680f2c79ae1e5108a6ec19faa92a2ba49b6c67893d1395",
