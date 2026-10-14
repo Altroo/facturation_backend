@@ -390,7 +390,7 @@ class ChatAIToolExecutor:
             client_id=self.invoice(id).client_id
         qs=Client.objects.filter(company_id=self.company_id)
         if client_id:qs=qs.filter(pk=client_id)
-        if query:qs=qs.filter(Q(raison_sociale__icontains=query)|Q(nom__icontains=query)|Q(prenom__icontains=query)|Q(code_client__icontains=query))
+        if query:qs=catalog._words(qs,query,('raison_sociale','nom','prenom','code_client'))
         items=[{'id':x.pk,'name':str(x)[:200],'code':x.code_client,'navigation':ChatAINavigationResolver.resolve('client',self.company_id,x.pk)} for x in qs.order_by('pk')[:10]]
         if client_id and not items:raise ChatAIError('NOT_FOUND')
         self.save_results('client',items)
