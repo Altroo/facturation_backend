@@ -65,3 +65,35 @@ def test_explicit_other_target_rejects_before_native_record_read(setup,instructi
         assert caught.value.code=="CONTEXT_EXPIRED"
         read_target.assert_not_called()
     assert not PendingAction.objects.exists()
+
+@pytest.mark.parametrize('noun', ['pro forma invoice', 'proforma invoice', 'proforma', 'facture pro forma'])
+def test_full_proforma_phrase_reaches_only_proforma_authorization(setup,noun):
+    ex=executor(setup)
+    ex.instruction=f'For {noun} ID 72081, update Remark to "invoice ID 311".'
+    with patch('chat_ai.actions.target',side_effect=ChatAIError('NOT_FOUND')) as native:
+        with pytest.raises(ChatAIError) as caught:
+            ex.execute('prepare_change',{'resource':'proforma','identifier':72081,
+                       'operation':'update','changes':{'remarque':'invoice ID 311'}})
+        assert caught.value.code=='NOT_FOUND'
+        native.assert_called_once_with(setup.user.pk,setup.a.pk,'proforma',72081,'update')
+    for resource,identifier in [('invoice',72081),('proforma',311)]:
+        with patch('chat_ai.actions.target') as native:
+            with pytest.raises(ChatAIError) as caught:
+                ex.execute('prepare_change',{'resource':resource,'identifier':identifier,
+                           'operation':'delete'})
+            assert caught.value.code=='CONTEXT_EXPIRED'
+            native.assert_not_called()
+    assert not PendingAction.objects.exists()
+
+
+def test_distinct_invoice_and_proforma_references_still_conflict(setup):
+    ex=executor(setup)
+    ex.instruction='Delete pro forma invoice ID 72081 and invoice ID 311.'
+    for resource,identifier in [('proforma',72081),('invoice',311)]:
+        with patch('chat_ai.actions.target') as native:
+            with pytest.raises(ChatAIError) as caught:
+                ex.execute('prepare_change',{'resource':resource,'identifier':identifier,
+                           'operation':'delete'})
+            assert caught.value.code=='CONTEXT_EXPIRED'
+            native.assert_not_called()
+    assert not PendingAction.objects.exists()

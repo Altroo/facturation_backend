@@ -98,7 +98,7 @@ def prepare(executor,resource,identifier,operation,changes=None):
     if operation=='delete' and changes:raise ChatAIError('INVALID_ARGUMENTS')
     for value in changes.values():
         if value is not None and value!='':validate_text(value)
-    aliases = {'invoice': r"facture(?!\s+(?:d['’]avoir|avoir|pro\s*forma))(?: client)?|invoice", 'quote': 'devis|quote|estimate', 'client': 'client|customer', 'proforma': r'facture pro\s*forma|proforma|pro forma', 'credit_note': r"facture d['’]avoir|facture avoir|avoir|credit note", 'delivery_note': 'bon de livraison|delivery note'}
+    aliases = {'invoice': r"facture(?!\s+(?:d['’]avoir|avoir|pro\s*forma))(?: client)?|invoice", 'quote': 'devis|quote|estimate', 'client': 'client|customer', 'proforma': r'facture pro\s*forma|pro\s*forma(?:\s+invoice)?', 'credit_note': r"facture d['’]avoir|facture avoir|avoir|credit note", 'delivery_note': 'bon de livraison|delivery note'}
     ordinal = ordinal_target_matches(executor.instruction, resource, identifier,
                                      executor.state, timezone.now(), aliases)
     explicit = explicit_target_matches(executor.instruction, resource, identifier, aliases)
