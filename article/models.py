@@ -102,6 +102,13 @@ class Article(models.Model):
         verbose_name=_("Prix de vente"),
         help_text=_("Prix de vente unitaire"),
     )
+    prix_vente_base = models.CharField(
+        max_length=3,
+        choices=[("HT", "HT"), ("TTC", "TTC")],
+        default="HT",
+        verbose_name=_("Base du prix de vente"),
+        help_text=_("Base de saisie du prix. Le prix de vente est enregistré HT."),
+    )
     devise_prix_vente = models.CharField(
         max_length=3,
         choices=CURRENCY_CHOICES,

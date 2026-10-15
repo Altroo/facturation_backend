@@ -1,6 +1,7 @@
 import os
 import shutil
 import tempfile
+from decimal import Decimal
 from io import BytesIO
 from pathlib import Path
 from unittest.mock import MagicMock, PropertyMock, patch
@@ -160,6 +161,46 @@ class TestArticleAPI:
         response = self.client.post(url, payload, format="json")
         assert response.status_code == status.HTTP_201_CREATED
         assert Article.objects.filter(reference="ART0004").exists()
+
+    @pytest.mark.parametrize("basis", [None, "HT", "TTC"])
+    def test_price_basis_preserves_canonical_ht_price(self, basis):
+        payload = {
+            "reference": "PRICE-BASIS",
+            "designation": "Service avec base de prix",
+            "type_article": "Service",
+            "company": self.company.id,
+            "prix_vente": "100.00",
+            "tva": "20.00",
+        }
+        if basis is not None:
+            payload["prix_vente_base"] = basis
+        response = self.client.post(self._list_url(), payload, format="json")
+        assert response.status_code == status.HTTP_201_CREATED
+        article = Article.objects.get(reference="PRICE-BASIS")
+        assert article.prix_vente_base == (basis or "HT")
+        assert article.prix_vente == Decimal("100.00")
+        assert article.history.latest().prix_vente_base == (basis or "HT")
+
+        detail_url = reverse("article:article-detail", args=[article.id])
+        assert self.client.get(detail_url).data["prix_vente_base"] == (basis or "HT")
+        listed = next(
+            item
+            for item in self.client.get(self._list_url()).data
+            if item["id"] == article.id
+        )
+        assert listed["prix_vente_base"] == (basis or "HT")
+
+        updated = self.client.patch(detail_url, {"designation": "Updated"}, format="json")
+        assert updated.status_code == status.HTTP_200_OK
+        article.refresh_from_db()
+        assert article.prix_vente_base == (basis or "HT")
+        assert article.prix_vente == Decimal("100.00")
+
+    def test_rejects_invalid_price_basis(self):
+        url = reverse("article:article-detail", args=[self.article_service.id])
+        response = self.client.patch(url, {"prix_vente_base": "INVALID"}, format="json")
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "prix_vente_base" in response.data["details"]
 
     def test_get_article_detail(self):
         url = reverse("article:article-detail", args=[self.article_produit.id])
