@@ -245,6 +245,7 @@ class LogisticsOrder(models.Model):
     transport = models.CharField(max_length=100, blank=True, default="")
     conditions_paiement = models.TextField(blank=True, default="")
     workflow_version = models.PositiveSmallIntegerField(default=1, editable=False)
+    legacy_source_snapshot = models.JSONField(default=dict, blank=True, editable=False)
     condition_achat = models.CharField(max_length=32, blank=True, default="")
     date_commande_client = models.DateField(null=True, blank=True)
     date_expedition_prevue = models.DateField(null=True, blank=True)

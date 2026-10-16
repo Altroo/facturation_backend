@@ -2,6 +2,7 @@ from datetime import date, datetime
 from pathlib import Path
 
 from django.db import transaction
+from django.db.models import Q
 from django.utils import timezone
 from rest_framework import permissions
 from rest_framework.exceptions import ValidationError, PermissionDenied
@@ -159,7 +160,13 @@ class PurchaseWorkflowView(CompanyAccessMixin, APIView):
             raise PermissionDenied("Vous n’avez pas les droits pour modifier ce dossier.")
         _ensure_order_active(order)
         if not order.is_supplier_purchase:
-            raise ValidationError({"dossier": "Ce dossier conserve son fonctionnement historique."})
+            if request.data.get("action") != "adopter_parcours_fournisseur":
+                raise ValidationError({"dossier": "Complétez d’abord les informations du dossier pour utiliser le parcours d’achat fournisseur."})
+            from .compatibility import adopt_supplier_workflow
+            adopt_supplier_workflow(order, user=request.user, data=request.data)
+            order.sync_global_status(preserve_manual=False)
+            order = LogisticsOrderDetailEditDeleteView.get_object(pk)
+            return Response(LogisticsOrderDetailSerializer(order, context={"request": request}).data)
         if order.statut == "Clôture" and request.data.get("action") != "relancer_notification":
             raise ValidationError({"dossier": "Ce dossier est clôturé."})
         action = request.data.get("action")
@@ -181,6 +188,10 @@ class PurchaseWorkflowView(CompanyAccessMixin, APIView):
         elif action == "proforma":
             if order.is_proforma_step_complete:
                 raise ValidationError({"proforma": "La proforma fournisseur est déjà validée."})
+            if order.legacy_source_snapshot and order.lignes.filter(
+                Q(proforma__isnull=False) | Q(source_line__isnull=False) | Q(client__isnull=False)
+            ).exists() and "lignes" not in request.data:
+                raise ValidationError({"lignes": "Renseignez les quantités et prix de la proforma fournisseur. Les anciennes lignes client ne sont pas des achats confirmés."})
             data = request.data.copy()
             data["action"] = request.data.get("decision", "control")
             serializer = PurchaseProformaSerializer(data=data, context={"order": order})
@@ -195,6 +206,9 @@ class PurchaseWorkflowView(CompanyAccessMixin, APIView):
             order.avance_pourcentage = advance
             order.methode_paiement = method
             if lines is not None:
+                from stock.models import StockReceiptLine
+                if StockReceiptLine.objects.filter(logistics_line__commande=order).exists():
+                    raise ValidationError({"lignes": "Des réceptions utilisent déjà ces lignes. Elles ne peuvent plus être remplacées."})
                 order.lignes.all().delete()
                 articles = Article.objects.in_bulk([line["article"] for line in lines])
                 for line in lines:

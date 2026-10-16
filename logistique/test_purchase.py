@@ -1833,3 +1833,83 @@ def test_payment_start_history_keeps_original_amount_after_partial_split(
     assert event.new_value == expected
     detail = ctx.api.get(reverse("logistique:logistique-detail", args=[order.pk]))
     assert next(row for row in detail.data["events"] if row["id"] == event.pk)["new_value"] == expected
+
+
+@pytest.mark.parametrize("method,paid,expected_method", [
+    ("LC", "30.00", "LC"),
+    ("LC", "10.00", "LC"),
+    (None, "30.00", "Virement"),
+])
+def test_supplier_payment_records_actual_method_and_keeps_remainder_plan(
+    purchase_context, django_capture_on_commit_callbacks, method, paid, expected_method
+):
+    ctx = purchase_context
+    order = validated_dossier(ctx, total="100.00")
+    prepare_title(order)
+    item = order.echeances_paiement.get(declencheur="advance")
+    request_installment(ctx, order, item, django_capture_on_commit_callbacks)
+    accountant = authenticated(ctx.accountant)
+    response = accountant.post(
+        reverse("logistique:logistique-start-payment", args=[order.pk]),
+        {"echeance_id": item.pk}, format="json",
+    )
+    assert response.status_code == 200, response.data
+    data = {
+        "echeance_id": item.pk,
+        "date_paiement": timezone.localdate().isoformat(),
+        "montant_paye": paid,
+        "devise_paiement": "USD",
+        "banque_paiement": "Not the dossier bank",
+    }
+    if method is not None:
+        data["methode_paiement"] = method
+    response = accountant.post(
+        reverse("logistique:logistique-record-payment-execution", args=[order.pk]),
+        data, format="json",
+    )
+    assert response.status_code == 200, response.data
+    item.refresh_from_db()
+    assert item.methode_paiement == expected_method
+    assert item.montant_paye == Decimal(paid)
+    assert item.devise == "EUR"
+    assert item.banque == order.banque
+    remainder = order.echeances_paiement.filter(declencheur="advance").exclude(pk=item.pk)
+    if Decimal(paid) < Decimal("30.00"):
+        outstanding = remainder.get()
+        assert outstanding.montant_prevu == Decimal("30.00") - Decimal(paid)
+        assert outstanding.methode_paiement == "Virement"
+        assert outstanding.execution_enregistree_le is None
+    else:
+        assert not remainder.exists()
+
+
+def test_supplier_payment_rejects_an_invalid_actual_method_without_splitting(
+    purchase_context, django_capture_on_commit_callbacks
+):
+    ctx = purchase_context
+    order = validated_dossier(ctx, total="100.00")
+    prepare_title(order)
+    item = order.echeances_paiement.get(declencheur="advance")
+    request_installment(ctx, order, item, django_capture_on_commit_callbacks)
+    accountant = authenticated(ctx.accountant)
+    response = accountant.post(
+        reverse("logistique:logistique-start-payment", args=[order.pk]),
+        {"echeance_id": item.pk}, format="json",
+    )
+    assert response.status_code == 200, response.data
+    response = accountant.post(
+        reverse("logistique:logistique-record-payment-execution", args=[order.pk]),
+        {
+            "echeance_id": item.pk,
+            "date_paiement": timezone.localdate().isoformat(),
+            "montant_paye": "10.00",
+            "methode_paiement": "Unsupported method",
+        }, format="json",
+    )
+    assert response.status_code == 400, response.data
+    assert "methode_paiement" in response.data.get("details", response.data)
+    item.refresh_from_db()
+    assert item.methode_paiement == "Virement"
+    assert item.montant_prevu == Decimal("30.00")
+    assert item.execution_enregistree_le is None
+    assert order.echeances_paiement.count() == 2

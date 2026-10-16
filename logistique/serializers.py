@@ -85,6 +85,7 @@ class LogisticsOrderLineSerializer(serializers.ModelSerializer):
         fields = [
             "id", "type_article",
             "proforma",
+            "source_line",
             "proforma_numero",
             "client",
             "client_name",
@@ -210,6 +211,12 @@ class LogisticsPaymentInstallmentSerializer(serializers.ModelSerializer):
 
 class LogisticsOrderBaseSerializer(serializers.ModelSerializer):
     workflow = serializers.SerializerMethodField()
+    can_adopt_supplier_workflow = serializers.SerializerMethodField()
+
+    @staticmethod
+    def get_can_adopt_supplier_workflow(obj):
+        from .compatibility import can_adopt_supplier_workflow
+        return can_adopt_supplier_workflow(obj)
 
     @staticmethod
     def get_workflow(obj):
@@ -242,7 +249,7 @@ class LogisticsOrderBaseSerializer(serializers.ModelSerializer):
     class Meta:
         model = LogisticsOrder
         fields = [
-            "workflow_version", "condition_achat", "workflow", "date_commande_client",
+            "workflow_version", "condition_achat", "workflow", "can_adopt_supplier_workflow", "date_commande_client",
             "date_expedition_prevue", "production_confirmee_le", "date_expedition_reelle",
             "date_arrivee_maroc", "documents_remis_banque_le",
             "id",
@@ -531,7 +538,7 @@ class LogisticsOrderBaseSerializer(serializers.ModelSerializer):
 class LogisticsOrderListSerializer(LogisticsOrderBaseSerializer):
     class Meta(LogisticsOrderBaseSerializer.Meta):
         fields = [
-            "workflow_version", "condition_achat", "workflow", "date_commande_client",
+            "workflow_version", "condition_achat", "workflow", "can_adopt_supplier_workflow", "date_commande_client",
             "date_expedition_prevue", "production_confirmee_le", "date_expedition_reelle",
             "date_arrivee_maroc", "documents_remis_banque_le",
             "id",

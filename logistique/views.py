@@ -1162,7 +1162,7 @@ class LogisticsPaymentExecutionView(CompanyAccessMixin, APIView):
                 raise ValidationError({"echeance_id": "Échéance introuvable."})
             execution_data["devise_paiement"] = due.devise
             execution_data["banque_paiement"] = order.banque
-            execution_data["methode_paiement"] = due.methode_paiement
+            execution_data.setdefault("methode_paiement", due.methode_paiement)
         serializer = LogisticsPaymentExecutionSerializer(data=execution_data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
