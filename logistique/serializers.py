@@ -136,6 +136,17 @@ class LogisticsOrderLineSerializer(serializers.ModelSerializer):
 
 class LogisticsOrderEventSerializer(serializers.ModelSerializer):
     user_name = serializers.SerializerMethodField()
+    old_value_since = serializers.SerializerMethodField()
+    new_value_since = serializers.DateTimeField(source="date_created", read_only=True)
+
+    def get_old_value_since(self, obj):
+        from .history import previous_value_dates
+        if not hasattr(self, "_value_dates"):
+            self._value_dates = {}
+        if obj.commande_id not in self._value_dates:
+            self._value_dates[obj.commande_id] = previous_value_dates(obj.commande)
+        value = self._value_dates[obj.commande_id].get(obj.pk)
+        return serializers.DateTimeField().to_representation(value) if value else None
 
     class Meta:
         model = LogisticsOrderEvent
@@ -144,6 +155,8 @@ class LogisticsOrderEventSerializer(serializers.ModelSerializer):
             "action",
             "old_value",
             "new_value",
+            "old_value_since",
+            "new_value_since",
             "note",
             "user",
             "user_name",
