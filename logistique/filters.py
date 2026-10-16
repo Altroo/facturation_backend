@@ -4,7 +4,7 @@ from django.utils.translation import gettext_lazy as _
 
 from core.filters import CommaSeparatedIDsFilter, IsEmptyAutoMixin
 
-from .models import LogisticsOrder
+from .models import LogisticsOrder, LogisticsSupplier
 
 
 class LogisticsOrderFilter(IsEmptyAutoMixin, django_filters.FilterSet):
@@ -15,6 +15,7 @@ class LogisticsOrderFilter(IsEmptyAutoMixin, django_filters.FilterSet):
     statut_titre_importation = django_filters.CharFilter(
         method="filter_statut_titre_importation"
     )
+    fournisseur_record = django_filters.NumberFilter(field_name="fournisseur_record_id")
     marque_id = django_filters.NumberFilter(field_name="marque_id")
     marque_ids = CommaSeparatedIDsFilter(field_name="marque_id")
     date_prevue_after = django_filters.DateFilter(
@@ -70,6 +71,7 @@ class LogisticsOrderFilter(IsEmptyAutoMixin, django_filters.FilterSet):
             "statut_paiement",
             "statut_titre_importation",
             "marque_id",
+            "fournisseur_record",
             "date_prevue_after",
             "date_prevue_before",
             "date_reelle_after",
@@ -173,3 +175,44 @@ class LogisticsOrderFilter(IsEmptyAutoMixin, django_filters.FilterSet):
             | Q(lignes__client__prenom__icontains=value)
             | Q(proformas__numero_facture__icontains=value)
         ).distinct()
+
+
+class LogisticsSupplierFilter(IsEmptyAutoMixin, django_filters.FilterSet):
+    search = django_filters.CharFilter(method="global_search")
+    total_dossiers = django_filters.NumberFilter()
+    total_dossiers__gt = django_filters.NumberFilter(
+        field_name="total_dossiers", lookup_expr="gt"
+    )
+    total_dossiers__gte = django_filters.NumberFilter(
+        field_name="total_dossiers", lookup_expr="gte"
+    )
+    total_dossiers__lt = django_filters.NumberFilter(
+        field_name="total_dossiers", lookup_expr="lt"
+    )
+    total_dossiers__lte = django_filters.NumberFilter(
+        field_name="total_dossiers", lookup_expr="lte"
+    )
+    total_dossiers__ne = django_filters.NumberFilter(
+        field_name="total_dossiers", exclude=True
+    )
+    derniere_activite_after = django_filters.DateFilter(
+        field_name="derniere_activite", lookup_expr="date__gte"
+    )
+    derniere_activite_before = django_filters.DateFilter(
+        field_name="derniere_activite", lookup_expr="date__lte"
+    )
+
+    class Meta:
+        model = LogisticsSupplier
+        fields = {
+            "nom": ["exact", "icontains", "istartswith", "iendswith"],
+            "email": ["exact", "icontains", "istartswith", "iendswith"],
+        }
+
+    @staticmethod
+    def global_search(queryset, _name, value):
+        for term in value.split():
+            queryset = queryset.filter(
+                Q(nom__icontains=term) | Q(email__icontains=term)
+            )
+        return queryset

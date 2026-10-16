@@ -4,7 +4,7 @@ from decimal import Decimal
 from uuid import uuid4
 
 from django.db import transaction
-from django.db.models import Count, Sum, Q, DecimalField, Max
+from django.db.models import Count, Sum, Q, DecimalField
 from django.db.models.functions import Coalesce
 from django.http import Http404
 from django.utils import timezone
@@ -1494,25 +1494,6 @@ class LogisticsProcessNoteCreateView(CompanyAccessMixin, APIView):
             LogisticsProcessNoteSerializer(note).data,
             status=status.HTTP_201_CREATED,
         )
-
-
-class LogisticsSupplierListView(CompanyAccessMixin, APIView):
-    permission_classes = (permissions.IsAuthenticated,)
-
-    def get(self, request, *args, **kwargs):
-        company_id = self._parse_company_id(
-            request.query_params.get("company_id"),
-            error_message="company_id est requis.",
-        )
-        self._check_company_access(request, company_id)
-        suppliers = (
-            LogisticsOrder.objects.filter(company_id=company_id)
-            .exclude(fournisseur="")
-            .values("fournisseur", "fournisseur_email")
-            .annotate(total_dossiers=Count("id"), derniere_activite=Max("date_updated"))
-            .order_by("fournisseur")
-        )
-        return Response(list(suppliers), status=status.HTTP_200_OK)
 
 
 class LogisticsPaymentReceiptConfirmView(CompanyAccessMixin, APIView):

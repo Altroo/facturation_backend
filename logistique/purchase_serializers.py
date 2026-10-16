@@ -10,6 +10,7 @@ from .purchase import CONDITIONS, validate_condition
 
 
 class PurchaseDossierSerializer(serializers.Serializer):
+    fournisseur_record = serializers.IntegerField(min_value=1, required=False, allow_null=True)
     fournisseur = serializers.CharField(max_length=255, required=False, allow_blank=False)
     fournisseur_email = serializers.EmailField(required=False, allow_blank=True)
     marque = serializers.IntegerField(min_value=1, required=False, allow_null=True)
@@ -19,6 +20,17 @@ class PurchaseDossierSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         company = self.context["company_id"]
+        supplier_id = attrs.get("fournisseur_record")
+        if supplier_id:
+            from .models import LogisticsSupplier
+            supplier = LogisticsSupplier.objects.filter(company_id=company, pk=supplier_id).first()
+            if not supplier:
+                raise serializers.ValidationError({"fournisseur_record": "Ce fournisseur n’appartient pas à cette société."})
+            attrs["fournisseur_record"] = supplier
+            attrs.setdefault("fournisseur", supplier.nom)
+            attrs.setdefault("fournisseur_email", supplier.email)
+            if attrs["fournisseur"].casefold() != supplier.nom.casefold():
+                raise serializers.ValidationError({"fournisseur_record": "Choisissez le fournisseur correspondant au nom saisi."})
         if self.context.get("create") and not attrs.get("fournisseur"):
             raise serializers.ValidationError({"fournisseur": "Renseignez le fournisseur."})
         if attrs.get("responsable") and not Membership.objects.filter(company_id=company,

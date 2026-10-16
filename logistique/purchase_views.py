@@ -126,6 +126,7 @@ def create_purchase_dossier(company_id, user, data):
     serializer = PurchaseDossierSerializer(data=data, context={"company_id": company_id, "create": True})
     serializer.is_valid(raise_exception=True)
     values = serializer.validated_data.copy()
+    supplier = values.pop("fournisseur_record", None)
     brand_id = values.pop("marque", None)
     responsible_id = values.pop("responsable", None) or user.pk
     brand = Marque.objects.filter(pk=brand_id, company_id=company_id).first() if brand_id else None
@@ -135,7 +136,9 @@ def create_purchase_dossier(company_id, user, data):
         # Number allocation also locks the company when no dossier exists yet.
         from company.models import Company
         Company.objects.select_for_update().get(pk=company_id)
-        order = LogisticsOrder.objects.create(company_id=company_id,
+        from .suppliers import ensure_supplier
+        supplier = supplier or ensure_supplier(company_id, values["fournisseur"], values.get("fournisseur_email", ""))
+        order = LogisticsOrder.objects.create(company_id=company_id, fournisseur_record=supplier,
             numero_commande=get_next_numero_logistique(company_id), workflow_version=2,
             responsable_id=responsible_id, marque=brand, created_by_user=user,
             statut_commande_lancement="Terminée", statut="Proforma", statut_global="En attente externe", **values)
@@ -165,8 +168,15 @@ class PurchaseWorkflowView(CompanyAccessMixin, APIView):
             serializer = PurchaseDossierSerializer(data=request.data, context={"company_id": order.company_id})
             serializer.is_valid(raise_exception=True)
             values = serializer.validated_data.copy()
+            supplier = values.pop("fournisseur_record", None)
+            old_name = order.fournisseur
             for field, value in values.items():
                 setattr(order, {"responsable": "responsable_id", "marque": "marque_id"}.get(field, field), value)
+            if supplier:
+                order.fournisseur_record = supplier
+            elif order.fournisseur != old_name or not order.fournisseur_record_id:
+                from .suppliers import ensure_supplier
+                order.fournisseur_record = ensure_supplier(order.company_id, order.fournisseur, order.fournisseur_email)
             order.save()
         elif action == "proforma":
             if order.is_proforma_step_complete:
@@ -354,5 +364,7 @@ class SupplierDirectoryView(CompanyAccessMixin, APIView):
                 raise ValidationError({"id": "Cette marque n’appartient pas à cette société."})
         serializer = MarqueSerializer(instance, data={"nom": request.data.get("nom", ""), "email": request.data.get("email", ""), "company": company_id})
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        contact = serializer.save()
+        from .suppliers import ensure_supplier
+        ensure_supplier(company_id, contact.nom, contact.email)
         return Response(serializer.data)

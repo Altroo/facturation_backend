@@ -18,6 +18,30 @@ def get_logistique_document_path(_, filename):
     return path.join("logistique_documents", f"{uuid4()}{ext}")
 
 
+class LogisticsSupplier(models.Model):
+    company = models.ForeignKey(
+        "company.Company", on_delete=models.PROTECT, related_name="logistics_suppliers"
+    )
+    nom = models.CharField(max_length=255)
+    email = models.EmailField(blank=True, default="")
+    date_created = models.DateTimeField(auto_now_add=True)
+    date_updated = models.DateTimeField(auto_now=True)
+    history = HistoricalRecords()
+
+    class Meta:
+        ordering = ["nom", "pk"]
+        constraints = [
+            models.UniqueConstraint(
+                models.functions.Lower("nom"),
+                "company",
+                name="unique_logistics_supplier_company_name",
+            )
+        ]
+
+    def __str__(self):
+        return self.nom
+
+
 class LogisticsOrder(models.Model):
     """Supplier purchase dossier; version 1 retains historical sales sources."""
 
@@ -173,6 +197,13 @@ class LogisticsOrder(models.Model):
         on_delete=models.PROTECT,
         related_name="commandes_logistiques",
         verbose_name=_("Société"),
+    )
+    fournisseur_record = models.ForeignKey(
+        LogisticsSupplier,
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name="dossiers",
     )
     numero_commande = models.CharField(
         max_length=24,
@@ -491,8 +522,10 @@ class LogisticsOrder(models.Model):
     def is_payment_overdue(self):
         if self.is_supplier_purchase:
             return any(
-                item.demandee_le and item.date_echeance
-                and item.date_echeance < timezone.localdate() and not item.paiement_valide_le
+                item.demandee_le
+                and item.date_echeance
+                and item.date_echeance < timezone.localdate()
+                and not item.paiement_valide_le
                 for item in self.echeances_paiement.all()
             )
         return self.statut_paiement == "En attente" and self.demande_paiement_envoyee_le
@@ -541,23 +574,40 @@ class LogisticsOrder(models.Model):
 
     @property
     def payment_total(self):
-        return self.montant_proforma_fournisseur if self.is_supplier_purchase else self.montant_titre_importation
+        return (
+            self.montant_proforma_fournisseur
+            if self.is_supplier_purchase
+            else self.montant_titre_importation
+        )
 
     @property
     def is_payment_step_complete(self):
         return self.statut_paiement == "Validé" and (
             self.solde_restant == 0
-            or (not self.is_supplier_purchase and self.statut in self.LEGACY_PAYMENT_COMPLETE_STATUSES)
+            or (
+                not self.is_supplier_purchase
+                and self.statut in self.LEGACY_PAYMENT_COMPLETE_STATUSES
+            )
         )
 
     @property
     def is_delivery_overdue(self):
         return bool(
-            ((self.date_prevue and self.date_prevue < timezone.localdate())
-             or (self.is_supplier_purchase and self.date_expedition_prevue
-                 and not self.date_expedition_reelle
-                 and self.date_expedition_prevue < timezone.localdate()))
-            and self.statut not in ({"Clôture", "Annulé"} if self.is_supplier_purchase else {"Livraison client", "Clôture", "Annulé"})
+            (
+                (self.date_prevue and self.date_prevue < timezone.localdate())
+                or (
+                    self.is_supplier_purchase
+                    and self.date_expedition_prevue
+                    and not self.date_expedition_reelle
+                    and self.date_expedition_prevue < timezone.localdate()
+                )
+            )
+            and self.statut
+            not in (
+                {"Clôture", "Annulé"}
+                if self.is_supplier_purchase
+                else {"Livraison client", "Clôture", "Annulé"}
+            )
             and self.statut_global != "Annulé"
         )
 
@@ -616,7 +666,11 @@ class LogisticsOrder(models.Model):
             or self.statut_banque_paiement == "Bloqué"
         ):
             return "Bloqué"
-        if self.is_delivery_overdue or self.is_proforma_follow_up_overdue or (self.is_supplier_purchase and self.is_payment_overdue):
+        if (
+            self.is_delivery_overdue
+            or self.is_proforma_follow_up_overdue
+            or (self.is_supplier_purchase and self.is_payment_overdue)
+        ):
             return "En retard"
         if self.statut_commande_lancement == "À lancer":
             return "À lancer"
@@ -856,7 +910,8 @@ class LogisticsOrderLine(models.Model):
         "facture_proforma.FactureProForma",
         on_delete=models.PROTECT,
         related_name="lignes_logistiques",
-        null=True, blank=True,
+        null=True,
+        blank=True,
     )
     source_line = models.ForeignKey(
         "facture_proforma.FactureProFormaLine",
@@ -869,7 +924,8 @@ class LogisticsOrderLine(models.Model):
         "client.Client",
         on_delete=models.PROTECT,
         related_name="lignes_logistiques",
-        null=True, blank=True,
+        null=True,
+        blank=True,
     )
     article = models.ForeignKey(
         "article.Article",

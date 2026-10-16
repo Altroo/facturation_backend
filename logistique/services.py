@@ -232,7 +232,9 @@ def create_orders_from_proformas(*, company_id, proforma_ids, user, defaults):
             }
         )
 
+    from .suppliers import ensure_supplier
     order = LogisticsOrder.objects.create(
+        fournisseur_record=ensure_supplier(company_id, proforma.fournisseur, proforma.fournisseur_email),
         company_id=company_id,
         numero_commande=get_next_numero_logistique(company_id),
         marque=None,
