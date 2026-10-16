@@ -140,7 +140,7 @@ class BaseAPITest:
         assert response.status_code == status.HTTP_200_OK
         results = self._get_results(response)
         for item in results:
-            assert set(item.keys()) == {"id", self.field, "company"}
+            assert set(item.keys()) == {"id", self.field, "company"} | ({"email"} if self.basename == "marque" else set())
 
     def test_company_isolation(self):
         """Objects from another company must not appear in the list."""

@@ -4,7 +4,7 @@ from typing import Iterable, TypedDict
 
 from channels.layers import get_channel_layer
 from django.db import transaction
-from django.db.models import F, Sum
+from django.db.models import F, Sum, Q
 from django.utils import timezone
 from django.utils.translation import gettext as _
 from rest_framework.exceptions import ValidationError
@@ -160,6 +160,7 @@ def incoming_quantity(balance):
             expected_emplacement_id=balance.emplacement_id,
             article_id=balance.article_id,
         )
+        .filter(Q(commande__workflow_version=1) | Q(commande__statut_proforma_conformite="Validée"))
         .exclude(commande__statut_global="Annulé")
         .exclude(commande__statut__in=INCOMING_EXCLUDED_STATUSES)
         .aggregate(total=Sum(F("quantity") - F("received_quantity")))
@@ -216,6 +217,7 @@ def prepare_balance_snapshots(
             article_id__in=article_ids,
             expected_emplacement_id__in=emplacement_ids,
         )
+        .filter(Q(commande__workflow_version=1) | Q(commande__statut_proforma_conformite="Validée"))
         .exclude(commande__statut_global="Annulé")
         .exclude(commande__statut__in=INCOMING_EXCLUDED_STATUSES)
         .values("commande__company_id", "article_id", "expected_emplacement_id")
@@ -514,6 +516,8 @@ def activate_incoming(order):
     if not stock_enabled(order.company):
         return
     if order.statut_global == "Annulé" or order.statut in INCOMING_EXCLUDED_STATUSES:
+        return
+    if order.is_supplier_purchase and not order.is_proforma_step_complete:
         return
     lines = order.lignes.select_related("article", "article__emplacement").order_by(
         "id"
@@ -827,6 +831,9 @@ def validate_receipt(receipt, actor):
                 )
             }
         )
+    if order.is_supplier_purchase:
+        from logistique.purchase import validate_purchase_transition
+        validate_purchase_transition(order, "Expédition", enforce_sequence=False)
     lines = list(
         receipt.lines.select_related(
             "logistics_line", "article", "emplacement"
@@ -875,7 +882,10 @@ def validate_receipt(receipt, actor):
     receipt.validated_by = actor
     receipt.date_validated = timezone.now()
     receipt.save(update_fields=("status", "validated_by", "date_validated"))
-    if not order.lignes.filter(received_quantity__lt=F("quantity")).exists():
+    pending_lines = order.lignes.filter(received_quantity__lt=F("quantity"))
+    if order.is_supplier_purchase:
+        pending_lines = pending_lines.filter(article__type_article__iexact="Produit")
+    if not pending_lines.exists():
         order.statut = "Réception locale"
         order.date_reelle = timezone.localdate()
         order.save(update_fields=("statut", "date_reelle", "date_updated"))
@@ -886,6 +896,9 @@ def cancel_receipt(receipt, actor):
         raise ValidationError(
             {"status": _("Seule une réception validée peut être annulée.")}
         )
+    order = type(receipt.logistics_order).objects.select_for_update().get(pk=receipt.logistics_order_id)
+    if order.is_supplier_purchase and order.statut in {"Livraison client", "Clôture"}:
+        raise ValidationError({"status": _("La livraison client est confirmée ou le dossier est clôturé. La réception ne peut plus être annulée.")})
     movements = list(
         StockMovement.objects.filter(
             source_type="StockReceipt",
@@ -922,7 +935,6 @@ def cancel_receipt(receipt, actor):
         logistics_line.save(update_fields=("received_quantity",))
     receipt.status = StockReceipt.STATUS_CANCELLED
     receipt.save(update_fields=("status",))
-    order = receipt.logistics_order
     if order.statut == "Réception locale":
         order.statut = "Dédouanement"
         order.date_reelle = None

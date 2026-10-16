@@ -19,7 +19,7 @@ def get_logistique_document_path(_, filename):
 
 
 class LogisticsOrder(models.Model):
-    """Supplier-side logistics order created from accepted client proformas."""
+    """Supplier purchase dossier; version 1 retains historical sales sources."""
 
     STOCK_INCOMING_EXCLUDED_STATUSES = (
         "Réception locale",
@@ -213,6 +213,14 @@ class LogisticsOrder(models.Model):
     incoterm = models.CharField(max_length=50, blank=True, default="")
     transport = models.CharField(max_length=100, blank=True, default="")
     conditions_paiement = models.TextField(blank=True, default="")
+    workflow_version = models.PositiveSmallIntegerField(default=1, editable=False)
+    condition_achat = models.CharField(max_length=32, blank=True, default="")
+    date_commande_client = models.DateField(null=True, blank=True)
+    date_expedition_prevue = models.DateField(null=True, blank=True)
+    production_confirmee_le = models.DateTimeField(null=True, blank=True)
+    date_expedition_reelle = models.DateField(null=True, blank=True)
+    date_arrivee_maroc = models.DateField(null=True, blank=True)
+    documents_remis_banque_le = models.DateField(null=True, blank=True)
     description = models.TextField(blank=True, default="")
     responsable = models.ForeignKey(
         CustomUser,
@@ -481,6 +489,12 @@ class LogisticsOrder(models.Model):
 
     @property
     def is_payment_overdue(self):
+        if self.is_supplier_purchase:
+            return any(
+                item.demandee_le and item.date_echeance
+                and item.date_echeance < timezone.localdate() and not item.paiement_valide_le
+                for item in self.echeances_paiement.all()
+            )
         return self.statut_paiement == "En attente" and self.demande_paiement_envoyee_le
 
     @property
@@ -519,21 +533,31 @@ class LogisticsOrder(models.Model):
             ),
             Decimal("0"),
         )
-        return max(self.montant_titre_importation - paid, Decimal("0"))
+        return max(self.payment_total - paid, Decimal("0"))
+
+    @property
+    def is_supplier_purchase(self):
+        return self.workflow_version == 2
+
+    @property
+    def payment_total(self):
+        return self.montant_proforma_fournisseur if self.is_supplier_purchase else self.montant_titre_importation
 
     @property
     def is_payment_step_complete(self):
         return self.statut_paiement == "Validé" and (
             self.solde_restant == 0
-            or self.statut in self.LEGACY_PAYMENT_COMPLETE_STATUSES
+            or (not self.is_supplier_purchase and self.statut in self.LEGACY_PAYMENT_COMPLETE_STATUSES)
         )
 
     @property
     def is_delivery_overdue(self):
         return bool(
-            self.date_prevue
-            and self.date_prevue < timezone.localdate()
-            and self.statut not in {"Livraison client", "Clôture", "Annulé"}
+            ((self.date_prevue and self.date_prevue < timezone.localdate())
+             or (self.is_supplier_purchase and self.date_expedition_prevue
+                 and not self.date_expedition_reelle
+                 and self.date_expedition_prevue < timezone.localdate()))
+            and self.statut not in ({"Clôture", "Annulé"} if self.is_supplier_purchase else {"Livraison client", "Clôture", "Annulé"})
             and self.statut_global != "Annulé"
         )
 
@@ -548,12 +572,13 @@ class LogisticsOrder(models.Model):
 
     @property
     def is_launch_step_complete(self):
-        return self.statut_commande_lancement == "Terminée"
+        return self.is_supplier_purchase or self.statut_commande_lancement == "Terminée"
 
     @property
     def is_proforma_step_complete(self):
         if (
-            self.statut_proforma_conformite in {None, "En attente"}
+            not self.is_supplier_purchase
+            and self.statut_proforma_conformite in {None, "En attente"}
             and self.statut in self.LEGACY_PROFORMA_COMPLETE_STATUSES
         ):
             return True
@@ -577,6 +602,11 @@ class LogisticsOrder(models.Model):
         if self.statut == "Clôture":
             return "Clôturé"
         if self.statut == "Livraison client":
+            if self.is_supplier_purchase:
+                if self.is_delivery_overdue or self.is_payment_overdue:
+                    return "En retard"
+                if self.solde_restant:
+                    return "En cours"
             return "À clôturer"
 
         proforma_status = self.effective_proforma_status
@@ -586,7 +616,7 @@ class LogisticsOrder(models.Model):
             or self.statut_banque_paiement == "Bloqué"
         ):
             return "Bloqué"
-        if self.is_delivery_overdue or self.is_proforma_follow_up_overdue:
+        if self.is_delivery_overdue or self.is_proforma_follow_up_overdue or (self.is_supplier_purchase and self.is_payment_overdue):
             return "En retard"
         if self.statut_commande_lancement == "À lancer":
             return "À lancer"
@@ -680,7 +710,11 @@ class LogisticsPaymentInstallment(models.Model):
         on_delete=models.CASCADE,
         related_name="echeances_paiement",
     )
-    date_echeance = models.DateField()
+    date_echeance = models.DateField(null=True, blank=True)
+    declencheur = models.CharField(max_length=16, blank=True, default="")
+    demandee_le = models.DateTimeField(null=True, blank=True)
+    notification_createur_envoyee_le = models.DateTimeField(null=True, blank=True)
+    notification_createur_erreur = models.TextField(blank=True, default="")
     montant_prevu = models.DecimalField(max_digits=12, decimal_places=2)
     pourcentage = models.DecimalField(max_digits=5, decimal_places=2, default=0)
     devise = models.CharField(max_length=3, choices=CURRENCY_CHOICES)
@@ -822,6 +856,7 @@ class LogisticsOrderLine(models.Model):
         "facture_proforma.FactureProForma",
         on_delete=models.PROTECT,
         related_name="lignes_logistiques",
+        null=True, blank=True,
     )
     source_line = models.ForeignKey(
         "facture_proforma.FactureProFormaLine",
@@ -834,6 +869,7 @@ class LogisticsOrderLine(models.Model):
         "client.Client",
         on_delete=models.PROTECT,
         related_name="lignes_logistiques",
+        null=True, blank=True,
     )
     article = models.ForeignKey(
         "article.Article",
@@ -863,7 +899,7 @@ class LogisticsOrderLine(models.Model):
     devise_prix_achat = models.CharField(
         max_length=3, choices=CURRENCY_CHOICES, default="MAD"
     )
-    prix_vente = models.DecimalField(max_digits=10, decimal_places=2)
+    prix_vente = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     devise_prix_vente = models.CharField(
         max_length=3, choices=CURRENCY_CHOICES, default="MAD"
     )

@@ -316,7 +316,8 @@ def send_payment_request_email(order, *, request_user):
     order.demande_paiement_email_task_id = ""
     order.demande_paiement_email_prise_en_charge_le = None
     order.statut_paiement = "En attente"
-    order.statut = "Paiement demandé"
+    if not order.is_supplier_purchase:
+        order.statut = "Paiement demandé"
     order.sync_global_status(preserve_manual=False, commit=False)
     order.save(
         update_fields=[

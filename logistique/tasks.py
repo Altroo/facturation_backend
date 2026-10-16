@@ -54,10 +54,11 @@ def _accounting_message(order):
             f"Méthode de paiement : {order.methode_paiement}",
             *(
                 [f"Avance : {order.avance_pourcentage:.2f} %"]
-                if order.methode_paiement == "LC"
+                if (order.is_supplier_purchase or order.methode_paiement == "LC")
                 and order.avance_pourcentage is not None
                 else []
             ),
+            *([f"À traiter : {item.montant_prevu:.2f} {item.devise} par {item.methode_paiement}, échéance {item.date_echeance}" for item in order.echeances_paiement.all() if item.demandee_le and not item.paiement_valide_le] if order.is_supplier_purchase else []),
             f"Lien direct vers le dossier : {_dossier_url(order)}",
             "",
             (
@@ -542,3 +543,46 @@ def deliver_supplier_payment_proof_email(self, installment_id, delivery_token):
             delivery_error,
         )
         raise self.retry(exc=delivery_error, countdown=60)
+
+
+def queue_purchase_creator_email(installment_id):
+    try:
+        deliver_purchase_creator_email.delay(installment_id)
+    except Exception:
+        logger.exception("Unable to queue creator notification for installment %s", installment_id)
+        LogisticsPaymentInstallment.objects.filter(pk=installment_id).update(
+            notification_createur_erreur="Envoi indisponible. Relancez la notification.")
+
+
+@app.task(serializer="json")
+def deliver_purchase_creator_email(installment_id):
+    with transaction.atomic():
+        item = LogisticsPaymentInstallment.objects.select_for_update(of=("self",)).select_related(
+            "commande__created_by_user").filter(pk=installment_id).first()
+        if not item or item.notification_createur_envoyee_le or not item.paiement_valide_le:
+            return False
+        order = item.commande
+        creator = order.created_by_user
+        if not creator or not creator.is_active or not creator.email:
+            item.notification_createur_erreur = "Le créateur du dossier n’a pas d’adresse active."
+            item.save(update_fields=["notification_createur_erreur"])
+            return False
+        try:
+            message = EmailMessage(
+                subject=f"Paiement validé : {order.numero_commande}",
+                body="\n".join(["Bonjour,", "", f"Le comptable a validé le paiement de {item.montant_paye:.2f} {item.devise} pour le dossier {order.numero_commande}.",
+                    f"Fournisseur : {order.fournisseur}", f"Solde restant : {order.solde_restant:.2f} {item.devise}",
+                    "Vous pouvez transmettre le justificatif au fournisseur.", f"Dossier : {_dossier_url(order)}"]),
+                to=[creator.email])
+            _attach_file(message, item.justificatif_file)
+            if message.send() != 1:
+                raise RuntimeError("Notification non envoyée")
+        except Exception:
+            logger.exception("Creator notification failed for installment %s", installment_id)
+            item.notification_createur_erreur = "Échec de l’envoi. Vous pouvez relancer la notification."
+            item.save(update_fields=["notification_createur_erreur"])
+            return False
+        item.notification_createur_envoyee_le = timezone.now()
+        item.notification_createur_erreur = ""
+        item.save(update_fields=["notification_createur_envoyee_le", "notification_createur_erreur"])
+        return True

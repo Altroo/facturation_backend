@@ -75,6 +75,7 @@ def _user_display_name(user):
 
 
 class LogisticsOrderLineSerializer(serializers.ModelSerializer):
+    type_article = serializers.CharField(source="article.type_article", read_only=True)
     proforma_numero = serializers.CharField(
         source="proforma.numero_facture", read_only=True
     )
@@ -83,7 +84,7 @@ class LogisticsOrderLineSerializer(serializers.ModelSerializer):
     class Meta:
         model = LogisticsOrderLine
         fields = [
-            "id",
+            "id", "type_article",
             "proforma",
             "proforma_numero",
             "client",
@@ -121,6 +122,7 @@ class LogisticsOrderLineSerializer(serializers.ModelSerializer):
     def get_incoming_active(obj):
         return (
             obj.commande.statut_commande_lancement == "Terminée"
+            and (not obj.commande.is_supplier_purchase or obj.commande.is_proforma_step_complete)
             and obj.commande.statut_global != "Annulé"
             and obj.commande.statut
             not in LogisticsOrder.STOCK_INCOMING_EXCLUDED_STATUSES
@@ -163,7 +165,7 @@ class LogisticsPaymentInstallmentSerializer(serializers.ModelSerializer):
         model = LogisticsPaymentInstallment
         fields = [
             "id",
-            "date_echeance",
+            "date_echeance", "declencheur", "demandee_le", "notification_createur_envoyee_le", "notification_createur_erreur",
             "montant_prevu",
             "pourcentage",
             "devise",
@@ -208,6 +210,13 @@ class LogisticsPaymentInstallmentSerializer(serializers.ModelSerializer):
 
 
 class LogisticsOrderBaseSerializer(serializers.ModelSerializer):
+    workflow = serializers.SerializerMethodField()
+
+    @staticmethod
+    def get_workflow(obj):
+        from .purchase import workflow_summary
+        return workflow_summary(obj)
+
     marque_name = serializers.CharField(source="marque.nom", read_only=True)
     marques_names = serializers.SerializerMethodField()
     responsable_name = serializers.SerializerMethodField()
@@ -234,6 +243,9 @@ class LogisticsOrderBaseSerializer(serializers.ModelSerializer):
     class Meta:
         model = LogisticsOrder
         fields = [
+            "workflow_version", "condition_achat", "workflow", "date_commande_client",
+            "date_expedition_prevue", "production_confirmee_le", "date_expedition_reelle",
+            "date_arrivee_maroc", "documents_remis_banque_le",
             "id",
             "company",
             "numero_commande",
@@ -468,6 +480,8 @@ class LogisticsOrderBaseSerializer(serializers.ModelSerializer):
         names = []
         seen = set()
         for line in cast(Iterable[LogisticsOrderLine], lines):
+            if line.client is None:
+                continue
             name = str(line.client)
             if name not in seen:
                 names.append(name)
@@ -497,7 +511,8 @@ class LogisticsOrderBaseSerializer(serializers.ModelSerializer):
                     f"Proforma client {proforma.numero_facture} expirée — commande à vérifier."
                 )
         if obj.statut_paiement == "En attente":
-            alerts.append("Retard paiement en attente")
+            if not obj.is_supplier_purchase or any(item.demandee_le and item.date_echeance and item.date_echeance < timezone.localdate() and not item.paiement_valide_le for item in obj.echeances_paiement.all()):
+                alerts.append("Échéance de paiement dépassée")
         if obj.has_missing_swift:
             alerts.append("SWIFT manquant")
         if (
@@ -515,6 +530,9 @@ class LogisticsOrderBaseSerializer(serializers.ModelSerializer):
 class LogisticsOrderListSerializer(LogisticsOrderBaseSerializer):
     class Meta(LogisticsOrderBaseSerializer.Meta):
         fields = [
+            "workflow_version", "condition_achat", "workflow", "date_commande_client",
+            "date_expedition_prevue", "production_confirmee_le", "date_expedition_reelle",
+            "date_arrivee_maroc", "documents_remis_banque_le",
             "id",
             "company",
             "numero_commande",
@@ -563,6 +581,7 @@ class LogisticsOrderDetailSerializer(LogisticsOrderBaseSerializer):
         source="echeances_paiement", many=True, read_only=True
     )
     process_notes = serializers.SerializerMethodField()
+    receptions = serializers.SerializerMethodField()
 
     class Meta(LogisticsOrderBaseSerializer.Meta):
         fields = LogisticsOrderBaseSerializer.Meta.fields + [
@@ -571,6 +590,7 @@ class LogisticsOrderDetailSerializer(LogisticsOrderBaseSerializer):
             "proformas_detail",
             "echeancier_paiement",
             "process_notes",
+            "receptions",
         ]
         read_only_fields = LogisticsOrderBaseSerializer.Meta.read_only_fields + [
             "lignes",
@@ -578,6 +598,29 @@ class LogisticsOrderDetailSerializer(LogisticsOrderBaseSerializer):
             "proformas_detail",
             "echeancier_paiement",
             "process_notes",
+            "receptions",
+        ]
+
+    @staticmethod
+    def get_receptions(obj):
+        date_time = serializers.DateTimeField()
+        return [
+            {
+                "id": receipt.pk,
+                "reference": receipt.reference,
+                "note": receipt.note,
+                "status": receipt.status,
+                "date_created": date_time.to_representation(receipt.date_created),
+                "date_validated": (
+                    date_time.to_representation(receipt.date_validated)
+                    if receipt.date_validated else None
+                ),
+                "created_by_name": _user_display_name(receipt.created_by),
+                "validated_by_name": _user_display_name(receipt.validated_by),
+            }
+            for receipt in obj.stock_receipts.filter(company_id=obj.company_id)
+            .select_related("created_by", "validated_by")
+            .order_by("-date_created", "-id")
         ]
 
     @staticmethod
@@ -733,6 +776,8 @@ class LogisticsOrderUpdateSerializer(serializers.ModelSerializer):
         return validate_logistics_document(value)
 
     def validate_statut(self, value):
+        from .purchase import validate_purchase_transition
+        validate_purchase_transition(self.order, value)
         if value == "Annulé":
             raise serializers.ValidationError(
                 _("Utilisez l'action dédiée pour annuler ce dossier.")
@@ -745,7 +790,8 @@ class LogisticsOrderUpdateSerializer(serializers.ModelSerializer):
                 _("Validez d'abord la pro forma fournisseur.")
             )
         if (
-            value in LogisticsOrder.PAYMENT_COMPLETE_REQUIRED_STATUSES
+            not self.order.is_supplier_purchase
+            and value in LogisticsOrder.PAYMENT_COMPLETE_REQUIRED_STATUSES
             and not self.order.is_payment_step_complete
         ):
             raise serializers.ValidationError(
@@ -804,9 +850,11 @@ class LogisticsOrderUpdateSerializer(serializers.ModelSerializer):
         }
         if errors:
             raise serializers.ValidationError(errors)
+        if self.order.is_supplier_purchase and ({"methode_paiement", "avance_pourcentage"} & set(self.initial_data)):
+            raise serializers.ValidationError({"paiement": "La méthode et l’avance sont calculées depuis les conditions d’achat."})
         payment_method = attrs.get("methode_paiement", self.order.methode_paiement)
         advance = attrs.get("avance_pourcentage", self.order.avance_pourcentage)
-        if payment_method != "LC":
+        if not self.order.is_supplier_purchase and payment_method != "LC":
             attrs["avance_pourcentage"] = None
         elif advance is not None and not Decimal("0") <= advance <= Decimal("100"):
             raise serializers.ValidationError(

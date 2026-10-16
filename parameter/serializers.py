@@ -20,11 +20,11 @@ class VilleSerializer(serializers.ModelSerializer):
 
 
 class MarqueSerializer(serializers.ModelSerializer):
-    """Serializer for Marque (id, nom, company)."""
+    """Company brand directory, including the supplier contact address."""
 
     class Meta:
         model = Marque
-        fields = ("id", "nom", "company")
+        fields = ("id", "nom", "email", "company")
 
 
 class CategorieSerializer(serializers.ModelSerializer):

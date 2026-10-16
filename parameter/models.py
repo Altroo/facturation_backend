@@ -82,6 +82,8 @@ class Marque(models.Model):
         help_text=_("Nom de la marque"),
     )
 
+    email = models.EmailField(blank=True, default="")
+
     history = HistoricalRecords(
         verbose_name=_("Historique Marque"),
         verbose_name_plural=_("Historiques Marques"),

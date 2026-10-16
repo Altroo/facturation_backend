@@ -432,6 +432,12 @@ class LogisticsOrderListCreateView(CompanyAccessMixin, APIView):
                 _("Vous n'avez pas les droits pour créer un dossier logistique.")
             )
 
+        if not request.data.get("proformas"):
+            from .purchase_views import create_purchase_dossier
+            orders = create_purchase_dossier(company_id, request.user, request.data)
+            return Response({"created": 1, "orders": LogisticsOrderDetailSerializer(
+                orders, many=True, context={"request": request}).data}, status=status.HTTP_201_CREATED)
+
         serializer = LogisticsOrderCreateSerializer(
             data=request.data,
             context={"company_id": company_id, "request": request},
@@ -529,6 +535,10 @@ class LogisticsOrderDetailEditDeleteView(CompanyAccessMixin, APIView):
     def put(self, request, pk, *args, **kwargs):
         order = self.get_object(pk, for_update=True)
         self._check_company_access(request, order.company_id)
+        if order.is_supplier_purchase:
+            if not _can_manage_logistics(request.user, order.company_id):
+                raise PermissionDenied("Votre rôle permet uniquement la lecture de ce dossier.")
+            raise ValidationError({"dossier": "Utilisez les formulaires du dossier fournisseur pour modifier ces informations."})
         can_manage = _can_manage_logistics(request.user, order.company_id)
         is_responsible = _is_order_responsible(request.user, order)
         requested_fields = set(request.data.keys())
@@ -647,12 +657,15 @@ class LogisticsOrderStatusUpdateView(CompanyAccessMixin, APIView):
                 {"statut": _("Validez d'abord la pro forma fournisseur.")}
             )
         if (
-            requested_status in LogisticsOrder.PAYMENT_COMPLETE_REQUIRED_STATUSES
+            not order.is_supplier_purchase
+            and requested_status in LogisticsOrder.PAYMENT_COMPLETE_REQUIRED_STATUSES
             and not order.is_payment_step_complete
         ):
             raise ValidationError(
                 {"statut": _("Validez d'abord la totalité du paiement requis.")}
             )
+        from .purchase import validate_purchase_transition
+        validate_purchase_transition(order, requested_status)
         order.set_status(requested_status, user=request.user)
         order.sync_global_status(preserve_manual=False)
         return Response(
@@ -723,6 +736,8 @@ class LogisticsProformaRequestView(CompanyAccessMixin, APIView):
                 )
             )
         _ensure_order_active(order)
+        if order.is_supplier_purchase:
+            raise ValidationError({"dossier": "Utilisez les actions du dossier d’achat fournisseur."})
         if order.is_launch_step_complete:
             raise ValidationError(
                 {
@@ -781,6 +796,8 @@ class LogisticsLaunchStatusUpdateView(CompanyAccessMixin, APIView):
                 _("Vous n'avez pas les droits pour modifier cette étape.")
             )
         _ensure_order_active(order)
+        if order.is_supplier_purchase:
+            raise ValidationError({"dossier": "Utilisez les actions du dossier d’achat fournisseur."})
         serializer = LogisticsLaunchStatusSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         requested_status = serializer.validated_data["statut"]
@@ -842,6 +859,8 @@ class LogisticsSupplierProformaReviewView(CompanyAccessMixin, APIView):
                 )
             )
         _ensure_order_active(order)
+        if order.is_supplier_purchase:
+            raise ValidationError({"dossier": "Utilisez les actions du dossier d’achat fournisseur."})
         if not order.is_launch_step_complete:
             raise ValidationError(
                 {"proforma": _("Terminez d'abord l'étape Commande & lancement.")}
@@ -942,6 +961,11 @@ class LogisticsPaymentRequestView(CompanyAccessMixin, APIView):
                 )
             )
         _ensure_order_active(order)
+        if order.is_supplier_purchase:
+            if not _can_manage_logistics(request.user, order.company_id):
+                raise PermissionDenied("Votre rôle permet uniquement la lecture du dossier.")
+            from .purchase_views import request_purchase_payment
+            return request_purchase_payment(order, request)
         if not order.is_proforma_step_complete:
             raise ValidationError(
                 {"paiement": _("Validez d'abord la pro forma fournisseur.")}
@@ -1079,6 +1103,11 @@ class LogisticsPaymentStartView(CompanyAccessMixin, APIView):
         installment = _get_locked_installment(
             order, serializer.validated_data["echeance_id"]
         )
+        if order.is_supplier_purchase:
+            from .purchase import payment_blocker
+            reason = payment_blocker(order, installment)
+            if not installment.demandee_le or reason:
+                raise ValidationError({"paiement": reason or "Transmettez d’abord cette échéance au comptable."})
         if installment.statut_traitement != "Paiement à traiter":
             raise ValidationError(
                 {"paiement": _("Cette échéance n'est plus à traiter.")}
@@ -1095,10 +1124,16 @@ class LogisticsPaymentStartView(CompanyAccessMixin, APIView):
                 "date_updated",
             ]
         )
+        payment_history = f"Échéance {installment.id}"
+        if order.is_supplier_purchase:
+            label = "Avance" if installment.declencheur == "advance" else "Solde" if installment.pourcentage < 100 else "Paiement"
+            percentage = format(installment.pourcentage.normalize(), "f")
+            amount = f"{installment.montant_prevu:,.2f}".replace(",", " ").replace(".", ",")
+            payment_history = f"{label} {percentage} % : {amount} {installment.devise}"
         order.add_event(
             user=request.user,
             action="Démarrage paiement",
-            new_value=f"Échéance {installment.id}",
+            new_value=payment_history,
         )
         return Response(
             LogisticsOrderDetailSerializer(order, context={"request": request}).data,
@@ -1120,10 +1155,24 @@ class LogisticsPaymentExecutionView(CompanyAccessMixin, APIView):
                 )
             )
         _ensure_order_active(order)
-        serializer = LogisticsPaymentExecutionSerializer(data=request.data)
+        execution_data = request.data.copy()
+        if order.is_supplier_purchase:
+            try:
+                due = order.echeances_paiement.get(pk=request.data.get("echeance_id"))
+            except (ValueError, TypeError, LogisticsPaymentInstallment.DoesNotExist):
+                raise ValidationError({"echeance_id": "Échéance introuvable."})
+            execution_data["devise_paiement"] = due.devise
+            execution_data["banque_paiement"] = order.banque
+            execution_data["methode_paiement"] = due.methode_paiement
+        serializer = LogisticsPaymentExecutionSerializer(data=execution_data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
         installment = _get_locked_installment(order, data["echeance_id"])
+        if order.is_supplier_purchase:
+            from .purchase import payment_blocker
+            reason = payment_blocker(order, installment)
+            if not installment.demandee_le or reason:
+                raise ValidationError({"paiement": reason or "Transmettez d’abord cette échéance au comptable."})
         if installment.statut_traitement != "Paiement en cours":
             raise ValidationError(
                 {"paiement": _("Commencez d'abord le traitement de cette échéance.")}
@@ -1150,6 +1199,8 @@ class LogisticsPaymentExecutionView(CompanyAccessMixin, APIView):
                 montant_prevu=remaining_installment_amount,
                 pourcentage=installment.pourcentage - paid_percentage,
                 devise=installment.devise,
+                methode_paiement=installment.methode_paiement,
+                declencheur=installment.declencheur, demandee_le=installment.demandee_le,
             )
             installment.montant_prevu = data["montant_paye"]
             installment.pourcentage = paid_percentage
@@ -1229,7 +1280,8 @@ class LogisticsPaymentValidateView(CompanyAccessMixin, APIView):
         remaining_balance = order.solde_restant
         if remaining_balance == 0:
             order.statut_paiement = "Validé"
-            order.statut = "Paiement effectué"
+            if not order.is_supplier_purchase:
+                order.statut = "Paiement effectué"
             order.statut_banque_paiement = "Exécuté"
             order.statut_traitement_paiement = "Paiement validé"
             order.paiement_valide_le = timezone.now()
@@ -1237,7 +1289,8 @@ class LogisticsPaymentValidateView(CompanyAccessMixin, APIView):
             order.paiement_assigne_a = None
         else:
             order.statut_paiement = "En attente"
-            order.statut = "Paiement demandé"
+            if not order.is_supplier_purchase:
+                order.statut = "Paiement demandé"
             order.statut_banque_paiement = "Partiel"
             order.statut_traitement_paiement = "Paiement à traiter"
         order.sync_global_status(preserve_manual=False, commit=False)
@@ -1252,7 +1305,10 @@ class LogisticsPaymentValidateView(CompanyAccessMixin, APIView):
                 else f"Partiel – solde {remaining_balance}"
             ),
         )
-        if remaining_balance == 0:
+        if order.is_supplier_purchase:
+            from .tasks import queue_purchase_creator_email
+            transaction.on_commit(lambda installment_id=installment.pk: queue_purchase_creator_email(installment_id))
+        elif remaining_balance == 0:
             _notify_logistics_responsible(
                 order,
                 _(
@@ -1282,6 +1338,8 @@ class LogisticsPaymentRejectView(CompanyAccessMixin, APIView):
                 )
             )
         _ensure_order_active(order)
+        if order.is_supplier_purchase:
+            raise ValidationError({"paiement": "Le retour global pour correction est désactivé pour ce dossier fournisseur."})
         if order.statut_paiement != "En attente":
             raise ValidationError(
                 {"paiement": _("Aucune demande de paiement n'est en attente.")}
@@ -1343,9 +1401,11 @@ class LogisticsSwiftSentView(CompanyAccessMixin, APIView):
     def post(self, request, pk, *args, **kwargs):
         order = LogisticsOrderDetailEditDeleteView.get_object(pk, for_update=True)
         self._check_company_access(request, order.company_id)
-        if not _is_order_responsible(request.user, order):
+        permitted = (_is_order_responsible(request.user, order) if not order.is_supplier_purchase
+                     else request.user.is_superuser or (request.user.pk == order.created_by_user_id and _can_manage_logistics(request.user, order.company_id)))
+        if not permitted:
             raise PermissionDenied(
-                _("Seul le Responsable Commande peut indiquer si l'e-mail a été envoyé.")
+                _("Seul le créateur du dossier peut indiquer si l’e-mail a été envoyé.")
             )
         _ensure_order_active(order)
         action_serializer = LogisticsPaymentProofEmailStatusSerializer(
@@ -1409,13 +1469,15 @@ class LogisticsProcessNoteCreateView(CompanyAccessMixin, APIView):
         self._check_company_access(request, order.company_id)
         if not (
             _can_manage_logistics(request.user, order.company_id)
-            or _is_order_responsible(request.user, order)
+            or (not order.is_supplier_purchase and _is_order_responsible(request.user, order))
             or _can_process_assigned_payment(request.user, order)
         ):
             raise PermissionDenied(
                 _("Vous n'avez pas les droits pour ajouter une remarque à ce dossier.")
             )
         _ensure_order_active(order)
+        if order.is_supplier_purchase and order.statut == "Clôture":
+            raise ValidationError({"dossier": "Ce dossier est clôturé."})
         serializer = LogisticsProcessNoteSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         note = serializer.save(
@@ -1468,6 +1530,8 @@ class LogisticsPaymentReceiptConfirmView(CompanyAccessMixin, APIView):
                 )
             )
         _ensure_order_active(order)
+        if order.is_supplier_purchase:
+            raise ValidationError({"dossier": "Utilisez les actions du dossier d’achat fournisseur."})
         serializer = LogisticsPaymentInstallmentActionSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         installment = _get_locked_installment(

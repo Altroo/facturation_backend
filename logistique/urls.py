@@ -26,9 +26,14 @@ from .views import (
     LogisticsSwiftSentView,
 )
 
+from .purchase_views import PurchaseWorkflowView, ImportTitleExtractView, SupplierDirectoryView
+
 app_name = "logistique"
 
 urlpatterns = [
+    path("supplier_directory/", SupplierDirectoryView.as_view(), name="logistique-supplier-directory"),
+    path("<int:pk>/purchase/", PurchaseWorkflowView.as_view(), name="logistique-purchase"),
+    path("<int:pk>/extract_import_title/", ImportTitleExtractView.as_view(), name="logistique-extract-title"),
     path("field_review/", LogisticsFieldReviewView.as_view(), name="logistique-field-review"),
     path("", LogisticsOrderListCreateView.as_view(), name="logistique-list-create"),
     path(

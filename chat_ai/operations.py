@@ -76,12 +76,13 @@ def authorize(executor, resource):
 
 
 def _valid_logistics_line(company_id):
-    return (Q(commande__company_id=company_id, client__company_id=company_id,
-              article__company_id=company_id, proforma__company_id=company_id,
-              proforma__client__company_id=company_id, client_id=F('proforma__client_id'))
-            & (Q(expected_emplacement__isnull=True) | Q(expected_emplacement__company_id=company_id))
-            & (Q(source_line__isnull=True) | Q(source_line__facture_pro_forma_id=F('proforma_id'),
-                                              source_line__article_id=F('article_id'))))
+    common = Q(commande__company_id=company_id, article__company_id=company_id) & (
+        Q(expected_emplacement__isnull=True) | Q(expected_emplacement__company_id=company_id))
+    legacy = (Q(client__company_id=company_id, proforma__company_id=company_id,
+                proforma__client__company_id=company_id, client_id=F('proforma__client_id'))
+              & (Q(source_line__isnull=True) | Q(source_line__facture_pro_forma_id=F('proforma_id'), source_line__article_id=F('article_id'))))
+    purchase = Q(commande__workflow_version=2, client__isnull=True, proforma__isnull=True, source_line__isnull=True)
+    return common & (legacy | purchase)
 
 
 def _logistics_queryset(company_id):
@@ -106,7 +107,7 @@ def scoped_queryset(company_id, resource):
         unsafe_incoming = LogisticsOrderLine.objects.filter(
             commande__company_id=company_id, commande__statut_commande_lancement='Terminée',
             article_id=OuterRef('article_id'), expected_emplacement_id=OuterRef('emplacement_id'),
-        ).exclude(commande__statut_global='Annulé').exclude(
+        ).filter(Q(commande__workflow_version=1) | Q(commande__statut_proforma_conformite='Validée')).exclude(commande__statut_global='Annulé').exclude(
             commande__statut__in=INCOMING_EXCLUDED_STATUSES,
         ).exclude(commande_id__in=_logistics_queryset(company_id).values('pk'))
         return StockBalance.objects.filter(company_id=company_id, article__company_id=company_id,
