@@ -10,6 +10,8 @@ pytestmark = pytest.mark.django_db
 
 
 @pytest.mark.parametrize("query", [
+    "What is the difference between a registered supplier and a brand?",
+    "Quelle différence entre Fournisseur enregistré et Marque ?",
     "Does a supplier purchase dossier require a customer proforma?",
     "Faut-il sélectionner une proforma client pour un achat fournisseur ?",
     "What purchase conditions are available for a logistics dossier?",
@@ -31,13 +33,14 @@ def test_supplier_workflow_questions_retrieve_current_guidance(corpus, query):
 def test_new_dates_use_visible_form_captions_without_internal_field_names(corpus, locale):
     excerpt = KnowledgeDocument.objects.get(pk="logistics-find").localized_content[locale]
     for caption in (
+        "Fournisseur enregistré", "Marque",
         "Date prévue de fin du dossier", "Date de commande client",
         "Date d’expédition prévue", "Date réelle d’expédition",
         "Date d’arrivée au Maroc", "Documents remis à la banque le",
     ):
         assert caption in excerpt
     for technical_name in (
-        "workflow_version", "condition_achat", "date_commande_client",
+        "fournisseur_record", "workflow_version", "condition_achat", "date_commande_client",
         "date_expedition_prevue", "date_expedition_reelle", "date_arrivee_maroc",
         "documents_remis_banque_le",
     ):
