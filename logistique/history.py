@@ -43,7 +43,7 @@ def _recorded_status_start(event, field, snapshots):
     return previous[index]["history_date"]
 
 
-def previous_value_dates(order):
+def event_value_dates(order):
     events = sorted(order.events.all(), key=lambda event: (event.date_created, event.pk))
     status_fields = sorted(set(STATUS_FIELDS.values()))
     snapshots = list(order.history.order_by("history_date", "history_id").values(
@@ -60,7 +60,7 @@ def previous_value_dates(order):
             recorded = _recorded_status_start(event, field, snapshots)
             if recorded is not None and (since is None or recorded > since):
                 since = recorded
-        dates[event.pk] = since
+        dates[event.pk] = {"before": since, "after": event.date_created if old_value != new_value else since}
         # Saving the same value must not restart its recorded lifetime.
         state[key] = (new_value, event.date_created if old_value != new_value else since)
     return dates

@@ -81,7 +81,9 @@ def test_repeated_status_uses_latest_return_to_that_status(order):
 
 def test_a_no_op_does_not_reset_the_previous_status_start(order):
     change(order, T1, "À lancer", "En cours")
-    change(order, T2, "En cours", "En cours")
+    unchanged = change(order, T2, "En cours", "En cours")
+    row = serialized(order)[unchanged.pk]
+    assert parse_datetime(row["new_value_since"]) == since(row) == T1
     latest = change(order, T3, "En cours", "Terminée")
     assert since(serialized(order)[latest.pk]) == T1
 
@@ -139,3 +141,10 @@ def test_future_planned_value_keeps_the_actual_recording_time_and_serializing_is
     assert row["old_value_since"] is None
     assert LogisticsOrder.objects.filter(pk=order.pk).values().get() == before
     assert order.events.count() == events and order.history.count() == snapshots
+
+
+def test_repeated_value_without_a_known_start_keeps_both_dates_unknown(order):
+    order.history.all().delete()
+    event = change(order, T1, "En cours", "En cours", field=None)
+    row = serialized(order)[event.pk]
+    assert row["old_value_since"] is None and row["new_value_since"] is None
