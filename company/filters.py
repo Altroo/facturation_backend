@@ -5,15 +5,15 @@ from django.db.utils import DatabaseError
 from django.utils.translation import gettext_lazy as _
 
 from .models import Company
-from core.filters import IsEmptyAutoMixin
+from core.filters import CalendarDateFilter, CombinedFiltersMixin, IsEmptyAutoMixin
 
 
-class CompanyFilter(IsEmptyAutoMixin, django_filters.FilterSet):
+class CompanyFilter(CombinedFiltersMixin, IsEmptyAutoMixin, django_filters.FilterSet):
     search = django_filters.CharFilter(method="global_search", label=_("Search"))
-    date_created_after = django_filters.DateFilter(
+    date_created_after = CalendarDateFilter(
         field_name="date_created", lookup_expr="gte", label=_("Date Created After")
     )
-    date_created_before = django_filters.DateFilter(
+    date_created_before = CalendarDateFilter(
         field_name="date_created", lookup_expr="lte", label=_("Date Created Before")
     )
 

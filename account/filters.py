@@ -4,22 +4,22 @@ from django.db.models import Case, When, Value, CharField, Q, F, FloatField
 from django.db.utils import DatabaseError
 from django.utils.translation import gettext_lazy as _
 
-from core.filters import IsEmptyAutoMixin
+from core.filters import CalendarDateFilter, CombinedFiltersMixin, IsEmptyAutoMixin
 from .models import CustomUser
 
 
-class UsersFilter(IsEmptyAutoMixin, django_filters.FilterSet):
+class UsersFilter(CombinedFiltersMixin, IsEmptyAutoMixin, django_filters.FilterSet):
     search = django_filters.CharFilter(method="global_search", label=_("Search"))
-    date_joined_after = django_filters.DateTimeFilter(
+    date_joined_after = CalendarDateFilter(
         field_name="date_joined", lookup_expr="gte", label=_("Date Joined After")
     )
-    date_joined_before = django_filters.DateTimeFilter(
+    date_joined_before = CalendarDateFilter(
         field_name="date_joined", lookup_expr="lte", label=_("Date Joined Before")
     )
-    last_login_after = django_filters.DateTimeFilter(
+    last_login_after = CalendarDateFilter(
         field_name="last_login", lookup_expr="gte", label=_("Last Login After")
     )
-    last_login_before = django_filters.DateTimeFilter(
+    last_login_before = CalendarDateFilter(
         field_name="last_login", lookup_expr="lte", label=_("Last Login Before")
     )
 

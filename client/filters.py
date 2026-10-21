@@ -4,20 +4,25 @@ from django.db.models import Case, When, Value, CharField, Q, F, FloatField
 from django.db.utils import DatabaseError
 from django.utils.translation import gettext_lazy as _
 
-from core.filters import IsEmptyAutoMixin, CommaSeparatedIDsFilter
+from core.filters import (
+    CalendarDateFilter,
+    CombinedFiltersMixin,
+    IsEmptyAutoMixin,
+    CommaSeparatedIDsFilter,
+)
 from .models import Client
 
 
-class ClientFilter(IsEmptyAutoMixin, django_filters.FilterSet):
+class ClientFilter(CombinedFiltersMixin, IsEmptyAutoMixin, django_filters.FilterSet):
     search = django_filters.CharFilter(method="global_search", label=_("Search"))
     archived = django_filters.BooleanFilter(field_name="archived", label=_("Archived"))
     company_id = django_filters.NumberFilter(
         field_name="company_id", label=_("Company")
     )
-    date_created_after = django_filters.DateFilter(
+    date_created_after = CalendarDateFilter(
         field_name="date_created", lookup_expr="gte", label=_("Date Created After")
     )
-    date_created_before = django_filters.DateFilter(
+    date_created_before = CalendarDateFilter(
         field_name="date_created", lookup_expr="lte", label=_("Date Created Before")
     )
 

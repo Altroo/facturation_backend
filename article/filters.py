@@ -4,7 +4,7 @@ from django.db.models import Q, Value, F, FloatField
 from django.db.utils import DatabaseError
 from django.utils.translation import gettext_lazy as _
 
-from core.filters import IsEmptyAutoMixin, CommaSeparatedIDsFilter
+from core.filters import CalendarDateFilter, IsEmptyAutoMixin, CommaSeparatedIDsFilter
 from .models import Article
 
 
@@ -17,10 +17,10 @@ class ArticleFilter(IsEmptyAutoMixin, django_filters.FilterSet):
     company_id = django_filters.NumberFilter(
         field_name="company_id", label=_("Company")
     )
-    date_created_after = django_filters.DateFilter(
+    date_created_after = CalendarDateFilter(
         field_name="date_created", lookup_expr="gte", label=_("Date Created After")
     )
-    date_created_before = django_filters.DateFilter(
+    date_created_before = CalendarDateFilter(
         field_name="date_created", lookup_expr="lte", label=_("Date Created Before")
     )
 

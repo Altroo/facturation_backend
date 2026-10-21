@@ -1,11 +1,64 @@
+import json
+from datetime import datetime, time, timedelta
 from typing import Any
 
 import django_filters
+from django.conf import settings
 from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
 from django.db.models import Q, Value, F, FloatField, Count, CharField
 from django.db.models.functions import Coalesce, Concat
 from django.db.utils import DatabaseError
 from django.utils.translation import gettext_lazy as _
+from django.utils import timezone
+from rest_framework.exceptions import ValidationError
+
+
+class CalendarDateFilter(django_filters.DateFilter):
+    """Compare a timestamp against complete local calendar days."""
+
+    def filter(self, qs, value):
+        if value is None:
+            return qs
+        # Use the next midnight exclusively for an upper bound. This includes
+        # the whole final day and keeps the timestamp column's index usable.
+        upper_bound = self.lookup_expr == "lte"
+        day = value + timedelta(days=1) if upper_bound else value
+        boundary = datetime.combine(day, time.min)
+        if settings.USE_TZ:
+            boundary = timezone.make_aware(boundary, timezone.get_current_timezone())
+        lookup = "lt" if upper_bound else self.lookup_expr
+        return qs.filter(**{f"{self.field_name}__{lookup}": boundary})
+
+
+class CombinedFiltersMixin:
+    """OR advanced filter rows while retaining search and company constraints."""
+
+    def filter_queryset(self, queryset):
+        queryset = super().filter_queryset(queryset)
+        if self.data.get("filter_logic", "and") != "or":
+            return queryset
+        try:
+            groups = json.loads(self.data.get("filter_groups", ""))
+        except (TypeError, ValueError):
+            raise ValidationError({"filter_groups": _("Invalid filter groups.")})
+        if not isinstance(groups, list) or not groups:
+            raise ValidationError({"filter_groups": _("Invalid filter groups.")})
+
+        matches = Q()
+        for group in groups:
+            if (
+                not isinstance(group, dict)
+                or not group
+                or set(group) - self.filters.keys()
+            ):
+                raise ValidationError({"filter_groups": _("Invalid filter group.")})
+            child = type(self)(data=group, queryset=queryset, request=self.request)
+            if not child.is_valid():
+                raise ValidationError({"filter_groups": child.errors})
+            # A row can contain both date bounds. Keep that row's conditions
+            # together, then OR its results with the other complete rows.
+            matches |= Q(pk__in=child.qs.values("pk"))
+        return queryset.filter(matches)
 
 
 class CommaSeparatedIDsFilter(django_filters.CharFilter):
