@@ -2,6 +2,10 @@
 
 NL = {
     "Statement": "Klantenrekeningoverzicht",
+    "Statement_Issued_By": "OVERZICHT UITGEGEVEN DOOR",
+    "Statement_Currency": "Valuta",
+    "Statement_Total": "Totalen",
+    "Statement_Empty": "Geen transacties voor deze periode.",
     "Statement_Due_Date": "Vervaldatum",
     "Piece": "Document",
     "Label": "Omschrijving",

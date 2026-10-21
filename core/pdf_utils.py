@@ -353,6 +353,10 @@ class BasePDFGenerator:
             "fr": {
                 # Client account statement
                 "Statement": "Extrait de Compte Client",
+                "Statement_Issued_By": "RELEVÉ ÉMIS PAR",
+                "Statement_Currency": "Devise",
+                "Statement_Total": "Totaux",
+                "Statement_Empty": "Aucun mouvement pour cette période.",
                 "Statement_Due_Date": "Échéance",
                 "Piece": "Pièce",
                 "Label": "Libellé",
@@ -453,6 +457,10 @@ class BasePDFGenerator:
             "en": {
                 # Client account statement
                 "Statement": "Client Account Statement",
+                "Statement_Issued_By": "STATEMENT ISSUED BY",
+                "Statement_Currency": "Currency",
+                "Statement_Total": "Totals",
+                "Statement_Empty": "No transactions for this period.",
                 "Statement_Due_Date": "Due date",
                 "Piece": "Document",
                 "Label": "Description",
@@ -1340,35 +1348,44 @@ class BasePDFGenerator:
             lines.extend(extra_lines)
         return lines
 
+    def _get_client(self):
+        return self.document.client
+
     def _build_client_lines(self) -> list:
         """Build list of client info Paragraphs."""
-        client = self.document.client
+        client = self._get_client()
         lines = []
         if client.client_type in ("PM", "CD") and client.raison_sociale:
             lines.append(
                 Paragraph(
-                    f"<b>{client.raison_sociale}</b>", self.styles["CustomNormal"]
+                    f"<b>{escape(client.raison_sociale)}</b>",
+                    self.styles["CustomNormal"],
                 )
             )
         else:
             name = f"{client.prenom or ''} {client.nom or ''}".strip()
             if name:
-                lines.append(Paragraph(f"<b>{name}</b>", self.styles["CustomNormal"]))
+                lines.append(
+                    Paragraph(f"<b>{escape(name)}</b>", self.styles["CustomNormal"])
+                )
         if client.ICE:
             lines.append(
-                Paragraph(f"{self._('ICE')}: {client.ICE}", self.styles["CustomSmall"])
+                Paragraph(
+                    f"{self._('ICE')}: {escape(client.ICE)}", self.styles["CustomSmall"]
+                )
             )
         if client.adresse:
             lines.append(
                 Paragraph(
-                    f"{self._('Address')}: {client.adresse}",
+                    f"{self._('Address')}: {escape(client.adresse)}",
                     self.styles["CustomSmall"],
                 )
             )
         if client.tel:
             lines.append(
                 Paragraph(
-                    f"{self._('Phone')}: {client.tel}", self.styles["CustomSmall"]
+                    f"{self._('Phone')}: {escape(client.tel)}",
+                    self.styles["CustomSmall"],
                 )
             )
         return lines
@@ -1663,21 +1680,21 @@ class BasePDFGenerator:
         return [table, line]
 
     def _build_nectar_client_block(self):
-        client = self.document.client
+        client = self._get_client()
         lines = []
         if client.client_type in ("PM", "CD") and client.raison_sociale:
-            lines.append(f"<b>{client.raison_sociale}</b>")
+            lines.append(f"<b>{escape(client.raison_sociale)}</b>")
         else:
             name = f"{client.prenom or ''} {client.nom or ''}".strip()
             if name:
-                lines.append(f"<b>{name}</b>")
+                lines.append(f"<b>{escape(name)}</b>")
         if client.adresse:
-            lines.append(client.adresse)
+            lines.append(escape(client.adresse))
         if getattr(client, "ville", None):
-            lines.append(str(client.ville))
+            lines.append(escape(str(client.ville)))
         lines.append(self._("Morocco"))
         if client.ICE:
-            lines.extend(["", f"ICE: {client.ICE}"])
+            lines.extend(["", f"ICE: {escape(client.ICE)}"])
 
         para = Paragraph("<br/>".join(lines), self.styles["NectarClient"])
         table = Table(

@@ -6,6 +6,8 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from reportlab.lib import colors
+from reportlab.lib.enums import TA_RIGHT
+from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.units import cm
 from reportlab.platypus import Paragraph, Spacer, Table, TableStyle
 from rest_framework import permissions, status
@@ -239,6 +241,26 @@ class ClientStatementPDFGenerator(BasePDFGenerator):
         )
         self.rows = self._get_rows()
 
+    def _get_client(self):
+        return self.document
+
+    def _setup_custom_styles(self):
+        super()._setup_custom_styles()
+        self.styles.add(
+            ParagraphStyle(
+                name="StatementAmount",
+                parent=self.styles["CustomSmall"],
+                alignment=TA_RIGHT,
+            )
+        )
+        self.styles.add(
+            ParagraphStyle(
+                name="StatementBalance",
+                parent=self.styles["StatementAmount"],
+                textColor=colors.white if self._uses_nectar_layout() else colors.black,
+            )
+        )
+
     def _prepare_text_translations(self):
         # Statements contain fixed labels and original document identifiers.
         pass
@@ -341,8 +363,9 @@ class ClientStatementPDFGenerator(BasePDFGenerator):
         return f"{self._('Statement')} - {self.client_name}"
 
     def _build_content(self):
-        def paragraph(value, style="CustomSmall"):
-            return Paragraph(escape(str(value)), self.styles[style])
+        def paragraph(value, style="CustomSmall", bold=False):
+            text = escape(str(value))
+            return Paragraph(f"<b>{text}</b>" if bold else text, self.styles[style])
 
         def date_label(value):
             return value.strftime("%d/%m/%Y") if value else "-"
@@ -366,22 +389,56 @@ class ClientStatementPDFGenerator(BasePDFGenerator):
         period_to = self.filters.get("date_to") or (
             dated_rows[-1]["date"] if dated_rows else timezone.localdate()
         )
-        elements = [
-            paragraph(self._("Statement"), "SectionHeader"),
-            paragraph(self.client_name, "CustomNormal"),
-            paragraph(
-                f"{self._('Date')} : {date_label(timezone.localdate())}", "CustomRight"
-            ),
-            Spacer(1, 0.3 * cm),
-            paragraph(
-                f"{self._('From')} : {date_label(period_from)} | {self._('To')} : {date_label(period_to)}",
-                "CustomRight",
-            ),
-            Spacer(1, 0.4 * cm),
-        ]
+        title = f"{self._('Statement')} {self.document.code_client or ''}".strip()
+        generated_date = f"{self._('Date')} : {date_label(timezone.localdate())}"
+        nectar = self._uses_nectar_layout()
+        if nectar:
+            elements = [
+                *self._build_nectar_header(),
+                Spacer(1, 1 * cm),
+                self._build_nectar_client_block(),
+                Spacer(1, 0.6 * cm),
+                paragraph(title, "NectarTitle"),
+                paragraph(generated_date, "CustomNormal"),
+                Spacer(1, 0.3 * cm),
+            ]
+        else:
+            elements = [
+                self._build_doc_header(escape(title), escape(generated_date)),
+                Spacer(1, 0.5 * cm),
+                self._build_parties_grid(
+                    paragraph(self._("Statement_Issued_By"), "SectionHeader", bold=True)
+                ),
+                Spacer(1, 0.5 * cm),
+            ]
+
+        period = Table(
+            [
+                [
+                    paragraph(
+                        f"{self._('Statement_Currency')} : {', '.join(totals) or '-'}"
+                    ),
+                    paragraph(
+                        f"{self._('From')} : {date_label(period_from)} | {self._('To')} : {date_label(period_to)}",
+                        "CustomRight",
+                    ),
+                ]
+            ],
+            colWidths=[self.CONTENT_WIDTH * 0.35, self.CONTENT_WIDTH * 0.65],
+        )
+        period.setStyle(
+            TableStyle(
+                [
+                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 4),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+                ]
+            )
+        )
+        elements.extend([period, Spacer(1, 0.3 * cm)])
         data = [
             [
-                paragraph(self._(key), "CustomSmallCenter")
+                paragraph(self._(key), "CustomSmallCenter", bold=True)
                 for key in (
                     "Date",
                     "Statement_Due_Date",
@@ -395,39 +452,70 @@ class ClientStatementPDFGenerator(BasePDFGenerator):
         for row in self.rows:
             data.append(
                 [
-                    paragraph(date_label(row["date"])),
-                    paragraph(date_label(row["due_date"]) if row["due_date"] else ""),
+                    paragraph(date_label(row["date"]), "CustomSmallCenter"),
+                    paragraph(
+                        date_label(row["due_date"]) if row["due_date"] else "",
+                        "CustomSmallCenter",
+                    ),
                     paragraph(row["piece"]),
                     paragraph(row["label"]),
-                    paragraph(amount(row["debit"], row["devise"]), "CustomRight"),
-                    paragraph(amount(row["credit"], row["devise"]), "CustomRight"),
+                    paragraph(amount(row["debit"], row["devise"]), "StatementAmount"),
+                    paragraph(amount(row["credit"], row["devise"]), "StatementAmount"),
                 ]
             )
-        totals_start = len(data)
+        if not self.rows:
+            data.append(
+                [
+                    paragraph(self._("Statement_Empty"), "CustomSmallCenter"),
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                ]
+            )
+        last_entry = len(data) - 1
+        summary_rows = []
         for currency, total in totals.items():
+            total_row = len(data)
             data.append(
                 [
-                    "",
-                    "",
-                    "",
-                    "",
-                    paragraph(amount(total["debit"], currency), "CustomRight"),
-                    paragraph(amount(total["credit"], currency), "CustomRight"),
-                ]
-            )
-            data.append(
-                [
-                    "",
-                    "",
-                    "",
-                    "",
-                    paragraph(self._("Balance"), "CustomRight"),
                     paragraph(
-                        amount(total["debit"] - total["credit"], currency),
-                        "CustomRight",
+                        f"{self._('Statement_Total')} ({currency})",
+                        "StatementAmount",
+                        bold=True,
+                    ),
+                    "",
+                    "",
+                    "",
+                    paragraph(
+                        amount(total["debit"], currency), "StatementAmount", bold=True
+                    ),
+                    paragraph(
+                        amount(total["credit"], currency), "StatementAmount", bold=True
                     ),
                 ]
             )
+            data.append(
+                [
+                    paragraph(
+                        f"{self._('Balance')} ({currency})",
+                        "StatementBalance",
+                        bold=True,
+                    ),
+                    "",
+                    "",
+                    "",
+                    "",
+                    paragraph(
+                        amount(total["debit"] - total["credit"], currency),
+                        "StatementBalance",
+                        bold=True,
+                    ),
+                ]
+            )
+            summary_rows.append(total_row)
+
         table = Table(
             data,
             colWidths=[
@@ -440,17 +528,53 @@ class ClientStatementPDFGenerator(BasePDFGenerator):
             ],
             repeatRows=1,
         )
+        border = colors.HexColor("#4f5964" if nectar else "#e0e0e0")
         styles = [
-            ("GRID", (0, 0), (-1, -1), 0.4, colors.HexColor("#9ca3af")),
-            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#f7f7f7")),
+            ("GRID", (0, 0), (-1, last_entry), 0.6 if nectar else 0.5, border),
+            (
+                "BACKGROUND",
+                (0, 0),
+                (-1, 0),
+                colors.white if nectar else colors.HexColor("#f5f5f5"),
+            ),
+            (
+                "ROWBACKGROUNDS",
+                (0, 1),
+                (-1, last_entry),
+                [colors.white, colors.HexColor("#fafafa")],
+            ),
             ("VALIGN", (0, 0), (-1, -1), "TOP"),
-            ("TOPPADDING", (0, 0), (-1, -1), 6),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+            ("LEFTPADDING", (0, 0), (-1, -1), 4),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+            ("TOPPADDING", (0, 0), (-1, 0), 8),
+            ("BOTTOMPADDING", (0, 0), (-1, 0), 8),
+            ("TOPPADDING", (0, 1), (-1, -1), 7 if nectar else 5),
+            ("BOTTOMPADDING", (0, 1), (-1, -1), 7 if nectar else 5),
         ]
-        if totals:
-            styles.append(("NOSPLIT", (0, totals_start), (-1, -1)))
+        if not self.rows:
+            styles.append(("SPAN", (0, 1), (-1, 1)))
+        elif nectar:
             styles.append(
-                ("BACKGROUND", (4, totals_start), (-1, -1), colors.HexColor("#f7f7f7"))
+                ("BACKGROUND", (4, 1), (-1, last_entry), colors.HexColor("#e6e6e6"))
+            )
+        if self.rows and summary_rows:
+            styles.append(("NOSPLIT", (0, last_entry), (-1, summary_rows[0] + 1)))
+        for total_row in summary_rows:
+            balance_row = total_row + 1
+            styles.extend(
+                [
+                    ("SPAN", (0, total_row), (3, total_row)),
+                    ("SPAN", (0, balance_row), (4, balance_row)),
+                    ("NOSPLIT", (0, total_row), (-1, balance_row)),
+                    ("LINEABOVE", (0, total_row), (-1, total_row), 0.7, border),
+                    ("LINEBELOW", (0, balance_row), (-1, balance_row), 0.7, border),
+                    (
+                        "BACKGROUND",
+                        (0, balance_row),
+                        (-1, balance_row),
+                        colors.HexColor("#6d6d6d" if nectar else "#f0f0f0"),
+                    ),
+                ]
             )
         table.setStyle(TableStyle(styles))
         elements.append(table)

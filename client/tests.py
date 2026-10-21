@@ -234,7 +234,10 @@ class TestClientAPI:
         return invoice, credit, payment
 
     @pytest.mark.parametrize("language", ["fr", "en", "nl"])
-    def test_statement_pdf(self, language):
+    @pytest.mark.parametrize("company_name", ["TestCorp", "IMMOBILIERE NECTAR"])
+    def test_statement_pdf(self, language, company_name):
+        self.company.raison_sociale = company_name
+        self.company.save(update_fields=["raison_sociale"])
         self._statement_documents()
         response = self.client.get(
             reverse(
