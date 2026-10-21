@@ -149,3 +149,23 @@ class ClientListSerializer(serializers.ModelSerializer):
             "archived",
         ]
         read_only_fields = ["company_name", "ville_name"]
+
+
+class ClientStatementQuerySerializer(serializers.Serializer):
+    company_id = serializers.IntegerField(min_value=1)
+    date_from = serializers.DateField(required=False)
+    date_to = serializers.DateField(required=False)
+    type = serializers.ChoiceField(
+        choices=("all", "invoice", "credit_note", "payment"), default="all"
+    )
+
+    def validate(self, attrs):
+        if (
+            attrs.get("date_from")
+            and attrs.get("date_to")
+            and attrs["date_from"] > attrs["date_to"]
+        ):
+            raise serializers.ValidationError(
+                {"date_to": _("La date de fin doit suivre la date de début.")}
+            )
+        return attrs

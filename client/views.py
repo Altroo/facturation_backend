@@ -1,12 +1,22 @@
+from decimal import Decimal
+from xml.sax.saxutils import escape
+
 from django.http import Http404
+from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from reportlab.lib import colors
+from reportlab.lib.units import cm
+from reportlab.platypus import Paragraph, Spacer, Table, TableStyle
 from rest_framework import permissions, status
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from account.models import Membership
-from core.permissions import can_create, can_delete, can_update
+from core.authentication import JWTQueryParamAuthentication
+from core.pdf_utils import BasePDFGenerator, format_number_for_pdf
+from core.permissions import can_create, can_delete, can_update, can_print
 from core.views import CompanyAccessMixin, BaseBulkDeleteView, BaseBulkArchiveView
 from devi.models import Devi
 from devi.serializers import DeviListSerializer
@@ -24,6 +34,7 @@ from .serializers import (
     ClientSerializer,
     ClientDetailSerializer,
     ClientListSerializer,
+    ClientStatementQuerySerializer,
 )
 from .utils import get_next_client_code
 
@@ -212,6 +223,261 @@ class ClientHistoryView(CompanyAccessMixin, APIView):
             },
             status=status.HTTP_200_OK,
         )
+
+
+class ClientStatementPDFGenerator(BasePDFGenerator):
+    """Client account statement using the shared document PDF layout."""
+
+    def __init__(self, client, company, language, filters):
+        super().__init__(client, company, "normal", language)
+        self.filters = filters
+        self.client_name = (
+            client.raison_sociale
+            or " ".join(filter(None, [client.nom, client.prenom]))
+            or client.code_client
+            or "-"
+        )
+        self.rows = self._get_rows()
+
+    def _prepare_text_translations(self):
+        # Statements contain fixed labels and original document identifiers.
+        pass
+
+    def _balance_elements(self, elements):
+        # The statement is one repeating table, without an invoice totals tail.
+        return elements
+
+    def _get_rows(self):
+        rows = []
+        sources = [
+            (
+                "invoice",
+                FactureClient.objects.filter(client=self.document),
+                "date_facture",
+            ),
+            (
+                "credit_note",
+                FactureAvoir.objects.filter(client=self.document).select_related(
+                    "facture_origine"
+                ),
+                "date_avoir",
+            ),
+            (
+                "payment",
+                Reglement.objects.filter(
+                    facture_client__client=self.document
+                ).select_related("facture_client"),
+                "date_reglement",
+            ),
+        ]
+        for order, (kind, queryset, date_field) in enumerate(sources):
+            if self.filters["type"] not in ("all", kind):
+                continue
+            if self.filters.get("date_from"):
+                queryset = queryset.filter(
+                    **{f"{date_field}__gte": self.filters["date_from"]}
+                )
+            if self.filters.get("date_to"):
+                queryset = queryset.filter(
+                    **{f"{date_field}__lte": self.filters["date_to"]}
+                )
+            for document in queryset:
+                date = getattr(document, date_field)
+                debit = credit = Decimal("0")
+                if kind == "invoice":
+                    piece = self._("Invoice")
+                    label = f"N° : {document.numero_facture}"
+                    debit = document.total_ttc_apres_remise or Decimal("0")
+                elif kind == "credit_note":
+                    piece = self._("Credit_Note")
+                    label = (
+                        f"{self._('Invoice_Credit_Note')} N°({document.facture_origine.numero_facture})"
+                        if document.facture_origine
+                        else f"N° : {document.numero_avoir}"
+                    )
+                    credit = document.total_ttc_apres_remise or Decimal("0")
+                else:
+                    piece = self._("Payment")
+                    label = f"{self._('Invoice_Payment')} N°({document.facture_client.numero_facture}) {self.client_name}"
+                    credit = document.montant or Decimal("0")
+                rows.append(
+                    {
+                        "date": date,
+                        "due_date": getattr(document, "date_echeance", None) or date,
+                        "piece": piece,
+                        "label": label,
+                        "devise": (
+                            document.facture_client.devise
+                            if kind == "payment"
+                            else document.devise
+                        )
+                        or "MAD",
+                        "debit": debit,
+                        "credit": credit,
+                        "order": order,
+                    }
+                )
+        rows.sort(key=lambda row: (row["date"], row["order"], row["label"]))
+        if self.filters.get("date_from") and self.filters["type"] == "all":
+            rows.insert(
+                0,
+                {
+                    "date": self.filters["date_from"],
+                    "due_date": None,
+                    "piece": "",
+                    "label": "",
+                    "devise": rows[0]["devise"] if rows else "MAD",
+                    "debit": Decimal("0"),
+                    "credit": Decimal("0"),
+                    "order": -1,
+                },
+            )
+        return rows
+
+    def _get_filename(self):
+        return f"extrait_compte_client_{self.document.pk}.pdf"
+
+    def _get_pdf_title(self):
+        return f"{self._('Statement')} - {self.client_name}"
+
+    def _build_content(self):
+        def paragraph(value, style="CustomSmall"):
+            return Paragraph(escape(str(value)), self.styles[style])
+
+        def date_label(value):
+            return value.strftime("%d/%m/%Y") if value else "-"
+
+        totals = {}
+        for row in self.rows:
+            total = totals.setdefault(
+                row["devise"], {"debit": Decimal("0"), "credit": Decimal("0")}
+            )
+            total["debit"] += row["debit"]
+            total["credit"] += row["credit"]
+
+        def amount(value, currency):
+            text = format_number_for_pdf(value)
+            return f"{text} {currency}" if len(totals) > 1 else text
+
+        dated_rows = [row for row in self.rows if row["order"] >= 0]
+        period_from = self.filters.get("date_from") or (
+            dated_rows[0]["date"] if dated_rows else None
+        )
+        period_to = self.filters.get("date_to") or (
+            dated_rows[-1]["date"] if dated_rows else timezone.localdate()
+        )
+        elements = [
+            paragraph(self._("Statement"), "SectionHeader"),
+            paragraph(self.client_name, "CustomNormal"),
+            paragraph(
+                f"{self._('Date')} : {date_label(timezone.localdate())}", "CustomRight"
+            ),
+            Spacer(1, 0.3 * cm),
+            paragraph(
+                f"{self._('From')} : {date_label(period_from)} | {self._('To')} : {date_label(period_to)}",
+                "CustomRight",
+            ),
+            Spacer(1, 0.4 * cm),
+        ]
+        data = [
+            [
+                paragraph(self._(key), "CustomSmallCenter")
+                for key in (
+                    "Date",
+                    "Statement_Due_Date",
+                    "Piece",
+                    "Label",
+                    "Debit",
+                    "Credit",
+                )
+            ]
+        ]
+        for row in self.rows:
+            data.append(
+                [
+                    paragraph(date_label(row["date"])),
+                    paragraph(date_label(row["due_date"]) if row["due_date"] else ""),
+                    paragraph(row["piece"]),
+                    paragraph(row["label"]),
+                    paragraph(amount(row["debit"], row["devise"]), "CustomRight"),
+                    paragraph(amount(row["credit"], row["devise"]), "CustomRight"),
+                ]
+            )
+        totals_start = len(data)
+        for currency, total in totals.items():
+            data.append(
+                [
+                    "",
+                    "",
+                    "",
+                    "",
+                    paragraph(amount(total["debit"], currency), "CustomRight"),
+                    paragraph(amount(total["credit"], currency), "CustomRight"),
+                ]
+            )
+            data.append(
+                [
+                    "",
+                    "",
+                    "",
+                    "",
+                    paragraph(self._("Balance"), "CustomRight"),
+                    paragraph(
+                        amount(total["debit"] - total["credit"], currency),
+                        "CustomRight",
+                    ),
+                ]
+            )
+        table = Table(
+            data,
+            colWidths=[
+                2 * cm,
+                2 * cm,
+                2.5 * cm,
+                self.CONTENT_WIDTH - 11.5 * cm,
+                2.5 * cm,
+                2.5 * cm,
+            ],
+            repeatRows=1,
+        )
+        styles = [
+            ("GRID", (0, 0), (-1, -1), 0.4, colors.HexColor("#9ca3af")),
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#f7f7f7")),
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ("TOPPADDING", (0, 0), (-1, -1), 6),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+        ]
+        if totals:
+            styles.append(("NOSPLIT", (0, totals_start), (-1, -1)))
+            styles.append(
+                ("BACKGROUND", (4, totals_start), (-1, -1), colors.HexColor("#f7f7f7"))
+            )
+        table.setStyle(TableStyle(styles))
+        elements.append(table)
+        return elements
+
+
+class ClientStatementPDFView(APIView):
+    authentication_classes = [JWTQueryParamAuthentication]
+    permission_classes = (permissions.IsAuthenticated,)
+
+    @staticmethod
+    def get(request, pk, language="fr", *args, **kwargs):
+        query = ClientStatementQuerySerializer(data=request.query_params)
+        query.is_valid(raise_exception=True)
+        filters = query.validated_data
+        client = get_object_or_404(
+            Client.objects.select_related("company"),
+            pk=pk,
+            company_id=filters["company_id"],
+        )
+        if not can_print(request.user, client.company_id):
+            raise PermissionDenied(
+                _("Vous n'avez pas les droits pour imprimer ce document.")
+            )
+        return ClientStatementPDFGenerator(
+            client, client.company, language, filters
+        ).generate_pdf()
 
 
 class GenerateClientCodeView(CompanyAccessMixin, APIView):

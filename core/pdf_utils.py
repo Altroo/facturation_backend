@@ -351,6 +351,20 @@ class BasePDFGenerator:
         """Setup translation dictionary for French and English."""
         self.translations = {
             "fr": {
+                # Client account statement
+                "Statement": "Extrait de Compte Client",
+                "Statement_Due_Date": "Échéance",
+                "Piece": "Pièce",
+                "Label": "Libellé",
+                "Debit": "Débit",
+                "Credit": "Crédit",
+                "Balance": "Solde",
+                "From": "Du",
+                "To": "Au",
+                "Credit_Note": "Avoir",
+                "Payment": "Encaissement",
+                "Invoice_Payment": "Reg fact",
+                "Invoice_Credit_Note": "Avoir fact",
                 # Common terms
                 "Date": "DATE",
                 "ICE": "ICE",
@@ -437,6 +451,20 @@ class BasePDFGenerator:
                 "pas de valeur comptable.",
             },
             "en": {
+                # Client account statement
+                "Statement": "Client Account Statement",
+                "Statement_Due_Date": "Due date",
+                "Piece": "Document",
+                "Label": "Description",
+                "Debit": "Debit",
+                "Credit": "Credit",
+                "Balance": "Balance",
+                "From": "From",
+                "To": "To",
+                "Credit_Note": "Credit note",
+                "Payment": "Payment",
+                "Invoice_Payment": "Invoice payment",
+                "Invoice_Credit_Note": "Invoice credit note",
                 # Common terms
                 "Date": "DATE",
                 "ICE": "TAX ID",

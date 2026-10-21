@@ -201,6 +201,175 @@ class TestClientAPI:
         assert response.data["avoirs"][0]["numero_avoir"].startswith("AV")
         assert response.data["reglements"][0]["libelle"] == "PAY-HIST/26"
 
+    def _statement_documents(self):
+        mode = ModePaiement.objects.create(nom="Virement", company=self.company)
+        invoice = FactureClient.objects.create(
+            numero_facture="FAC-STATEMENT/26",
+            client=self.client_pm,
+            date_facture="2026-01-02",
+            date_echeance="2026-01-20",
+            mode_paiement=mode,
+            statut="Accepté",
+            devise="MAD",
+        )
+        FactureClient.objects.filter(pk=invoice.pk).update(
+            total_ttc_apres_remise=Decimal("1200")
+        )
+        credit = FactureAvoir.objects.create(
+            facture_origine=invoice,
+            date_avoir="2026-01-03",
+            motif_avoir="autre",
+            statut="Accepté",
+        )
+        FactureAvoir.objects.filter(pk=credit.pk).update(
+            total_ttc_apres_remise=Decimal("100")
+        )
+        payment = Reglement.objects.create(
+            facture_client=invoice,
+            mode_reglement=mode,
+            montant=Decimal("500"),
+            date_reglement="2026-01-04",
+            date_echeance="2026-01-04",
+        )
+        return invoice, credit, payment
+
+    @pytest.mark.parametrize("language", ["fr", "en", "nl"])
+    def test_statement_pdf(self, language):
+        self._statement_documents()
+        response = self.client.get(
+            reverse(
+                f"client:client-statement-pdf-{language}", args=[self.client_pm.pk]
+            ),
+            {"company_id": self.company.pk},
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert response["Content-Type"] == "application/pdf"
+        assert response.content.startswith(b"%PDF-")
+        assert "no-store" in response["Cache-Control"]
+        assert "inline" in response["Content-Disposition"]
+
+    def test_statement_rows_preserve_totals_and_filters(self):
+        from datetime import date
+        from client.views import ClientStatementPDFGenerator
+
+        self._statement_documents()
+        generator = ClientStatementPDFGenerator(
+            self.client_pm, self.company, "fr", {"type": "all"}
+        )
+        assert [row["piece"] for row in generator.rows] == [
+            "Facture",
+            "Avoir",
+            "Encaissement",
+        ]
+        assert sum(row["debit"] - row["credit"] for row in generator.rows) == Decimal(
+            "600"
+        )
+        assert generator.rows[0]["due_date"] == date(2026, 1, 20)
+        assert generator.rows[-1]["devise"] == "MAD"
+
+        filtered = ClientStatementPDFGenerator(
+            self.client_pm,
+            self.company,
+            "en",
+            {
+                "type": "payment",
+                "date_from": date(2026, 1, 3),
+                "date_to": date(2026, 1, 4),
+            },
+        )
+        assert len(filtered.rows) == 1
+        assert filtered.rows[0]["piece"] == "Payment"
+        assert filtered.rows[0]["credit"] == Decimal("500")
+        empty = ClientStatementPDFGenerator(
+            self.client_pm,
+            self.company,
+            "fr",
+            {
+                "type": "invoice",
+                "date_from": date(2026, 1, 3),
+            },
+        )
+        assert empty.rows == []
+
+    def test_statement_pdf_isolates_clients_and_currencies(self):
+        from client.views import ClientStatementPDFGenerator
+
+        self._statement_documents()
+        other = FactureClient.objects.create(
+            numero_facture="OTHER/26", client=self.client_pp, date_facture="2026-01-02"
+        )
+        FactureClient.objects.filter(pk=other.pk).update(
+            total_ttc_apres_remise=Decimal("9000")
+        )
+        euro = FactureClient.objects.create(
+            numero_facture="EUR/26",
+            client=self.client_pm,
+            date_facture="2026-01-05",
+            devise="EUR",
+        )
+        FactureClient.objects.filter(pk=euro.pk).update(
+            total_ttc_apres_remise=Decimal("50")
+        )
+        generator = ClientStatementPDFGenerator(
+            self.client_pm, self.company, "fr", {"type": "all"}
+        )
+        assert len(generator.rows) == 4
+        assert sum(
+            row["debit"] - row["credit"]
+            for row in generator.rows
+            if row["devise"] == "MAD"
+        ) == Decimal("600")
+        assert sum(
+            row["debit"] - row["credit"]
+            for row in generator.rows
+            if row["devise"] == "EUR"
+        ) == Decimal("50")
+        assert generator.generate_pdf().content.startswith(b"%PDF-")
+
+    @pytest.mark.parametrize(
+        "params",
+        [
+            {},
+            {"company_id": "invalid"},
+            {"company_id": 1, "date_from": "invalid"},
+            {"company_id": 1, "date_from": "2026-02-01", "date_to": "2026-01-01"},
+            {"company_id": 1, "type": "unknown"},
+        ],
+    )
+    def test_statement_pdf_rejects_invalid_filters(self, params):
+        response = self.client.get(
+            reverse("client:client-statement-pdf-fr", args=[self.client_pm.pk]), params
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_statement_pdf_requires_print_permission(self):
+        role, _ = Role.objects.get_or_create(name="Lecture")
+        Membership.objects.filter(user=self.user, company=self.company).update(
+            role=role
+        )
+        response = self.client.get(
+            reverse("client:client-statement-pdf-fr", args=[self.client_pm.pk]),
+            {"company_id": self.company.pk},
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_statement_pdf_rejects_non_member_and_cross_company(self):
+        other = Company.objects.create(
+            raison_sociale="Other",
+            ICE="OTHER",
+            registre_de_commerce="OTHER",
+            nbr_employe=1,
+        )
+        url = reverse("client:client-statement-pdf-fr", args=[self.client_pm.pk])
+        response = self.client.get(url, {"company_id": other.pk})
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        Membership.objects.filter(user=self.user).delete()
+        response = self.client.get(url, {"company_id": self.company.pk})
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        self.client.force_authenticate(user=None)
+        response = self.client.get(url, {"company_id": self.company.pk})
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
     def test_update_client_pm(self):
         url = reverse("client:client-detail", args=[self.client_pm.id])
         payload = {

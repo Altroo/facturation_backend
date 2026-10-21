@@ -1,6 +1,19 @@
 """Fixed Dutch print labels; business text is translated by the private AI gateway."""
 
 NL = {
+    "Statement": "Klantenrekeningoverzicht",
+    "Statement_Due_Date": "Vervaldatum",
+    "Piece": "Document",
+    "Label": "Omschrijving",
+    "Debit": "Debet",
+    "Credit": "Credit",
+    "Balance": "Saldo",
+    "From": "Van",
+    "To": "Tot",
+    "Credit_Note": "Creditnota",
+    "Payment": "Betaling",
+    "Invoice_Payment": "Factuurbetaling",
+    "Invoice_Credit_Note": "Factuurcreditnota",
     "Date": "DATUM",
     "ICE": "ICE",
     "Address": "Adres",
