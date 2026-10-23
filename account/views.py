@@ -574,7 +574,7 @@ class UserDetailEditDeleteView(APIView):
         if pk == request.user.pk:
             raise Http404(_("Aucune utilisateur ne correspond à la requête."))
         user = self.get_object(pk)
-        serializer = UserDetailSerializer(user)
+        serializer = UserDetailSerializer(user, context={"request": request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def put(self, request, *args, **kwargs):

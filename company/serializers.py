@@ -37,6 +37,8 @@ class MembershipCompanySerializer(serializers.ModelSerializer):
     raison_sociale = serializers.CharField(
         source="company.raison_sociale", read_only=True
     )
+    logo = serializers.ImageField(source="company.logo", read_only=True)
+    logo_cropped = serializers.ImageField(source="company.logo_cropped", read_only=True)
     role = serializers.CharField(read_only=True)
 
     class Meta:
@@ -45,6 +47,8 @@ class MembershipCompanySerializer(serializers.ModelSerializer):
             "membership_id",
             "company_id",
             "raison_sociale",
+            "logo",
+            "logo_cropped",
             "role",
             "can_validate_factures",
             "can_change_document_status",

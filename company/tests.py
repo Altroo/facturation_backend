@@ -83,6 +83,35 @@ class TestCompanyAPI:
             c["raison_sociale"] == self.company.raison_sociale for c in response.data
         )
 
+    @pytest.mark.parametrize("has_logos", [True, False])
+    def test_user_membership_logo_urls(self, has_logos):
+        member = self.user_model.objects.create_user(
+            email="logo-member@example.com", password="pass"
+        )
+        Membership.objects.create(
+            company=self.company, user=member, role=self.admin_group
+        )
+        if has_logos:
+            self.company.logo = "company/logos/example.png"
+            self.company.logo_cropped = "company/logos/example-cropped.png"
+            self.company.save(update_fields=["logo", "logo_cropped"])
+
+        response = self.client.get(
+            reverse("account:users_detail", kwargs={"pk": member.pk}),
+            HTTP_HOST="localhost",
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        membership = response.data["companies"][0]
+        assert membership["company_id"] == self.company.pk
+        assert membership["role"] == self.admin_group.name
+        assert membership["logo"] == (
+            f"http://localhost{self.company.logo.url}" if has_logos else None
+        )
+        assert membership["logo_cropped"] == (
+            f"http://localhost{self.company.logo_cropped.url}" if has_logos else None
+        )
+
     def test_create_company(self):
         url = reverse("company:company-list-create")
         payload = {
