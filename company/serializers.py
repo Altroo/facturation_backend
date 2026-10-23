@@ -16,6 +16,8 @@ class MembershipUserSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(source="user.id", read_only=True)
     first_name = serializers.CharField(source="user.first_name", read_only=True)
     last_name = serializers.CharField(source="user.last_name", read_only=True)
+    avatar = serializers.ImageField(source="user.avatar", read_only=True)
+    avatar_cropped = serializers.ImageField(source="user.avatar_cropped", read_only=True)
     role = serializers.CharField(read_only=True)
 
     class Meta:
@@ -24,6 +26,8 @@ class MembershipUserSerializer(serializers.ModelSerializer):
             "id",
             "first_name",
             "last_name",
+            "avatar",
+            "avatar_cropped",
             "role",
             "can_validate_factures",
             "can_change_document_status",

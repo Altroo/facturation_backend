@@ -112,6 +112,29 @@ class TestCompanyAPI:
             f"http://localhost{self.company.logo_cropped.url}" if has_logos else None
         )
 
+    @pytest.mark.parametrize("has_avatars", [True, False])
+    def test_company_manager_avatar_urls(self, has_avatars):
+        if has_avatars:
+            self.user.avatar = "user_avatars/manager.png"
+            self.user.avatar_cropped = "user_avatars/manager-cropped.png"
+            self.user.save(update_fields=["avatar", "avatar_cropped"])
+
+        response = self.client.get(
+            reverse("company:company-detail", kwargs={"pk": self.company.pk}),
+            HTTP_HOST="localhost",
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        manager = response.data["admins"][0]
+        assert manager["id"] == self.user.pk
+        assert manager["role"] == self.admin_group.name
+        assert manager["avatar"] == (
+            f"http://localhost{self.user.avatar.url}" if has_avatars else None
+        )
+        assert manager["avatar_cropped"] == (
+            f"http://localhost{self.user.avatar_cropped.url}" if has_avatars else None
+        )
+
     def test_create_company(self):
         url = reverse("company:company-list-create")
         payload = {
