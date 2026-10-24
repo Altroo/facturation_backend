@@ -54,6 +54,34 @@ class BonDeLivraisonListCreateView(BaseDocumentListCreateView):
         "livre_par",
         "source_facture_client",
     )
+    uninvoiced = False
+
+    def get(self, request, *args, **kwargs):
+        company_id = self._parse_company_id(request.query_params.get("company_id"))
+        self._check_company_access(request, company_id)
+        queryset = (
+            self.model.objects.filter(client__company_id=company_id)
+            .select_related(*self.list_select_related)
+            .prefetch_related(*self.list_prefetch_related)
+            .order_by("-id")
+        )
+        if self.uninvoiced:
+            queryset = queryset.exclude(statut="Facturé")
+        filterset = self.filter_class(request.GET, queryset=queryset, request=request)
+        if not filterset.is_valid():
+            raise ValidationError(filterset.errors)
+        queryset = filterset.qs
+        if self._get_bool_param(request, "pagination"):
+            paginator = CustomPagination()
+            page = paginator.paginate_queryset(queryset, request)
+            serializer = self.list_serializer_class(
+                page, many=True, context={"request": request}
+            )
+            return paginator.get_paginated_response(serializer.data)
+        serializer = self.list_serializer_class(
+            queryset, many=True, context={"request": request}
+        )
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class BonDeLivraisonDetailEditDeleteView(BaseDocumentDetailEditDeleteView):
@@ -117,65 +145,12 @@ class BonDeLivraisonStatusUpdateView(BaseStatusUpdateView):
         sync_delivery_stock(object_, old_status, new_status, request.user)
 
 
-class BonDeLivraisonUninvoicedListView(BaseDocumentListCreateView):
-    """
-    List bons de livraison that haven't been invoiced yet.
-    GET only - returns BLs with statut='Brouillon' or 'Validé' (not yet converted to facture).
-    """
+class BonDeLivraisonUninvoicedListView(BonDeLivraisonListCreateView):
+    """The normal tenant-scoped list, excluding invoiced delivery notes."""
 
-    model = BonDeLivraison
-    filter_class = BonDeLivraisonFilter
-    list_serializer_class = BonDeLivraisonListSerializer
-    document_name = "le bon de livraison"
-    list_select_related = (
-        "client",
-        "mode_paiement",
-        "created_by_user",
-        "livre_par",
-        "source_facture_client",
-    )
-
-    def get(self, request, *args, **kwargs):
-        """Get list of uninvoiced bons de livraison."""
-        pagination = self._get_bool_param(request, "pagination")
-        company_id_str = request.query_params.get("company_id")
-        if not company_id_str:
-            raise Http404(_("Aucune clients ne correspond à la requête."))
-        try:
-            company_id = int(company_id_str)
-        except (ValueError, TypeError):
-            raise ValidationError(
-                {"company_id": _("company_id doit être un entier valide.")}
-            )
-        self._check_company_access(request, company_id)
-
-        # Get BLs that are not yet invoiced (excluding 'Facturé' status if it exists)
-        # For now, we'll show all BLs - you can add more specific filtering later
-        base_queryset = (
-            self.model.objects.filter(client__company_id=company_id)
-            .select_related(*self.list_select_related)
-            .prefetch_related(*self.list_prefetch_related)
-            .exclude(statut="Facturé")  # Exclude if there's a "Facturé" status
-        )
-
-        filterset = self.filter_class(request.GET, queryset=base_queryset)
-        ordered_qs = filterset.qs.order_by("-id")
-
-        if pagination:
-            paginator = CustomPagination()
-            page = paginator.paginate_queryset(ordered_qs, request)
-            serializer = self.list_serializer_class(
-                page, many=True, context={"request": request}
-            )
-            return paginator.get_paginated_response(serializer.data)
-
-        serializer = self.list_serializer_class(
-            ordered_qs, many=True, context={"request": request}
-        )
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    uninvoiced = True
 
     def post(self, request, *args, **kwargs):
-        """Disable POST for uninvoiced list."""
         return Response(
             {"detail": _("Création non autorisée depuis cette vue.")},
             status=status.HTTP_405_METHOD_NOT_ALLOWED,

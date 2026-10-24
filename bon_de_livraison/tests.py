@@ -1,4 +1,5 @@
 import base64
+import json
 from datetime import datetime
 from decimal import Decimal
 from unittest.mock import MagicMock, patch
@@ -1675,3 +1676,110 @@ class TestBulkDeleteBonDeLivraisonAPI:
         url = reverse("bon_de_livraison:bon-de-livraison-bulk-delete")
         response = self.api_client.delete(url, {"ids": [other_bl.id]}, format="json")
         assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+@pytest.mark.parametrize("uninvoiced", [False, True])
+def test_delivery_ordering_and_or_filters_remain_company_scoped(
+    bon_de_livraison_user,
+    bon_de_livraison_company,
+    bon_de_livraison_client,
+    bon_de_livraison_obj,
+    uninvoiced,
+):
+    role, _ = Role.objects.get_or_create(name="Caissier")
+    Membership.objects.create(
+        user=bon_de_livraison_user, company=bon_de_livraison_company, role=role
+    )
+    api = APIClient()
+    api.force_authenticate(bon_de_livraison_user)
+    first = bon_de_livraison_obj
+    second = BonDeLivraison.objects.create(
+        numero_bon_livraison="0002/26",
+        client=bon_de_livraison_client,
+        date_bon_livraison="2026-10-20",
+        statut="Envoyé",
+    )
+    invoiced = BonDeLivraison.objects.create(
+        numero_bon_livraison="0003/26",
+        client=bon_de_livraison_client,
+        date_bon_livraison="2026-10-21",
+        statut="Facturé",
+    )
+    other_company = Company.objects.create(raison_sociale="Other", ICE="DELIVERY-OTHER")
+    other_client = Client.objects.create(
+        code_client="OTHER", client_type="PM", company=other_company, raison_sociale="Other"
+    )
+    BonDeLivraison.objects.create(
+        numero_bon_livraison="FOREIGN/26",
+        client=other_client,
+        date_bon_livraison="2026-10-19",
+        statut="Envoyé",
+    )
+    url = reverse(
+        "bon_de_livraison:bon-de-livraison-uninvoiced-list"
+        if uninvoiced
+        else "bon_de_livraison:bon-de-livraison-list-create"
+    )
+    params = {
+        "company_id": bon_de_livraison_company.id,
+        "ordering": "date_bon_livraison",
+        "filter_logic": "or",
+        "filter_groups": json.dumps(
+            [
+                {"date_after": "2025-01-01", "date_before": "2025-01-01"},
+                {"statut": "Envoyé"},
+            ]
+        ),
+        "pagination": "true",
+        "page_size": 1,
+    }
+    response = api.get(url, params)
+    assert response.status_code == 200, response.data
+    assert response.data["count"] == 2
+    assert [item["id"] for item in response.data["results"]] == [first.id]
+    params["page"] = 2
+    response = api.get(url, params)
+    assert [item["id"] for item in response.data["results"]] == [second.id]
+    params = {
+        "company_id": bon_de_livraison_company.id,
+        "ordering": "-date_bon_livraison",
+    }
+    response = api.get(url, params)
+    expected = [second.id, first.id] if uninvoiced else [invoiced.id, second.id, first.id]
+    assert [item["id"] for item in response.data] == expected
+    response = api.get(url, {"company_id": other_company.id})
+    assert response.status_code == 403
+    response = api.get(
+        url,
+        {"company_id": bon_de_livraison_company.id, "ordering": "client__company__ICE"},
+    )
+    assert response.status_code == 400
+
+
+def test_posted_delivery_allows_header_edit_but_rejects_line_payload(
+    bon_de_livraison_user, bon_de_livraison_company, bon_de_livraison_with_lines,
+):
+    role, _ = Role.objects.get_or_create(name="Caissier")
+    Membership.objects.create(
+        user=bon_de_livraison_user, company=bon_de_livraison_company, role=role
+    )
+    api = APIClient()
+    api.force_authenticate(bon_de_livraison_user)
+    delivery = bon_de_livraison_with_lines
+    BonDeLivraison.objects.filter(pk=delivery.pk).update(statut="Accepté")
+    url = reverse("bon_de_livraison:bon-de-livraison-detail", args=[delivery.pk])
+    response = api.put(
+        url,
+        {
+            "numero_bon_livraison": "0001/26",
+            "client": delivery.client_id,
+            "date_bon_livraison": "2026-10-24",
+            "numero_bon_commande_client": "UPDATED",
+        },
+        format="json",
+    )
+    assert response.status_code == 200, response.data
+    response = api.put(url, {"lignes": []}, format="json")
+    assert response.status_code == 400
+    assert "lignes" in response.data["details"]
+    assert delivery.lignes.count() == 1
