@@ -5,6 +5,7 @@ from django.contrib.admin.sites import AdminSite
 from django.contrib.auth import get_user_model
 from django.db.utils import DatabaseError
 from django.urls import reverse
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APIClient
 
@@ -425,6 +426,26 @@ class TestReglementAPI:
         assert response.status_code == status.HTTP_201_CREATED
         assert response.data["libelle"] == "New payment"
         assert Decimal(response.data["montant"]) == Decimal("200.00")
+
+    @pytest.mark.parametrize("include_payment_date", [False, True])
+    def test_create_reglement_with_default_calendar_dates(self, include_payment_date):
+        payload = {
+            "facture_client": self.facture.id,
+            "mode_reglement": self.mode_reglement.id,
+            "montant": "25.50",
+        }
+        today = timezone.localdate().isoformat()
+        if include_payment_date:
+            payload["date_reglement"] = "2025-01-20"
+
+        response = self.client_api.post(self._list_create_url(), payload, format="json")
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.data["date_echeance"] == today
+        assert response.data["date_reglement"] == payload.get("date_reglement", today)
+        payment = Reglement.objects.get(pk=response.data["id"])
+        assert payment.date_echeance.isoformat() == today
+        assert payment.date_reglement.isoformat() == payload.get("date_reglement", today)
 
     def test_create_reglement_exceeds_reste(self):
         """Test that creating a règlement exceeding reste à payer fails."""

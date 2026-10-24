@@ -61,14 +61,14 @@ class Reglement(models.Model):
     date_reglement = models.DateField(
         verbose_name=_("Date de règlement"),
         help_text=_("Date à laquelle le règlement a été effectué"),
-        default=timezone.now,
+        default=timezone.localdate,
         db_index=True,
     )
 
     date_echeance = models.DateField(
         verbose_name=_("Date d'échéance"),
         help_text=_("Date d'échéance du paiement"),
-        default=timezone.now,
+        default=timezone.localdate,
         db_index=True,
     )
 
