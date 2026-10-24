@@ -81,8 +81,12 @@ class ReglementListCreateView(CompanyAccessMixin, APIView):
             "mode_reglement",
         )
 
-        filterset = ReglementFilter(request.GET, queryset=base_queryset)
-        ordered_qs = filterset.qs.order_by("-id")
+        filterset = ReglementFilter(
+            request.GET, queryset=base_queryset.order_by("-id"), request=request
+        )
+        if not filterset.is_valid():
+            raise ValidationError(filterset.errors)
+        ordered_qs = filterset.qs
 
         extra_stats = {
             "stats_by_currency": get_stats_by_currency(company_id),

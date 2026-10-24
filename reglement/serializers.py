@@ -19,6 +19,9 @@ class ReglementClientNameMixin:
 class ReglementListSerializer(ReglementClientNameMixin, serializers.ModelSerializer):
     """Serializer for listing règlements."""
 
+    company = serializers.IntegerField(
+        source="facture_client.client.company_id", read_only=True
+    )
     client_name = serializers.SerializerMethodField()
     facture_client_numero = serializers.CharField(
         source="facture_client.numero_facture",
@@ -41,6 +44,7 @@ class ReglementListSerializer(ReglementClientNameMixin, serializers.ModelSeriali
         model = Reglement
         fields = [
             "id",
+            "company",
             "facture_client",
             "facture_client_numero",
             "client",
@@ -66,6 +70,9 @@ class ReglementListSerializer(ReglementClientNameMixin, serializers.ModelSeriali
 class ReglementDetailSerializer(ReglementClientNameMixin, serializers.ModelSerializer):
     """Serializer for règlement detail with invoice-specific financial info."""
 
+    company = serializers.IntegerField(
+        source="facture_client.client.company_id", read_only=True
+    )
     client_name = serializers.SerializerMethodField()
     facture_client_numero = serializers.CharField(
         source="facture_client.numero_facture",
@@ -93,6 +100,7 @@ class ReglementDetailSerializer(ReglementClientNameMixin, serializers.ModelSeria
         model = Reglement
         fields = [
             "id",
+            "company",
             "facture_client",
             "facture_client_numero",
             "client",

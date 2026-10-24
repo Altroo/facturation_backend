@@ -1,3 +1,4 @@
+import json
 from decimal import Decimal
 
 import pytest
@@ -1988,3 +1989,161 @@ class TestBulkDeleteReglementAPI:
         url = reverse("reglement:reglement-bulk-delete")
         response = self.api_client.delete(url, {"ids": [other_regl.id]}, format="json")
         assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+def test_reglement_native_ownership_sorting_and_combined_filters(
+    reglement_obj, reglement_user, reglement_company, reglement_membership
+):
+    api = APIClient()
+    api.force_authenticate(reglement_user)
+    other = Reglement.objects.create(
+        facture_client=reglement_obj.facture_client,
+        montant=Decimal("50"),
+        libelle="SECOND",
+        date_reglement="2026-10-24",
+        statut="Annulé",
+    )
+    url = reverse("reglement:reglement-list-create")
+    params = {
+        "company_id": reglement_company.id,
+        "ordering": "montant",
+        "pagination": "true",
+        "page_size": 1,
+        "filter_logic": "or",
+        "filter_groups": json.dumps(
+            [
+                {
+                    "date_reglement_after": "2025-01-15",
+                    "date_reglement_before": "2025-01-15",
+                },
+                {"statut": "Annulé"},
+            ]
+        ),
+    }
+    response = api.get(url, params)
+    assert response.status_code == 200, response.data
+    assert response.data["count"] == 2
+    assert response.data["results"][0]["id"] == other.pk
+    assert response.data["results"][0]["company"] == reglement_company.pk
+    assert "stats_by_currency" in response.data
+    params["page"] = 2
+    assert api.get(url, params).data["results"][0]["id"] == reglement_obj.pk
+    response = api.get(reverse("reglement:reglement-detail", args=[reglement_obj.pk]))
+    assert response.data["company"] == reglement_company.pk
+    invalid = api.get(
+        url,
+        {
+            "company_id": reglement_company.id,
+            "ordering": "facture_client__client__email",
+        },
+    )
+    assert invalid.status_code == 400
+
+
+def test_reglement_filter_and_search_use_physical_client_names(
+    reglement_obj, reglement_user, reglement_company, reglement_membership
+):
+    client = reglement_obj.facture_client.client
+    client.client_type = "PP"
+    client.raison_sociale = None
+    client.nom = "Atlas"
+    client.prenom = "Salma"
+    client.save()
+    api = APIClient()
+    api.force_authenticate(reglement_user)
+    url = reverse("reglement:reglement-list-create")
+    response = api.get(
+        url, {"company_id": reglement_company.id, "client_name": "Atlas Salma"}
+    )
+    assert response.status_code == 200, response.data
+    assert [item["id"] for item in response.data["results"]] == [reglement_obj.id]
+    response = api.get(url, {"company_id": reglement_company.id, "search": "Salma"})
+    assert [item["id"] for item in response.data["results"]] == [reglement_obj.id]
+
+
+@pytest.mark.parametrize(
+    "ordering",
+    [
+        "facture_client_numero",
+        "client_name",
+        "mode_reglement_name",
+        "montant",
+        "date_reglement",
+        "statut",
+        "libelle",
+    ],
+)
+def test_reglement_accepts_displayed_sort_fields(
+    ordering, reglement_obj, reglement_user, reglement_company, reglement_membership
+):
+    api = APIClient()
+    api.force_authenticate(reglement_user)
+    response = api.get(
+        reverse("reglement:reglement-list-create"),
+        {"company_id": reglement_company.pk, "ordering": "-" + ordering},
+    )
+    assert response.status_code == 200, response.data
+    assert response.data["results"][0]["id"] == reglement_obj.pk
+
+
+def test_reglement_or_filters_preserve_company_search_and_complete_date_range(
+    reglement_obj, reglement_user, reglement_company, reglement_membership
+):
+    # The first payment is outside this date row. Only the cancelled one matches.
+    cancelled = Reglement.objects.create(
+        facture_client=reglement_obj.facture_client,
+        montant=Decimal("50"),
+        libelle="MATCH",
+        date_reglement="2025-02-15",
+        statut="Annulé",
+    )
+    api = APIClient()
+    api.force_authenticate(reglement_user)
+    params = {
+        "company_id": reglement_company.pk,
+        "filter_logic": "or",
+        "filter_groups": json.dumps(
+            [
+                {
+                    "date_reglement_after": "2025-02-01",
+                    "date_reglement_before": "2025-02-28",
+                },
+                {"statut": "Annulé"},
+            ]
+        ),
+        "ordering": "-montant",
+    }
+    url = reverse("reglement:reglement-list-create")
+    response = api.get(url, params)
+    assert response.status_code == 200, response.data
+    assert [item["id"] for item in response.data["results"]] == [cancelled.pk]
+
+    params["search"] = "Premier"
+    assert api.get(url, params).data["results"] == []
+    params.pop("search")
+    params["company_id"] = Company.objects.create(raison_sociale="Other", ICE="OTHER").pk
+    assert api.get(url, params).status_code == 403
+
+
+@pytest.mark.parametrize(
+    "params",
+    [
+        {"date_reglement_after": "invalid"},
+        {"filter_logic": "or", "filter_groups": "invalid"},
+        {"filter_logic": "or", "filter_groups": json.dumps([{"unknown": "x"}])},
+        {
+            "filter_logic": "or",
+            "filter_groups": json.dumps([{"date_reglement_before": "invalid"}]),
+        },
+    ],
+)
+def test_reglement_rejects_invalid_filter_rows(
+    params, reglement_user, reglement_company, reglement_membership
+):
+    api = APIClient()
+    api.force_authenticate(reglement_user)
+    response = api.get(
+        reverse("reglement:reglement-list-create"),
+        {"company_id": reglement_company.pk, **params},
+    )
+    assert response.status_code == 400

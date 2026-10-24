@@ -1,14 +1,17 @@
 import django_filters
-from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
-from django.db.models import Q, Value, FloatField, F
+from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
+from django.db.models import F, Q, Case, CharField, FloatField, Value, When
+from django.db.models.functions import Coalesce, Concat, Trim
 from django.db.utils import DatabaseError
 from django.utils.translation import gettext_lazy as _
+from rest_framework.exceptions import ValidationError
+
+from core.filters import CombinedFiltersMixin, CommaSeparatedIDsFilter, IsEmptyAutoMixin
 
 from .models import Reglement
-from core.filters import IsEmptyAutoMixin, CommaSeparatedIDsFilter
 
 
-class ReglementFilter(IsEmptyAutoMixin, django_filters.FilterSet):
+class ReglementFilter(CombinedFiltersMixin, IsEmptyAutoMixin, django_filters.FilterSet):
     """
     Filter class for Reglement model.
 
@@ -116,18 +119,18 @@ class ReglementFilter(IsEmptyAutoMixin, django_filters.FilterSet):
         field_name="facture_client__numero_facture", lookup_expr="exact"
     )
 
-    # Text lookup filters for client_name (mapped to facture_client__client__raison_sociale)
+    # Match the name displayed for both companies and physical clients.
     client_name__icontains = django_filters.CharFilter(
-        field_name="facture_client__client__raison_sociale", lookup_expr="icontains"
+        field_name="_client_display_name", lookup_expr="icontains"
     )
     client_name__istartswith = django_filters.CharFilter(
-        field_name="facture_client__client__raison_sociale", lookup_expr="istartswith"
+        field_name="_client_display_name", lookup_expr="istartswith"
     )
     client_name__iendswith = django_filters.CharFilter(
-        field_name="facture_client__client__raison_sociale", lookup_expr="iendswith"
+        field_name="_client_display_name", lookup_expr="iendswith"
     )
     client_name = django_filters.CharFilter(
-        field_name="facture_client__client__raison_sociale", lookup_expr="exact"
+        field_name="_client_display_name", lookup_expr="exact"
     )
 
     # Text lookup filters for mode_reglement_name (mapped to mode_reglement__nom)
@@ -143,6 +146,57 @@ class ReglementFilter(IsEmptyAutoMixin, django_filters.FilterSet):
     mode_reglement_name = django_filters.CharFilter(
         field_name="mode_reglement__nom", lookup_expr="exact"
     )
+
+    ordering = django_filters.CharFilter(method="filter_ordering")
+
+    def filter_queryset(self, queryset):
+        prefix = "facture_client__client__"
+        queryset = queryset.annotate(
+            _client_display_name=Case(
+                When(
+                    Q(**{prefix + "client_type__in": ["PM", "CD"]})
+                    & ~Q(**{prefix + "raison_sociale": ""})
+                    & Q(**{prefix + "raison_sociale__isnull": False}),
+                    then=F(prefix + "raison_sociale"),
+                ),
+                When(
+                    **{prefix + "client_type": "PP"},
+                    then=Trim(
+                        Concat(
+                            Coalesce(prefix + "nom", Value("")),
+                            Value(" "),
+                            Coalesce(prefix + "prenom", Value("")),
+                            output_field=CharField(),
+                        )
+                    ),
+                ),
+                default=F(prefix + "code_client"),
+                output_field=CharField(),
+            )
+        )
+        return super().filter_queryset(queryset)
+
+    @staticmethod
+    def filter_ordering(queryset, _name, value):
+        fields = {
+            "facture_client_numero": "facture_client__numero_facture",
+            "client_name": "_client_display_name",
+            "mode_reglement_name": "mode_reglement__nom",
+            "montant": "montant",
+            "date_reglement": "date_reglement",
+            "statut": "statut",
+            "libelle": "libelle",
+        }
+        requested = value.split(",")
+        if any(field.lstrip("-") not in fields for field in requested):
+            raise ValidationError({"ordering": "Invalid ordering field."})
+        return queryset.order_by(
+            *[
+                ("-" if field.startswith("-") else "") + fields[field.lstrip("-")]
+                for field in requested
+            ],
+            "-id",
+        )
 
     class Meta:
         model = Reglement
@@ -210,6 +264,8 @@ class ReglementFilter(IsEmptyAutoMixin, django_filters.FilterSet):
             + SearchVector("observations", weight="C")
             + SearchVector("facture_client__numero_facture", weight="A")
             + SearchVector("facture_client__client__raison_sociale", weight="B")
+            + SearchVector("facture_client__client__nom", weight="B")
+            + SearchVector("facture_client__client__prenom", weight="B")
         )
 
         queryset_with_vector = queryset.annotate(_search=search_vector)
@@ -235,10 +291,12 @@ class ReglementFilter(IsEmptyAutoMixin, django_filters.FilterSet):
             | Q(observations__icontains=value)
             | Q(facture_client__numero_facture__icontains=value)
             | Q(facture_client__client__raison_sociale__icontains=value)
+            | Q(facture_client__client__nom__icontains=value)
+            | Q(facture_client__client__prenom__icontains=value)
         )
 
         fallback_results = queryset.filter(fallback_q).annotate(
             _rank=Value(0.0, output_field=FloatField())
         )
 
-        return (fts_results | fallback_results).distinct().order_by("-_rank")
+        return (fts_results | fallback_results).distinct().order_by("-_rank", "-id")
