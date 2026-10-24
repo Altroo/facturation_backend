@@ -72,8 +72,12 @@ class FactureAvoirListCreateView(BaseDocumentListCreateView):
             .select_related(*self.list_select_related)
             .prefetch_related(*self.list_prefetch_related)
         )
-        filterset = self.filter_class(request.GET, queryset=base_queryset)
-        ordered_qs = filterset.qs.order_by("-id")
+        filterset = self.filter_class(
+            request.GET, queryset=base_queryset.order_by("-id"), request=request
+        )
+        if not filterset.is_valid():
+            raise ValidationError(filterset.errors)
+        ordered_qs = filterset.qs
         extra_stats = {"stats_by_currency": get_avoir_stats_by_currency(company_id)}
 
         if pagination:

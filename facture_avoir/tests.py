@@ -1,6 +1,7 @@
+import importlib
+import json
 from decimal import Decimal
 from typing import cast
-import importlib
 
 import pytest
 from django.apps import apps
@@ -99,6 +100,100 @@ def _line_payload(article, quantity="1.00"):
         "remise_type": "",
         "remise": "0.00",
     }
+
+
+@pytest.mark.parametrize(
+    ("ordering", "reverse_order"),
+    [
+        ("numero_avoir", False),
+        ("-numero_avoir", True),
+        ("date_avoir", False),
+        ("-date_avoir", True),
+    ],
+)
+def test_credit_list_honors_server_ordering(avoir_context, ordering, reverse_order):
+    first = FactureAvoir.objects.create(
+        facture_origine=avoir_context["facture"],
+        client=avoir_context["client"],
+        company=avoir_context["company"],
+        date_avoir="2026-01-01",
+        motif_avoir="autre",
+    )
+    second = FactureAvoir.objects.create(
+        facture_origine=avoir_context["facture"],
+        client=avoir_context["client"],
+        company=avoir_context["company"],
+        date_avoir="2026-02-01",
+        motif_avoir="remise",
+    )
+    response = avoir_context["api_client"].get(
+        reverse("facture_avoir:facture-avoir-list-create"),
+        {"company_id": avoir_context["company"].pk, "ordering": ordering},
+    )
+    assert response.status_code == 200
+    expected = [second.pk, first.pk] if reverse_order else [first.pk, second.pk]
+    assert [item["id"] for item in response.data["results"]] == expected
+
+
+def test_credit_or_filters_keep_tenant_and_date_rows_together(avoir_context):
+    records = [
+        FactureAvoir.objects.create(
+            facture_origine=avoir_context["facture"],
+            client=avoir_context["client"],
+            company=avoir_context["company"],
+            date_avoir=date,
+            motif_avoir=motif,
+        )
+        for date, motif in [
+            ("2026-01-02", "autre"),
+            ("2026-02-02", "remise"),
+            ("2026-03-02", "autre"),
+        ]
+    ]
+    other_company = Company.objects.create(
+        raison_sociale="Other tenant", ICE="OTHER-CREDIT"
+    )
+    other_ville = Ville.objects.create(nom="Other credit city", company=other_company)
+    other_client = Client.objects.create(
+        code_client="OTHER-CREDIT",
+        client_type="PM",
+        raison_sociale="Other client",
+        company=other_company,
+        ville=other_ville,
+    )
+    FactureAvoir.objects.create(
+        client=other_client,
+        company=other_company,
+        date_avoir="2026-01-02",
+        motif_avoir="remise",
+    )
+    response = avoir_context["api_client"].get(
+        reverse("facture_avoir:facture-avoir-list-create"),
+        {
+            "company_id": avoir_context["company"].pk,
+            "filter_logic": "or",
+            "filter_groups": json.dumps(
+                [
+                    {"date_after": "2026-01-01", "date_before": "2026-01-31"},
+                    {"motif_avoir": "remise"},
+                ]
+            ),
+            "ordering": "date_avoir",
+        },
+    )
+    assert response.status_code == 200
+    assert [item["id"] for item in response.data["results"]] == [
+        records[0].pk, records[1].pk
+    ]
+
+
+def test_credit_rejects_invalid_ordering_and_invalid_date_filter(avoir_context):
+    url = reverse("facture_avoir:facture-avoir-list-create")
+    for invalid in [{"ordering": "does_not_exist"}, {"date_after": "invalid"}]:
+        response = avoir_context["api_client"].get(
+            url, {"company_id": avoir_context["company"].pk, **invalid}
+        )
+        assert response.status_code == 400
 
 
 def test_create_avoir_from_facture_assigns_legal_number_and_origin_data(avoir_context):
