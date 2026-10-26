@@ -13,6 +13,9 @@ class ArticleFilter(IsEmptyAutoMixin, django_filters.FilterSet):
 
     search = django_filters.CharFilter(method="global_search", label=_("Search"))
     ids = CommaSeparatedIDsFilter(field_name="id", label=_("IDs"))
+    exclude_ids = CommaSeparatedIDsFilter(
+        field_name="id", exclude=True, label=_("Excluded IDs")
+    )
     archived = django_filters.BooleanFilter(field_name="archived", label=_("Archived"))
     company_id = django_filters.NumberFilter(
         field_name="company_id", label=_("Company")
@@ -107,6 +110,7 @@ class ArticleFilter(IsEmptyAutoMixin, django_filters.FilterSet):
         model = Article
         fields = [
             "ids",
+            "exclude_ids",
             "archived",
             "company_id",
             "date_created_after",

@@ -6,10 +6,12 @@ from typing import cast
 
 import openpyxl
 from django.db import IntegrityError
+from django.db.models import BooleanField, Case, Value, When
 from django.http import Http404
 from django.utils.translation import gettext_lazy as _
 from rest_framework import permissions, status
 from rest_framework.exceptions import PermissionDenied, ValidationError
+from rest_framework.filters import OrderingFilter
 from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -40,6 +42,16 @@ def _stringify_cell_value(value: object) -> str:
 
 class ArticleListCreateView(CompanyAccessMixin, APIView):
     permission_classes = (permissions.IsAuthenticated,)
+    ordering_fields = (
+        "id",
+        "reference",
+        "designation",
+        "type_article",
+        "prix_achat",
+        "prix_vente",
+        "date_created",
+    )
+    ordering = ("-id",)
 
     def get(self, request, *args, **kwargs):
         pagination = self._get_bool_param(request, "pagination")
@@ -60,8 +72,32 @@ class ArticleListCreateView(CompanyAccessMixin, APIView):
         base_queryset = Article.objects.filter(**qs_filter).select_related(
             "company", "marque", "categorie", "emplacement", "unite"
         )
+        ordering = list(OrderingFilter().get_ordering(request, base_queryset, self))
+        # Document pickers show their existing lines first by default. Apply
+        # this in SQL so the grouping remains correct across all result pages.
+        if not request.query_params.get("ordering"):
+            try:
+                priority_ids = [
+                    int(value)
+                    for value in request.query_params.get("prioritize_ids", "").split(",")
+                    if value.strip()
+                ]
+            except ValueError:
+                priority_ids = []
+            if priority_ids:
+                base_queryset = base_queryset.annotate(
+                    _already_added=Case(
+                        When(id__in=priority_ids, then=Value(True)),
+                        default=Value(False),
+                        output_field=BooleanField(),
+                    )
+                )
+                ordering.insert(0, "-_already_added")
+        # Keep page boundaries deterministic when several articles share a price.
+        if not any(field.lstrip("-") == "id" for field in ordering):
+            ordering.append("id")
         filterset = ArticleFilter(request.GET, queryset=base_queryset)
-        ordered_qs = filterset.qs.order_by("-id")
+        ordered_qs = filterset.qs.order_by(*ordering)
         if pagination:
             paginator = CustomPagination()
             page = cast(list[Article], paginator.paginate_queryset(ordered_qs, request))

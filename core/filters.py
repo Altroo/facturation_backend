@@ -73,7 +73,8 @@ class CommaSeparatedIDsFilter(django_filters.CharFilter):
             return qs
         if not ids:
             return qs
-        return qs.filter(**{f"{self.field_name}__in": ids})
+        method = qs.exclude if self.exclude else qs.filter
+        return method(**{f"{self.field_name}__in": ids})
 
 
 class IsEmptyFilter(django_filters.BooleanFilter):

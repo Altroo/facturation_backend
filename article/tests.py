@@ -1,3 +1,4 @@
+import json
 import os
 import shutil
 import tempfile
@@ -127,6 +128,98 @@ class TestArticleAPI:
         response = self.client.get(self._list_url())
         assert response.status_code == status.HTTP_200_OK
         assert len(response.data) == 2
+
+    @pytest.mark.parametrize("ordering,descending", [("prix_vente", False), ("-prix_vente", True)])
+    def test_picker_orders_before_pagination(self, ordering, descending):
+        response = self.client.get(self._list_url(
+            f"pagination=true&page_size=1&ordering={ordering}"
+        ))
+        assert response.status_code == status.HTTP_200_OK
+        expected = self.article_service if descending else self.article_produit
+        assert response.data["count"] == 2
+        assert response.data["results"][0]["id"] == expected.id
+
+    def test_picker_defaults_to_existing_articles_first_across_pages(self):
+        response = self.client.get(self._list_url(
+            f"pagination=true&page_size=1&prioritize_ids={self.article_produit.id}"
+        ))
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["results"][0]["id"] == self.article_produit.id
+        second = self.client.get(response.data["next"])
+        assert second.status_code == status.HTTP_200_OK
+        assert second.data["results"][0]["id"] == self.article_service.id
+
+    def test_picker_explicit_sort_overrides_default_status_grouping(self):
+        response = self.client.get(self._list_url(
+            f"prioritize_ids={self.article_produit.id}&ordering=-prix_vente"
+        ))
+        assert response.status_code == status.HTTP_200_OK
+        assert [row["id"] for row in response.data] == [
+            self.article_service.id, self.article_produit.id,
+        ]
+
+    def test_picker_ignores_invalid_priority_ids(self):
+        response = self.client.get(self._list_url("prioritize_ids=invalid"))
+        assert response.status_code == status.HTTP_200_OK
+        assert [row["id"] for row in response.data] == [
+            self.article_service.id, self.article_produit.id,
+        ]
+
+    def test_picker_sort_ties_have_stable_id_order(self):
+        self.article_service.prix_vente = self.article_produit.prix_vente
+        self.article_service.save(update_fields=["prix_vente"])
+        response = self.client.get(self._list_url("ordering=prix_vente"))
+        assert response.status_code == status.HTTP_200_OK
+        assert [row["id"] for row in response.data] == sorted([
+            self.article_produit.id, self.article_service.id,
+        ])
+
+    def test_picker_ignores_unsupported_ordering(self):
+        response = self.client.get(self._list_url("ordering=company__responsable__password"))
+        assert response.status_code == status.HTTP_200_OK
+        assert [row["id"] for row in response.data] == [
+            self.article_service.id, self.article_produit.id,
+        ]
+
+    def test_picker_filters_existing_and_new_articles_on_server(self):
+        for field, expected in [
+            ("ids", self.article_produit),
+            ("exclude_ids", self.article_service),
+        ]:
+            response = self.client.get(self._list_url(
+                f"pagination=true&{field}={self.article_produit.id}&ordering=reference"
+            ))
+            assert response.status_code == status.HTTP_200_OK
+            assert response.data["count"] == 1
+            assert [row["id"] for row in response.data["results"]] == [expected.id]
+
+    def test_picker_combines_status_with_search_price_and_company_scope(self):
+        # Existing IDs from another company must never widen the company's scope.
+        other_company = Company.objects.create(
+            raison_sociale="Other picker company", ICE="ICE_PICKER_OTHER",
+            registre_de_commerce="RC_PICKER_OTHER", nbr_employe="1 à 5",
+        )
+        alien = Article.objects.create(
+            reference="ALIEN", designation="Service alien", type_article="Service",
+            company=other_company, prix_vente=300, tva=20,
+        )
+        response = self.client.get(self._list_url(
+            f"ids={self.article_service.id},{alien.id}&search=Service&prix_vente__gte=180"
+        ))
+        assert response.status_code == status.HTTP_200_OK
+        assert [row["id"] for row in response.data] == [self.article_service.id]
+
+    def test_picker_supports_status_in_or_filter_groups(self):
+        groups = json.dumps([
+            {"ids": str(self.article_produit.id)},
+            {"prix_vente__gt": "180"},
+        ])
+        response = self.client.get(self._list_url(), {"company_id": self.company.id,
+            "filter_logic": "or", "filter_groups": groups, "ordering": "prix_vente"})
+        assert response.status_code == status.HTTP_200_OK
+        assert [row["id"] for row in response.data] == [
+            self.article_produit.id, self.article_service.id,
+        ]
 
     def test_create_article_produit(self):
         url = reverse("article:article-list-create")
@@ -826,6 +919,17 @@ class TestArticleFilters:
             tva=0,
             archived=True,
         )
+
+    @pytest.mark.parametrize("value", ["", "bad,ids", ",,"])
+    def test_invalid_exclusion_ids_do_not_drop_results(self, value):
+        queryset = Article.objects.filter(company=self.company)
+        assert set(ArticleFilter({"exclude_ids": value}, queryset=queryset).qs) == set(queryset)
+
+    def test_exclude_ids_can_be_combined_with_included_ids(self):
+        filt = ArticleFilter({
+            "ids": f"{self.a1.id},{self.a2.id}", "exclude_ids": str(self.a1.id),
+        }, queryset=Article.objects.filter(company=self.company))
+        assert list(filt.qs) == [self.a2]
 
     def test_global_search_matches_reference_and_designation(self):
         filt = ArticleFilter(
