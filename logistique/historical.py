@@ -64,3 +64,24 @@ def authorize_historical_edit(order, request):
             if field in request.data and str(request.data[field]) != str(getattr(order, field)):
                 raise ValidationError({field: "Cette valeur reste liée au paiement comptabilisé."})
     return approval
+
+
+def apply_historical_correction(order, request, approval):
+    from rest_framework.exceptions import ValidationError
+    from .serializers import LogisticsOrderUpdateSerializer
+    from .corrections import consume_approval
+    from .views import LogisticsOrderDetailEditDeleteView
+    allowed = EDIT_FIELDS.get(approval.etape, set()) | {"action", "etape", "correction_id"}
+    if set(request.data) - allowed:
+        raise ValidationError({"etape": "Modifiez uniquement les champs de l’étape sélectionnée."})
+    serializer = LogisticsOrderUpdateSerializer(order, data=request.data, partial=True,
+        context={"request": request, "approved_correction": True})
+    serializer.is_valid(raise_exception=True)
+    if approval.etape == "paiement":
+        for field in ("montant_titre_importation", "devise_titre_importation", "methode_paiement", "avance_pourcentage"):
+            if field in serializer.validated_data and serializer.validated_data[field] != getattr(order, field):
+                raise ValidationError({field: "Cette valeur reste liée au paiement comptabilisé."})
+    serializer.save()
+    consume_approval(order, approval, request.user)
+    order.sync_global_status(preserve_manual=True)
+    return LogisticsOrderDetailEditDeleteView.get_object(order.pk)

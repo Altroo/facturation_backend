@@ -16,12 +16,10 @@ pytestmark = pytest.mark.django_db
 
 
 def approved_change(ctx, order, step):
-    response = purchase_post(ctx, order, "demander_modification", etape=step, remarque="Corriger la saisie du document.")
-    assert response.status_code == 200, response.data
-    item = order.change_requests.get(statut="pending", etape=step)
-    response = purchase_post(ctx, order, "approuver_modification", client=authenticated(ctx.responsible), demande_id=item.pk)
-    assert response.status_code == 200, response.data
-    return item
+    # Authorizations already issued before proposals were introduced remain usable once.
+    return LogisticsChangeRequest.objects.create(commande=order, etape=step,
+        remarque="Corriger la saisie du document.", demandeur=ctx.creator,
+        responsable=ctx.responsible, statut="approved", decided_at=timezone.now())
 
 
 def test_only_current_stage_is_available_for_writing_and_future_is_hidden(purchase_context):
@@ -39,19 +37,20 @@ def test_only_current_stage_is_available_for_writing_and_future_is_hidden(purcha
     assert order.fournisseur_email != "correction@example.invalid"
 
 
-def test_approval_notifies_both_users_and_can_only_be_used_once_by_requester(purchase_context):
+def test_approval_notifies_both_users_and_applies_only_the_proposed_values(purchase_context):
     ctx = purchase_context
     order = create_dossier(ctx)
-    item = approved_change(ctx, order, "dossier")
+    response = purchase_post(ctx, order, "demander_modification", etape="dossier", remarque="Adresse corrigée",
+        modifications={"action": "dossier", "fournisseur_email": "changed@example.invalid"})
+    assert response.status_code == 200, response.data
+    item = order.change_requests.get()
     assert Notification.objects.filter(user=ctx.responsible, title="Modification logistique à approuver").exists()
-    assert Notification.objects.filter(user=ctx.creator, title="Modification logistique approuvée").exists()
-    response = purchase_post(ctx, order, "dossier", client=authenticated(ctx.responsible), correction_id=item.pk, fournisseur_email="changed@example.invalid")
-    assert response.status_code == 403
-    response = purchase_post(ctx, order, "dossier", correction_id=item.pk, fournisseur_email="changed@example.invalid")
+    response = purchase_post(ctx, order, "approuver_modification", client=authenticated(ctx.responsible), demande_id=item.pk)
     assert response.status_code == 200, response.data
     item.refresh_from_db()
-    assert item.statut == "applied"
-    assert order.events.filter(action="Correction autorisée enregistrée", note=item.remarque).exists()
+    order.refresh_from_db()
+    assert item.statut == "applied" and order.fournisseur_email == "changed@example.invalid"
+    assert Notification.objects.filter(user=ctx.creator, title="Modification logistique approuvée").exists()
     response = purchase_post(ctx, order, "dossier", correction_id=item.pk, fournisseur_email="replay@example.invalid")
     assert response.status_code == 403
 
@@ -60,7 +59,7 @@ def test_approval_notifies_both_users_and_can_only_be_used_once_by_requester(pur
 def test_only_responsible_can_approve(purchase_context, actor):
     ctx = purchase_context
     order = create_dossier(ctx)
-    assert purchase_post(ctx, order, "demander_modification", etape="dossier", remarque="Correction nécessaire").status_code == 200
+    assert purchase_post(ctx, order, "demander_modification", etape="dossier", remarque="Correction nécessaire", modifications={"action": "dossier", "fournisseur_email": "changed@example.invalid"}).status_code == 200
     item = order.change_requests.get()
     response = purchase_post(ctx, order, "approuver_modification", client=authenticated(getattr(ctx, actor)), demande_id=item.pk)
     assert response.status_code == 403

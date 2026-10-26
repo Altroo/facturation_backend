@@ -612,13 +612,24 @@ class LogisticsOrderDetailSerializer(LogisticsOrderBaseSerializer):
     receptions = serializers.SerializerMethodField()
     change_requests = serializers.SerializerMethodField()
 
-    @staticmethod
-    def get_change_requests(obj):
-        return [{"id": item.pk, "etape": item.etape, "remarque": item.remarque,
-            "statut": item.statut, "demandeur": item.demandeur_id, "responsable": item.responsable_id,
-            "demandeur_name": f"{item.demandeur.first_name} {item.demandeur.last_name}".strip() or item.demandeur.email,
-            "date_created": item.date_created, "decided_at": item.decided_at, "applied_at": item.applied_at,
-        } for item in obj.change_requests.all()]
+    def get_change_requests(self, obj):
+        result = []
+        request = self.context.get("request")
+        for item in obj.change_requests.all():
+            documents = {document.field: document for document in item.files.all()}
+            changes = []
+            for change in item.changes:
+                row = dict(change)
+                document = documents.get(row["field"])
+                if document:
+                    row["file_url"] = request.build_absolute_uri(document.file.url) if request else document.file.url
+                changes.append(row)
+            result.append({"id": item.pk, "etape": item.etape, "remarque": item.remarque,
+                "statut": item.statut, "demandeur": item.demandeur_id, "responsable": item.responsable_id,
+                "demandeur_name": f"{item.demandeur.first_name} {item.demandeur.last_name}".strip() or item.demandeur.email,
+                "date_created": item.date_created, "decided_at": item.decided_at, "applied_at": item.applied_at,
+                "has_proposal": bool(item.proposed_data), "changes": changes})
+        return result
 
     class Meta(LogisticsOrderBaseSerializer.Meta):
         fields = LogisticsOrderBaseSerializer.Meta.fields + [

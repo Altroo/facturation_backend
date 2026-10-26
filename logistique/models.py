@@ -47,6 +47,9 @@ class LogisticsChangeRequest(models.Model):
     commande = models.ForeignKey("LogisticsOrder", on_delete=models.CASCADE, related_name="change_requests")
     etape = models.CharField(max_length=30)
     remarque = models.TextField()
+    proposed_data = models.JSONField(default=dict, blank=True)
+    original_data = models.JSONField(default=dict, blank=True)
+    changes = models.JSONField(default=list, blank=True)
     demandeur = models.ForeignKey(CustomUser, on_delete=models.PROTECT, related_name="logistics_change_requests")
     responsable = models.ForeignKey(CustomUser, on_delete=models.PROTECT, related_name="logistics_change_approvals")
     statut = models.CharField(max_length=12, default="pending", choices=[
@@ -64,6 +67,16 @@ class LogisticsChangeRequest(models.Model):
             condition=models.Q(statut__in=["pending", "approved"]),
             name="unique_open_logistics_change_request",
         )]
+
+
+class LogisticsChangeRequestFile(models.Model):
+    request = models.ForeignKey(LogisticsChangeRequest, on_delete=models.CASCADE, related_name="files")
+    field = models.CharField(max_length=50)
+    original_name = models.CharField(max_length=255)
+    file = models.FileField(upload_to=get_logistique_document_path, max_length=1000)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["request", "field"], name="unique_logistics_change_file")]
 
 
 class LogisticsOrder(models.Model):

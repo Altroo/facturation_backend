@@ -165,7 +165,7 @@ class PurchaseWorkflowView(CompanyAccessMixin, APIView):
         _ensure_order_active(order)
         action = request.data.get("action")
         if action in {"demander_modification", "approuver_modification", "refuser_modification"}:
-            handle_change_request(order, request)
+            handle_change_request(order, request, apply_action=self.apply_action)
             order = LogisticsOrderDetailEditDeleteView.get_object(pk)
             return Response(LogisticsOrderDetailSerializer(order, context={"request": request}).data)
         if not order.is_supplier_purchase:
@@ -178,11 +178,25 @@ class PurchaseWorkflowView(CompanyAccessMixin, APIView):
             return Response(LogisticsOrderDetailSerializer(order, context={"request": request}).data)
         if order.statut == "Clôture" and request.data.get("action") != "relancer_notification":
             raise ValidationError({"dossier": "Ce dossier est clôturé."})
-        action = request.data.get("action")
         if set(request.data) == {"action"} and action in {"dossier", "titre", "progression"}:
             return Response(LogisticsOrderDetailSerializer(order, context={"request": request}).data)
         step = action_step(order, request.data)
         approval = authorize_step(order, request, step) if step else None
+        order = self.apply_action(order, request, approval)
+        return Response(LogisticsOrderDetailSerializer(order, context={"request": request}).data)
+
+    def apply_action(self, order, request, approval):
+        """Apply the same validated business operation for direct saves and accepted proposals."""
+        from .views import LogisticsOrderDetailEditDeleteView
+        pk = order.pk
+        if not order.is_supplier_purchase:
+            from .historical import apply_historical_correction
+            return apply_historical_correction(order, request, approval)
+        if order.statut == "Clôture" and request.data.get("action") != "relancer_notification":
+            raise ValidationError({"dossier": "Ce dossier est clôturé."})
+        action = request.data.get("action")
+        if set(request.data) == {"action"} and action in {"dossier", "titre", "progression"}:
+            return order
         before = _business_snapshot(order, include_lines=action == "proforma") if action in {"dossier", "proforma", "titre", "progression"} else None
         if action == "dossier":
             serializer = PurchaseDossierSerializer(data=request.data, context={"company_id": order.company_id, "order": order})
@@ -371,8 +385,7 @@ class PurchaseWorkflowView(CompanyAccessMixin, APIView):
         consume_approval(order, approval, request.user)
         order.sync_global_status(preserve_manual=False)
         # Reload relation caches after changes to avoid returning stale form data.
-        order = LogisticsOrderDetailEditDeleteView.get_object(pk)
-        return Response(LogisticsOrderDetailSerializer(order, context={"request": request}).data)
+        return LogisticsOrderDetailEditDeleteView.get_object(pk)
 
 
 class ImportTitleExtractView(CompanyAccessMixin, APIView):

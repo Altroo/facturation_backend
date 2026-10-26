@@ -513,6 +513,7 @@ class LogisticsOrderDetailEditDeleteView(CompanyAccessMixin, APIView):
                     "lignes__expected_emplacement",
                     "events",
                     "change_requests__demandeur",
+                    "change_requests__files",
                     "process_notes",
                     "process_notes__user",
                     "echeances_paiement",

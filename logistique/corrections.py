@@ -28,7 +28,7 @@ def notify(order, user, title, message, step):
         target_url=f"/dashboard/logistique/{order.pk}?company_id={order.company_id}&etape={step}")
 
 
-def handle_change_request(order, request):
+def handle_change_request(order, request, *, apply_action=None):
     action = request.data["action"]
     if action == "demander_modification":
         step = serializers.CharField(max_length=30).run_validation(request.data.get("etape"))
@@ -39,25 +39,50 @@ def handle_change_request(order, request):
             raise ValidationError({"etape": "Seule une étape terminée peut faire l’objet d’une demande de modification."})
         if not order.responsable_id or not order.responsable.is_active:
             raise ValidationError({"responsable": "Affectez un responsable actif au dossier."})
-        if order.change_requests.filter(etape=step, demandeur=request.user, statut__in=["pending", "approved"]).exists():
+        if "modifications" not in request.data:
+            raise ValidationError({"modifications": "Modifiez les champs de l’étape et expliquez le motif avant de soumettre votre proposition."})
+        item = order.change_requests.select_for_update().filter(etape=step,
+            demandeur=request.user, statut__in=["pending", "approved"]).first()
+        if item and (item.statut != "pending" or item.proposed_data):
             raise ValidationError({"demande": "Une demande est déjà en cours pour cette étape."})
-        item = LogisticsChangeRequest.objects.create(commande=order, etape=step, remarque=remark,
-            demandeur=request.user, responsable=order.responsable)
-        notify(order, order.responsable, "Modification logistique à approuver",
-            f"Dossier {order.numero_commande} · {selected['label']} : {remark}", step)
+        if item:
+            item.remarque = remark
+            item.save(update_fields=["remarque"])
+        else:
+            item = LogisticsChangeRequest.objects.create(commande=order, etape=step, remarque=remark,
+                demandeur=request.user, responsable=order.responsable)
+        from .proposals import prepare_proposal
+        prepare_proposal(order, item, request, apply_action)
+        from account.models import Membership
+        recipients = {order.responsable_id: order.responsable}
+        for membership in Membership.objects.filter(company_id=order.company_id,
+            role__name="Caissier", user__is_active=True).select_related("user"):
+            recipients[membership.user_id] = membership.user
+        for recipient in recipients.values():
+            notify(order, recipient, "Modification logistique à approuver",
+                f"Dossier {order.numero_commande} · {selected['label']} : {remark}", step)
         order.add_event(user=request.user, action="Modification d’une étape demandée", new_value=selected["label"], note=remark)
         return item
     identifier = serializers.IntegerField(min_value=1).run_validation(request.data.get("demande_id"))
     item = order.change_requests.select_for_update().filter(pk=identifier, statut="pending").first()
     if not item:
         raise ValidationError({"demande_id": "Demande en attente introuvable."})
-    if request.user.pk != order.responsable_id:
-        raise PermissionDenied("Seul le responsable du dossier peut décider de cette demande.")
+    from core.permissions import is_caissier
+    if request.user.pk != order.responsable_id and not is_caissier(request.user, order.company_id):
+        raise PermissionDenied("Seul le responsable ou un administrateur de la société peut décider de cette demande.")
+    accepted = action == "approuver_modification"
+    if accepted and not item.proposed_data:
+        raise ValidationError({"modifications": "Le demandeur doit renseigner les valeurs à modifier avant la validation."})
+    if accepted and item.proposed_data:
+        from .proposals import apply_proposal
+        apply_proposal(order, item, request, apply_action)
+        item.refresh_from_db()
+    else:
+        item.statut = "approved" if accepted else "rejected"
     item.responsable = request.user
-    item.statut = "approved" if action == "approuver_modification" else "rejected"
     item.decided_at = timezone.now()
     item.save(update_fields=["responsable", "statut", "decided_at"])
-    label = "approuvée" if item.statut == "approved" else "refusée"
+    label = "approuvée" if accepted else "refusée"
     notify(order, item.demandeur, f"Modification logistique {label}",
         f"Votre demande pour le dossier {order.numero_commande} a été {label}.", item.etape)
     order.add_event(user=request.user, action=f"Demande de modification {label}", new_value=item.etape, note=item.remarque)
