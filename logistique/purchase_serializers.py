@@ -20,7 +20,14 @@ class PurchaseDossierSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         company = self.context["company_id"]
+        order = self.context.get("order")
+        supplier = getattr(order, "fournisseur_record", None)
         supplier_id = attrs.get("fournisseur_record")
+        if not supplier_id and attrs.get("fournisseur"):
+            from .models import LogisticsSupplier
+            supplier = LogisticsSupplier.objects.filter(company_id=company, nom__iexact=attrs["fournisseur"]).first()
+            if supplier:
+                attrs["fournisseur_record"] = supplier
         if supplier_id:
             from .models import LogisticsSupplier
             supplier = LogisticsSupplier.objects.filter(company_id=company, pk=supplier_id).first()
@@ -41,6 +48,9 @@ class PurchaseDossierSerializer(serializers.Serializer):
             raise serializers.ValidationError({"responsable": "Choisissez un responsable autorisé à modifier les dossiers logistiques."})
         if attrs.get("marque") and not Marque.objects.filter(company_id=company, pk=attrs["marque"]).exists():
             raise serializers.ValidationError({"marque": "Cette marque n’appartient pas à cette société."})
+        brand_id = attrs.get("marque", getattr(order, "marque_id", None))
+        if supplier and brand_id and not supplier.marques.filter(pk=brand_id).exists():
+            raise serializers.ValidationError({"marque": "Cette marque n’appartient pas au fournisseur sélectionné."})
         return attrs
 
 
@@ -64,6 +74,10 @@ class PurchaseProformaSerializer(LogisticsSupplierProformaReviewSerializer):
         order = self.context["order"]
         attrs["conditions_paiement"] = CONDITIONS[attrs["condition_achat"]][0]
         attrs = super().validate(attrs)
+        if not any(attrs.get(field, getattr(order, field)) for field in (
+            "ecart_prix_proforma", "ecart_quantite_proforma", "ecart_autre_proforma"
+        )):
+            attrs["notes_ecarts_proforma"] = ""
         validate_condition(attrs["condition_achat"], attrs.get("montant_proforma_fournisseur", order.montant_proforma_fournisseur))
         raw_lines = attrs.get("lignes")
         if raw_lines is not None:
@@ -111,7 +125,7 @@ class PurchaseProgressSerializer(serializers.Serializer):
         for field in ("date_expedition_reelle", "date_arrivee_maroc", "documents_remis_banque_le", "date_reelle"):
             if attrs.get(field) and attrs[field] > today:
                 raise serializers.ValidationError({field: "Une date réelle ne peut pas être dans le futur."})
-            if field in attrs and getattr(order, field) and attrs[field] != getattr(order, field):
+            if field in attrs and getattr(order, field) and attrs[field] != getattr(order, field) and not self.context.get("approved_correction"):
                 raise serializers.ValidationError({field: "Cette date réelle est déjà enregistrée dans l’historique."})
         planned = attrs.get("date_expedition_prevue", order.date_expedition_prevue)
         shipped = attrs.get("date_expedition_reelle", order.date_expedition_reelle)

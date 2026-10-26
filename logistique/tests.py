@@ -1022,9 +1022,9 @@ def test_validated_proforma_fields_cannot_be_changed_by_generic_update(
     )
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert "incoterm" in response.data["details"]
+    assert "etape" in response.data["details"]
     assert replacement_response.status_code == status.HTTP_400_BAD_REQUEST
-    assert "proforma_fournisseur_file" in replacement_response.data["details"]
+    assert "etape" in replacement_response.data["details"]
 
 
 def test_cancelled_order_blocks_launch_and_proforma_workflows(
@@ -1466,12 +1466,22 @@ def test_generic_edit_cannot_bypass_title_or_payment_workflow(
 ):
     transmitted = LogisticsOrder.objects.create(
         company=logistics_company,
+        statut_commande_lancement="Terminée",
+        statut_proforma_conformite="Validée",
+        proforma_fournisseur_file="test/proforma.pdf",
+        proforma_validee_le=timezone.now(),
+        statut="Validation",
         numero_commande="LOG-TITLE-LOCKED",
         statut_paiement="En attente",
         responsable=logistics_user,
     )
     fresh = LogisticsOrder.objects.create(
         company=logistics_company,
+        statut_commande_lancement="Terminée",
+        statut_proforma_conformite="Validée",
+        proforma_fournisseur_file="test/proforma.pdf",
+        proforma_validee_le=timezone.now(),
+        statut="Validation",
         numero_commande="LOG-PAYMENT-DEDICATED",
         responsable=logistics_user,
     )
@@ -1508,6 +1518,11 @@ def test_generic_document_upload_rejects_unsupported_files(
 ):
     order = LogisticsOrder.objects.create(
         company=logistics_company,
+        statut_commande_lancement="Terminée",
+        statut_proforma_conformite="Validée",
+        proforma_fournisseur_file="test/proforma.pdf",
+        proforma_validee_le=timezone.now(),
+        statut="Validation",
         numero_commande="LOG-DOCUMENT-VALIDATION",
         responsable=logistics_user,
     )
@@ -1533,6 +1548,11 @@ def test_only_assigned_responsible_can_edit_import_title(
 ):
     order = LogisticsOrder.objects.create(
         company=logistics_company,
+        statut_commande_lancement="Terminée",
+        statut_proforma_conformite="Validée",
+        proforma_fournisseur_file="test/proforma.pdf",
+        proforma_validee_le=timezone.now(),
+        statut="Validation",
         numero_commande="LOG-TITLE-OWNER",
         responsable=logistics_user,
     )
@@ -1565,7 +1585,9 @@ def test_only_assigned_responsible_can_edit_import_title(
     )
 
     assert denied_title.status_code == status.HTTP_403_FORBIDDEN
-    assert allowed_general.status_code == status.HTTP_200_OK
+    assert allowed_general.status_code == status.HTTP_400_BAD_REQUEST
+    order.refresh_from_db()
+    assert order.transport != "Route"
     assert allowed_title.status_code == status.HTTP_200_OK
 
 
@@ -1583,6 +1605,11 @@ def test_responsible_without_manager_role_can_only_edit_import_title(
     )
     order = LogisticsOrder.objects.create(
         company=logistics_company,
+        statut_commande_lancement="Terminée",
+        statut_proforma_conformite="Validée",
+        proforma_fournisseur_file="test/proforma.pdf",
+        proforma_validee_le=timezone.now(),
+        statut="Validation",
         numero_commande="LOG-TITLE-READER",
         responsable=responsible,
     )

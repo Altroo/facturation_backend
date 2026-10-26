@@ -12,7 +12,7 @@ from rest_framework.test import APIClient
 
 from account.models import CustomUser, Membership, Role
 from company.models import Company
-from logistique.models import LogisticsOrder, LogisticsSupplier
+from logistique.models import LogisticsOrder, LogisticsSupplier, LogisticsChangeRequest
 from logistique.suppliers import ensure_supplier
 
 pytestmark = pytest.mark.django_db
@@ -288,6 +288,8 @@ def test_dossier_uses_existing_supplier_and_preserves_link_after_directory_renam
         order.fournisseur_record_id == supplier.pk
         and order.fournisseur_email == supplier.email
     )
+    def approval():
+        return LogisticsChangeRequest.objects.create(commande=order, etape="dossier", remarque="Correction du contact", demandeur=ctx.user, responsable=ctx.user, statut="approved").pk
     supplier.nom = "Renamed Alpha"
     supplier.save()
     response = ctx.client.post(
@@ -296,6 +298,7 @@ def test_dossier_uses_existing_supplier_and_preserves_link_after_directory_renam
             "action": "dossier",
             "fournisseur": "Alpha",
             "fournisseur_email": "updated-dossier@example.invalid",
+            "correction_id": approval(),
         },
     )
     assert response.status_code == 200, response.data
@@ -304,7 +307,7 @@ def test_dossier_uses_existing_supplier_and_preserves_link_after_directory_renam
     assert order.fournisseur == "Alpha"
     response = ctx.client.post(
         f"/api/logistique/{order.pk}/purchase/",
-        {"action": "dossier", "fournisseur": "Different supplier"},
+        {"action": "dossier", "fournisseur": "Different supplier", "correction_id": approval()},
     )
     assert response.status_code == 200
     order.refresh_from_db()
@@ -312,7 +315,7 @@ def test_dossier_uses_existing_supplier_and_preserves_link_after_directory_renam
     foreign = LogisticsSupplier.objects.get(company=ctx.other)
     response = ctx.client.post(
         f"/api/logistique/{order.pk}/purchase/",
-        {"action": "dossier", "fournisseur_record": foreign.pk},
+        {"action": "dossier", "fournisseur_record": foreign.pk, "correction_id": approval()},
     )
     assert response.status_code == 400
 

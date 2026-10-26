@@ -24,6 +24,7 @@ class LogisticsSupplier(models.Model):
     )
     nom = models.CharField(max_length=255)
     email = models.EmailField(blank=True, default="")
+    marques = models.ManyToManyField("parameter.Marque", blank=True, related_name="logistics_suppliers")
     date_created = models.DateTimeField(auto_now_add=True)
     date_updated = models.DateTimeField(auto_now=True)
     history = HistoricalRecords()
@@ -40,6 +41,29 @@ class LogisticsSupplier(models.Model):
 
     def __str__(self):
         return self.nom
+
+
+class LogisticsChangeRequest(models.Model):
+    commande = models.ForeignKey("LogisticsOrder", on_delete=models.CASCADE, related_name="change_requests")
+    etape = models.CharField(max_length=30)
+    remarque = models.TextField()
+    demandeur = models.ForeignKey(CustomUser, on_delete=models.PROTECT, related_name="logistics_change_requests")
+    responsable = models.ForeignKey(CustomUser, on_delete=models.PROTECT, related_name="logistics_change_approvals")
+    statut = models.CharField(max_length=12, default="pending", choices=[
+        ("pending", "En attente"), ("approved", "Approuvée"),
+        ("rejected", "Refusée"), ("applied", "Appliquée"),
+    ])
+    date_created = models.DateTimeField(auto_now_add=True)
+    decided_at = models.DateTimeField(null=True, blank=True)
+    applied_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-date_created", "-pk"]
+        constraints = [models.UniqueConstraint(
+            fields=["commande", "etape", "demandeur"],
+            condition=models.Q(statut__in=["pending", "approved"]),
+            name="unique_open_logistics_change_request",
+        )]
 
 
 class LogisticsOrder(models.Model):
@@ -308,7 +332,7 @@ class LogisticsOrder(models.Model):
         max_digits=12, decimal_places=2, default=0
     )
     devise_proforma_fournisseur = models.CharField(
-        max_length=3, choices=CURRENCY_CHOICES, default="MAD"
+        max_length=3, choices=CURRENCY_CHOICES, default="EUR"
     )
     delai_proforma_jours = models.PositiveIntegerField(null=True, blank=True)
     ecart_prix_proforma = models.BooleanField(default=False)
@@ -343,7 +367,7 @@ class LogisticsOrder(models.Model):
         max_digits=12, decimal_places=2, default=0
     )
     devise_titre_importation = models.CharField(
-        max_length=3, choices=CURRENCY_CHOICES, default="MAD"
+        max_length=3, choices=CURRENCY_CHOICES, default="EUR"
     )
     date_titre_importation = models.DateField(null=True, blank=True)
     date_validation_titre_importation = models.DateField(null=True, blank=True)

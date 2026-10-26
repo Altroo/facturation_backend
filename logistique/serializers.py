@@ -610,6 +610,15 @@ class LogisticsOrderDetailSerializer(LogisticsOrderBaseSerializer):
     )
     process_notes = serializers.SerializerMethodField()
     receptions = serializers.SerializerMethodField()
+    change_requests = serializers.SerializerMethodField()
+
+    @staticmethod
+    def get_change_requests(obj):
+        return [{"id": item.pk, "etape": item.etape, "remarque": item.remarque,
+            "statut": item.statut, "demandeur": item.demandeur_id, "responsable": item.responsable_id,
+            "demandeur_name": f"{item.demandeur.first_name} {item.demandeur.last_name}".strip() or item.demandeur.email,
+            "date_created": item.date_created, "decided_at": item.decided_at, "applied_at": item.applied_at,
+        } for item in obj.change_requests.all()]
 
     class Meta(LogisticsOrderBaseSerializer.Meta):
         fields = LogisticsOrderBaseSerializer.Meta.fields + [
@@ -619,6 +628,7 @@ class LogisticsOrderDetailSerializer(LogisticsOrderBaseSerializer):
             "echeancier_paiement",
             "process_notes",
             "receptions",
+            "change_requests",
         ]
         read_only_fields = LogisticsOrderBaseSerializer.Meta.read_only_fields + [
             "lignes",
@@ -854,7 +864,7 @@ class LogisticsOrderUpdateSerializer(serializers.ModelSerializer):
             "commentaire_paiement",
             "swift_file",
         }
-        if self.order.statut_paiement != "Non demandé":
+        if self.order.statut_paiement != "Non demandé" and not self.context.get("approved_correction"):
             restricted_fields.update(
                 {
                     field: _(

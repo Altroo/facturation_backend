@@ -11,11 +11,14 @@ from rest_framework.views import APIView
 from core.permissions import can_delete
 from core.views import CompanyAccessMixin
 from facturation_backend.utils import CustomPagination
+from parameter.models import Marque
 from .filters import LogisticsSupplierFilter
 from .models import LogisticsSupplier
 
 
 class LogisticsSupplierSerializer(serializers.ModelSerializer):
+    marques = serializers.PrimaryKeyRelatedField(many=True, queryset=Marque.objects.all(), required=False)
+    marques_names = serializers.SlugRelatedField(source="marques", many=True, read_only=True, slug_field="nom")
     total_dossiers = serializers.IntegerField(read_only=True, default=0)
     derniere_activite = serializers.DateTimeField(read_only=True)
     # Existing clients can still display the directory while the frontend deploys.
@@ -29,6 +32,8 @@ class LogisticsSupplierSerializer(serializers.ModelSerializer):
             "company",
             "nom",
             "email",
+            "marques",
+            "marques_names",
             "total_dossiers",
             "derniere_activite",
             "date_created",
@@ -38,6 +43,11 @@ class LogisticsSupplierSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["company", "date_created", "date_updated"]
         validators = []
+
+    def validate_marques(self, values):
+        if any(brand.company_id != self.context["company_id"] for brand in values):
+            raise serializers.ValidationError("Toutes les marques doivent appartenir à cette société.")
+        return values
 
     def validate_nom(self, value):
         existing = LogisticsSupplier.objects.filter(
@@ -63,7 +73,7 @@ class SupplierAccessMixin(CompanyAccessMixin):
 
     @staticmethod
     def queryset(company_id):
-        return LogisticsSupplier.objects.filter(company_id=company_id).annotate(
+        return LogisticsSupplier.objects.filter(company_id=company_id).prefetch_related("marques").annotate(
             total_dossiers=Count("dossiers"),
             derniere_activite=Coalesce(
                 Max("dossiers__date_updated"), F("date_updated")

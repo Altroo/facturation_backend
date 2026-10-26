@@ -512,6 +512,7 @@ class LogisticsOrderDetailEditDeleteView(CompanyAccessMixin, APIView):
                     "lignes__article",
                     "lignes__expected_emplacement",
                     "events",
+                    "change_requests__demandeur",
                     "process_notes",
                     "process_notes__user",
                     "echeances_paiement",
@@ -540,12 +541,12 @@ class LogisticsOrderDetailEditDeleteView(CompanyAccessMixin, APIView):
             raise ValidationError({"dossier": "Utilisez les formulaires du dossier fournisseur pour modifier ces informations."})
         can_manage = _can_manage_logistics(request.user, order.company_id)
         is_responsible = _is_order_responsible(request.user, order)
-        requested_fields = set(request.data.keys())
+        requested_fields = set(request.data.keys()) - {"etape", "correction_id"}
         if not can_manage and not is_responsible:
             raise PermissionDenied(
                 _("Vous n'avez pas les droits pour modifier ce dossier logistique.")
             )
-        if requested_fields & LOGISTICS_IMPORT_TITLE_FIELDS and not is_responsible:
+        if requested_fields & LOGISTICS_IMPORT_TITLE_FIELDS and not is_responsible and not request.data.get("correction_id"):
             raise PermissionDenied(
                 _("Seul le Responsable Commande peut modifier le titre d'importation.")
             )
@@ -556,13 +557,19 @@ class LogisticsOrderDetailEditDeleteView(CompanyAccessMixin, APIView):
                 )
             )
         _ensure_order_active(order)
+        from .historical import authorize_historical_edit
+        from .corrections import consume_approval
+        approval = authorize_historical_edit(order, request)
+        if requested_fields & LOGISTICS_IMPORT_TITLE_FIELDS and not (is_responsible or approval):
+            raise PermissionDenied("Seul le responsable ou le demandeur autorisé peut corriger le titre.")
         serializer = LogisticsOrderUpdateSerializer(
             order,
             data=request.data,
-            context={"request": request},
+            context={"request": request, "approved_correction": bool(approval)},
         )
         serializer.is_valid(raise_exception=True)
         instance = serializer.save()
+        consume_approval(instance, approval, request.user)
         instance.sync_global_status(preserve_manual=True)
         response_serializer = LogisticsOrderDetailSerializer(
             instance, context={"request": request}
@@ -664,6 +671,15 @@ class LogisticsOrderStatusUpdateView(CompanyAccessMixin, APIView):
                 {"statut": _("Validez d'abord la totalité du paiement requis.")}
             )
         from .purchase import validate_purchase_transition
+        if order.is_supplier_purchase:
+            from .corrections import authorize_step
+            step = {"Livraison client": "reception", "Clôture": "couts"}.get(requested_status)
+            if not step:
+                raise ValidationError({"statut": "Utilisez le formulaire de l’étape en cours."})
+            authorize_step(order, request, step)
+        else:
+            from .historical import authorize_historical_edit
+            authorize_historical_edit(order, request)
         validate_purchase_transition(order, requested_status)
         order.set_status(requested_status, user=request.user)
         order.sync_global_status(preserve_manual=False)

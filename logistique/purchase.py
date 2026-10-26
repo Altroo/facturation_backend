@@ -68,11 +68,63 @@ def preparation_blocker(order):
     if not order.is_proforma_step_complete:
         return "Validez d’abord la proforma fournisseur."
     for item in order.echeances_paiement.all():
+        if item.demandee_le and not item.paiement_valide_le:
+            return "Attendez la validation du paiement et de son justificatif par le comptable."
         if item.declencheur == "advance" and not item.paiement_valide_le:
             return "Faites valider l’avance et son justificatif par le comptable."
         if item.declencheur == "advance" and not item.preuve_envoyee_fournisseur_le:
             return "Indiquez l’envoi du justificatif de l’avance au fournisseur."
     return ""
+
+
+def purchase_steps(order):
+    """Ordered business stages. Deferred payments stay after their triggering event."""
+    items = list(order.echeances_paiement.all())
+    advance = [item for item in items if item.declencheur == "advance"]
+    balance = [item for item in items if item.declencheur != "advance"]
+    received = receipt_complete(order)
+    shipped = bool(order.date_expedition_reelle or received)
+    title_done = bool(order.numero_domiciliation.strip() and order.banque.strip()
+        and order.date_titre_importation and order.titre_importation_file
+        and order.montant_titre_importation == order.payment_total
+        and order.devise_titre_importation == order.devise_proforma_fournisseur)
+    steps = [
+        {"key": "dossier", "label": "Dossier", "completed": True},
+        {"key": "proforma", "label": "Proforma et conformité", "completed": order.is_proforma_step_complete},
+        {"key": "titre", "label": "Titre d’importation", "completed": title_done},
+    ]
+    def payments(key, label, selected):
+        return {"key": key, "label": label,
+            "completed": bool(selected) and all(item.paiement_valide_le and (
+                item.declencheur != "advance" or item.preuve_envoyee_fournisseur_le
+            ) for item in selected), "payment_ids": [item.pk for item in selected]}
+    if advance:
+        steps.append(payments("paiement", "Avance et comptabilité", advance))
+    steps.extend([
+        {"key": "production", "label": "Préparation fournisseur", "completed": bool(order.production_confirmee_le and order.date_expedition_prevue) or shipped},
+        {"key": "expedition", "label": "Expédition", "completed": shipped},
+    ])
+    if balance and order.condition_achat not in {"documentary100", "advance30_documentary70", "receipt100"}:
+        steps.append(payments("solde", "Paiement et comptabilité", balance))
+    steps.append({"key": "transit", "label": "Transit et douane", "completed": bool(
+        received or (order.date_arrivee_maroc and (order.condition_achat not in {
+            "documentary100", "advance30_documentary70"
+        } or order.documents_remis_banque_le)))})
+    if balance and order.condition_achat in {"documentary100", "advance30_documentary70"}:
+        steps.append(payments("solde", "Paiement et comptabilité", balance))
+    steps.append({"key": "reception", "label": "Réception et livraison", "completed": received and order.statut in {"Livraison client", "Clôture"}})
+    if balance and order.condition_achat == "receipt100":
+        steps.append(payments("solde", "Paiement et comptabilité", balance))
+    steps.append({"key": "couts", "label": "Clôture et coût réel", "completed": order.statut == "Clôture"})
+    current = next((step["key"] for step in steps if not step["completed"]), "couts")
+    # A submitted accounting task takes precedence, including future-dated balances.
+    pending = next((item for item in items if item.demandee_le and not item.paiement_valide_le), None)
+    if pending and order.is_proforma_step_complete:
+        current = "paiement" if pending.declencheur == "advance" else "solde"
+    current_index = next(index for index, step in enumerate(steps) if step["key"] == current)
+    for index, step in enumerate(steps):
+        step["accessible"] = index <= current_index
+    return steps, current
 
 
 def validate_purchase_transition(order, status, *, enforce_sequence=True):
@@ -99,7 +151,9 @@ def validate_purchase_transition(order, status, *, enforce_sequence=True):
 
 def workflow_summary(order):
     if not order.is_supplier_purchase:
-        return {}
+        from .historical import historical_steps
+        steps, current = historical_steps(order)
+        return {"etapes": steps, "etape_courante": current}
     items = list(order.echeances_paiement.all())
     reason = preparation_blocker(order)
     payments = [{"id": item.id, "declencheur": item.declencheur,
@@ -121,6 +175,20 @@ def workflow_summary(order):
         action = "Clôturer le dossier" if order.statut != "Clôture" else "Dossier clôturé"
     if order.statut_global == "Annulé":
         action = "Dossier annulé"
-    return {"prochaine_action": action, "preparation_possible": not reason,
+    steps, current = purchase_steps(order)
+    if order.statut_global != "Annulé" and order.statut != "Clôture":
+        action = {
+            "proforma": "Renseigner et valider la proforma fournisseur",
+            "titre": "Renseigner et vérifier le titre d’importation",
+            "paiement": reason or "Transmettre l’avance au comptable",
+            "production": "Confirmer le début de production et renseigner la date d’expédition prévue",
+            "expedition": "Enregistrer l’expédition réelle",
+            "transit": "Renseigner l’arrivée au Maroc et les documents de transit",
+            "reception": "Enregistrer les quantités reçues puis confirmer la livraison",
+            "solde": "Terminer le paiement et sa validation comptable",
+            "couts": "Vérifier les coûts et clôturer le dossier",
+        }.get(current, action)
+    return {"etapes": steps, "etape_courante": current,
+        "prochaine_action": action, "preparation_possible": not reason,
         "raison_preparation": reason, "paiements": payments,
         "conditions": [{"value": key, "label": value[0]} for key, value in CONDITIONS.items()]}

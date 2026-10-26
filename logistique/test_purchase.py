@@ -20,7 +20,7 @@ from parameter.models import Emplacement, Marque
 from stock.models import StockBalance, StockMovement, StockReceipt
 from stock.services import incoming_quantity
 
-from .models import LogisticsOrder
+from .models import LogisticsOrder, LogisticsChangeRequest
 from .purchase import payment_blocker, preparation_blocker
 from .tasks import deliver_purchase_creator_email
 
@@ -164,11 +164,27 @@ def save_proforma(ctx, order, **overrides):
     return response
 
 
-def validated_dossier(ctx, **overrides):
+def validated_dossier(ctx, *, with_title=True, **overrides):
     order = create_dossier(ctx)
     response = save_proforma(ctx, order, **overrides)
     assert response.status_code == 200, response.data
+    if with_title:
+        prepare_title(order)
     return order
+
+
+def approved_edit(ctx, order, step):
+    # Tests below exercise validation/history after the separate approval flow succeeds.
+    return LogisticsChangeRequest.objects.create(commande=order, etape=step, remarque="Correction test",
+        demandeur=ctx.creator, responsable=ctx.responsible, statut="approved", decided_at=timezone.now()).pk
+
+
+def complete_transit(ctx, order):
+    order.refresh_from_db()
+    if not order.date_arrivee_maroc:
+        response = purchase_post(ctx, order, "progression", etape="transit", date_arrivee_maroc=timezone.localdate().isoformat())
+        assert response.status_code == 200, response.data
+        order.refresh_from_db()
 
 
 def prepare_title(order):
@@ -604,6 +620,7 @@ def test_partial_receipts_and_service_lines_preserve_stock_and_completion(
         date_expedition_reelle=timezone.localdate().isoformat(),
     )
     assert result.status_code == 200, result.data
+    complete_transit(ctx, order)
     line = order.lignes.get(article=ctx.article)
     for index in (1, 2):
         result = purchase_post(
@@ -657,7 +674,7 @@ def test_postponing_an_overdue_shipment_requires_an_explanation(purchase_context
     order.save()
     new_date = timezone.localdate() + timedelta(days=3)
     response = purchase_post(
-        ctx, order, "progression", date_expedition_prevue=new_date.isoformat()
+        ctx, order, "progression", correction_id=approved_edit(ctx, order, "production"), date_expedition_prevue=new_date.isoformat()
     )
     assert response.status_code == 400, response.data
     order.refresh_from_db()
@@ -666,6 +683,7 @@ def test_postponing_an_overdue_shipment_requires_an_explanation(purchase_context
         ctx,
         order,
         "progression",
+        correction_id=order.change_requests.get(statut="approved").pk,
         date_expedition_prevue=new_date.isoformat(),
         remarque="Production fournisseur retardée de trois jours",
     )
@@ -853,6 +871,7 @@ def test_stock_can_be_received_from_the_transit_or_customs_phase(
     record_shipment(ctx, order)
     result = purchase_post(ctx, order, "progression", statut=phase)
     assert result.status_code == 200, result.data
+    complete_transit(ctx, order)
     line = order.lignes.get()
     result = purchase_post(
         ctx,
@@ -899,6 +918,7 @@ def test_service_only_receipt_is_confirmed_without_a_stock_movement(purchase_con
     order = service_dossier(ctx)
     record_shipment(ctx, order)
     assert payment_blocker(order, order.echeances_paiement.get())
+    complete_transit(ctx, order)
     result = purchase_post(
         ctx,
         order,
@@ -959,11 +979,11 @@ def test_recorded_real_shipment_date_and_phase_cannot_move_backwards(purchase_co
         "progression",
         date_expedition_reelle=(timezone.localdate() - timedelta(days=1)).isoformat(),
     )
-    assert result.status_code == 400, result.data
+    assert result.status_code == 403, result.data
     result = purchase_post(ctx, order, "progression", statut="Transit")
     assert result.status_code == 200, result.data
     result = purchase_post(ctx, order, "progression", statut="Production")
-    assert result.status_code == 400, result.data
+    assert result.status_code == 403, result.data
     order.refresh_from_db()
     assert order.statut == "Transit"
     assert order.date_expedition_reelle == timezone.localdate()
@@ -984,9 +1004,9 @@ def test_saved_delay_explanation_applies_to_its_planned_date(purchase_context):
         remarque__startswith=f"Retard d’expédition ({order.date_expedition_prevue}) :"
     ).exists()
     result = purchase_post(ctx, order, "progression", cout_transport="50.00")
-    assert result.status_code == 200, result.data
+    assert result.status_code == 400
     order.refresh_from_db()
-    assert order.cout_transport == Decimal("50.00")
+    assert order.cout_transport == Decimal("0.00")
 
 
 def closed_paid_dossier(ctx):
@@ -1183,6 +1203,7 @@ def test_lecture_creator_responsible_cannot_request_payment_or_forward_proof(
 def received_dossier(ctx):
     order = ready_for_shipping(ctx)
     record_shipment(ctx, order)
+    complete_transit(ctx, order)
     line = order.lignes.get()
     result = purchase_post(
         ctx,
@@ -1212,6 +1233,7 @@ def close_received_dossier(ctx, order):
     item.save()
     order.statut_paiement = "Validé"
     order.save(update_fields=["statut_paiement"])
+    assert purchase_post(ctx, order, "progression", statut="Livraison client").status_code == 200
     result = purchase_post(ctx, order, "progression", statut="Clôture")
     assert result.status_code == 200, result.data
     order.refresh_from_db()
@@ -1304,7 +1326,7 @@ def test_supplier_responsible_must_have_a_logistics_write_role(
         assert not LogisticsOrder.objects.exists()
     else:
         order = create_dossier(ctx)
-        result = purchase_post(ctx, order, "dossier", responsable=candidate.pk)
+        result = purchase_post(ctx, order, "dossier", correction_id=approved_edit(ctx, order, "dossier"), responsable=candidate.pk)
         assert result.status_code == 400, result.data
         order.refresh_from_db()
         assert order.responsable == ctx.responsible
@@ -1497,7 +1519,7 @@ def test_dossier_deadline_applies_after_delivery_until_actual_closure(purchase_c
     ctx = purchase_context
     order, _ = received_dossier(ctx)
     yesterday = timezone.localdate() - timedelta(days=1)
-    result = purchase_post(ctx, order, "dossier", date_prevue=yesterday.isoformat())
+    result = purchase_post(ctx, order, "dossier", correction_id=approved_edit(ctx, order, "dossier"), date_prevue=yesterday.isoformat())
     assert result.status_code == 200, result.data
     result = purchase_post(ctx, order, "progression", statut="Livraison client")
     assert result.status_code == 200, result.data
@@ -1536,13 +1558,13 @@ def test_optional_supplier_text_change_and_clear_persist_with_auditable_values(
     order = ready_for_shipping(ctx)
     setattr(order, field, initial)
     order.save(update_fields=[field])
-    result = purchase_post(ctx, order, action, **{field: changed})
+    result = purchase_post(ctx, order, action, **({"correction_id": approved_edit(ctx, order, "dossier")} if action == "dossier" else {}), **{field: changed})
     assert result.status_code == 200, result.data
     event = order.events.get(action=f"Modification : {label}")
     assert event.old_value == initial
     assert event.new_value == changed
     assert event.user == ctx.creator
-    result = purchase_post(ctx, order, action, **{field: ""})
+    result = purchase_post(ctx, order, action, **({"correction_id": approved_edit(ctx, order, "dossier")} if action == "dossier" else {}), **{field: ""})
     assert result.status_code == 200, result.data
     order.refresh_from_db()
     assert getattr(order, field) == ""
@@ -1600,6 +1622,7 @@ def test_long_supplier_line_changes_remain_complete_in_history(purchase_context)
 
 
 def partial_receipt(ctx, order, reference, note):
+    complete_transit(ctx, order)
     line = order.lignes.get()
     result = purchase_post(
         ctx,
@@ -1706,9 +1729,10 @@ def test_supplier_field_change_does_not_add_a_redundant_workflow_summary(purchas
     ctx = purchase_context
     order = create_dossier(ctx)
     previous_ids = list(order.events.values_list("pk", flat=True))
-    response = purchase_post(ctx, order, "dossier", fournisseur="Nouveau fournisseur")
+    approval_id = approved_edit(ctx, order, "dossier")
+    response = purchase_post(ctx, order, "dossier", correction_id=approval_id, fournisseur="Nouveau fournisseur")
     assert response.status_code == 200, response.data
-    events = list(order.events.exclude(pk__in=previous_ids))
+    events = list(order.events.exclude(pk__in=previous_ids).exclude(action="Correction autorisée enregistrée"))
     assert len(events) == 1
     assert events[0].action == "Modification : Fournisseur"
     assert events[0].old_value == "Fournisseur indépendant"
@@ -1773,6 +1797,7 @@ def test_partial_receipt_has_one_meaningful_history_entry_without_workflow_dupli
     ctx = purchase_context
     order = ready_for_shipping(ctx)
     record_shipment(ctx, order)
+    complete_transit(ctx, order)
     previous_ids = list(order.events.values_list("pk", flat=True))
     response = partial_receipt(ctx, order, "REC-EXPL-1", "Premier carton contrôlé")
     assert response.status_code == 200, response.data

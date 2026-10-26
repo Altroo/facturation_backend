@@ -19,6 +19,7 @@ from .serializers import LogisticsOrderDetailSerializer, LogisticsOrderUpdateSer
 from .purchase_serializers import PurchaseDossierSerializer, PurchaseProformaSerializer, PurchaseProgressSerializer
 from .purchase import CONDITIONS, create_purchase_schedule, validate_purchase_transition, preparation_blocker
 from .utils import get_next_numero_logistique
+from .corrections import action_step, authorize_step, consume_approval, handle_change_request
 
 
 _BUSINESS_FIELDS = {
@@ -139,6 +140,8 @@ def create_purchase_dossier(company_id, user, data):
         Company.objects.select_for_update().get(pk=company_id)
         from .suppliers import ensure_supplier
         supplier = supplier or ensure_supplier(company_id, values["fournisseur"], values.get("fournisseur_email", ""))
+        if brand:
+            supplier.marques.add(brand)
         order = LogisticsOrder.objects.create(company_id=company_id, fournisseur_record=supplier,
             numero_commande=get_next_numero_logistique(company_id), workflow_version=2,
             responsable_id=responsible_id, marque=brand, created_by_user=user,
@@ -156,9 +159,15 @@ class PurchaseWorkflowView(CompanyAccessMixin, APIView):
         from .views import LogisticsOrderDetailEditDeleteView, _can_manage_logistics, _ensure_order_active
         order = LogisticsOrderDetailEditDeleteView.get_object(pk, for_update=True)
         self._check_company_access(request, order.company_id)
-        if not _can_manage_logistics(request.user, order.company_id):
+        deciding = request.data.get("action") in {"approuver_modification", "refuser_modification"}
+        if not _can_manage_logistics(request.user, order.company_id) and not (deciding and order.responsable_id == request.user.pk):
             raise PermissionDenied("Vous n’avez pas les droits pour modifier ce dossier.")
         _ensure_order_active(order)
+        action = request.data.get("action")
+        if action in {"demander_modification", "approuver_modification", "refuser_modification"}:
+            handle_change_request(order, request)
+            order = LogisticsOrderDetailEditDeleteView.get_object(pk)
+            return Response(LogisticsOrderDetailSerializer(order, context={"request": request}).data)
         if not order.is_supplier_purchase:
             if request.data.get("action") != "adopter_parcours_fournisseur":
                 raise ValidationError({"dossier": "Complétez d’abord les informations du dossier pour utiliser le parcours d’achat fournisseur."})
@@ -170,9 +179,13 @@ class PurchaseWorkflowView(CompanyAccessMixin, APIView):
         if order.statut == "Clôture" and request.data.get("action") != "relancer_notification":
             raise ValidationError({"dossier": "Ce dossier est clôturé."})
         action = request.data.get("action")
+        if set(request.data) == {"action"} and action in {"dossier", "titre", "progression"}:
+            return Response(LogisticsOrderDetailSerializer(order, context={"request": request}).data)
+        step = action_step(order, request.data)
+        approval = authorize_step(order, request, step) if step else None
         before = _business_snapshot(order, include_lines=action == "proforma") if action in {"dossier", "proforma", "titre", "progression"} else None
         if action == "dossier":
-            serializer = PurchaseDossierSerializer(data=request.data, context={"company_id": order.company_id})
+            serializer = PurchaseDossierSerializer(data=request.data, context={"company_id": order.company_id, "order": order})
             serializer.is_valid(raise_exception=True)
             values = serializer.validated_data.copy()
             supplier = values.pop("fournisseur_record", None)
@@ -184,9 +197,11 @@ class PurchaseWorkflowView(CompanyAccessMixin, APIView):
             elif order.fournisseur != old_name or not order.fournisseur_record_id:
                 from .suppliers import ensure_supplier
                 order.fournisseur_record = ensure_supplier(order.company_id, order.fournisseur, order.fournisseur_email)
+                if order.marque_id:
+                    order.fournisseur_record.marques.add(order.marque_id)
             order.save()
         elif action == "proforma":
-            if order.is_proforma_step_complete:
+            if order.is_proforma_step_complete and not approval:
                 raise ValidationError({"proforma": "La proforma fournisseur est déjà validée."})
             if order.legacy_source_snapshot and order.lignes.filter(
                 Q(proforma__isnull=False) | Q(source_line__isnull=False) | Q(client__isnull=False)
@@ -199,6 +214,22 @@ class PurchaseWorkflowView(CompanyAccessMixin, APIView):
             values = serializer.validated_data.copy()
             decision = values.pop("action")
             lines = values.pop("lignes", None)
+            if approval and order.is_proforma_step_complete:
+                if decision != "validate":
+                    raise ValidationError({"decision": "Une correction doit conserver la validation de la proforma."})
+                if any(values.get(field, getattr(order, field)) != getattr(order, field)
+                    for field in ("montant_proforma_fournisseur", "devise_proforma_fournisseur", "condition_achat")):
+                    raise ValidationError({"proforma": "Le montant, la devise et les conditions d’une proforma validée restent liés à son échéancier comptable."})
+                if lines is not None:
+                    existing_lines = list(order.lignes.order_by("id"))
+                    same_lines = len(lines) == len(existing_lines) and all(
+                        line["article"] == old.article_id and line["quantity"] == old.quantity
+                        and line["prix_achat"] == old.prix_achat
+                        and line.get("expected_emplacement", old.expected_emplacement_id) == old.expected_emplacement_id
+                        for line, old in zip(lines, existing_lines))
+                    if not same_lines:
+                        raise ValidationError({"lignes": "Les articles validés restent liés à l’échéancier et aux réceptions. Ils ne peuvent pas être remplacés."})
+                    lines = None
             for field, value in values.items():
                 setattr(order, field, value)
             order.devise = order.devise_proforma_fournisseur
@@ -232,11 +263,15 @@ class PurchaseWorkflowView(CompanyAccessMixin, APIView):
         elif action == "titre":
             allowed = LOGISTICS_IMPORT_TITLE_FIELDS - {"date_validation_titre_importation", "statut_titre_importation", "methode_paiement", "avance_pourcentage"}
             values = {key: value for key, value in request.data.items() if key in allowed}
-            serializer = LogisticsOrderUpdateSerializer(order, data=values, partial=True)
+            serializer = LogisticsOrderUpdateSerializer(order, data=values, partial=True,
+                context={"approved_correction": bool(approval)})
             serializer.is_valid(raise_exception=True)
+            if approval and (serializer.validated_data.get("montant_titre_importation", order.montant_titre_importation) != order.payment_total
+                or serializer.validated_data.get("devise_titre_importation", order.devise_titre_importation) != order.devise_proforma_fournisseur):
+                raise ValidationError({"titre": "Le montant et la devise doivent correspondre à la proforma validée."})
             serializer.save()
         elif action == "progression":
-            serializer = PurchaseProgressSerializer(data=request.data, context={"order": order})
+            serializer = PurchaseProgressSerializer(data=request.data, context={"order": order, "approved_correction": bool(approval)})
             serializer.is_valid(raise_exception=True)
             values = serializer.validated_data.copy()
             remark = values.pop("remarque", "").strip()
@@ -250,8 +285,9 @@ class PurchaseWorkflowView(CompanyAccessMixin, APIView):
                     raise ValidationError({"production": reason})
                 order.production_confirmee_le = order.production_confirmee_le or timezone.now()
                 target = "Production"
-            validate_purchase_transition(order, target)
-            order.statut = target
+            validate_purchase_transition(order, order.statut if approval else target)
+            if not approval:
+                order.statut = target
             order.save()
             if remark:
                 note = LogisticsProcessNote.objects.create(commande=order, user=request.user, statut=order.statut, remarque=(f"Retard d’expédition ({order.date_expedition_prevue}) : " + remark if order.date_expedition_prevue and (order.date_expedition_reelle or timezone.localdate()) > order.date_expedition_prevue else remark))
@@ -276,6 +312,40 @@ class PurchaseWorkflowView(CompanyAccessMixin, APIView):
             order.add_event(user=request.user, action="Réception de marchandises",
                 new_value=(receipt.reference or f"Réception #{receipt.pk}")[:255], note="\n".join(details))
             order.refresh_from_db()
+        elif action == "corriger_paiement":
+            if not approval:
+                raise PermissionDenied("Une correction de paiement nécessite une autorisation.")
+            if set(request.data) - {"action", "etape", "correction_id", "echeance_id", "reference_paiement", "commentaire_paiement"}:
+                raise ValidationError({"paiement": "Seuls la référence et le commentaire peuvent être corrigés."})
+            from rest_framework import serializers
+            identifier = serializers.IntegerField(min_value=1).run_validation(request.data.get("echeance_id"))
+            item = order.echeances_paiement.select_for_update().filter(pk=identifier, paiement_valide_le__isnull=False).first()
+            if not item or ("paiement" if item.declencheur == "advance" else "solde") != approval.etape:
+                raise ValidationError({"echeance_id": "Paiement validé introuvable pour cette étape."})
+            reference = serializers.CharField(max_length=120, allow_blank=True).run_validation(request.data.get("reference_paiement", ""))
+            comment = serializers.CharField(max_length=4000, allow_blank=True).run_validation(request.data.get("commentaire_paiement", ""))
+            order.add_event(user=request.user, action="Correction de la référence du paiement",
+                old_value=item.reference_bancaire, new_value=reference, note=comment)
+            item.reference_bancaire = reference
+            item.commentaire = comment
+            item.save(update_fields=["reference_bancaire", "commentaire", "date_updated"])
+        elif action == "corriger_reception":
+            if not approval:
+                raise PermissionDenied("Une correction de réception nécessite une autorisation.")
+            if set(request.data) - {"action", "etape", "correction_id", "reception_id", "reference", "note"}:
+                raise ValidationError({"reception": "Seuls la référence et la remarque peuvent être corrigées."})
+            from rest_framework import serializers
+            from stock.models import StockReceipt
+            identifier = serializers.IntegerField(min_value=1).run_validation(request.data.get("reception_id"))
+            receipt = StockReceipt.objects.select_for_update().filter(pk=identifier, logistics_order=order, company_id=order.company_id).first()
+            if not receipt:
+                raise ValidationError({"reception_id": "Réception introuvable pour ce dossier."})
+            reference = serializers.CharField(max_length=80, allow_blank=True).run_validation(request.data.get("reference", ""))
+            note = serializers.CharField(max_length=4000, allow_blank=True).run_validation(request.data.get("note", ""))
+            order.add_event(user=request.user, action="Correction des informations de réception",
+                old_value=receipt.reference, new_value=reference, note=f"Ancienne remarque : {receipt.note}\nNouvelle remarque : {note}")
+            receipt.reference, receipt.note = reference, note
+            receipt.save(update_fields=["reference", "note"])
         elif action == "relancer_notification":
             from .tasks import queue_purchase_creator_email
             try:
@@ -298,6 +368,7 @@ class PurchaseWorkflowView(CompanyAccessMixin, APIView):
                 }[decision]
                 order.add_event(user=request.user, action=description,
                     new_value=order.numero_proforma_fournisseur)
+        consume_approval(order, approval, request.user)
         order.sync_global_status(preserve_manual=False)
         # Reload relation caches after changes to avoid returning stale form data.
         order = LogisticsOrderDetailEditDeleteView.get_object(pk)
