@@ -1,3 +1,4 @@
+from copy import copy
 from datetime import date, datetime
 from pathlib import Path
 
@@ -221,7 +222,7 @@ class PurchaseWorkflowView(CompanyAccessMixin, APIView):
                 Q(proforma__isnull=False) | Q(source_line__isnull=False) | Q(client__isnull=False)
             ).exists() and "lignes" not in request.data:
                 raise ValidationError({"lignes": "Renseignez les quantités et prix de la proforma fournisseur. Les anciennes lignes client ne sont pas des achats confirmés."})
-            data = request.data.copy()
+            data = copy(request.data)
             data["action"] = request.data.get("decision", "control")
             serializer = PurchaseProformaSerializer(data=data, context={"order": order})
             serializer.is_valid(raise_exception=True)

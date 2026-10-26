@@ -96,7 +96,9 @@ def prepare_proposal(order, item, request, apply_action):
     item.original_data = state_for(order, initial_data)
     before = display_values(order, data)
     original_paths = {field: getattr(order, field).name for field in files}
-    preview = SimpleNamespace(user=request.user, data={**data, **files}, FILES=files, method="POST")
+    # Stream a copy during preview; storage must not move the temporary upload.
+    preview_files = {field: File(uploaded.file, name=uploaded.name) for field, uploaded in files.items()}
+    preview = SimpleNamespace(user=request.user, data={**data, **preview_files}, FILES=preview_files, method="POST")
     preview_order = order
     try:
         with transaction.atomic():

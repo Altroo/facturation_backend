@@ -102,7 +102,10 @@ def test_company_admin_can_review_and_receives_notification(purchase_context):
     assert result.status_code == 200, result.data
 
 
-def test_file_is_staged_separately_then_applied_once_accepted(purchase_context):
+@pytest.mark.parametrize("temporary", [False, True])
+def test_file_is_staged_separately_then_applied_once_accepted(purchase_context, settings, temporary):
+    if temporary:
+        settings.FILE_UPLOAD_MAX_MEMORY_SIZE = 0
     ctx = purchase_context
     order = validated_dossier(ctx, condition="advance100", total="100")
     original = order.proforma_fournisseur_file.name
