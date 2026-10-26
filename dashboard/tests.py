@@ -305,35 +305,6 @@ class TestFinancialOverviewEndpoints:
         )
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    def test_revenue_by_type_authenticated(
-        self,
-        authenticated_client,
-        facture_client,
-        devi,
-        facture_proforma,
-        bon_de_livraison,
-        company,
-    ):
-        """Test revenue by document type endpoint."""
-        response = authenticated_client.get(
-            f"/api/dashboard/financial/revenue-by-type/?company_id={company.id}"
-        )
-        assert response.status_code == status.HTTP_200_OK
-        assert isinstance(response.data, list)
-
-    def test_revenue_by_type_with_date_filters(
-        self, authenticated_client, facture_client, company
-    ):
-        """Test revenue by type with date filters."""
-        today = date.today()
-        date_from = (today - timedelta(days=90)).isoformat()
-        date_to = today.isoformat()
-
-        response = authenticated_client.get(
-            f"/api/dashboard/financial/revenue-by-type/?company_id={company.id}&date_from={date_from}&date_to={date_to}"
-        )
-        assert response.status_code == status.HTTP_200_OK
-
     def test_payment_status_overview_authenticated(
         self, authenticated_client, facture_client, company
     ):
@@ -469,26 +440,6 @@ class TestCommercialPerformanceEndpoints:
 
 class TestOperationalIndicatorEndpoints:
     """Tests for operational indicator endpoints."""
-
-    def test_invoice_status_distribution_authenticated(
-        self, authenticated_client, facture_client, company
-    ):
-        """Test invoice status distribution endpoint."""
-        response = authenticated_client.get(
-            f"/api/dashboard/operational/invoice-status/?company_id={company.id}"
-        )
-        assert response.status_code == status.HTTP_200_OK
-        assert isinstance(response.data, list)
-
-    def test_invoice_status_with_date_filters(
-        self, authenticated_client, facture_client, company
-    ):
-        """Test invoice status with date filters."""
-        today = date.today()
-        response = authenticated_client.get(
-            f"/api/dashboard/operational/invoice-status/?company_id={company.id}&date_to={today.isoformat()}"
-        )
-        assert response.status_code == status.HTTP_200_OK
 
     def test_monthly_document_volume_authenticated(
         self, authenticated_client, facture_client, devi, bon_de_livraison, company
@@ -855,14 +806,12 @@ class TestAuthenticationRequired:
 
     ENDPOINTS = [
         "/api/dashboard/financial/monthly-revenue/",
-        "/api/dashboard/financial/revenue-by-type/",
         "/api/dashboard/financial/payment-status/",
         "/api/dashboard/financial/collection-rate/",
         "/api/dashboard/commercial/top-clients/",
         "/api/dashboard/commercial/top-products/",
         "/api/dashboard/commercial/quote-conversion/",
         "/api/dashboard/commercial/product-price-volume/",
-        "/api/dashboard/operational/invoice-status/",
         "/api/dashboard/operational/document-volume/",
         "/api/dashboard/cashflow/payment-timeline/",
         "/api/dashboard/cashflow/overdue-receivables/",
@@ -1041,15 +990,6 @@ class TestCompanyFiltering:
         assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.data, list)
 
-    def test_revenue_by_type_with_company_filter(
-        self, authenticated_client, facture_client, devi, company
-    ):
-        """Test revenue by type with company_id filter."""
-        response = authenticated_client.get(
-            f"/api/dashboard/financial/revenue-by-type/?company_id={company.id}"
-        )
-        assert response.status_code == status.HTTP_200_OK
-
     def test_payment_status_with_company_filter(
         self, authenticated_client, facture_client, company
     ):
@@ -1101,15 +1041,6 @@ class TestCompanyFiltering:
         """Test product price volume with company_id filter."""
         response = authenticated_client.get(
             f"/api/dashboard/commercial/product-price-volume/?company_id={company.id}"
-        )
-        assert response.status_code == status.HTTP_200_OK
-
-    def test_invoice_status_with_company_filter(
-        self, authenticated_client, facture_client, company
-    ):
-        """Test invoice status with company_id filter."""
-        response = authenticated_client.get(
-            f"/api/dashboard/operational/invoice-status/?company_id={company.id}"
         )
         assert response.status_code == status.HTTP_200_OK
 
@@ -1708,28 +1639,6 @@ class TestQuoteConversionFiltering:
 
         response = authenticated_client.get(
             f"/api/dashboard/commercial/quote-conversion/?company_id={company.id}"
-        )
-        assert response.status_code == status.HTTP_200_OK
-
-
-class TestInvoiceStatusFiltering:
-    """Tests for invoice status filtering branches."""
-
-    def test_invoice_status_no_date_from(
-        self, authenticated_client, client_entity, mode_paiement, user, company
-    ):
-        """Test invoice status without date_from."""
-        FactureClient.objects.create(
-            numero_facture="FC_INVSTATUS",
-            date_facture=date.today(),
-            client=client_entity,
-            mode_paiement=mode_paiement,
-            created_by_user=user,
-            statut="Brouillon",
-        )
-
-        response = authenticated_client.get(
-            f"/api/dashboard/operational/invoice-status/?company_id={company.id}"
         )
         assert response.status_code == status.HTTP_200_OK
 

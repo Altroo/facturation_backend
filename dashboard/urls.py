@@ -36,11 +36,6 @@ urlpatterns = [
         name="monthly-revenue-evolution",
     ),
     path(
-        "financial/revenue-by-type/",
-        views.RevenueByDocumentTypeView.as_view(),
-        name="revenue-by-document-type",
-    ),
-    path(
         "financial/payment-status/",
         views.PaymentStatusOverviewView.as_view(),
         name="payment-status-overview",
@@ -72,11 +67,6 @@ urlpatterns = [
         name="product-price-volume-analysis",
     ),
     # Operational Indicators
-    path(
-        "operational/invoice-status/",
-        views.InvoiceStatusDistributionView.as_view(),
-        name="invoice-status-distribution",
-    ),
     path(
         "operational/document-volume/",
         views.MonthlyDocumentVolumeView.as_view(),
