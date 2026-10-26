@@ -15,17 +15,18 @@ class ChangelogEntryAdmin(admin.ModelAdmin):
     list_display = (
         "date",
         "version",
+        "platform",
         "title_fr",
         "title_en",
         "is_published",
         "updated_at",
     )
-    list_filter = ("is_published",)
+    list_filter = ("platform", "is_published")
     search_fields = ("version", "title_fr", "title_en", "changes_fr", "changes_en")
     date_hierarchy = "date"
     readonly_fields = ("updated_at",)
     fieldsets = (
-        (None, {"fields": ("date", "version", "is_published")}),
+        (None, {"fields": ("date", "version", "platform", "is_published")}),
         ("Français", {"fields": ("title_fr", "changes_fr")}),
         ("English", {"fields": ("title_en", "changes_en")}),
         (None, {"fields": ("updated_at",)}),

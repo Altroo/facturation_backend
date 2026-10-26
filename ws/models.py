@@ -35,7 +35,19 @@ class WsMaintenanceState(models.Model):
 
 
 class ChangelogEntry(models.Model):
-    date = models.DateField(default=timezone.localdate, unique=True)
+    class Platform(models.TextChoices):
+        WEB = "web", _("Web")
+        MOBILE = "mobile", _("Mobile")
+        BOTH = "both", _("Web and Mobile")
+
+    date = models.DateField(default=timezone.localdate)
+    platform = models.CharField(
+        max_length=6,
+        choices=Platform.choices,
+        default=Platform.WEB,
+        verbose_name=_("Platform"),
+        help_text=_("Show this entry on Web, Mobile, or both applications."),
+    )
     version = models.CharField(
         max_length=20,
         blank=True,
@@ -64,6 +76,11 @@ class ChangelogEntry(models.Model):
 
     class Meta:
         ordering = ("-date", "-pk")
+        constraints = [
+            models.UniqueConstraint(
+                fields=("date", "platform"), name="ws_changelog_date_platform_unique"
+            ),
+        ]
         verbose_name = _("Changelog entry")
         verbose_name_plural = _("Changelog")
 

@@ -1,5 +1,6 @@
 from django.utils import timezone
 from rest_framework import permissions, status
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -25,8 +26,14 @@ class ChangelogView(APIView):
 
     @staticmethod
     def get(request):
+        # Keep existing web clients compatible. Each app sees shared releases too.
+        platform = request.query_params.get("platform", ChangelogEntry.Platform.WEB)
+        if platform not in (ChangelogEntry.Platform.WEB, ChangelogEntry.Platform.MOBILE):
+            raise ValidationError({"platform": "Choose web or mobile."})
         entries = ChangelogEntry.objects.filter(
-            is_published=True, date__lte=timezone.localdate()
+            is_published=True,
+            date__lte=timezone.localdate(),
+            platform__in=(platform, ChangelogEntry.Platform.BOTH),
         )
         return Response(
             ChangelogEntrySerializer(entries, many=True).data,

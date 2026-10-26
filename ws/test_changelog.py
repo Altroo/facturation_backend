@@ -58,6 +58,133 @@ def test_history_requires_authentication():
     assert APIClient().get("/api/ws/changelog/").status_code in (401, 403)
 
 
+@pytest.mark.parametrize("platform", [None, "web", "mobile"])
+def test_platform_filter_includes_shared_entries_only(platform):
+    web = entry(platform="web")
+    mobile = entry(platform="mobile")
+    shared = entry(platform="both")
+    entry(platform="mobile", date=timezone.localdate() + timedelta(days=1))
+    entry(platform="both", date=timezone.localdate() - timedelta(days=1), is_published=False)
+    client = APIClient()
+    client.force_authenticate(get_user_model().objects.create_user(email="platform@example.com", password="test-only"))
+    response = client.get("/api/ws/changelog/", {"platform": platform} if platform else {})
+    assert response.status_code == 200
+    expected = mobile if platform == "mobile" else web
+    assert [item["id"] for item in response.data] == [shared.pk, expected.pk]
+    assert response.data[0]["platform"] == "both"
+
+
+def test_unknown_platform_is_rejected_instead_of_exposing_all_entries():
+    client = APIClient()
+    client.force_authenticate(get_user_model().objects.create_user(email="invalid-platform@example.com", password="test-only"))
+    assert client.get("/api/ws/changelog/", {"platform": "both"}).status_code == 400
+    assert client.get("/api/ws/changelog/", {"platform": "android"}).status_code == 400
+
+
+def test_releases_can_share_a_date_across_platforms_but_not_within_one_platform():
+    web = entry()
+    assert web.platform == "web"
+    entry(platform="mobile").full_clean()
+    duplicate = ChangelogEntry(date=web.date, platform="web")
+    with pytest.raises(ValidationError):
+        duplicate.full_clean()
+
+
+@pytest.mark.django_db(transaction=True)
+def test_platform_migration_preserves_existing_history_as_web():
+    from django.db import connection
+    from django.db.migrations.executor import MigrationExecutor
+
+    previous = [("ws", "0012_handled_errors_release_3_8_6")]
+    current = [("ws", "0015_align_mobile_changelog_versions")]
+    executor = MigrationExecutor(connection)
+    executor.migrate(previous)
+    try:
+        old_entry = executor.loader.project_state(previous).apps.get_model("ws", "ChangelogEntry")
+        old_entry.objects.create(
+            date="2026-10-26", version="1.2.0", title_fr="Titre conservé",
+            title_en="Preserved title", changes_fr="Texte conservé", changes_en="Preserved text",
+            is_published=True,
+        )
+    finally:
+        MigrationExecutor(connection).migrate(current)
+    preserved = ChangelogEntry.objects.get(date="2026-10-26", platform="web")
+    assert preserved.platform == "web"
+    assert preserved.title_fr == "Titre conservé"
+    assert preserved.changes_en == "Preserved text"
+    assert preserved.version == "1.2.0"
+    assert preserved.is_published
+
+
+def test_mobile_history_is_bilingual_idempotent_and_preserves_web_and_admin_edits():
+    from importlib import import_module
+    from django.apps import apps
+    from django.db import connection
+
+    web = entry(date="2026-10-26", title_fr="Texte web conservé")
+    seed = import_module("ws.migrations.0014_seed_mobile_changelog_history")
+    seed.seed_mobile_changelog(apps, connection.schema_editor())
+    rows = ChangelogEntry.objects.filter(platform="mobile")
+    assert rows.count() == 7
+    assert {str(row.date) for row in rows} == {
+        "2026-10-16", "2026-10-20", "2026-10-21", "2026-10-22",
+        "2026-10-23", "2026-10-24", "2026-10-26",
+    }
+    for row in rows:
+        row.full_clean()
+        assert len(row.changes_fr.splitlines()) == len(row.changes_en.splitlines())
+    versions = [tuple(map(int, row.version.split("."))) for row in rows.order_by("date")]
+    assert versions == sorted(versions)
+    assert len(set(versions)) > 1
+    edited = rows.first()
+    edited.title_fr = "Titre mobile conservé"
+    edited.is_published = False
+    edited.save()
+    seed.seed_mobile_changelog(apps, connection.schema_editor())
+    edited.refresh_from_db()
+    web.refresh_from_db()
+    assert edited.title_fr == "Titre mobile conservé"
+    assert not edited.is_published
+    assert web.title_fr == "Texte web conservé"
+    assert ChangelogEntry.objects.count() == 8
+
+
+def test_align_mobile_versions_repairs_legacy_seed_without_overwriting_other_releases():
+    import json
+    from importlib import import_module
+    from pathlib import Path
+    from django.apps import apps
+    from django.db import connection
+
+    history = json.loads((Path(__file__).parent / "migrations/data/0014_mobile_changelog_history.json").read_text())
+    web = entry(date=history[-1]["date"], version="3.8.4", platform="web")
+    shared = entry(date=history[-1]["date"], version="3.8.4", platform="both")
+    seed = import_module("ws.migrations.0014_seed_mobile_changelog_history")
+    repair = import_module("ws.migrations.0015_align_mobile_changelog_versions")
+    editor = connection.schema_editor()
+    seed.seed_mobile_changelog(apps, editor)
+    mobile = ChangelogEntry.objects.filter(platform="mobile")
+    mobile.update(version="3.8.4")
+    edited = mobile.order_by("date").first()
+    edited.version = "9.9.9"
+    edited.save()
+    latest = mobile.get(date=history[-1]["date"])
+    latest.title_fr = "Texte personnalisé"
+    latest.is_published = False
+    latest.save()
+    repair.align_mobile_versions(apps, editor)
+    repair.align_mobile_versions(apps, editor)
+    for release in history:
+        row = mobile.get(date=release["date"])
+        assert row.version == ("9.9.9" if row.pk == edited.pk else release["version"])
+    web.refresh_from_db()
+    shared.refresh_from_db()
+    latest.refresh_from_db()
+    assert web.version == shared.version == "3.8.4"
+    assert latest.title_fr == "Texte personnalisé"
+    assert not latest.is_published
+
+
 def test_publication_requires_both_languages():
     draft = entry(title_en="", changes_en=" ", is_published=False)
     draft.full_clean()

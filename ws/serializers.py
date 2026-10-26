@@ -13,6 +13,7 @@ class ChangelogEntrySerializer(serializers.ModelSerializer):
             "id",
             "date",
             "version",
+            "platform",
             "title_fr",
             "title_en",
             "changes_fr",
