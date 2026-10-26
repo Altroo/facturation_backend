@@ -1,8 +1,12 @@
 from typing import cast
+import json
+from datetime import date
+from decimal import Decimal, InvalidOperation
 
 from django.db import transaction
 from django.db.models import (
     Case,
+    CharField,
     DecimalField,
     ExpressionWrapper,
     F,
@@ -20,6 +24,7 @@ from rest_framework.views import APIView
 from account.models import Membership
 from company.models import Company
 from core.constants import ROLE_CAISSIER, ROLE_LOGISTIQUE
+from core.filters import CalendarDateFilter
 from facturation_backend.utils import CustomPagination
 from .models import InventorySession, StockBalance, StockMovement, StockReceipt
 from .serializers import (
@@ -53,6 +58,34 @@ def apply_list_filters(
     exact_fields = exact_fields or {}
     date_fields = date_fields or {}
 
+    if query_params.get("filter_logic", "and") == "or":
+        try:
+            groups = json.loads(query_params.get("filter_groups", ""))
+        except (TypeError, ValueError):
+            raise ValidationError({"filter_groups": "Invalid filter groups."})
+        if not isinstance(groups, list) or not groups:
+            raise ValidationError({"filter_groups": "Invalid filter groups."})
+        allowed = set(exact_fields)
+        for name in text_fields:
+            allowed.update([name, *[f"{name}__{suffix}" for suffix in ("icontains", "istartswith", "iendswith", "isempty")]])
+        for name in numeric_fields:
+            allowed.update([name, *[f"{name}__{suffix}" for suffix in ("gt", "gte", "lt", "lte", "ne", "isempty")]])
+        for name in date_fields:
+            allowed.update((f"{name}_after", f"{name}_before"))
+        matches = Q()
+        for group in groups:
+            if not isinstance(group, dict) or not group or set(group) - allowed or any(not isinstance(value, (str, int, float, bool)) for value in group.values()):
+                raise ValidationError({"filter_groups": "Invalid filter group."})
+            child = apply_list_filters(
+                queryset, group, text_fields=text_fields,
+                numeric_fields=numeric_fields, exact_fields=exact_fields,
+                date_fields=date_fields,
+            )
+            # Both date bounds belong to one row; rows are ORed within the
+            # already company-scoped and searched queryset.
+            matches |= Q(pk__in=child.values("pk"))
+        return queryset.filter(matches)
+
     for public_name, model_field in text_fields.items():
         for suffix in ("icontains", "istartswith", "iendswith"):
             value = query_params.get(f"{public_name}__{suffix}")
@@ -61,18 +94,31 @@ def apply_list_filters(
         exact_value = query_params.get(public_name)
         if exact_value:
             queryset = queryset.filter(**{f"{model_field}__iexact": exact_value})
+        empty = query_params.get(f"{public_name}__isempty")
+        if empty is not None:
+            empty_q = Q(**{f"{model_field}__isnull": True}) | Q(**{model_field: ""})
+            queryset = queryset.filter(empty_q) if str(empty).lower() == "true" else queryset.exclude(empty_q)
 
     for public_name, model_field in numeric_fields.items():
-        value = query_params.get(public_name)
-        if value not in (None, ""):
-            queryset = queryset.filter(**{model_field: value})
-        for suffix in ("gt", "gte", "lt", "lte"):
-            value = query_params.get(f"{public_name}__{suffix}")
-            if value not in (None, ""):
-                queryset = queryset.filter(**{f"{model_field}__{suffix}": value})
-        not_equal = query_params.get(f"{public_name}__ne")
-        if not_equal not in (None, ""):
-            queryset = queryset.exclude(**{model_field: not_equal})
+        for suffix in ("", "gt", "gte", "lt", "lte", "ne"):
+            name = f"{public_name}__{suffix}" if suffix else public_name
+            value = query_params.get(name)
+            if value in (None, ""):
+                continue
+            try:
+                value = Decimal(str(value))
+                if not value.is_finite():
+                    raise InvalidOperation
+            except (InvalidOperation, ValueError, TypeError):
+                raise ValidationError({name: "Invalid number."})
+            if suffix == "ne":
+                queryset = queryset.exclude(**{model_field: value})
+            else:
+                lookup = f"{model_field}__{suffix}" if suffix else model_field
+                queryset = queryset.filter(**{lookup: value})
+        empty = query_params.get(f"{public_name}__isempty")
+        if empty is not None:
+            queryset = queryset.filter(**{f"{model_field}__isnull": str(empty).lower() == "true"})
 
     for public_name, model_field in exact_fields.items():
         value = query_params.get(public_name)
@@ -80,14 +126,32 @@ def apply_list_filters(
             queryset = queryset.filter(**{model_field: value})
 
     for public_name, model_field in date_fields.items():
-        after = query_params.get(f"{public_name}_after")
-        before = query_params.get(f"{public_name}_before")
-        if after:
-            queryset = queryset.filter(**{f"{model_field}__date__gte": after})
-        if before:
-            queryset = queryset.filter(**{f"{model_field}__date__lte": before})
+        for suffix, lookup in (("after", "gte"), ("before", "lte")):
+            name = f"{public_name}_{suffix}"
+            value = query_params.get(name)
+            if not value:
+                continue
+            try:
+                day = date.fromisoformat(str(value))
+            except (ValueError, TypeError):
+                raise ValidationError({name: "Invalid date."})
+            queryset = CalendarDateFilter(field_name=model_field, lookup_expr=lookup).filter(queryset, day)
 
     return queryset
+
+
+def apply_list_ordering(queryset, query_params, fields, default):
+    ordering = []
+    for term in (query_params.get("ordering") or "").split(","):
+        term = term.strip()
+        descending = term.startswith("-")
+        field = fields.get(term[1:] if descending else term)
+        if field:
+            ordering.append(("-" if descending else "") + field)
+    # A stable tie-breaker prevents missing/duplicated cards on successive pages.
+    if ordering:
+        return queryset.order_by(*ordering, "pk")
+    return queryset.order_by(*default)
 
 
 class StockAccessMixin:
@@ -141,8 +205,18 @@ class StockBalanceListView(StockAccessMixin, APIView):
 
     def get(self, request):
         company = self.get_company(request)
-        queryset = StockBalance.objects.filter(company=company).select_related(
-            "article", "emplacement", "company"
+        queryset = (
+            StockBalance.objects.filter(company=company)
+            .select_related("article", "emplacement", "company")
+            .annotate(available_for_filter=ExpressionWrapper(
+                F("physical_quantity") - F("reserved_quantity"),
+                output_field=DecimalField(max_digits=12, decimal_places=3),
+            ))
+            .annotate(stock_state_for_filter=Case(
+                When(available_for_filter__lt=0, then=Value("a_approvisionner")),
+                When(article__stock_minimum__gt=0, available_for_filter__lte=F("article__stock_minimum"), then=Value("minimum")),
+                default=Value("disponible"), output_field=CharField(),
+            ))
         )
         article_id = request.query_params.get("article_id")
         emplacement_id = request.query_params.get("emplacement_id")
@@ -174,19 +248,14 @@ class StockBalanceListView(StockAccessMixin, APIView):
                 "reserved_quantity": "reserved_quantity",
                 "stock_minimum": "article__stock_minimum",
             },
+            exact_fields={"stock_state": "stock_state_for_filter"},
+            date_fields={"date_updated": "date_updated"},
         )
         stock_states = {
             value
             for value in (request.query_params.get("stock_states") or "").split(",")
             if value
         }
-        if low_only or stock_states:
-            queryset = queryset.annotate(
-                available_for_filter=ExpressionWrapper(
-                    F("physical_quantity") - F("reserved_quantity"),
-                    output_field=DecimalField(max_digits=12, decimal_places=3),
-                )
-            )
         if low_only:
             queryset = queryset.filter(
                 article__stock_minimum__gt=0,
@@ -208,13 +277,19 @@ class StockBalanceListView(StockAccessMixin, APIView):
                     available_for_filter__gte=0,
                 ) | Q(available_for_filter__gt=F("article__stock_minimum"))
             queryset = queryset.filter(state_filter)
-        ordered_queryset = queryset.annotate(
+        ordered_queryset = apply_list_ordering(queryset.annotate(
             positive_stock=Case(
                 When(physical_quantity__gt=0, then=Value(0)),
                 default=Value(1),
                 output_field=IntegerField(),
             )
-        ).order_by("positive_stock", "article__reference", "emplacement__nom", "pk")
+        ), request.query_params, {
+            "id": "pk", "article_reference": "article__reference",
+            "article_designation": "article__designation", "emplacement_name": "emplacement__nom",
+            "physical_quantity": "physical_quantity", "reserved_quantity": "reserved_quantity",
+            "available_quantity": "available_for_filter", "stock_minimum": "article__stock_minimum",
+            "stock_state": "stock_state_for_filter", "date_updated": "date_updated",
+        }, ("positive_stock", "article__reference", "emplacement__nom", "pk"))
         if request.query_params.get("pagination", "true").lower() == "true":
             paginator = CustomPagination()
             page = cast(
@@ -307,14 +382,12 @@ class StockMovementListView(StockAccessMixin, APIView):
             exact_fields={"movement_type": "movement_type"},
             date_fields={"date_created": "date_created"},
         )
-        statuses = request.query_params.get("statuses")
-        if statuses:
-            queryset = queryset.filter(status__in=statuses.split(","))
-        logistics_order_ids = request.query_params.get("logistics_order_ids")
-        if logistics_order_ids:
-            queryset = queryset.filter(
-                logistics_order_id__in=logistics_order_ids.split(",")
-            )
+        queryset = apply_list_ordering(queryset, request.query_params, {
+            "id": "pk", "article_reference": "balance__article__reference",
+            "article_designation": "balance__article__designation", "emplacement_name": "balance__emplacement__nom",
+            "movement_type": "movement_type", "quantity": "quantity", "balance_after": "balance_after",
+            "note": "note", "source_type": "source_type", "actor_name": "actor__email", "date_created": "date_created",
+        }, ("-date_created", "-pk"))
         paginator = CustomPagination()
         page = paginator.paginate_queryset(queryset, request)
         return paginator.get_paginated_response(
@@ -404,7 +477,15 @@ class StockReceiptListCreateView(StockAccessMixin, APIView):
             queryset = queryset.filter(status__in=statuses.split(","))
         emplacement_ids = request.query_params.get("emplacement_ids")
         if emplacement_ids:
-            queryset = queryset.filter(emplacement_id__in=emplacement_ids.split(","))
+            queryset = queryset.filter(lines__emplacement_id__in=emplacement_ids.split(",")).distinct()
+        logistics_order_ids = request.query_params.get("logistics_order_ids")
+        if logistics_order_ids:
+            queryset = queryset.filter(logistics_order_id__in=logistics_order_ids.split(","))
+        queryset = apply_list_ordering(queryset, request.query_params, {
+            "id": "pk", "reference": "reference", "logistics_order_number": "logistics_order__numero_commande",
+            "status": "status", "note": "note", "created_by_name": "created_by__email",
+            "date_created": "date_created", "date_validated": "date_validated",
+        }, ("-date_created", "-pk"))
         paginator = CustomPagination()
         page = paginator.paginate_queryset(queryset, request)
         return paginator.get_paginated_response(
@@ -508,6 +589,17 @@ class InventoryListCreateView(StockAccessMixin, APIView):
             exact_fields={"status": "status"},
             date_fields={"date_created": "date_created"},
         )
+        statuses = request.query_params.get("statuses")
+        if statuses:
+            queryset = queryset.filter(status__in=statuses.split(","))
+        emplacement_ids = request.query_params.get("emplacement_ids")
+        if emplacement_ids:
+            queryset = queryset.filter(emplacement_id__in=emplacement_ids.split(","))
+        queryset = apply_list_ordering(queryset, request.query_params, {
+            "id": "pk", "reference": "reference", "emplacement_name": "emplacement__nom",
+            "status": "status", "note": "note", "created_by_name": "created_by__email",
+            "date_created": "date_created", "date_validated": "date_validated",
+        }, ("-date_created", "-pk"))
         paginator = CustomPagination()
         page = paginator.paginate_queryset(queryset, request)
         return paginator.get_paginated_response(
