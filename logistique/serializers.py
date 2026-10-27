@@ -581,6 +581,7 @@ class LogisticsOrderListSerializer(LogisticsOrderBaseSerializer):
             "is_launch_step_complete",
             "statut_proforma_conformite",
             "is_proforma_step_complete",
+            "statut_titre_importation",
             "statut_paiement",
             "statut_banque_paiement",
             "statut_traitement_paiement",

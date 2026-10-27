@@ -2,12 +2,12 @@ import django_filters
 from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 
-from core.filters import CommaSeparatedIDsFilter, IsEmptyAutoMixin
+from core.filters import CalendarDateFilter, CombinedFiltersMixin, CommaSeparatedIDsFilter, IsEmptyAutoMixin
 
 from .models import LogisticsOrder, LogisticsSupplier
 
 
-class LogisticsOrderFilter(IsEmptyAutoMixin, django_filters.FilterSet):
+class LogisticsOrderFilter(CombinedFiltersMixin, IsEmptyAutoMixin, django_filters.FilterSet):
     search = django_filters.CharFilter(method="global_search", label=_("Search"))
     statut = django_filters.CharFilter(method="filter_legacy_statut")
     statut_global = django_filters.CharFilter(method="filter_statut_global")
@@ -36,6 +36,12 @@ class LogisticsOrderFilter(IsEmptyAutoMixin, django_filters.FilterSet):
     )
     numero_commande__icontains = django_filters.CharFilter(
         field_name="numero_commande", lookup_expr="icontains"
+    )
+    numero_commande__istartswith = django_filters.CharFilter(
+        field_name="numero_commande", lookup_expr="istartswith"
+    )
+    numero_commande__iendswith = django_filters.CharFilter(
+        field_name="numero_commande", lookup_expr="iendswith"
     )
     fournisseur = django_filters.CharFilter(method="filter_fournisseur")
     fournisseur__icontains = django_filters.CharFilter(
@@ -177,7 +183,7 @@ class LogisticsOrderFilter(IsEmptyAutoMixin, django_filters.FilterSet):
         ).distinct()
 
 
-class LogisticsSupplierFilter(IsEmptyAutoMixin, django_filters.FilterSet):
+class LogisticsSupplierFilter(CombinedFiltersMixin, IsEmptyAutoMixin, django_filters.FilterSet):
     search = django_filters.CharFilter(method="global_search")
     total_dossiers = django_filters.NumberFilter()
     total_dossiers__gt = django_filters.NumberFilter(
@@ -195,11 +201,11 @@ class LogisticsSupplierFilter(IsEmptyAutoMixin, django_filters.FilterSet):
     total_dossiers__ne = django_filters.NumberFilter(
         field_name="total_dossiers", exclude=True
     )
-    derniere_activite_after = django_filters.DateFilter(
-        field_name="derniere_activite", lookup_expr="date__gte"
+    derniere_activite_after = CalendarDateFilter(
+        field_name="derniere_activite", lookup_expr="gte"
     )
-    derniere_activite_before = django_filters.DateFilter(
-        field_name="derniere_activite", lookup_expr="date__lte"
+    derniere_activite_before = CalendarDateFilter(
+        field_name="derniere_activite", lookup_expr="lte"
     )
 
     class Meta:

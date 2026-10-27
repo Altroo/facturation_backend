@@ -123,6 +123,20 @@ def test_all_column_sorts_apply_before_pagination(suppliers, field, descending):
     assert next(row for row in rows if row["nom"] == "Alpha")["total_dossiers"] == 3
 
 
+def test_or_filters_preserve_search_and_company_scope(suppliers):
+    import json
+
+    response = request(suppliers, pagination="true", filter_logic="or", filter_groups=json.dumps([
+        {"nom": "Alpha"}, {"total_dossiers__lt": 1},
+    ]))
+    assert response.status_code == 200
+    assert {row["nom"] for row in response.data["results"]} == {"Alpha", "Zeta"}
+    response = request(suppliers, search="Zeta", filter_logic="or", filter_groups=json.dumps([
+        {"nom": "Alpha"}, {"total_dossiers__lt": 1},
+    ]))
+    assert [row["nom"] for row in response.data] == ["Zeta"]
+
+
 def test_search_and_text_filters(suppliers):
     searched = request(suppliers, pagination="true", search="Alpha alpha@")
     assert searched.data["count"] == 1

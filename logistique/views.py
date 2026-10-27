@@ -26,6 +26,7 @@ from core.permissions import (
     get_user_role,
 )
 from core.views import BaseBulkDeleteView, CompanyAccessMixin
+from core.ordering import apply_list_ordering
 from facturation_backend.utils import CustomPagination
 from notification.models import Notification
 from stock.services import activate_incoming
@@ -398,7 +399,11 @@ class LogisticsOrderListCreateView(CompanyAccessMixin, APIView):
             )
         )
         filterset = LogisticsOrderFilter(request.GET, queryset=queryset)
-        ordered_qs = filterset.qs.order_by("-id")
+        if not filterset.is_valid():
+            raise ValidationError(filterset.errors)
+        # Use the same public-column ordering as paginated lists for exports
+        # and select-all requests too, including calculated workflow statuses.
+        ordered_qs = apply_list_ordering(filterset.qs.order_by("-id"), request.query_params)
         stats = {"stats": get_logistics_stats(company_id)}
 
         if pagination:

@@ -650,6 +650,70 @@ def test_logistics_filters_accept_selectable_multi_values(
     assert response.data["count"] == 2
 
 
+@pytest.mark.parametrize("field", ["numero_commande", "fournisseur", "date_prevue", "statut_global", "statut_paiement", "statut_titre_importation", "cout_total"])
+@pytest.mark.parametrize("descending", [False, True])
+def test_logistics_list_sorts_before_pagination(api_client, logistics_company, field, descending):
+    from datetime import date
+
+    orders = [
+        LogisticsOrder.objects.create(
+            company=logistics_company, numero_commande=f"LOG-{name}", fournisseur=name,
+            date_prevue=date(2026, 10, day), cout_total=day,
+            statut_global=global_status, statut_paiement=payment,
+            statut_titre_importation=title,
+        )
+        for name, day, global_status, payment, title in [
+            ("Gamma", 20, "En cours", "Validé", "Titre d'import validé – En attente de paiement"),
+            ("alpha", 3, "À lancer", "Non demandé", "À préparer"),
+            ("Beta", 8, "Brouillon", "En attente", "À préparer"),
+        ]
+    ]
+    # PostgreSQL collation determines the order of accented status labels.
+    from django.db.models import F
+    from django.db.models.functions import Lower
+
+    expression = F(field) if field in {"date_prevue", "cout_total"} else Lower(field)
+    expected = list(LogisticsOrder.objects.filter(pk__in=[o.pk for o in orders]).order_by(
+        expression.desc(nulls_last=True) if descending else expression.asc(nulls_last=True), "-pk" if descending else "pk"
+    ).values_list("pk", flat=True))
+    if field == "statut_global":
+        expected = [o.pk for o in sorted(orders, key=lambda o: (o.calculate_global_status().casefold(), o.pk), reverse=descending)]
+    response = api_client.get(reverse("logistique:logistique-list-create"), {
+        "company_id": logistics_company.pk, "pagination": "true", "page_size": 2,
+        "ordering": ("-" if descending else "") + field,
+    })
+    assert response.status_code == 200
+    assert [row["id"] for row in response.data["results"]] == expected[:2]
+    assert "statut_titre_importation" in response.data["results"][0]
+    unpaginated = api_client.get(reverse("logistique:logistique-list-create"), {
+        "company_id": logistics_company.pk, "ordering": ("-" if descending else "") + field,
+    })
+    assert [row["id"] for row in unpaginated.data["results"]] == expected
+
+
+def test_logistics_or_filters_preserve_company_search_and_date_bounds(api_client, logistics_company):
+    import json
+    from datetime import date
+
+    for name, day in [("Alpha", 4), ("Beta", 15), ("Gamma", 25)]:
+        LogisticsOrder.objects.create(company=logistics_company, numero_commande=f"LOG-{name}",
+                                      fournisseur=name, date_prevue=date(2026, 10, day))
+    other = Company.objects.create(raison_sociale="Private", ICE="PRIVATE-LOG")
+    LogisticsOrder.objects.create(company=other, numero_commande="LOG-PRIVATE", fournisseur="Alpha")
+    url = reverse("logistique:logistique-list-create")
+    response = api_client.get(url, {
+        "company_id": logistics_company.pk, "pagination": "true", "search": "LOG-",
+        "filter_logic": "or", "filter_groups": json.dumps([
+            {"fournisseur": "Alpha"},
+            {"date_prevue_after": "2026-10-10", "date_prevue_before": "2026-10-20"},
+        ]),
+    })
+    assert response.status_code == 200
+    assert {row["fournisseur"] for row in response.data["results"]} == {"Alpha", "Beta"}
+    assert api_client.get(url, {"company_id": logistics_company.pk, "cout_total__gt": "invalid"}).status_code == 400
+    assert api_client.get(url, {"company_id": logistics_company.pk, "filter_logic": "or", "filter_groups": "invalid"}).status_code == 400
+
+
 def test_supplier_list_and_process_note_endpoints(
     api_client, logistics_company, logistics_user, logistics_proformas
 ):
