@@ -1,7 +1,7 @@
 import os
 import shutil
 import tempfile
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from io import BytesIO
 from typing import Any
 from unittest.mock import patch, MagicMock
@@ -20,6 +20,7 @@ from rest_framework import status
 from rest_framework.exceptions import ValidationError as DRFValidationError
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
+from rest_framework_simplejwt.backends import TokenBackend
 
 from account.models import Membership, Role
 from account.serializers import (
@@ -306,6 +307,31 @@ class TestAccountAPIExtras:
         response = self.client.post(url, {"refresh": refresh})
         assert response.status_code == status.HTTP_200_OK
         assert "access" in response.data
+
+    def test_token_refresh_rejects_malformed_token(self):
+        response = self.client.post(
+            reverse("account:token_refresh"), {"refresh": "invalid-token"}
+        )
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_token_refresh_rejects_token_from_another_backend(self):
+        refresh = RefreshToken.for_user(self.user)
+        foreign_token = TokenBackend(
+            algorithm="HS256",
+            signing_key="local-test-signing-key-from-a-different-backend-2026",
+        ).encode(refresh.payload)
+        response = self.client.post(
+            reverse("account:token_refresh"), {"refresh": foreign_token}
+        )
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_token_refresh_rejects_expired_token(self):
+        refresh = RefreshToken.for_user(self.user)
+        refresh.set_exp(lifetime=timedelta(seconds=-1))
+        response = self.client.post(
+            reverse("account:token_refresh"), {"refresh": str(refresh)}
+        )
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     # Password change validations
     def test_password_change_mismatch(self):

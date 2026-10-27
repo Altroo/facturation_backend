@@ -26,6 +26,7 @@ from rest_framework.exceptions import ValidationError, PermissionDenied
 from rest_framework.response import Response
 from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
+from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from rest_framework_simplejwt.settings import (
     api_settings as jwt_settings,
 )
@@ -126,7 +127,10 @@ class TokenRefreshView(APIView):
         serializer = CookieTokenRefreshSerializer(
             data=request.data, context={"request": request}
         )
-        serializer.is_valid(raise_exception=True)
+        try:
+            serializer.is_valid(raise_exception=True)
+        except TokenError as error:
+            raise InvalidToken(error.args[0]) from error
 
         access = serializer.validated_data["access"]
         refresh = serializer.validated_data.get("refresh", "")
