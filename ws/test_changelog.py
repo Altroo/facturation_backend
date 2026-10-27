@@ -59,7 +59,7 @@ def test_history_requires_authentication():
 
 
 @pytest.mark.parametrize("platform", [None, "web", "mobile"])
-def test_platform_filter_includes_shared_entries_only(platform):
+def test_mobile_history_is_separate_while_web_keeps_its_shared_entries(platform):
     web = entry(platform="web")
     mobile = entry(platform="mobile")
     shared = entry(platform="both")
@@ -70,8 +70,8 @@ def test_platform_filter_includes_shared_entries_only(platform):
     response = client.get("/api/ws/changelog/", {"platform": platform} if platform else {})
     assert response.status_code == 200
     expected = mobile if platform == "mobile" else web
-    assert [item["id"] for item in response.data] == [shared.pk, expected.pk]
-    assert response.data[0]["platform"] == "both"
+    assert [item["id"] for item in response.data] == ([mobile.pk] if platform == "mobile" else [shared.pk, expected.pk])
+    assert response.data[0]["platform"] == ("mobile" if platform == "mobile" else "both")
 
 
 def test_unknown_platform_is_rejected_instead_of_exposing_all_entries():
@@ -96,7 +96,7 @@ def test_platform_migration_preserves_existing_history_as_web():
     from django.db.migrations.executor import MigrationExecutor
 
     previous = [("ws", "0012_handled_errors_release_3_8_6")]
-    current = [("ws", "0015_align_mobile_changelog_versions")]
+    current = [("ws", "0017_independent_mobile_history")]
     executor = MigrationExecutor(connection)
     executor.migrate(previous)
     try:
@@ -252,7 +252,7 @@ def test_maintenance_version_bootstrap_and_broadcast(
     with patch("ws.models.get_channel_layer") as layer:
         layer.return_value.group_send = AsyncMock()
         with django_capture_on_commit_callbacks(execute=True):
-            WsMaintenanceState.objects.create(maintenance=False, version="0.2.0")
+            WsMaintenanceState.objects.create(maintenance=False, version="0.2.0", version_mobile="1.2.3")
             layer.return_value.group_send.assert_not_called()
         layer.return_value.group_send.assert_awaited_once_with(
             "maintenance",
@@ -262,9 +262,87 @@ def test_maintenance_version_bootstrap_and_broadcast(
                     "type": "MAINTENANCE",
                     "maintenance": False,
                     "version": "0.2.0",
+                    "version_mobile": "1.2.3",
                 },
             },
         )
     response = APIClient().get("/api/ws/maintenance/")
-    assert response.data == {"maintenance": False, "version": "0.2.0"}
+    assert response.data == {"maintenance": False, "version": "0.2.0", "version_mobile": "1.2.3"}
     assert response["Cache-Control"] == "no-store"
+
+
+def test_independent_mobile_history_uses_native_versions_and_preserves_admin_changes():
+    import json
+    from importlib import import_module
+    from pathlib import Path
+    from django.apps import apps
+    from django.db import connection
+    from .models import WsMaintenanceState
+
+    history = json.loads((Path(__file__).parent / "migrations/data/0017_mobile_changelog_history.json").read_text())
+    editor = connection.schema_editor()
+    import_module("ws.migrations.0014_seed_mobile_changelog_history").seed_mobile_changelog(apps, editor)
+    rebuild = import_module("ws.migrations.0017_independent_mobile_history").seed_independent_mobile_history
+    web = entry(date=history[-1]["date"], version="9.9.9")
+    maintenance = WsMaintenanceState.objects.create(version="9.9.9")
+    edited = ChangelogEntry.objects.get(date=history[2]["date"], platform="mobile")
+    edited.title_fr = "Notes personnalisées"
+    edited.is_published = False
+    edited.save()
+    rebuild(apps, editor)
+    rebuild(apps, editor)
+    for release in history:
+        row = ChangelogEntry.objects.get(date=release["date"], platform="mobile")
+        if row.pk == edited.pk:
+            assert row.title_fr == "Notes personnalisées"
+            assert not row.is_published
+        else:
+            assert row.version == release["version"]
+            assert row.changes_fr == "\n".join(release["changes_fr"])
+    web.refresh_from_db()
+    maintenance.refresh_from_db()
+    assert web.version == maintenance.version == "9.9.9"
+    assert maintenance.version_mobile == history[-1]["version"]
+    maintenance.version_mobile = "8.8.8"
+    maintenance.save()
+    rebuild(apps, editor)
+    maintenance.refresh_from_db()
+    assert maintenance.version_mobile == "8.8.8"
+
+
+def test_mobile_admin_keeps_histories_separate_and_validates_duplicate_dates():
+    from django.contrib.admin.sites import AdminSite
+    from django.test import RequestFactory
+    from .admin import ChangelogEntryAdmin, MobileChangelogEntryAdmin
+    from .models import MobileChangelogEntry
+
+    web = entry()
+    mobile = entry(platform="mobile")
+    shared = entry(platform="both")
+    request = RequestFactory().get("/")
+    request.user = get_user_model().objects.create_superuser(email="mobile-admin@example.com", password="test-only")
+    site = AdminSite()
+    web_admin = ChangelogEntryAdmin(ChangelogEntry, site)
+    mobile_admin = MobileChangelogEntryAdmin(MobileChangelogEntry, site)
+    assert set(web_admin.get_queryset(request).values_list("pk", flat=True)) == {web.pk, shared.pk}
+    assert list(mobile_admin.get_queryset(request).values_list("pk", flat=True)) == [mobile.pk]
+    form_class = mobile_admin.get_form(request)
+    assert form_class.base_fields["platform"].initial == "mobile"
+    values = {
+        "date": str(web.date), "version": "1.2.3", "platform": "mobile", "title_fr": "Version mobile",
+        "title_en": "Mobile release", "changes_fr": "Amélioration", "changes_en": "Improvement", "is_published": True,
+    }
+    assert not form_class(data=values).is_valid()
+    assert not form_class(data={**values, "platform": "web"}).is_valid()
+    form = form_class(data={**values, "date": str(web.date - timedelta(days=1))})
+    assert form.is_valid(), form.errors
+    obj = form.save(commit=False)
+    mobile_admin.save_model(request, obj, form, False)
+    assert obj.platform == "mobile"
+
+
+@pytest.mark.parametrize("version", ["invalid", "1.0", "1.0.0-beta"])
+def test_mobile_maintenance_version_uses_release_validation(version):
+    from .models import WsMaintenanceState
+    with pytest.raises(ValidationError, match="version_mobile"):
+        WsMaintenanceState(version="1.2.3", version_mobile=version).full_clean()

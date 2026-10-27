@@ -1,432 +1,592 @@
 {
-  "description": "Retrospective mobile development history within the shared web release sequence. Dates group native commits; they are not claims of production deployment. Versions follow the web package at the end of each date in Africa/Casablanca. The current entry follows the web working-tree release snapshot where indicated.",
+  "description": "Mobile development history derived only from facturation_native Git commits. Dates group development work, not production deployments. Version labels appear when the committed native package version changes; intermediate development notes are unversioned. Web versions are not consulted.",
   "native_head": "40ae57de760b465ee029a37ea192565c80cec4ff",
-  "web_head": "7b603bc160428effefc3f4717fb6529e2b1a557f",
   "entries": [
     {
       "date": "2026-10-16",
-      "version": "3.8.6",
-      "web_package_commit": "424fefab985c6a3793124c047cd1c18d19f094a9",
-      "web_package_committed_version": "3.8.6",
-      "web_working_tree_version_used": false,
+      "version": "3.8.4",
       "native_commits": [
         {
-          "commit": "a26013ed269725200407d3ea0cd04fc421728c74",
-          "subject": "docs: explain native setup and adaptations"
-        },
-        {
-          "commit": "032178768ede2bc6b8d0a164c3fdb77307fe3a78",
-          "subject": "feat(version): add maintenance and update checks"
-        },
-        {
-          "commit": "2c72488a4d18d8b13f2f809e0241da3b8af06398",
-          "subject": "feat(profile): add account settings screens"
-        },
-        {
-          "commit": "36b9088d0d762fd202b432e2e52119729a8bba32",
-          "subject": "feat(companies): add company management screens"
-        },
-        {
-          "commit": "2c617a6949e27b998746cc869bdb2bb14f575235",
-          "subject": "feat(users): add user management screens"
-        },
-        {
-          "commit": "780e3ad25bc6e5d594e0fcb2a9a0937304f7c6b8",
-          "subject": "feat(auth): add login and recovery screens"
-        },
-        {
-          "commit": "5782eee32a5fe2fe79777bceb0994c440bd2f5d9",
-          "subject": "feat(navigation): add protected drawer routes"
-        },
-        {
-          "commit": "74dfb312b95bd4ca2af71ada8af628f8ce554970",
-          "subject": "feat(theme): add saved themes and translations"
-        },
-        {
-          "commit": "6601546cb020ad31e7e8b112c8616b734bec7d24",
-          "subject": "feat(ui): add native forms and feedback controls"
-        },
-        {
-          "commit": "2668089e4d634b000cda8fe4cec9fb736f69919c",
-          "subject": "feat(store): add Redux services and sagas"
-        },
-        {
-          "commit": "fff46caefda686683235d164c0f1bfd9de2cf3e2",
-          "subject": "feat(auth): add persisted Django sessions"
-        },
-        {
-          "commit": "0ca7b13f7d0855bccde96d6e85fc311a5e193996",
-          "subject": "feat(core): add shared models and API helpers"
-        },
-        {
-          "commit": "d61a8bb8c937b81f3e4265015c648ae05d47acde",
-          "subject": "feat(assets): add Facturation brand artwork"
+          "commit": "2826634d135c69b33db41cb6820efaa1084c4a04",
+          "date": "2026-10-16",
+          "subject": "chore(repo): ignore local workspace files",
+          "native_package_version": "1.0.0"
         },
         {
           "commit": "95045cf8e27e07e98f0e477750420b9b138b8f16",
-          "subject": "build(expo): configure SDK 58 and Bun"
+          "date": "2026-10-16",
+          "subject": "build(expo): configure SDK 58 and Bun",
+          "native_package_version": "3.8.4"
         },
         {
-          "commit": "2826634d135c69b33db41cb6820efaa1084c4a04",
-          "subject": "chore(repo): ignore local workspace files"
+          "commit": "d61a8bb8c937b81f3e4265015c648ae05d47acde",
+          "date": "2026-10-16",
+          "subject": "feat(assets): add Facturation brand artwork",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "0ca7b13f7d0855bccde96d6e85fc311a5e193996",
+          "date": "2026-10-16",
+          "subject": "feat(core): add shared models and API helpers",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "fff46caefda686683235d164c0f1bfd9de2cf3e2",
+          "date": "2026-10-16",
+          "subject": "feat(auth): add persisted Django sessions",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "2668089e4d634b000cda8fe4cec9fb736f69919c",
+          "date": "2026-10-16",
+          "subject": "feat(store): add Redux services and sagas",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "6601546cb020ad31e7e8b112c8616b734bec7d24",
+          "date": "2026-10-16",
+          "subject": "feat(ui): add native forms and feedback controls",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "74dfb312b95bd4ca2af71ada8af628f8ce554970",
+          "date": "2026-10-16",
+          "subject": "feat(theme): add saved themes and translations",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "5782eee32a5fe2fe79777bceb0994c440bd2f5d9",
+          "date": "2026-10-16",
+          "subject": "feat(navigation): add protected drawer routes",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "780e3ad25bc6e5d594e0fcb2a9a0937304f7c6b8",
+          "date": "2026-10-16",
+          "subject": "feat(auth): add login and recovery screens",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "2c617a6949e27b998746cc869bdb2bb14f575235",
+          "date": "2026-10-16",
+          "subject": "feat(users): add user management screens",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "36b9088d0d762fd202b432e2e52119729a8bba32",
+          "date": "2026-10-16",
+          "subject": "feat(companies): add company management screens",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "2c72488a4d18d8b13f2f809e0241da3b8af06398",
+          "date": "2026-10-16",
+          "subject": "feat(profile): add account settings screens",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "032178768ede2bc6b8d0a164c3fdb77307fe3a78",
+          "date": "2026-10-16",
+          "subject": "feat(version): add maintenance and update checks",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "a26013ed269725200407d3ea0cd04fc421728c74",
+          "date": "2026-10-16",
+          "subject": "docs: explain native setup and adaptations",
+          "native_package_version": "3.8.4"
         }
       ]
     },
     {
       "date": "2026-10-20",
-      "version": "3.8.9",
-      "web_package_commit": "378bd8e2dc533afa541c41a47abd4b946406fd41",
-      "web_package_committed_version": "3.8.9",
-      "web_working_tree_version_used": false,
+      "version": "",
       "native_commits": [
         {
-          "commit": "b714331f123297d563f837484bb3f3d0221b5c81",
-          "subject": "refactor: reuse theme and shared defaults"
-        },
-        {
-          "commit": "d9fca6d2cf706fee247d38ba540d131e098ca88b",
-          "subject": "docs: explain module routes and navigation"
-        },
-        {
-          "commit": "c8640d7abfa565425cf65b00970d4d28503fd3ef",
-          "subject": "refactor: group routes by module"
-        },
-        {
-          "commit": "8a78f2a7a0567e1e0eb782c835dd434d13d478ce",
-          "subject": "docs: explain tests and route protection"
-        },
-        {
-          "commit": "5af59f0ab8cdb28ada8181a511dd41f17e2f122d",
-          "subject": "feat(clients): scaffold authenticated routes"
-        },
-        {
-          "commit": "c36a579b0055a42af5035eb97d89e33d34828c7e",
-          "subject": "refactor: align screens and test locations"
-        },
-        {
-          "commit": "fc27a2eba14dc79d06db83b8dfed33679d48cad3",
-          "subject": "docs: align native setup with the web README"
-        },
-        {
-          "commit": "a7634bbc90b72157d852f77aad1e5d468ebdbc31",
-          "subject": "refactor(store): clean paging and verify refreshes"
-        },
-        {
-          "commit": "6011d04dea910c4ae60aacfb51c441ccaf385153",
-          "subject": "refactor: remove migrated props and helper files"
-        },
-        {
-          "commit": "42c789283c464da910bcb9d9fcb07a623e49b242",
-          "subject": "fix(auth): refine login and recovery screens"
-        },
-        {
-          "commit": "b01a2f83ea42ef4b2abc187025a027e469662d1f",
-          "subject": "refactor(modules): reuse native form and detail UI"
-        },
-        {
-          "commit": "85590bb42d4b3b126273412ecddeb7c8b4f954e7",
-          "subject": "fix(navigation): preserve native back history"
-        },
-        {
-          "commit": "952c93f58edcdc395b4cd38769e2acb9fa2e503b",
-          "subject": "feat(lists): share search and selection controls"
-        },
-        {
-          "commit": "2249c94a40c66e9cc167a4870fa5ea112a5ea4c5",
-          "subject": "feat(ui): unify forms, sheets and image controls"
-        },
-        {
-          "commit": "ecf87b92083d59d8a13bdd24e573c3066118c104",
-          "subject": "refactor(api): centralize version and flow helpers"
+          "commit": "aae9ae3e86b3e51722d9a64617f38fa61798bb4b",
+          "date": "2026-10-20",
+          "subject": "build: align Expo tooling and test compilation",
+          "native_package_version": "3.8.4"
         },
         {
           "commit": "da77927031f32c3e4b9eefd914e52d26ebba9006",
-          "subject": "refactor: rename native elements and notifications"
+          "date": "2026-10-20",
+          "subject": "refactor: rename native elements and notifications",
+          "native_package_version": "3.8.4"
         },
         {
-          "commit": "aae9ae3e86b3e51722d9a64617f38fa61798bb4b",
-          "subject": "build: align Expo tooling and test compilation"
+          "commit": "ecf87b92083d59d8a13bdd24e573c3066118c104",
+          "date": "2026-10-20",
+          "subject": "refactor(api): centralize version and flow helpers",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "2249c94a40c66e9cc167a4870fa5ea112a5ea4c5",
+          "date": "2026-10-20",
+          "subject": "feat(ui): unify forms, sheets and image controls",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "952c93f58edcdc395b4cd38769e2acb9fa2e503b",
+          "date": "2026-10-20",
+          "subject": "feat(lists): share search and selection controls",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "85590bb42d4b3b126273412ecddeb7c8b4f954e7",
+          "date": "2026-10-20",
+          "subject": "fix(navigation): preserve native back history",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "b01a2f83ea42ef4b2abc187025a027e469662d1f",
+          "date": "2026-10-20",
+          "subject": "refactor(modules): reuse native form and detail UI",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "42c789283c464da910bcb9d9fcb07a623e49b242",
+          "date": "2026-10-20",
+          "subject": "fix(auth): refine login and recovery screens",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "6011d04dea910c4ae60aacfb51c441ccaf385153",
+          "date": "2026-10-20",
+          "subject": "refactor: remove migrated props and helper files",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "a7634bbc90b72157d852f77aad1e5d468ebdbc31",
+          "date": "2026-10-20",
+          "subject": "refactor(store): clean paging and verify refreshes",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "fc27a2eba14dc79d06db83b8dfed33679d48cad3",
+          "date": "2026-10-20",
+          "subject": "docs: align native setup with the web README",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "c36a579b0055a42af5035eb97d89e33d34828c7e",
+          "date": "2026-10-20",
+          "subject": "refactor: align screens and test locations",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "5af59f0ab8cdb28ada8181a511dd41f17e2f122d",
+          "date": "2026-10-20",
+          "subject": "feat(clients): scaffold authenticated routes",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "8a78f2a7a0567e1e0eb782c835dd434d13d478ce",
+          "date": "2026-10-20",
+          "subject": "docs: explain tests and route protection",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "c8640d7abfa565425cf65b00970d4d28503fd3ef",
+          "date": "2026-10-20",
+          "subject": "refactor: group routes by module",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "d9fca6d2cf706fee247d38ba540d131e098ca88b",
+          "date": "2026-10-20",
+          "subject": "docs: explain module routes and navigation",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "b714331f123297d563f837484bb3f3d0221b5c81",
+          "date": "2026-10-20",
+          "subject": "refactor: reuse theme and shared defaults",
+          "native_package_version": "3.8.4"
         }
       ]
     },
     {
       "date": "2026-10-21",
-      "version": "3.8.11",
-      "web_package_commit": "d69aecdbf38c6a1d74611318d9a875bdb3091288",
-      "web_package_committed_version": "3.8.11",
-      "web_working_tree_version_used": false,
+      "version": "",
       "native_commits": [
         {
-          "commit": "5be7a26cf664444a0287084b382e90e07d35943a",
-          "subject": "fix(companies): place stamp card after header"
-        },
-        {
-          "commit": "b806e838f6438b453e6183026985f0e40742ce80",
-          "subject": "feat(lists): unify cards and mobile actions"
-        },
-        {
-          "commit": "f9a78b2b30239ffb69c5be066ab4925c8d27219d",
-          "subject": "fix(modals): compact action confirmations"
-        },
-        {
-          "commit": "df017d76b91467568adfc9b20a2b164104fc6f99",
-          "subject": "feat(toast): support undo actions"
-        },
-        {
-          "commit": "89add440a95958b6d4fad733a790483011bcec66",
-          "subject": "refactor(utils): align utility locations with web"
-        },
-        {
-          "commit": "34bdc23a91a0f5edd24a2b6553887f4457927d8a",
-          "subject": "refactor: organize controls and shared list UI"
+          "commit": "3091e6f6b7a7bb9c9f8690cd8ff5ef1b486063e7",
+          "date": "2026-10-21",
+          "subject": "fix: align navigation headers with app theme",
+          "native_package_version": "3.8.4"
         },
         {
           "commit": "6be616a745af66260517b37a00f33cbad072b0ab",
-          "subject": "feat(lists): add clients and full-page scrolling"
+          "date": "2026-10-21",
+          "subject": "feat(lists): add clients and full-page scrolling",
+          "native_package_version": "3.8.4"
         },
         {
-          "commit": "3091e6f6b7a7bb9c9f8690cd8ff5ef1b486063e7",
-          "subject": "fix: align navigation headers with app theme"
+          "commit": "34bdc23a91a0f5edd24a2b6553887f4457927d8a",
+          "date": "2026-10-21",
+          "subject": "refactor: organize controls and shared list UI",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "89add440a95958b6d4fad733a790483011bcec66",
+          "date": "2026-10-21",
+          "subject": "refactor(utils): align utility locations with web",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "df017d76b91467568adfc9b20a2b164104fc6f99",
+          "date": "2026-10-21",
+          "subject": "feat(toast): support undo actions",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "f9a78b2b30239ffb69c5be066ab4925c8d27219d",
+          "date": "2026-10-21",
+          "subject": "fix(modals): compact action confirmations",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "b806e838f6438b453e6183026985f0e40742ce80",
+          "date": "2026-10-21",
+          "subject": "feat(lists): unify cards and mobile actions",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "5be7a26cf664444a0287084b382e90e07d35943a",
+          "date": "2026-10-21",
+          "subject": "fix(companies): place stamp card after header",
+          "native_package_version": "3.8.4"
         }
       ]
     },
     {
       "date": "2026-10-22",
-      "version": "3.8.11",
-      "web_package_commit": "d69aecdbf38c6a1d74611318d9a875bdb3091288",
-      "web_package_committed_version": "3.8.11",
-      "web_working_tree_version_used": false,
+      "version": "",
       "native_commits": [
         {
-          "commit": "5b8e75c82ee87768672d26fc41ba30e7fe859a05",
-          "subject": "docs: describe clients and articles workflows"
-        },
-        {
-          "commit": "64faa842bbfe3217b88849f0f415645d14cf6f4a",
-          "subject": "test(filters): cover shared chip selection"
-        },
-        {
-          "commit": "c637a8f2e77917587d928e24d19a3413e7968957",
-          "subject": "refactor(ui): compact destructive detail actions"
-        },
-        {
-          "commit": "d8bac430afd87276264993c2f8f8c4c593ecbf53",
-          "subject": "feat(articles): add mobile screens and navigation"
-        },
-        {
-          "commit": "73f913e46f1018e42bf2cf09feb9135075870f8c",
-          "subject": "feat(articles): add models and API services"
-        },
-        {
-          "commit": "654ef5c663e0c4345461da4e28fb7fa3e2c3d428",
-          "subject": "build(articles): add native document picker"
-        },
-        {
-          "commit": "e1e45301beab4534d6ca33bc2231302d6364f79a",
-          "subject": "chore(deps): align Expo 58.0.17 packages"
-        },
-        {
-          "commit": "2bc4868113b7365fb3ed3506701d7da776f009a0",
-          "subject": "fix(android): use blue date picker accent"
-        },
-        {
-          "commit": "1ecdc6095ef233be5cb949e2fa9e427d7084740e",
-          "subject": "refactor(pages): unify forms and detail actions"
-        },
-        {
-          "commit": "07365ca55f21b030f0f820d1da8fa26531bd1f0c",
-          "subject": "feat(clients): share active and archived lists"
-        },
-        {
-          "commit": "c9f6b7080e0cc2924f9761f9d03f9d4630e4b18c",
-          "subject": "feat(clients): add history and statement views"
-        },
-        {
-          "commit": "928a18846544e55cdd263398e849554b2bfc6d3e",
-          "subject": "feat(clients): add forms and city actions"
-        },
-        {
-          "commit": "b439f96df8d6a85484647f15f87c3633a2d44870",
-          "subject": "feat(clients): add API and validation contracts"
-        },
-        {
-          "commit": "a6043dbc02c9c226106dac40294715982607e4c4",
-          "subject": "feat(lists): unify date filters and company tabs"
-        },
-        {
-          "commit": "616f35fb208ef98145c2c5a590058f85008591e4",
-          "subject": "feat(navigation): add inbox and bottom dock"
-        },
-        {
-          "commit": "6e1151604c5aabf20fd1506c6a44acb5815820ef",
-          "subject": "fix(images): improve previews and crop controls"
-        },
-        {
-          "commit": "cd0d006b0fdd3a25815657a156f3d2e0fdb59f15",
-          "subject": "fix(forms): improve fields and account controls"
+          "commit": "f474623bb4d9a0ce5a119ed3b49db7680e826e5b",
+          "date": "2026-10-22",
+          "subject": "feat(i18n): add client and navigation labels",
+          "native_package_version": "3.8.4"
         },
         {
           "commit": "ba9e837535249e72ddb94d90e6105e4f74a6bc70",
-          "subject": "refactor(ui): share page sections and action bars"
+          "date": "2026-10-22",
+          "subject": "refactor(ui): share page sections and action bars",
+          "native_package_version": "3.8.4"
         },
         {
-          "commit": "f474623bb4d9a0ce5a119ed3b49db7680e826e5b",
-          "subject": "feat(i18n): add client and navigation labels"
+          "commit": "cd0d006b0fdd3a25815657a156f3d2e0fdb59f15",
+          "date": "2026-10-22",
+          "subject": "fix(forms): improve fields and account controls",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "6e1151604c5aabf20fd1506c6a44acb5815820ef",
+          "date": "2026-10-22",
+          "subject": "fix(images): improve previews and crop controls",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "616f35fb208ef98145c2c5a590058f85008591e4",
+          "date": "2026-10-22",
+          "subject": "feat(navigation): add inbox and bottom dock",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "a6043dbc02c9c226106dac40294715982607e4c4",
+          "date": "2026-10-22",
+          "subject": "feat(lists): unify date filters and company tabs",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "b439f96df8d6a85484647f15f87c3633a2d44870",
+          "date": "2026-10-22",
+          "subject": "feat(clients): add API and validation contracts",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "928a18846544e55cdd263398e849554b2bfc6d3e",
+          "date": "2026-10-22",
+          "subject": "feat(clients): add forms and city actions",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "c9f6b7080e0cc2924f9761f9d03f9d4630e4b18c",
+          "date": "2026-10-22",
+          "subject": "feat(clients): add history and statement views",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "07365ca55f21b030f0f820d1da8fa26531bd1f0c",
+          "date": "2026-10-22",
+          "subject": "feat(clients): share active and archived lists",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "1ecdc6095ef233be5cb949e2fa9e427d7084740e",
+          "date": "2026-10-22",
+          "subject": "refactor(pages): unify forms and detail actions",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "2bc4868113b7365fb3ed3506701d7da776f009a0",
+          "date": "2026-10-22",
+          "subject": "fix(android): use blue date picker accent",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "e1e45301beab4534d6ca33bc2231302d6364f79a",
+          "date": "2026-10-22",
+          "subject": "chore(deps): align Expo 58.0.17 packages",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "654ef5c663e0c4345461da4e28fb7fa3e2c3d428",
+          "date": "2026-10-22",
+          "subject": "build(articles): add native document picker",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "73f913e46f1018e42bf2cf09feb9135075870f8c",
+          "date": "2026-10-22",
+          "subject": "feat(articles): add models and API services",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "d8bac430afd87276264993c2f8f8c4c593ecbf53",
+          "date": "2026-10-22",
+          "subject": "feat(articles): add mobile screens and navigation",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "c637a8f2e77917587d928e24d19a3413e7968957",
+          "date": "2026-10-22",
+          "subject": "refactor(ui): compact destructive detail actions",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "64faa842bbfe3217b88849f0f415645d14cf6f4a",
+          "date": "2026-10-22",
+          "subject": "test(filters): cover shared chip selection",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "5b8e75c82ee87768672d26fc41ba30e7fe859a05",
+          "date": "2026-10-22",
+          "subject": "docs: describe clients and articles workflows",
+          "native_package_version": "3.8.4"
         }
       ]
     },
     {
       "date": "2026-10-23",
-      "version": "3.8.15",
-      "web_package_commit": "c3d48ef5ca89bbf0db40d823bdc9590f6a55983e",
-      "web_package_committed_version": "3.8.15",
-      "web_working_tree_version_used": false,
+      "version": "",
       "native_commits": [
         {
-          "commit": "69de29932828d51412b7f8f589e1da45afba6509",
-          "subject": "docs: describe proforma and native cropping"
-        },
-        {
-          "commit": "9f14747a5a222e2047c20652db4552f817949c06",
-          "subject": "test(routes): align navigation test filenames"
-        },
-        {
-          "commit": "b4daa48446ce2ce4f0c9f3423b3495bd10fcb026",
-          "subject": "feat(proforma): add shared document workflows"
-        },
-        {
-          "commit": "78f11cf724f83ad8e97daf73129f2649599ce56d",
-          "subject": "refactor(settings): unify cards and save actions"
-        },
-        {
-          "commit": "929b479f3a6b7ab742b304d228070faa163b8251",
-          "subject": "feat(images): add native corner cropping"
-        },
-        {
-          "commit": "36c626ac77dd77fcf73c66b8c9353e32192461c1",
-          "subject": "fix(ui): unify fields and document dialogs"
+          "commit": "6a1d0b161bfc2d4ccf56a6783a6a55cfadfbb8b5",
+          "date": "2026-10-23",
+          "subject": "refactor(ui): unify mobile forms and detail cards",
+          "native_package_version": "3.8.4"
         },
         {
           "commit": "a9aaa885753085db7bd3a8b3e1a04efa23a0eac8",
-          "subject": "feat(devis): add quotes and disabled conversions"
+          "date": "2026-10-23",
+          "subject": "feat(devis): add quotes and disabled conversions",
+          "native_package_version": "3.8.4"
         },
         {
-          "commit": "6a1d0b161bfc2d4ccf56a6783a6a55cfadfbb8b5",
-          "subject": "refactor(ui): unify mobile forms and detail cards"
+          "commit": "36c626ac77dd77fcf73c66b8c9353e32192461c1",
+          "date": "2026-10-23",
+          "subject": "fix(ui): unify fields and document dialogs",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "929b479f3a6b7ab742b304d228070faa163b8251",
+          "date": "2026-10-23",
+          "subject": "feat(images): add native corner cropping",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "78f11cf724f83ad8e97daf73129f2649599ce56d",
+          "date": "2026-10-23",
+          "subject": "refactor(settings): unify cards and save actions",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "b4daa48446ce2ce4f0c9f3423b3495bd10fcb026",
+          "date": "2026-10-23",
+          "subject": "feat(proforma): add shared document workflows",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "9f14747a5a222e2047c20652db4552f817949c06",
+          "date": "2026-10-23",
+          "subject": "test(routes): align navigation test filenames",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "69de29932828d51412b7f8f589e1da45afba6509",
+          "date": "2026-10-23",
+          "subject": "docs: describe proforma and native cropping",
+          "native_package_version": "3.8.4"
         }
       ]
     },
     {
       "date": "2026-10-24",
-      "version": "3.8.15",
-      "web_package_commit": "c3d48ef5ca89bbf0db40d823bdc9590f6a55983e",
-      "web_package_committed_version": "3.8.15",
-      "web_working_tree_version_used": false,
+      "version": "",
       "native_commits": [
         {
-          "commit": "b89b8dc3d5e9271f8321b9c07449b53c171ec15a",
-          "subject": "test(documents): cover shared delivery behavior"
-        },
-        {
-          "commit": "bed3345bfe77004d404d38185c471ecada3773bb",
-          "subject": "docs: describe delivery-note workflows"
-        },
-        {
-          "commit": "2890ff515da3caf0bb484c40c7a9ace2d116d4ed",
-          "subject": "feat(invoices): enable delivery conversion"
-        },
-        {
-          "commit": "af74618d7ebdbcabdfc07b3c6ba8a0c1cf138e8a",
-          "subject": "feat(delivery): add delivery-note workflows"
-        },
-        {
-          "commit": "182671a78b9b097c854a467eef7c66169cb8d28b",
-          "subject": "docs: describe credit-note module"
-        },
-        {
-          "commit": "1f29fe4cb271f4feb13c64faf4fb071266b02492",
-          "subject": "fix(documents): align totals and detail actions"
-        },
-        {
-          "commit": "ac5e9524102d4d358c1af2852b63f54bb06c0c8d",
-          "subject": "feat(credits): add credit-note workflows"
-        },
-        {
-          "commit": "15c36e41aedf1797cfc7efa2635f902f8cb7313e",
-          "subject": "refactor(documents): share form and stats UI"
-        },
-        {
-          "commit": "509ba19383167ab37bdf0d5895f411317c1bfad5",
-          "subject": "fix(import): avoid empty success notifications"
-        },
-        {
-          "commit": "3cdd6837088613031837083e318ecb1cb4edc148",
-          "subject": "feat(assistant): add production writing tools"
-        },
-        {
-          "commit": "882e4ae976e47ef680b9226dec620038e2dc47f7",
-          "subject": "feat(invoices): add client invoice workflows"
+          "commit": "10dc6974c55c3dc24b17f131ff6dca9def330325",
+          "date": "2026-10-24",
+          "subject": "chore(deps): update Bun and add text diff",
+          "native_package_version": "3.8.4"
         },
         {
           "commit": "c57f1c9bd716d84983e601bc1646752a712fa734",
-          "subject": "fix(forms): unify save actions and remarks"
+          "date": "2026-10-24",
+          "subject": "fix(forms): unify save actions and remarks",
+          "native_package_version": "3.8.4"
         },
         {
-          "commit": "10dc6974c55c3dc24b17f131ff6dca9def330325",
-          "subject": "chore(deps): update Bun and add text diff"
+          "commit": "882e4ae976e47ef680b9226dec620038e2dc47f7",
+          "date": "2026-10-24",
+          "subject": "feat(invoices): add client invoice workflows",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "3cdd6837088613031837083e318ecb1cb4edc148",
+          "date": "2026-10-24",
+          "subject": "feat(assistant): add production writing tools",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "509ba19383167ab37bdf0d5895f411317c1bfad5",
+          "date": "2026-10-24",
+          "subject": "fix(import): avoid empty success notifications",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "15c36e41aedf1797cfc7efa2635f902f8cb7313e",
+          "date": "2026-10-24",
+          "subject": "refactor(documents): share form and stats UI",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "ac5e9524102d4d358c1af2852b63f54bb06c0c8d",
+          "date": "2026-10-24",
+          "subject": "feat(credits): add credit-note workflows",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "1f29fe4cb271f4feb13c64faf4fb071266b02492",
+          "date": "2026-10-24",
+          "subject": "fix(documents): align totals and detail actions",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "182671a78b9b097c854a467eef7c66169cb8d28b",
+          "date": "2026-10-24",
+          "subject": "docs: describe credit-note module",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "af74618d7ebdbcabdfc07b3c6ba8a0c1cf138e8a",
+          "date": "2026-10-24",
+          "subject": "feat(delivery): add delivery-note workflows",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "2890ff515da3caf0bb484c40c7a9ace2d116d4ed",
+          "date": "2026-10-24",
+          "subject": "feat(invoices): enable delivery conversion",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "bed3345bfe77004d404d38185c471ecada3773bb",
+          "date": "2026-10-24",
+          "subject": "docs: describe delivery-note workflows",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "b89b8dc3d5e9271f8321b9c07449b53c171ec15a",
+          "date": "2026-10-24",
+          "subject": "test(documents): cover shared delivery behavior",
+          "native_package_version": "3.8.4"
         }
       ]
     },
     {
       "date": "2026-10-26",
       "version": "3.8.26",
-      "web_package_commit": "7b603bc160428effefc3f4717fb6529e2b1a557f",
-      "web_package_committed_version": "3.8.26",
-      "web_working_tree_version_used": false,
       "native_commits": [
         {
-          "commit": "40ae57de760b465ee029a37ea192565c80cec4ff",
-          "subject": "docs: describe stock and dashboard workflows"
-        },
-        {
-          "commit": "c0f7a24cf4e0b085d1d8a4420f1f25e30f493b7e",
-          "subject": "feat(changelog): add mobile release notices"
-        },
-        {
-          "commit": "e3b06c402291e1c420faae055e515378fb7a29d3",
-          "subject": "fix(articles): align price and stock validation"
-        },
-        {
-          "commit": "eae9a648f82eab3d26d62bedd9e9f87f7a7a00f3",
-          "subject": "feat(dashboard): add charts and objectives"
-        },
-        {
-          "commit": "22ac3a354986e6ff25d4b62f444878e02828414c",
-          "subject": "feat(stock): add mobile inventory workflows"
-        },
-        {
-          "commit": "37942bf6e01172bbd755e5150746124e065a9472",
-          "subject": "refactor(ui): unify native form controls"
-        },
-        {
-          "commit": "4782985ee32c75500abdd4b2e53b2413fc134582",
-          "subject": "build(expo): align SDK 58 patch packages"
-        },
-        {
-          "commit": "c3cf928d212c358e446b60ed52a72b4952557382",
-          "subject": "docs: describe payment workflows"
-        },
-        {
-          "commit": "9b778014dfe12b1d41b9d9fa4dd496bdbcd749ed",
-          "subject": "feat(pdf): show shared loading feedback"
+          "commit": "2125bd0602e31be5e90b6a358cb121adbf468698",
+          "date": "2026-10-26",
+          "subject": "feat(reglements): add payment workflows",
+          "native_package_version": "3.8.4"
         },
         {
           "commit": "de7c8dfd599030888b8c77515448c9dab62d9984",
-          "subject": "refactor(payments): reuse invoice history cards"
+          "date": "2026-10-26",
+          "subject": "refactor(payments): reuse invoice history cards",
+          "native_package_version": "3.8.4"
         },
         {
-          "commit": "2125bd0602e31be5e90b6a358cb121adbf468698",
-          "subject": "feat(reglements): add payment workflows"
+          "commit": "9b778014dfe12b1d41b9d9fa4dd496bdbcd749ed",
+          "date": "2026-10-26",
+          "subject": "feat(pdf): show shared loading feedback",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "c3cf928d212c358e446b60ed52a72b4952557382",
+          "date": "2026-10-26",
+          "subject": "docs: describe payment workflows",
+          "native_package_version": "3.8.4"
+        },
+        {
+          "commit": "4782985ee32c75500abdd4b2e53b2413fc134582",
+          "date": "2026-10-26",
+          "subject": "build(expo): align SDK 58 patch packages",
+          "native_package_version": "3.8.26"
+        },
+        {
+          "commit": "37942bf6e01172bbd755e5150746124e065a9472",
+          "date": "2026-10-26",
+          "subject": "refactor(ui): unify native form controls",
+          "native_package_version": "3.8.26"
+        },
+        {
+          "commit": "22ac3a354986e6ff25d4b62f444878e02828414c",
+          "date": "2026-10-26",
+          "subject": "feat(stock): add mobile inventory workflows",
+          "native_package_version": "3.8.26"
+        },
+        {
+          "commit": "eae9a648f82eab3d26d62bedd9e9f87f7a7a00f3",
+          "date": "2026-10-26",
+          "subject": "feat(dashboard): add charts and objectives",
+          "native_package_version": "3.8.26"
+        },
+        {
+          "commit": "e3b06c402291e1c420faae055e515378fb7a29d3",
+          "date": "2026-10-26",
+          "subject": "fix(articles): align price and stock validation",
+          "native_package_version": "3.8.26"
+        },
+        {
+          "commit": "c0f7a24cf4e0b085d1d8a4420f1f25e30f493b7e",
+          "date": "2026-10-26",
+          "subject": "feat(changelog): add mobile release notices",
+          "native_package_version": "3.8.26"
+        },
+        {
+          "commit": "40ae57de760b465ee029a37ea192565c80cec4ff",
+          "date": "2026-10-26",
+          "subject": "docs: describe stock and dashboard workflows",
+          "native_package_version": "3.8.26"
         }
       ]
     }

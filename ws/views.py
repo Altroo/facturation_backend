@@ -26,14 +26,15 @@ class ChangelogView(APIView):
 
     @staticmethod
     def get(request):
-        # Keep existing web clients compatible. Each app sees shared releases too.
+        # Mobile has its own history. Existing web clients keep their current feed.
         platform = request.query_params.get("platform", ChangelogEntry.Platform.WEB)
         if platform not in (ChangelogEntry.Platform.WEB, ChangelogEntry.Platform.MOBILE):
             raise ValidationError({"platform": "Choose web or mobile."})
+        platforms = (platform,) if platform == ChangelogEntry.Platform.MOBILE else (platform, ChangelogEntry.Platform.BOTH)
         entries = ChangelogEntry.objects.filter(
             is_published=True,
             date__lte=timezone.localdate(),
-            platform__in=(platform, ChangelogEntry.Platform.BOTH),
+            platform__in=platforms,
         )
         return Response(
             ChangelogEntrySerializer(entries, many=True).data,

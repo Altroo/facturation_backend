@@ -27,6 +27,13 @@ class WsMaintenanceState(models.Model):
             "Publish only after this frontend version is deployed and healthy."
         ),
     )
+    version_mobile = models.CharField(
+        max_length=20,
+        default=DEFAULT_APP_VERSION,
+        validators=[app_version_validator],
+        verbose_name=_("Mobile version"),
+        help_text=_("Publish only after this mobile version is available to install."),
+    )
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -99,11 +106,19 @@ class ChangelogEntry(models.Model):
                 raise ValidationError(errors)
 
 
+class MobileChangelogEntry(ChangelogEntry):
+    class Meta:
+        proxy = True
+        verbose_name = _("Mobile changelog entry")
+        verbose_name_plural = _("Mobile changelog")
+
+
 def maintenance_snapshot():
     latest = WsMaintenanceState.objects.order_by("-updated_at", "-pk").first()
     return {
         "maintenance": bool(latest and latest.maintenance),
         "version": latest.version if latest else DEFAULT_APP_VERSION,
+        "version_mobile": latest.version_mobile if latest else DEFAULT_APP_VERSION,
     }
 
 
