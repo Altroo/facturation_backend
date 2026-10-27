@@ -96,7 +96,7 @@ def test_platform_migration_preserves_existing_history_as_web():
     from django.db.migrations.executor import MigrationExecutor
 
     previous = [("ws", "0012_handled_errors_release_3_8_6")]
-    current = [("ws", "0017_independent_mobile_history")]
+    current = [("ws", "0018_mobile_version_sequence")]
     executor = MigrationExecutor(connection)
     executor.migrate(previous)
     try:
@@ -308,6 +308,99 @@ def test_independent_mobile_history_uses_native_versions_and_preserves_admin_cha
     rebuild(apps, editor)
     maintenance.refresh_from_db()
     assert maintenance.version_mobile == "8.8.8"
+
+
+def test_reconstructed_mobile_sequence_uses_native_batches_and_leaves_web_unchanged():
+    import json
+    from importlib import import_module
+    from pathlib import Path
+    from django.apps import apps
+    from django.db import connection
+    from .models import WsMaintenanceState
+
+    data_dir = Path(__file__).parent / "migrations/data"
+    previous = json.loads((data_dir / "0017_mobile_changelog_history.json").read_text())
+    history = json.loads((data_dir / "0018_mobile_version_sequence.json").read_text())
+    for release in previous:
+        entry(
+            **{
+                **release,
+                "changes_fr": "\n".join(release["changes_fr"]),
+                "changes_en": "\n".join(release["changes_en"]),
+                "platform": "mobile",
+            }
+        )
+    web = entry(date=history[-1]["date"], version="9.9.9", title_fr="Notes web conservées")
+    shared = entry(date=history[-1]["date"], version="9.9.8", platform="both")
+    maintenance = WsMaintenanceState.objects.create(version="9.9.9", version_mobile="3.8.26")
+    editor = connection.schema_editor()
+    rebuild = import_module("ws.migrations.0018_mobile_version_sequence").reconstruct_mobile_versions
+    rebuild(apps, editor)
+    rebuild(apps, editor)
+    versions = list(ChangelogEntry.objects.filter(platform="mobile").order_by("date").values_list("version", flat=True))
+    assert versions == ["1.0.0", "1.1.0", "1.2.0", "1.3.0", "1.4.0", "1.5.0", "1.6.0", "1.6.1"]
+    for release in history:
+        row = ChangelogEntry.objects.get(date=release["date"], platform="mobile")
+        row.full_clean()
+        assert row.changes_fr == "\n".join(release["changes_fr"])
+        assert row.changes_en == "\n".join(release["changes_en"])
+    web.refresh_from_db()
+    shared.refresh_from_db()
+    maintenance.refresh_from_db()
+    assert web.version == maintenance.version == "9.9.9"
+    assert shared.version == "9.9.8"
+    assert web.title_fr == "Notes web conservées"
+    assert maintenance.version_mobile == history[-1]["version"]
+
+
+def test_mobile_renumbering_preserves_custom_notes_versions_and_publication_choices():
+    import json
+    from importlib import import_module
+    from pathlib import Path
+    from django.apps import apps
+    from django.db import connection
+    from .models import WsMaintenanceState
+
+    previous = json.loads((Path(__file__).parent / "migrations/data/0017_mobile_changelog_history.json").read_text())
+    for release in previous:
+        entry(**{**release, "changes_fr": "\n".join(release["changes_fr"]), "changes_en": "\n".join(release["changes_en"]), "platform": "mobile"})
+    edited = ChangelogEntry.objects.get(date=previous[0]["date"], platform="mobile")
+    edited.changes_fr = "Texte personnalisé"
+    edited.save()
+    custom_version = ChangelogEntry.objects.get(date=previous[1]["date"], platform="mobile")
+    custom_version.version = "8.0.0"
+    custom_version.save()
+    unpublished = ChangelogEntry.objects.get(date=previous[2]["date"], platform="mobile")
+    unpublished.is_published = False
+    unpublished.save()
+    maintenance = WsMaintenanceState.objects.create(version="9.9.9", version_mobile="8.0.0")
+    rebuild = import_module("ws.migrations.0018_mobile_version_sequence").reconstruct_mobile_versions
+    rebuild(apps, connection.schema_editor())
+    edited.refresh_from_db()
+    custom_version.refresh_from_db()
+    unpublished.refresh_from_db()
+    maintenance.refresh_from_db()
+    assert edited.changes_fr == "Texte personnalisé"
+    assert edited.version == previous[0]["version"]
+    assert custom_version.version == "8.0.0"
+    assert not unpublished.is_published
+    assert unpublished.version == "1.2.0"
+    assert maintenance.version_mobile == "8.0.0"
+
+
+def test_mobile_history_source_records_the_stock_fix_without_copying_web_versions():
+    import json
+    from pathlib import Path
+
+    source = json.loads((Path(__file__).parents[1] / "docs/mobile-changelog-history-sources.json").read_text())
+    history = json.loads((Path(__file__).parent / "migrations/data/0018_mobile_version_sequence.json").read_text())
+    fixes = next(release for release in source["entries"] if release["date"] == "2026-10-27")
+    assert fixes["version"] == history[-1]["version"]
+    assert source["entries"][-1]["version"] == source["versioning"]["latest_committed_version"]
+    assert fixes["date"] in source["versioning"]["fix_dates"]
+    assert any(commit["commit"].startswith("04b3d59") for commit in fixes["native_commits"])
+    assert fixes["version"] != fixes["native_commits"][-1]["native_package_version"]
+    assert len({entry["version"] for entry in source["entries"]}) == len(source["entries"])
 
 
 def test_mobile_admin_keeps_histories_separate_and_validates_duplicate_dates():

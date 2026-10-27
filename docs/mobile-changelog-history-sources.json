@@ -1,10 +1,10 @@
 {
-  "description": "Mobile development history derived only from facturation_native Git commits. Dates group development work, not production deployments. Version labels appear when the committed native package version changes; intermediate development notes are unversioned. Web versions are not consulted.",
-  "native_head": "40ae57de760b465ee029a37ea192565c80cec4ff",
+  "description": "Reconstructed mobile development milestones derived only from facturation_native Git commits. They are not historical production deployment claims. Legacy package numbers inherited from the web are retained as evidence, not used as the mobile release sequence.",
+  "native_head": "5d8b0b2a433b2df0ed7af6b83f8115a4d8283407",
   "entries": [
     {
       "date": "2026-10-16",
-      "version": "3.8.4",
+      "version": "1.0.0",
       "native_commits": [
         {
           "commit": "2826634d135c69b33db41cb6820efaa1084c4a04",
@@ -100,7 +100,7 @@
     },
     {
       "date": "2026-10-20",
-      "version": "",
+      "version": "1.1.0",
       "native_commits": [
         {
           "commit": "aae9ae3e86b3e51722d9a64617f38fa61798bb4b",
@@ -208,7 +208,7 @@
     },
     {
       "date": "2026-10-21",
-      "version": "",
+      "version": "1.2.0",
       "native_commits": [
         {
           "commit": "3091e6f6b7a7bb9c9f8690cd8ff5ef1b486063e7",
@@ -262,7 +262,7 @@
     },
     {
       "date": "2026-10-22",
-      "version": "",
+      "version": "1.3.0",
       "native_commits": [
         {
           "commit": "f474623bb4d9a0ce5a119ed3b49db7680e826e5b",
@@ -382,7 +382,7 @@
     },
     {
       "date": "2026-10-23",
-      "version": "",
+      "version": "1.4.0",
       "native_commits": [
         {
           "commit": "6a1d0b161bfc2d4ccf56a6783a6a55cfadfbb8b5",
@@ -436,7 +436,7 @@
     },
     {
       "date": "2026-10-24",
-      "version": "",
+      "version": "1.5.0",
       "native_commits": [
         {
           "commit": "10dc6974c55c3dc24b17f131ff6dca9def330325",
@@ -520,7 +520,7 @@
     },
     {
       "date": "2026-10-26",
-      "version": "3.8.26",
+      "version": "1.6.0",
       "native_commits": [
         {
           "commit": "2125bd0602e31be5e90b6a358cb121adbf468698",
@@ -589,6 +589,72 @@
           "native_package_version": "3.8.26"
         }
       ]
+    },
+    {
+      "date": "2026-10-27",
+      "version": "1.6.1",
+      "native_commits": [
+        {
+          "commit": "04b3d59aac84ff671cfac8ab62fb3bb8c563a5da",
+          "date": "2026-10-27",
+          "subject": "fix(stock): paginate article suggestions",
+          "native_package_version": "3.8.26"
+        },
+        {
+          "commit": "bb005ab6cae33667075b8f29bc9978e04a0fa75a",
+          "date": "2026-10-27",
+          "subject": "fix(auth): separate sessions by backend",
+          "native_package_version": "3.8.26"
+        },
+        {
+          "commit": "3f5bbd54f86b51f0a01905318ba685e132cc99d8",
+          "date": "2026-10-27",
+          "subject": "fix(updates): use independent mobile versions",
+          "native_package_version": "3.8.26"
+        },
+        {
+          "commit": "e500cebea3d5cdaeb9b7736c432d7d134288d42b",
+          "date": "2026-10-27",
+          "subject": "fix(images): use previews as upload controls",
+          "native_package_version": "3.8.26"
+        },
+        {
+          "commit": "f16fe16b6d16fc3ea1d6320d013e5e821e1c8903",
+          "date": "2026-10-27",
+          "subject": "fix(navigation): keep dock actions in place",
+          "native_package_version": "3.8.26"
+        },
+        {
+          "commit": "6fbca632543bcd3242b7db1d02c6f4e8499f6723",
+          "date": "2026-10-27",
+          "subject": "fix(lists): align card icons and fields",
+          "native_package_version": "3.8.26"
+        },
+        {
+          "commit": "5d8b0b2a433b2df0ed7af6b83f8115a4d8283407",
+          "date": "2026-10-27",
+          "subject": "chore(release): set native version 3.8.27",
+          "native_package_version": "3.8.27"
+        }
+      ]
     }
-  ]
+  ],
+  "versioning": {
+    "baseline": "1.0.0",
+    "rule": "Group commits by development date. The foundation is 1.0.0; each following date introducing user-facing features increments the minor version and resets the patch. A fixes-only batch increments the patch. Docs, tests, refactors and version-only commits do not independently increment it.",
+    "feature_dates": [
+      "2026-10-16",
+      "2026-10-20",
+      "2026-10-21",
+      "2026-10-22",
+      "2026-10-23",
+      "2026-10-24",
+      "2026-10-26"
+    ],
+    "fix_dates": [
+      "2026-10-27"
+    ],
+    "latest_committed_version": "1.6.1",
+    "pending_features": "Logistique is not yet committed or released and belongs to the next minor release when delivered."
+  }
 }

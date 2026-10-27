@@ -1,0 +1,148 @@
+[
+  {
+    "date": "2026-10-16",
+    "version": "1.0.0",
+    "title_fr": "Connexion et gestion de votre espace mobile",
+    "title_en": "Sign in and manage your mobile workspace",
+    "changes_fr": [
+      "Connectez-vous à votre compte et retrouvez votre session après avoir fermé l’application.",
+      "Récupérez votre mot de passe, modifiez votre profil et gérez vos préférences de notification.",
+      "Consultez, ajoutez et modifiez vos utilisateurs et vos entreprises, avec leurs photos, logos et cachets.",
+      "Naviguez avec le menu latéral et choisissez le français, l’anglais, le thème clair ou le thème sombre."
+    ],
+    "changes_en": [
+      "Sign in to your account and keep your session after closing the app.",
+      "Recover your password, edit your profile and manage notification preferences.",
+      "View, add and edit users and companies, including their photos, logos and stamps.",
+      "Navigate with the side menu and choose French, English, light mode or dark mode."
+    ]
+  },
+  {
+    "date": "2026-10-20",
+    "version": "1.1.0",
+    "title_fr": "Des formulaires et une navigation plus pratiques",
+    "title_en": "More convenient forms and navigation",
+    "changes_fr": [
+      "Retrouvez la page précédente avec le bouton de retour, sans être renvoyé systématiquement vers la liste.",
+      "Recherchez, filtrez, triez et sélectionnez les éléments de vos listes avec des contrôles communs.",
+      "Profitez d’écrans de connexion, de récupération de mot de passe et de sélection d’image harmonisés."
+    ],
+    "changes_en": [
+      "Return to the previous screen with the back button instead of always returning to the list.",
+      "Search, filter, sort and select list items using consistent controls.",
+      "Use consistent sign-in, password recovery and image selection screens."
+    ]
+  },
+  {
+    "date": "2026-10-21",
+    "version": "1.2.0",
+    "title_fr": "Des listes conçues pour votre téléphone",
+    "title_en": "Lists designed for your phone",
+    "changes_fr": [
+      "Faites défiler toute la page pour laisser davantage de place aux fiches de vos listes.",
+      "Consultez les informations essentielles des utilisateurs, des entreprises et des clients dans des cartes harmonisées.",
+      "Accédez aux actions des fiches avec des menus compacts et des confirmations adaptées au mobile."
+    ],
+    "changes_en": [
+      "Scroll the whole page to give list cards more room.",
+      "Review essential user, company and client information in consistent cards.",
+      "Access record actions through compact menus and mobile-friendly confirmations."
+    ]
+  },
+  {
+    "date": "2026-10-22",
+    "version": "1.3.0",
+    "title_fr": "Clients, articles et documents accessibles sur mobile",
+    "title_en": "Clients, articles and documents on mobile",
+    "changes_fr": [
+      "Ajoutez et modifiez vos clients, consultez leurs historiques et imprimez leurs relevés de compte.",
+      "Retrouvez les clients actifs et archivés, avec des filtres par période et des onglets de société.",
+      "Gérez votre catalogue d’articles, ses archives et l’import de fichiers CSV ou Excel.",
+      "Ouvrez les notifications et les paramètres depuis la barre de navigation du bas."
+    ],
+    "changes_en": [
+      "Add and edit clients, review their history and print account statements.",
+      "Find active and archived clients with date-range filters and company tabs.",
+      "Manage your article catalogue, archives and CSV or Excel imports.",
+      "Open notifications and settings from the bottom navigation bar."
+    ]
+  },
+  {
+    "date": "2026-10-23",
+    "version": "1.4.0",
+    "title_fr": "Devis, pro-forma et recadrage des images",
+    "title_en": "Quotes, proformas and image cropping",
+    "changes_fr": [
+      "Créez, modifiez et consultez vos devis et vos factures pro-forma avec les mêmes repères visuels.",
+      "Distinguez les articles déjà ajoutés des nouveaux articles et retrouvez-les avec la recherche, le tri et les filtres.",
+      "Choisissez rapidement le format et la langue de vos documents PDF.",
+      "Recadrez vos photos, logos et cachets en ajustant les coins de l’image avant d’enregistrer."
+    ],
+    "changes_en": [
+      "Create, edit and view quotes and proforma invoices with consistent layouts.",
+      "Distinguish existing document lines from new articles and find them with search, sorting and filters.",
+      "Quickly choose the format and language of PDF documents.",
+      "Crop photos, logos and stamps by adjusting image corners before saving."
+    ]
+  },
+  {
+    "date": "2026-10-24",
+    "version": "1.5.0",
+    "title_fr": "Factures clients, avoirs et bons de livraison",
+    "title_en": "Client invoices, credit notes and delivery notes",
+    "changes_fr": [
+      "Créez et consultez vos factures clients, suivez les impayés et retrouvez l’historique des paiements.",
+      "Gérez vos factures d’avoir et vos bons de livraison, y compris les livraisons non facturées.",
+      "Convertissez vos documents vers les étapes suivantes de votre facturation.",
+      "Sur l’environnement de production, utilisez les outils de traduction et d’amélioration des textes dans les champs compatibles."
+    ],
+    "changes_en": [
+      "Create and review client invoices, track unpaid invoices and access payment history.",
+      "Manage credit notes and delivery notes, including uninvoiced deliveries.",
+      "Convert documents to the next steps in your invoicing workflow.",
+      "In the production environment, use translation and writing improvements in supported fields."
+    ]
+  },
+  {
+    "date": "2026-10-26",
+    "version": "1.6.0",
+    "title_fr": "Règlements, stock et tableau de bord",
+    "title_en": "Payments, stock and dashboard",
+    "changes_fr": [
+      "Consultez, ajoutez et modifiez vos règlements avec les mêmes contrôles que les autres modules.",
+      "Retrouvez les factures associées aux paiements et annulez un règlement avec confirmation.",
+      "Un indicateur de chargement vous accompagne pendant la génération et l’ouverture des PDF.",
+      "Consultez les stocks, leurs mouvements, les réceptions et les inventaires.",
+      "Retrouvez les graphiques du tableau de bord et gérez les objectifs mensuels dans les paramètres.",
+      "Consultez les nouveautés mobiles et recevez un message lorsqu’une version plus récente de l’application est disponible."
+    ],
+    "changes_en": [
+      "View, add and edit payments using the same controls as other modules.",
+      "Find invoices linked to payments and cancel a payment after confirmation.",
+      "A loading indicator appears while PDF documents are generated and opened.",
+      "Review stock balances, movements, receipts and inventories.",
+      "Explore dashboard charts and manage monthly objectives in settings.",
+      "Browse mobile release notes and receive a notice when a newer app version is available."
+    ]
+  },
+  {
+    "date": "2026-10-27",
+    "version": "1.6.1",
+    "title_fr": "Stock, session et images plus fiables",
+    "title_en": "More reliable stock, sessions and images",
+    "changes_fr": [
+      "Recherchez les articles dans les formulaires de stock sans charger tout le catalogue, tout en conservant vos sélections.",
+      "Les sessions de développement et de production sont conservées séparément.",
+      "Touchez directement l’aperçu pour choisir une photo, un logo ou un cachet, puis recadrez ou retirez l’image.",
+      "Les actions de la barre du bas gardent leur position et les icônes sont alignées avec le contenu des listes.",
+      "La version et les nouveautés mobiles suivent leur propre historique, indépendamment de la version web."
+    ],
+    "changes_en": [
+      "Search articles in stock forms without downloading the entire catalogue, while preserving your selections.",
+      "Development and production sessions are stored separately.",
+      "Tap the preview to choose a photo, logo or stamp, then crop or remove the image.",
+      "Bottom navigation actions keep their positions and list icons align with their content.",
+      "Mobile versions and release notes follow their own history, independently of the web version."
+    ]
+  }
+]
