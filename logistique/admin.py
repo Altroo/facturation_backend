@@ -7,7 +7,18 @@ from .models import (
     LogisticsOrderLine,
     LogisticsOrderProforma,
     LogisticsPaymentInstallment,
+    LogisticsSupplier,
 )
+
+
+@admin.register(LogisticsSupplier)
+class LogisticsSupplierAdmin(SimpleHistoryAdmin):
+    list_display = ("id", "nom", "company", "email", "date_created", "date_updated")
+    list_filter = ("company",)
+    search_fields = ("nom", "email", "company__raison_sociale")
+    list_select_related = ("company",)
+    readonly_fields = ("date_created", "date_updated")
+    filter_horizontal = ("marques",)
 
 
 class LogisticsOrderLineInline(admin.TabularInline):

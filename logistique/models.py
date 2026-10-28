@@ -30,6 +30,8 @@ class LogisticsSupplier(models.Model):
     history = HistoricalRecords()
 
     class Meta:
+        verbose_name = _("Fournisseur")
+        verbose_name_plural = _("Fournisseurs")
         ordering = ["nom", "pk"]
         constraints = [
             models.UniqueConstraint(
