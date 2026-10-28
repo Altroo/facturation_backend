@@ -486,6 +486,11 @@ class LogisticsOrderSourcePreviewView(CompanyAccessMixin, APIView):
 
 
 class LogisticsOrderDetailEditDeleteView(CompanyAccessMixin, APIView):
+    protected_delete_message = _(
+        "Ce dossier est lié à une réception de stock. La suppression est bloquée "
+        "pour conserver la traçabilité des mouvements de stock."
+    )
+
     permission_classes = (permissions.IsAuthenticated,)
     parser_classes = (JSONParser, MultiPartParser, FormParser)
 
@@ -1606,6 +1611,11 @@ class LogisticsDashboardView(CompanyAccessMixin, APIView):
 
 
 class BulkDeleteLogisticsOrderView(BaseBulkDeleteView):
+    protected_delete_message = _(
+        "La suppression est bloquée car au moins un dossier est lié à une réception "
+        "de stock. Aucun dossier n’a été supprimé."
+    )
+
     model = LogisticsOrder
     document_name = "dossier logistique"
 

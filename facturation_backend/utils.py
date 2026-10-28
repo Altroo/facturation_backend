@@ -228,15 +228,16 @@ class Base64ImageField(serializers.ImageField):
 def api_exception_handler(exc, context):
     # Handle ProtectedError (on_delete=PROTECT) with a clear French message
     if isinstance(exc, ProtectedError):
+        protected_message = getattr(
+            context.get("view"),
+            "protected_delete_message",
+            "Cet élément ne peut pas être supprimé car il est utilisé "
+            "dans d'autres documents. Utilisez l'archivage à la place.",
+        )
         error_payload = {
             "status_code": 409,
             "message": "Suppression impossible",
-            "details": {
-                "protected": [
-                    "Cet élément ne peut pas être supprimé car il est utilisé "
-                    "dans d'autres documents. Utilisez l'archivage à la place."
-                ]
-            },
+            "details": {"protected": [protected_message]},
         }
         return Response(error_payload, status=status.HTTP_409_CONFLICT)
 

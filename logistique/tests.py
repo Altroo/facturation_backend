@@ -20,6 +20,7 @@ from client.models import Client
 from company.models import Company
 from facture_proforma.models import FactureProForma, FactureProFormaLine
 from parameter.models import Marque, ModePaiement, Ville
+from stock.models import StockReceipt
 
 from .admin import LogisticsOrderAdmin
 from .models import (
@@ -2367,3 +2368,47 @@ def test_logistics_responsible_options_are_company_scoped(
             "label": "Log User - Caissier",
         }
     ]
+
+
+@pytest.mark.parametrize("bulk", [False, True])
+@pytest.mark.parametrize("receipt_status", ["draft", "validated", "cancelled"])
+def test_protected_dossier_delete_explains_stock_receipts_without_archiving(
+    api_client, logistics_company, logistics_user, bulk, receipt_status
+):
+    protected = LogisticsOrder.objects.create(
+        company=logistics_company, numero_commande="LOG-PROTECTED-DELETE"
+    )
+    unused = LogisticsOrder.objects.create(
+        company=logistics_company, numero_commande="LOG-UNUSED-DELETE"
+    )
+    receipt = StockReceipt.objects.create(
+        company=logistics_company, logistics_order=protected,
+        status=receipt_status, created_by=logistics_user
+    )
+    if bulk:
+        response = api_client.delete(
+            reverse("logistique:logistique-bulk-delete"),
+            {"ids": [protected.pk, unused.pk]}, format="json"
+        )
+    else:
+        response = api_client.delete(
+            reverse("logistique:logistique-detail", args=[protected.pk])
+        )
+    assert response.status_code == 409, response.data
+    message = response.data["details"]["protected"][0]
+    assert "réception de stock" in message
+    assert "archiv" not in message.lower()
+    if bulk:
+        assert "Aucun dossier n’a été supprimé" in message
+    assert LogisticsOrder.objects.filter(pk__in=[protected.pk, unused.pk]).count() == 2
+    assert StockReceipt.objects.filter(pk=receipt.pk, status=receipt_status).exists()
+
+
+def test_unlinked_dossiers_can_still_be_deleted(api_client, logistics_company):
+    first = LogisticsOrder.objects.create(company=logistics_company, numero_commande="LOG-DELETE-ONE")
+    second = LogisticsOrder.objects.create(company=logistics_company, numero_commande="LOG-DELETE-TWO")
+    response = api_client.delete(reverse("logistique:logistique-detail", args=[first.pk]))
+    assert response.status_code == 204
+    response = api_client.delete(reverse("logistique:logistique-bulk-delete"), {"ids": [second.pk]}, format="json")
+    assert response.status_code == 204
+    assert not LogisticsOrder.objects.filter(pk__in=[first.pk, second.pk]).exists()
