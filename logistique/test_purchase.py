@@ -1938,3 +1938,24 @@ def test_supplier_payment_rejects_an_invalid_actual_method_without_splitting(
     assert item.montant_prevu == Decimal("30.00")
     assert item.execution_enregistree_le is None
     assert order.echeances_paiement.count() == 2
+
+
+def test_number_preview_does_not_allocate_and_creation_assigns_unique_references(purchase_context):
+    ctx = purchase_context
+    url = reverse("logistique:generate-numero-logistique")
+    before = LogisticsOrder.objects.filter(company=ctx.company).count()
+    preview = ctx.api.get(url, {"company_id": ctx.company.pk})
+    assert preview.status_code == 200
+    assert preview.data["numero_commande"].startswith("LOG")
+    assert LogisticsOrder.objects.filter(company=ctx.company).count() == before
+    first = create_dossier(ctx)
+    assert first.numero_commande == preview.data["numero_commande"]
+    second = create_dossier(ctx)
+    assert second.numero_commande
+    assert second.numero_commande != first.numero_commande
+    latest = ctx.api.get(url, {"company_id": ctx.company.pk})
+    assert latest.status_code == 200
+    assert latest.data["numero_commande"] not in {first.numero_commande, second.numero_commande}
+    assert LogisticsOrder.objects.filter(company=ctx.company).count() == before + 2
+    denied = authenticated(ctx.outsider).get(url, {"company_id": ctx.company.pk})
+    assert denied.status_code == 403

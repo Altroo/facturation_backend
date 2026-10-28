@@ -392,3 +392,90 @@ def test_backfill_combines_name_variants_and_preserves_brands_and_dossiers():
         == brand.email
     )
     assert Marque.objects.filter(company=company).count() == 2
+
+
+def bulk_url(ctx):
+    return f"{URL}bulk_delete/?company_id={ctx.company.pk}"
+
+
+def test_bulk_delete_unused_suppliers_preserves_brands_and_dossiers(suppliers):
+    from parameter.models import Marque
+
+    ctx = suppliers
+    allow(ctx)
+    first = LogisticsSupplier.objects.create(company=ctx.company, nom="Unused one")
+    second = LogisticsSupplier.objects.create(company=ctx.company, nom="Unused two")
+    brand = Marque.objects.create(company=ctx.company, nom="Keep brand")
+    first.marques.add(brand)
+    ids = [first.pk, second.pk]
+    orders = list(LogisticsOrder.objects.values_list("pk", "fournisseur_record_id"))
+
+    response = ctx.client.delete(bulk_url(ctx), {"ids": ids}, format="json")
+
+    assert response.status_code == 204, response.data
+    assert not LogisticsSupplier.objects.filter(pk__in=ids).exists()
+    assert Marque.objects.filter(pk=brand.pk).exists()
+    assert list(LogisticsOrder.objects.values_list("pk", "fournisseur_record_id")) == orders
+    assert LogisticsSupplier.history.filter(id__in=ids, history_type="-").count() == 2
+
+
+def test_bulk_delete_with_linked_supplier_keeps_the_entire_selection(suppliers):
+    ctx = suppliers
+    allow(ctx)
+    unused = LogisticsSupplier.objects.get(company=ctx.company, nom="Zeta")
+    linked = LogisticsSupplier.objects.get(company=ctx.company, nom="Alpha")
+    ids = [unused.pk, linked.pk]
+    orders = list(LogisticsOrder.objects.values_list("pk", "fournisseur_record_id"))
+
+    response = ctx.client.delete(bulk_url(ctx), {"ids": ids}, format="json")
+
+    assert response.status_code == 400
+    assert LogisticsSupplier.objects.filter(pk__in=ids).count() == 2
+    assert list(LogisticsOrder.objects.values_list("pk", "fournisseur_record_id")) == orders
+    assert LogisticsSupplier.history.filter(id__in=ids, history_type="-").count() == 0
+
+
+@pytest.mark.parametrize("also_member", [False, True])
+def test_bulk_delete_cannot_cross_the_selected_company(suppliers, also_member):
+    ctx = suppliers
+    allow(ctx)
+    if also_member:
+        Membership.objects.create(company=ctx.other, user=ctx.user, role=ctx.membership.role)
+    own = LogisticsSupplier.objects.get(company=ctx.company, nom="Zeta")
+    foreign = LogisticsSupplier.objects.get(company=ctx.other)
+    ids = [own.pk, foreign.pk]
+
+    response = ctx.client.delete(bulk_url(ctx), {"ids": ids}, format="json")
+
+    assert response.status_code == 404
+    assert LogisticsSupplier.objects.filter(pk__in=ids).count() == 2
+
+
+@pytest.mark.parametrize("role", ["Lecture", "Comptable", "Commercial", "Logistique"])
+def test_bulk_delete_requires_the_same_permission_as_single_delete(suppliers, role):
+    ctx = suppliers
+    allow(ctx, role)
+    supplier = LogisticsSupplier.objects.get(company=ctx.company, nom="Zeta")
+    assert ctx.client.delete(bulk_url(ctx), {"ids": [supplier.pk]}, format="json").status_code == 403
+    assert LogisticsSupplier.objects.filter(pk=supplier.pk).exists()
+
+
+@pytest.mark.parametrize("ids", [None, [], "1", 1, [0], [-1], [True], ["invalid"], ["1.0"], [1, 1]])
+def test_bulk_delete_rejects_invalid_ids(suppliers, ids):
+    ctx = suppliers
+    allow(ctx)
+    before = LogisticsSupplier.objects.count()
+    response = ctx.client.delete(bulk_url(ctx), {"ids": ids}, format="json")
+    assert response.status_code == 400
+    assert LogisticsSupplier.objects.count() == before
+
+
+def test_bulk_delete_requires_authentication_and_company_access(suppliers):
+    ctx = suppliers
+    allow(ctx)
+    supplier = LogisticsSupplier.objects.get(company=ctx.company, nom="Zeta")
+    data = {"ids": [supplier.pk]}
+    assert APIClient().delete(bulk_url(ctx), data, format="json").status_code in (401, 403)
+    assert ctx.client.delete(URL + "bulk_delete/", data, format="json").status_code == 404
+    assert ctx.client.delete(f"{URL}bulk_delete/?company_id={ctx.other.pk}", data, format="json").status_code == 403
+    assert LogisticsSupplier.objects.filter(pk=supplier.pk).exists()

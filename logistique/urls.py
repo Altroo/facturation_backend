@@ -30,7 +30,7 @@ from .purchase_views import (
     SupplierDirectoryView,
 )
 
-from .supplier_views import LogisticsSupplierListView, LogisticsSupplierDetailView
+from .supplier_views import BulkDeleteLogisticsSupplierView, LogisticsSupplierListView, LogisticsSupplierDetailView
 
 app_name = "logistique"
 
@@ -74,6 +74,11 @@ urlpatterns = [
         "fournisseurs/",
         LogisticsSupplierListView.as_view(),
         name="logistique-fournisseurs",
+    ),
+    path(
+        "fournisseurs/bulk_delete/",
+        BulkDeleteLogisticsSupplierView.as_view(),
+        name="logistique-fournisseurs-bulk-delete",
     ),
     path(
         "fournisseurs/<int:pk>/",

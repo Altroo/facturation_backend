@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from core.permissions import can_delete
-from core.views import CompanyAccessMixin
+from core.views import BaseBulkDeleteView, CompanyAccessMixin
 from facturation_backend.utils import CustomPagination
 from parameter.models import Marque
 from .filters import LogisticsSupplierFilter
@@ -207,3 +207,35 @@ class LogisticsSupplierDetailView(SupplierAccessMixin, APIView):
                 }
             )
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class BulkDeleteLogisticsSupplierView(SupplierAccessMixin, BaseBulkDeleteView):
+    model = LogisticsSupplier
+    document_name = "fournisseur"
+
+    def get_queryset_with_related(self, ids):
+        return LogisticsSupplier.objects.filter(
+            pk__in=ids, company_id=self.company_id(self.request)
+        )
+
+    def get_company_id(self, obj):
+        return obj.company_id
+
+    def delete(self, request, *args, **kwargs):
+        company_id = self.company_id(request)
+        if not can_delete(request.user, company_id):
+            raise PermissionDenied("Vous n’avez pas les droits pour supprimer ces fournisseurs.")
+        ids = request.data.get("ids") if isinstance(request.data, dict) else None
+        if (
+            not isinstance(ids, list)
+            or not ids
+            or any(type(value) is not int or value <= 0 for value in ids)
+            or len(set(ids)) != len(ids)
+        ):
+            raise ValidationError({"ids": "Une liste d’identifiants entiers positifs et uniques est requise."})
+        try:
+            return super().delete(request, *args, **kwargs)
+        except ProtectedError:
+            raise ValidationError({
+                "fournisseur": "Un ou plusieurs fournisseurs sont liés à des dossiers logistiques. Aucun fournisseur n’a été supprimé."
+            })
