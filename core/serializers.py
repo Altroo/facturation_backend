@@ -212,7 +212,7 @@ class BaseDetailSerializer(serializers.ModelSerializer):
                 {"remise": _("La remise doit être positive ou nulle.")}
             )
 
-        if remise_type == "":
+        if remise_type in (None, ""):
             return attrs
 
         if remise_type == "Pourcentage":

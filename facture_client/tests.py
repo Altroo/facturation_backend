@@ -207,6 +207,42 @@ class TestFactureClientAPI(SharedDocumentAPITestsMixin):
     def test_update_facture_client_with_lignes_upsert(self):
         self.shared_test_update_with_lignes_upsert()
 
+    @pytest.mark.parametrize("remise_type", [None, ""])
+    def test_update_invoice_with_150_units_and_no_discount(self, remise_type):
+        self.doc_line.delete()
+        self.doc.remise_type = None
+        self.doc.save(update_fields=["remise_type"])
+        self.article.tva = Decimal("20")
+        self.article.save(update_fields=["tva"])
+        payload = self._base_payload(
+            numero="02/26", date_str="2026-10-29", req=""
+        )
+        payload.update({
+            "remise_type": remise_type,
+            "remise": 0,
+            "lignes": [{
+                "article": self.article.pk,
+                "prix_achat": 0,
+                "prix_vente": "163.67",
+                "quantity": 150,
+                "remise_type": "",
+                "remise": 0,
+                "devise_prix_vente": "MAD",
+            }],
+        })
+        response = self.client_api.put(
+            self._detail_url(self.doc.pk), payload, format="json"
+        )
+        assert response.status_code == status.HTTP_200_OK, response.data
+        self.doc.refresh_from_db()
+        line = self.doc.lignes.get()
+        assert line.quantity == Decimal("150")
+        assert line.remise == 0
+        assert line.remise_type == ""
+        assert self.doc.remise_type == remise_type
+        assert self.doc.total_ht == Decimal("24550.50")
+        assert self.doc.total_ttc == Decimal("29460.60")
+
     def test_update_facture_client_delete_missing_lines(self):
         self.shared_test_update_delete_missing_lines()
 
