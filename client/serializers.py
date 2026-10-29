@@ -57,7 +57,6 @@ class ClientBaseSerializer(serializers.ModelSerializer):
                 "raison_sociale": "Raison sociale",
                 "ville": "Ville",
                 "ICE": "ICE",
-                "registre_de_commerce": "Registre de commerce",
                 "delai_de_paiement": "Délai de paiement",
             }
         elif client_type == Client.PERSONNE_PHYSIQUE:

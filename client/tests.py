@@ -96,6 +96,57 @@ class TestClientAPI:
         assert response.status_code == status.HTTP_201_CREATED
         assert Client.objects.filter(code_client="CLT0003").exists()
 
+    @pytest.mark.parametrize(
+        "rc_fields",
+        [{}, {"registre_de_commerce": ""}, {"registre_de_commerce": None}],
+        ids=["omitted", "blank", "null"],
+    )
+    def test_create_client_pm_with_optional_registre(self, rc_fields):
+        payload = {
+            "code_client": "CLT0003",
+            "client_type": "PM",
+            "raison_sociale": "Société sans RC",
+            "ICE": "987654321",
+            "delai_de_paiement": 30,
+            "ville": self.ville.pk,
+            "company": self.company.pk,
+            **rc_fields,
+        }
+        response = self.client.post(
+            reverse("client:client-list-create"), payload, format="json"
+        )
+        assert response.status_code == status.HTTP_201_CREATED, response.data
+        created = Client.objects.get(pk=response.data["id"])
+        assert created.registre_de_commerce == rc_fields.get("registre_de_commerce")
+
+    @pytest.mark.parametrize(
+        "rc_fields",
+        [{}, {"registre_de_commerce": ""}, {"registre_de_commerce": None}],
+        ids=["omitted", "blank", "null"],
+    )
+    def test_update_client_pm_with_optional_registre(self, rc_fields):
+        self.client_pm.registre_de_commerce = None
+        self.client_pm.save(update_fields=["registre_de_commerce"])
+        payload = {
+            "code_client": self.client_pm.code_client,
+            "client_type": "PM",
+            "raison_sociale": "Société sans RC modifiée",
+            "ICE": self.client_pm.ICE,
+            "delai_de_paiement": 30,
+            "ville": self.ville.pk,
+            "company": self.company.pk,
+            **rc_fields,
+        }
+        response = self.client.put(
+            reverse("client:client-detail", args=[self.client_pm.pk]),
+            payload,
+            format="json",
+        )
+        assert response.status_code == status.HTTP_200_OK, response.data
+        self.client_pm.refresh_from_db()
+        assert self.client_pm.raison_sociale == payload["raison_sociale"]
+        assert self.client_pm.registre_de_commerce == rc_fields.get("registre_de_commerce")
+
     def test_create_client_divers_for_nectar_without_required_pm_fields(self):
         nectar = Company.objects.create(
             raison_sociale="IMMOBILIERE NECTAR",
@@ -647,11 +698,11 @@ class TestClientAPI:
         for field in [
             "raison_sociale",
             "ICE",
-            "registre_de_commerce",
             "delai_de_paiement",
             "ville",
         ]:
             assert field in response.data["details"]
+        assert "registre_de_commerce" not in response.data["details"]
 
     def test_validation_required_fields_pp_missing_fields(self):
         url = reverse("client:client-list-create")
