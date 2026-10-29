@@ -25,3 +25,6 @@ tmp/
 .auth/
 playwright/.auth/
 **/training/evaluations/
+
+# Shared AI source, Colibri and training data belong to the independent AI service.
+/assistant/

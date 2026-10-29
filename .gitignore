@@ -211,9 +211,11 @@ cython_debug/
 *.har
 
 
-# Reproducible assistant source and curated reports remain versioned.
-# Runtime weights, training outputs and raw evaluations do not.
-!/assistant/deploy/example.env
+# The shared AI project is maintained in its independent repository.
+# Keep only the packaged Python dependency and native application integration here.
+/assistant/
+
+# Runtime weights, training outputs and raw evaluations stay outside Git.
 .venv*/
 *.safetensors
 *.gguf
@@ -226,14 +228,6 @@ cython_debug/
 **/training/checkpoints/
 **/training/adapters/
 **/training/evaluations/
-/assistant/models/
-/assistant/adapters/
-/assistant/checkpoints/
-/assistant/runtime/colibri/c/colibri
-/assistant/runtime/colibri/c/qpack
-/assistant/runtime/colibri/c/iobench
-/assistant/runtime/colibri/c/*.o
-/assistant/runtime/colibri/c/*.dylib
 
 # Database exports are private runtime artifacts.
 *.sqlite

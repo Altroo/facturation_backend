@@ -1,2 +1,0 @@
-# tiny K3 fixture generation (CI): deterministic numpy-only weights
-numpy>=1.24

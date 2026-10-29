@@ -72,6 +72,27 @@ python manage.py runserver 8000
 
 On Windows, activate with `.venv\Scripts\activate`.
 
+## AI integration
+
+The shared assistant, Colibri runtime, model training and deployment sources live in
+[chat_ai_assistant](https://github.com/Altroo/chat_ai_assistant).
+
+This backend contains the native `chat_ai/` integration and the versioned Python
+wheel in `vendor/`, installed through `requirements.txt`. The wheel checksum and
+source hashes are recorded in `vendor/chat-ai-core-manifest.json`.
+`docker-compose.assistant.yml` connects the backend to the independent private
+model service using `CHAT_AI_MODEL_URL`.
+Chat availability is controlled by `CHAT_AI_ASSISTANT_ENABLED` in the backend and
+`NEXT_PUBLIC_CHAT_AI_ASSISTANT_ENABLED` in the frontend. Keep both false while the
+assistant is paused; updating the shared library or deploying the backend does
+not require enabling chat or restarting the model service.
+
+To update the shared library, run `scripts/package_core.py --backend /path/to/facturation_backend`
+from the independent assistant repository, review the wheel and manifest, update
+`requirements.txt`, then run the backend tests. Keep Colibri, model files, training
+data and source snapshots in the independent repository. Do not regenerate an
+`assistant/` source snapshot inside Facturation; Git and Docker exclude that path.
+
 ## Tests
 
 ```bash
