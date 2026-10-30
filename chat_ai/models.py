@@ -1,4 +1,5 @@
 import uuid
+
 from django.conf import settings
 from django.db import models
 
@@ -20,8 +21,12 @@ class Conversation(models.Model):
 
 class Message(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    conversation = models.ForeignKey(Conversation, related_name="messages", on_delete=models.CASCADE)
-    role = models.CharField(max_length=12, choices=[("user", "user"), ("assistant", "assistant")])
+    conversation = models.ForeignKey(
+        Conversation, related_name="messages", on_delete=models.CASCADE
+    )
+    role = models.CharField(
+        max_length=12, choices=[("user", "user"), ("assistant", "assistant")]
+    )
     text = models.TextField(blank=True)
     # Store the request for replay, NEVER a snapshot of private tool results.
     action = models.JSONField(default=dict)
@@ -30,7 +35,12 @@ class Message(models.Model):
 
     class Meta:
         ordering = ["created_at", "id"]
-        constraints = [models.UniqueConstraint(fields=["conversation", "request_id", "role"], name="chat_ai_unique_request_role")]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["conversation", "request_id", "role"],
+                name="chat_ai_unique_request_role",
+            )
+        ]
 
 
 class KnowledgeDocument(models.Model):
@@ -44,7 +54,9 @@ class KnowledgeDocument(models.Model):
     category = models.CharField(max_length=40)
     sensitivity = models.CharField(max_length=20, default="member")
     required_capabilities = models.JSONField(default=list)
-    tenant_scope = models.ForeignKey("company.Company", null=True, blank=True, on_delete=models.CASCADE)
+    tenant_scope = models.ForeignKey(
+        "company.Company", null=True, blank=True, on_delete=models.CASCADE
+    )
     updated_at = models.DateTimeField(auto_now=True)
 
 
@@ -56,7 +68,9 @@ class AuditEvent(models.Model):
     record_id = models.PositiveBigIntegerField(null=True)
     changed_fields = models.JSONField(default=list)
     source = models.CharField(max_length=32, default="chat_ai_assistant")
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL
+    )
     company_id = models.PositiveBigIntegerField(null=True)
     application = models.CharField(max_length=32, default="facturation")
     tool = models.CharField(max_length=64)
@@ -80,7 +94,11 @@ class Feedback(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        constraints = [models.UniqueConstraint(fields=["message", "user"], name="chat_ai_unique_feedback")]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["message", "user"], name="chat_ai_unique_feedback"
+            )
+        ]
 
 
 class PendingAction(models.Model):

@@ -234,3 +234,6 @@ cython_debug/
 *.sqlite3
 *.dump
 *.sql.gz
+
+# Local agent and IDE connection settings.
+/.codex/
