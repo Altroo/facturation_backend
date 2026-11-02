@@ -25,7 +25,7 @@ from account.models import Membership
 from company.models import Company
 from core.constants import ROLE_CAISSIER, ROLE_LOGISTIQUE
 from core.filters import CalendarDateFilter
-from facturation_backend.utils import CustomPagination
+from core.pagination import CustomPagination
 from .models import InventorySession, StockBalance, StockMovement, StockReceipt
 from .serializers import (
     InventorySerializer,

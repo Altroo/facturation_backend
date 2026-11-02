@@ -30,7 +30,7 @@ from core.permissions import (
     can_print,
 )
 from core.views import CompanyAccessMixin, BaseBulkDeleteView
-from facturation_backend.utils import CustomPagination
+from core.pagination import CustomPagination
 from facture_client.models import FactureClient
 from facture_client.stats import get_stats_by_currency
 from notification.services import notify_document_created

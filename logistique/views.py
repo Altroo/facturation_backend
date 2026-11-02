@@ -1,12 +1,7 @@
-from collections import Counter
-from datetime import datetime, time
 from decimal import Decimal
 from uuid import uuid4
 
 from django.db import transaction
-from django.db.models import Count, Sum, Q, DecimalField
-from django.db.models.functions import Coalesce
-from django.http import Http404
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from rest_framework import permissions, status
@@ -16,364 +11,64 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from account.models import Membership
-from company.models import Company
-from core.constants import ROLE_COMPTABLE, ROLE_LOGISTIQUE
+from core.ordering import apply_list_ordering
+from core.pagination import CustomPagination
 from core.permissions import (
     can_change_document_status,
-    can_create,
     can_delete,
-    can_update,
-    get_user_role,
 )
 from core.views import BaseBulkDeleteView, CompanyAccessMixin
-from core.ordering import apply_list_ordering
-from facturation_backend.utils import CustomPagination
-from notification.models import Notification
 from stock.services import activate_incoming
 
+from .corrections import authorize_step, consume_approval
 from .filters import LogisticsOrderFilter
+from .historical_services import authorize_historical_edit
 from .models import LogisticsOrder, LogisticsPaymentInstallment
+from .permissions import (
+    can_create_logistics,
+    can_manage_logistics,
+    can_process_assigned_payment,
+    is_order_responsible,
+)
+from .purchase import payment_blocker, validate_purchase_transition
+from .purchase_services import create_purchase_dossier, request_purchase_payment
+from .selectors import get_order
 from .serializers import (
     LOGISTICS_IMPORT_TITLE_FIELDS,
+    LogisticsGlobalStatusSerializer,
+    LogisticsLaunchStatusSerializer,
     LogisticsOrderCreateSerializer,
     LogisticsOrderDetailSerializer,
     LogisticsOrderListSerializer,
     LogisticsOrderUpdateSerializer,
-    LogisticsGlobalStatusSerializer,
-    LogisticsLaunchStatusSerializer,
-    LogisticsPaymentRejectSerializer,
     LogisticsPaymentExecutionSerializer,
     LogisticsPaymentInstallmentActionSerializer,
     LogisticsPaymentProofEmailStatusSerializer,
+    LogisticsPaymentRejectSerializer,
     LogisticsPaymentRequestSerializer,
     LogisticsPaymentValidationSerializer,
-    LogisticsProformaRequestSerializer,
-    LogisticsSupplierProformaReviewSerializer,
     LogisticsProcessNoteSerializer,
+    LogisticsProformaRequestSerializer,
     LogisticsStatusSerializer,
+    LogisticsSupplierProformaReviewSerializer,
 )
 from .services import (
+    assign_payment_task,
     build_proforma_source_preview,
+    clear_payment_installment_cache,
     create_orders_from_proformas,
+    ensure_order_active,
+    get_locked_installment,
+    invalidate_or_block_active_email_deliveries,
+    notify_logistics_responsible,
     send_payment_request_email,
 )
+from .stats import get_logistics_stats
 from .tasks import (
     queue_accounting_payment_email,
-    queue_logistics_responsible_payment_email,
+    queue_purchase_creator_email,
 )
 from .utils import get_next_numero_logistique
-
-
-def _money_field():
-    return DecimalField(max_digits=12, decimal_places=2)
-
-
-def _add_months(date_value, months):
-    month_index = date_value.month - 1 + months
-    year = date_value.year + month_index // 12
-    month = month_index % 12 + 1
-    return date_value.replace(year=year, month=month, day=1)
-
-
-def _month_start_datetime(date_value):
-    return timezone.make_aware(datetime.combine(date_value, time.min))
-
-
-def _has_payment_validation_permission(user, company_id):
-    if getattr(user, "is_superuser", False):
-        return True
-    return get_user_role(user, company_id) == ROLE_COMPTABLE
-
-
-def _is_order_responsible(user, order):
-    return bool(
-        getattr(user, "is_superuser", False)
-        or (order.responsable_id and order.responsable_id == user.id)
-    )
-
-
-def _can_process_assigned_payment(user, order):
-    return bool(
-        getattr(user, "is_superuser", False)
-        or (
-            _has_payment_validation_permission(user, order.company_id)
-            and order.paiement_assigne_a_id == user.id
-        )
-    )
-
-
-def _get_locked_installment(order, installment_id):
-    try:
-        return order.echeances_paiement.select_for_update().get(pk=installment_id)
-    except LogisticsPaymentInstallment.DoesNotExist:
-        raise ValidationError(
-            {"echeance_id": _("Cette échéance n'appartient pas au dossier.")}
-        )
-
-
-def _clear_payment_installment_cache(order):
-    getattr(order, "_prefetched_objects_cache", {}).pop("echeances_paiement", None)
-
-
-def _can_manage_logistics(user, company_id):
-    return (
-        can_update(user, company_id)
-        or get_user_role(user, company_id) == ROLE_LOGISTIQUE
-    )
-
-
-def _can_create_logistics(user, company_id):
-    return (
-        can_create(user, company_id)
-        or get_user_role(user, company_id) == ROLE_LOGISTIQUE
-    )
-
-
-def _ensure_order_active(order):
-    if order.statut_global == "Annulé":
-        raise ValidationError(
-            {"statut_global": _("Rouvrez le dossier avant de poursuivre le workflow.")}
-        )
-
-
-def _invalidate_or_block_active_email_deliveries(order, *, reason):
-    installments = list(order.echeances_paiement.select_for_update())
-    if order.demande_paiement_email_statut == "Envoi en cours" or any(
-        item.preuve_email_statut == "Envoi en cours" for item in installments
-    ):
-        raise ValidationError(
-            {
-                "email": _(
-                    "Attendez la fin de l'envoi e-mail en cours avant cette action."
-                )
-            }
-        )
-    if order.demande_paiement_email_statut == "En attente":
-        order.demande_paiement_email_statut = "Échec"
-        order.demande_paiement_email_erreur = reason
-        order.demande_paiement_email_file_token = ""
-        order.demande_paiement_email_mis_en_file_le = None
-        order.save(
-            update_fields=[
-                "demande_paiement_email_statut",
-                "demande_paiement_email_erreur",
-                "demande_paiement_email_file_token",
-                "demande_paiement_email_mis_en_file_le",
-                "date_updated",
-            ]
-        )
-    for installment in installments:
-        if installment.preuve_email_statut != "En attente":
-            continue
-        installment.preuve_email_statut = "Échec"
-        installment.preuve_email_erreur = reason
-        installment.preuve_email_file_token = ""
-        installment.preuve_email_mise_en_file_le = None
-        installment.save(
-            update_fields=[
-                "preuve_email_statut",
-                "preuve_email_erreur",
-                "preuve_email_file_token",
-                "preuve_email_mise_en_file_le",
-                "date_updated",
-            ]
-        )
-
-
-def _notify_logistics_responsible(order, message):
-    if not order.responsable_id:
-        return
-    Notification.objects.create(
-        user=order.responsable,
-        title=_("Paiement logistique validé"),
-        message=message,
-        notification_type="status_change",
-        object_id=order.id,
-        target_url=f"/dashboard/logistique/{order.id}?company_id={order.company_id}",
-    )
-    transaction.on_commit(
-        lambda order_id=order.id: queue_logistics_responsible_payment_email(order_id)
-    )
-
-
-def _assign_payment_task(order):
-    membership = (
-        Membership.objects.filter(
-            company_id=order.company_id,
-            role__name=ROLE_COMPTABLE,
-            user__is_active=True,
-        )
-        .exclude(user__email="")
-        .select_related("user")
-        .order_by("user_id")
-        .first()
-    )
-    if not membership:
-        raise ValidationError(
-            {
-                "paiement": _(
-                    "Aucun utilisateur actif du Service Comptable n'est disponible."
-                )
-            }
-        )
-    order.paiement_assigne_a = membership.user
-    Notification.objects.create(
-        user=membership.user,
-        title=_("Effectuer le paiement fournisseur"),
-        message=_("Le dossier import %(reference)s est prêt pour paiement.")
-        % {"reference": order.numero_commande},
-        notification_type="status_change",
-        object_id=order.id,
-        target_url=f"/dashboard/logistique/{order.id}?company_id={order.company_id}",
-    )
-    return membership.user
-
-
-def get_logistics_stats(company_id):
-    base = LogisticsOrder.objects.filter(company_id=company_id)
-    global_status_counts = Counter(
-        order.calculate_global_status() for order in base.iterator()
-    )
-    today = timezone.localdate()
-    current_month = today.replace(day=1)
-    months = [_add_months(current_month, offset) for offset in range(-5, 1)]
-    active_count = sum(
-        total
-        for global_status, total in global_status_counts.items()
-        if global_status not in {"Clôturé", "Annulé"}
-    )
-    pending_payments = base.filter(statut_paiement="En attente")
-    delivered = base.filter(
-        Q(statut_global__in=["À clôturer", "Clôturé"])
-        | Q(statut__in=["Livraison client", "Clôture"])
-    ).distinct()
-    monthly_flow = []
-
-    for month_start in months:
-        month_end = _add_months(month_start, 1)
-        month_start_dt = _month_start_datetime(month_start)
-        month_end_dt = _month_start_datetime(month_end)
-        created_in_month = base.filter(
-            date_created__gte=month_start_dt,
-            date_created__lt=month_end_dt,
-        )
-        monthly_flow.append(
-            {
-                "month": month_start.strftime("%Y-%m"),
-                "commandes": created_in_month.count(),
-                "livraisons": delivered.filter(
-                    date_reelle__gte=month_start,
-                    date_reelle__lt=month_end,
-                ).count(),
-                "paiements": base.filter(
-                    statut_paiement="Validé",
-                    paiement_valide_le__gte=month_start_dt,
-                    paiement_valide_le__lt=month_end_dt,
-                ).count(),
-                "cout_total": created_in_month.aggregate(
-                    total=Coalesce(
-                        Sum("cout_total"), Decimal("0"), output_field=_money_field()
-                    )
-                )["total"],
-            }
-        )
-
-    # noinspection PyDictCreation
-    stats = {
-        "commandes_en_cours": active_count,
-        "total_commandes": base.count(),
-        "retards": global_status_counts.get("En retard", 0),
-        "paiements_en_attente": pending_payments.count(),
-        "livraisons": delivered.count(),
-        "couts_logistiques": base.aggregate(
-            total=Coalesce(Sum("cout_total"), Decimal("0"), output_field=_money_field())
-        )["total"],
-        "swift_manquant": base.filter(statut_paiement="Validé")
-        .filter(Q(swift_file="") | Q(swift_file__isnull=True))
-        .count(),
-        "documents_non_recus": base.filter(
-            statut__in=["Documents originaux", "Transit"],
-        )
-        .filter(
-            Q(documents_originaux_file="") | Q(documents_originaux_file__isnull=True)
-        )
-        .count(),
-        "transit_non_lance": base.filter(
-            statut__in=["Expédition", "Documents originaux"]
-        ).count(),
-        "statuts_workflow": [
-            {"statut": global_status, "total": total}
-            for global_status, total in sorted(global_status_counts.items())
-        ],
-        "statuts_paiement": list(
-            base.values("statut_paiement")
-            .annotate(total=Count("id"))
-            .order_by("statut_paiement")
-        ),
-        "couts_detail": base.aggregate(
-            achat=Coalesce(
-                Sum("cout_achat"), Decimal("0"), output_field=_money_field()
-            ),
-            transport=Coalesce(
-                Sum("cout_transport"), Decimal("0"), output_field=_money_field()
-            ),
-            transit=Coalesce(
-                Sum("frais_transit"), Decimal("0"), output_field=_money_field()
-            ),
-            douane=Coalesce(
-                Sum("frais_douane"), Decimal("0"), output_field=_money_field()
-            ),
-            tva=Coalesce(Sum("tva"), Decimal("0"), output_field=_money_field()),
-            livraison_locale=Coalesce(
-                Sum("livraison_locale"), Decimal("0"), output_field=_money_field()
-            ),
-            autres=Coalesce(
-                Sum("autres_frais"), Decimal("0"), output_field=_money_field()
-            ),
-            total=Coalesce(
-                Sum("cout_total"), Decimal("0"), output_field=_money_field()
-            ),
-        ),
-        "monthly_flow": monthly_flow,
-    }
-    stats["marques"] = [
-        {"id": brand["marque"], "nom": brand["marque__nom"]}
-        for brand in base.exclude(marque__isnull=True)
-        .exclude(marque__nom="")
-        .order_by("marque__nom")
-        .values("marque", "marque__nom")
-        .distinct()[:100]
-    ]
-    stats["kpi_marques"] = list(
-        base.exclude(marque__isnull=True)
-        .exclude(marque__nom="")
-        .values("marque", "marque__nom")
-        .annotate(
-            total_commandes=Count("id"),
-            cout_total=Coalesce(
-                Sum("cout_total"), Decimal("0"), output_field=_money_field()
-            ),
-        )
-        .order_by("-total_commandes")[:5]
-    )
-    stats["fournisseurs"] = list(
-        base.exclude(fournisseur="")
-        .order_by("fournisseur")
-        .values("fournisseur")
-        .distinct()[:100]
-    )
-    stats["kpi_fournisseurs"] = list(
-        base.exclude(fournisseur="")
-        .values("fournisseur")
-        .annotate(
-            total_commandes=Count("id"),
-            cout_total=Coalesce(
-                Sum("cout_total"), Decimal("0"), output_field=_money_field()
-            ),
-        )
-        .order_by("-total_commandes")[:5]
-    )
-    return stats
 
 
 class LogisticsOrderListCreateView(CompanyAccessMixin, APIView):
@@ -403,7 +98,9 @@ class LogisticsOrderListCreateView(CompanyAccessMixin, APIView):
             raise ValidationError(filterset.errors)
         # Use the same public-column ordering as paginated lists for exports
         # and select-all requests too, including calculated workflow statuses.
-        ordered_qs = apply_list_ordering(filterset.qs.order_by("-id"), request.query_params)
+        ordered_qs = apply_list_ordering(
+            filterset.qs.order_by("-id"), request.query_params
+        )
         stats = {"stats": get_logistics_stats(company_id)}
 
         if pagination:
@@ -431,16 +128,22 @@ class LogisticsOrderListCreateView(CompanyAccessMixin, APIView):
             company_id, error_message="company_id est requis."
         )
         self._check_company_access(request, company_id)
-        if not _can_create_logistics(request.user, company_id):
+        if not can_create_logistics(request.user, company_id):
             raise PermissionDenied(
                 _("Vous n'avez pas les droits pour créer un dossier logistique.")
             )
 
         if not request.data.get("proformas"):
-            from .purchase_views import create_purchase_dossier
             orders = create_purchase_dossier(company_id, request.user, request.data)
-            return Response({"created": 1, "orders": LogisticsOrderDetailSerializer(
-                orders, many=True, context={"request": request}).data}, status=status.HTTP_201_CREATED)
+            return Response(
+                {
+                    "created": 1,
+                    "orders": LogisticsOrderDetailSerializer(
+                        orders, many=True, context={"request": request}
+                    ).data,
+                },
+                status=status.HTTP_201_CREATED,
+            )
 
         serializer = LogisticsOrderCreateSerializer(
             data=request.data,
@@ -494,70 +197,38 @@ class LogisticsOrderDetailEditDeleteView(CompanyAccessMixin, APIView):
     permission_classes = (permissions.IsAuthenticated,)
     parser_classes = (JSONParser, MultiPartParser, FormParser)
 
-    @staticmethod
-    def get_object(pk, *, for_update=False):
-        try:
-            queryset = LogisticsOrder.objects
-            if for_update:
-                queryset = queryset.select_for_update(of=("self",))
-            return (
-                queryset.select_related(
-                    "company",
-                    "marque",
-                    "responsable",
-                    "created_by_user",
-                    "demande_paiement_envoyee_par",
-                    "proforma_demandee_par",
-                    "proforma_controlee_par",
-                    "proforma_validee_par",
-                    "paiement_valide_par",
-                    "paiement_assigne_a",
-                )
-                .prefetch_related(
-                    "marques",
-                    "proformas",
-                    "proformas__source_devis",
-                    "lignes",
-                    "lignes__client",
-                    "lignes__article",
-                    "lignes__expected_emplacement",
-                    "events",
-                    "change_requests__demandeur",
-                    "change_requests__files",
-                    "process_notes",
-                    "process_notes__user",
-                    "echeances_paiement",
-                    "echeances_paiement__execution_enregistree_par",
-                    "echeances_paiement__paiement_valide_par",
-                    "echeances_paiement__reception_confirmee_par",
-                )
-                .get(pk=pk)
-            )
-        except LogisticsOrder.DoesNotExist:
-            raise Http404(_("Aucun dossier logistique ne correspond à la requête."))
-
     def get(self, request, pk, *args, **kwargs):
-        order = self.get_object(pk)
+        order = get_order(pk)
         self._check_company_access(request, order.company_id)
         serializer = LogisticsOrderDetailSerializer(order, context={"request": request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @transaction.atomic
     def put(self, request, pk, *args, **kwargs):
-        order = self.get_object(pk, for_update=True)
+        order = get_order(pk, for_update=True)
         self._check_company_access(request, order.company_id)
         if order.is_supplier_purchase:
-            if not _can_manage_logistics(request.user, order.company_id):
-                raise PermissionDenied("Votre rôle permet uniquement la lecture de ce dossier.")
-            raise ValidationError({"dossier": "Utilisez les formulaires du dossier fournisseur pour modifier ces informations."})
-        can_manage = _can_manage_logistics(request.user, order.company_id)
-        is_responsible = _is_order_responsible(request.user, order)
+            if not can_manage_logistics(request.user, order.company_id):
+                raise PermissionDenied(
+                    "Votre rôle permet uniquement la lecture de ce dossier."
+                )
+            raise ValidationError(
+                {
+                    "dossier": "Utilisez les formulaires du dossier fournisseur pour modifier ces informations."
+                }
+            )
+        can_manage = can_manage_logistics(request.user, order.company_id)
+        is_responsible = is_order_responsible(request.user, order)
         requested_fields = set(request.data.keys()) - {"etape", "correction_id"}
         if not can_manage and not is_responsible:
             raise PermissionDenied(
                 _("Vous n'avez pas les droits pour modifier ce dossier logistique.")
             )
-        if requested_fields & LOGISTICS_IMPORT_TITLE_FIELDS and not is_responsible and not request.data.get("correction_id"):
+        if (
+            requested_fields & LOGISTICS_IMPORT_TITLE_FIELDS
+            and not is_responsible
+            and not request.data.get("correction_id")
+        ):
             raise PermissionDenied(
                 _("Seul le Responsable Commande peut modifier le titre d'importation.")
             )
@@ -567,12 +238,14 @@ class LogisticsOrderDetailEditDeleteView(CompanyAccessMixin, APIView):
                     "Le Responsable Commande peut uniquement modifier le titre d'importation."
                 )
             )
-        _ensure_order_active(order)
-        from .historical import authorize_historical_edit
-        from .corrections import consume_approval
+        ensure_order_active(order)
         approval = authorize_historical_edit(order, request)
-        if requested_fields & LOGISTICS_IMPORT_TITLE_FIELDS and not (is_responsible or approval):
-            raise PermissionDenied("Seul le responsable ou le demandeur autorisé peut corriger le titre.")
+        if requested_fields & LOGISTICS_IMPORT_TITLE_FIELDS and not (
+            is_responsible or approval
+        ):
+            raise PermissionDenied(
+                "Seul le responsable ou le demandeur autorisé peut corriger le titre."
+            )
         serializer = LogisticsOrderUpdateSerializer(
             order,
             data=request.data,
@@ -588,7 +261,7 @@ class LogisticsOrderDetailEditDeleteView(CompanyAccessMixin, APIView):
         return Response(response_serializer.data, status=status.HTTP_200_OK)
 
     def delete(self, request, pk, *args, **kwargs):
-        order = self.get_object(pk)
+        order = get_order(pk)
         self._check_company_access(request, order.company_id)
         if not can_delete(request.user, order.company_id):
             raise PermissionDenied(
@@ -652,13 +325,13 @@ class LogisticsOrderStatusUpdateView(CompanyAccessMixin, APIView):
 
     @transaction.atomic
     def patch(self, request, pk, *args, **kwargs):
-        order = LogisticsOrderDetailEditDeleteView.get_object(pk, for_update=True)
+        order = get_order(pk, for_update=True)
         self._check_company_access(request, order.company_id)
-        if not _can_manage_logistics(request.user, order.company_id):
+        if not can_manage_logistics(request.user, order.company_id):
             raise PermissionDenied(
                 _("Vous n'avez pas les droits pour modifier ce dossier logistique.")
             )
-        _ensure_order_active(order)
+        ensure_order_active(order)
         serializer = LogisticsStatusSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         requested_status = serializer.validated_data["statut"]
@@ -681,15 +354,16 @@ class LogisticsOrderStatusUpdateView(CompanyAccessMixin, APIView):
             raise ValidationError(
                 {"statut": _("Validez d'abord la totalité du paiement requis.")}
             )
-        from .purchase import validate_purchase_transition
         if order.is_supplier_purchase:
-            from .corrections import authorize_step
-            step = {"Livraison client": "reception", "Clôture": "couts"}.get(requested_status)
+            step = {"Livraison client": "reception", "Clôture": "couts"}.get(
+                requested_status
+            )
             if not step:
-                raise ValidationError({"statut": "Utilisez le formulaire de l’étape en cours."})
+                raise ValidationError(
+                    {"statut": "Utilisez le formulaire de l’étape en cours."}
+                )
             authorize_step(order, request, step)
         else:
-            from .historical import authorize_historical_edit
             authorize_historical_edit(order, request)
         validate_purchase_transition(order, requested_status)
         order.set_status(requested_status, user=request.user)
@@ -705,7 +379,7 @@ class LogisticsOrderGlobalStatusUpdateView(CompanyAccessMixin, APIView):
 
     @transaction.atomic
     def patch(self, request, pk, *args, **kwargs):
-        order = LogisticsOrderDetailEditDeleteView.get_object(pk, for_update=True)
+        order = get_order(pk, for_update=True)
         self._check_company_access(request, order.company_id)
         if not can_change_document_status(request.user, order.company_id):
             raise PermissionDenied(
@@ -730,7 +404,7 @@ class LogisticsOrderGlobalStatusUpdateView(CompanyAccessMixin, APIView):
         if requested_status == "Annulé" and order.statut_global == "Annulé":
             raise ValidationError({"statut": _("Ce dossier est déjà annulé.")})
         if requested_status == "Annulé":
-            _invalidate_or_block_active_email_deliveries(
+            invalidate_or_block_active_email_deliveries(
                 order,
                 reason=_("Envoi annulé car le dossier a été annulé."),
             )
@@ -753,17 +427,19 @@ class LogisticsProformaRequestView(CompanyAccessMixin, APIView):
 
     @transaction.atomic
     def post(self, request, pk, *args, **kwargs):
-        order = LogisticsOrderDetailEditDeleteView.get_object(pk, for_update=True)
+        order = get_order(pk, for_update=True)
         self._check_company_access(request, order.company_id)
-        if not _can_manage_logistics(request.user, order.company_id):
+        if not can_manage_logistics(request.user, order.company_id):
             raise PermissionDenied(
                 _(
                     "Vous n'avez pas les droits pour enregistrer cette demande de pro forma fournisseur."
                 )
             )
-        _ensure_order_active(order)
+        ensure_order_active(order)
         if order.is_supplier_purchase:
-            raise ValidationError({"dossier": "Utilisez les actions du dossier d’achat fournisseur."})
+            raise ValidationError(
+                {"dossier": "Utilisez les actions du dossier d’achat fournisseur."}
+            )
         if order.is_launch_step_complete:
             raise ValidationError(
                 {
@@ -815,15 +491,17 @@ class LogisticsLaunchStatusUpdateView(CompanyAccessMixin, APIView):
 
     @transaction.atomic
     def patch(self, request, pk, *args, **kwargs):
-        order = LogisticsOrderDetailEditDeleteView.get_object(pk, for_update=True)
+        order = get_order(pk, for_update=True)
         self._check_company_access(request, order.company_id)
-        if not _can_manage_logistics(request.user, order.company_id):
+        if not can_manage_logistics(request.user, order.company_id):
             raise PermissionDenied(
                 _("Vous n'avez pas les droits pour modifier cette étape.")
             )
-        _ensure_order_active(order)
+        ensure_order_active(order)
         if order.is_supplier_purchase:
-            raise ValidationError({"dossier": "Utilisez les actions du dossier d’achat fournisseur."})
+            raise ValidationError(
+                {"dossier": "Utilisez les actions du dossier d’achat fournisseur."}
+            )
         serializer = LogisticsLaunchStatusSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         requested_status = serializer.validated_data["statut"]
@@ -876,17 +554,19 @@ class LogisticsSupplierProformaReviewView(CompanyAccessMixin, APIView):
 
     @transaction.atomic
     def post(self, request, pk, *args, **kwargs):
-        order = LogisticsOrderDetailEditDeleteView.get_object(pk, for_update=True)
+        order = get_order(pk, for_update=True)
         self._check_company_access(request, order.company_id)
-        if not _can_manage_logistics(request.user, order.company_id):
+        if not can_manage_logistics(request.user, order.company_id):
             raise PermissionDenied(
                 _(
                     "Vous n'avez pas les droits pour contrôler cette pro forma fournisseur."
                 )
             )
-        _ensure_order_active(order)
+        ensure_order_active(order)
         if order.is_supplier_purchase:
-            raise ValidationError({"dossier": "Utilisez les actions du dossier d’achat fournisseur."})
+            raise ValidationError(
+                {"dossier": "Utilisez les actions du dossier d’achat fournisseur."}
+            )
         if not order.is_launch_step_complete:
             raise ValidationError(
                 {"proforma": _("Terminez d'abord l'étape Commande & lancement.")}
@@ -978,20 +658,24 @@ class LogisticsPaymentRequestView(CompanyAccessMixin, APIView):
 
     @transaction.atomic
     def post(self, request, pk, *args, **kwargs):
-        order = LogisticsOrderDetailEditDeleteView.get_object(pk, for_update=True)
+        order = get_order(pk, for_update=True)
         self._check_company_access(request, order.company_id)
-        if not _is_order_responsible(request.user, order):
+        if not is_order_responsible(request.user, order):
             raise PermissionDenied(
                 _(
                     "Seul le Responsable Commande peut transmettre ce dossier au Service Comptable."
                 )
             )
-        _ensure_order_active(order)
+        ensure_order_active(order)
         if order.is_supplier_purchase:
-            if not _can_manage_logistics(request.user, order.company_id):
-                raise PermissionDenied("Votre rôle permet uniquement la lecture du dossier.")
-            from .purchase_views import request_purchase_payment
-            return request_purchase_payment(order, request)
+            if not can_manage_logistics(request.user, order.company_id):
+                raise PermissionDenied(
+                    "Votre rôle permet uniquement la lecture du dossier."
+                )
+            request_purchase_payment(order, request)
+            return Response(
+                LogisticsOrderDetailSerializer(order, context={"request": request}).data
+            )
         if not order.is_proforma_step_complete:
             raise ValidationError(
                 {"paiement": _("Validez d'abord la pro forma fournisseur.")}
@@ -1031,8 +715,8 @@ class LogisticsPaymentRequestView(CompanyAccessMixin, APIView):
                 for item in request_serializer.validated_data["echeancier"]
             ]
         )
-        _clear_payment_installment_cache(order)
-        _assign_payment_task(order)
+        clear_payment_installment_cache(order)
+        assign_payment_task(order)
         order.date_validation_titre_importation = (
             order.date_validation_titre_importation or timezone.localdate()
         )
@@ -1061,13 +745,13 @@ class LogisticsPaymentEmailRetryView(CompanyAccessMixin, APIView):
 
     @transaction.atomic
     def post(self, request, pk, *args, **kwargs):
-        order = LogisticsOrderDetailEditDeleteView.get_object(pk, for_update=True)
+        order = get_order(pk, for_update=True)
         self._check_company_access(request, order.company_id)
-        if not _is_order_responsible(request.user, order):
+        if not is_order_responsible(request.user, order):
             raise PermissionDenied(
                 _("Seul le Responsable Commande peut relancer cet e-mail.")
             )
-        _ensure_order_active(order)
+        ensure_order_active(order)
         if not order.demande_paiement_email_relance_disponible:
             raise ValidationError(
                 {
@@ -1102,8 +786,8 @@ class LogisticsPaymentEmailRetryView(CompanyAccessMixin, APIView):
             ]
         )
         transaction.on_commit(
-            lambda order_id=order.id, token=delivery_token: queue_accounting_payment_email(
-                order_id, token
+            lambda order_id=order.id, token=delivery_token: (
+                queue_accounting_payment_email(order_id, token)
             )
         )
         serializer = LogisticsOrderDetailSerializer(order, context={"request": request})
@@ -1115,32 +799,36 @@ class LogisticsPaymentStartView(CompanyAccessMixin, APIView):
 
     @transaction.atomic
     def post(self, request, pk, *args, **kwargs):
-        order = LogisticsOrderDetailEditDeleteView.get_object(pk, for_update=True)
+        order = get_order(pk, for_update=True)
         self._check_company_access(request, order.company_id)
-        if not _can_process_assigned_payment(request.user, order):
+        if not can_process_assigned_payment(request.user, order):
             raise PermissionDenied(
                 _(
                     "Ce paiement est réservé à l'utilisateur du Service Comptable affecté."
                 )
             )
-        _ensure_order_active(order)
+        ensure_order_active(order)
         serializer = LogisticsPaymentInstallmentActionSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        installment = _get_locked_installment(
+        installment = get_locked_installment(
             order, serializer.validated_data["echeance_id"]
         )
         if order.is_supplier_purchase:
-            from .purchase import payment_blocker
             reason = payment_blocker(order, installment)
             if not installment.demandee_le or reason:
-                raise ValidationError({"paiement": reason or "Transmettez d’abord cette échéance au comptable."})
+                raise ValidationError(
+                    {
+                        "paiement": reason
+                        or "Transmettez d’abord cette échéance au comptable."
+                    }
+                )
         if installment.statut_traitement != "Paiement à traiter":
             raise ValidationError(
                 {"paiement": _("Cette échéance n'est plus à traiter.")}
             )
         installment.statut_traitement = "Paiement en cours"
         installment.save(update_fields=["statut_traitement", "date_updated"])
-        _clear_payment_installment_cache(order)
+        clear_payment_installment_cache(order)
         order.statut_banque_paiement = "Banque en cours"
         order.statut_traitement_paiement = "Paiement en cours"
         order.save(
@@ -1152,9 +840,17 @@ class LogisticsPaymentStartView(CompanyAccessMixin, APIView):
         )
         payment_history = f"Échéance {installment.id}"
         if order.is_supplier_purchase:
-            label = "Avance" if installment.declencheur == "advance" else "Solde" if installment.pourcentage < 100 else "Paiement"
+            label = (
+                "Avance"
+                if installment.declencheur == "advance"
+                else "Solde"
+                if installment.pourcentage < 100
+                else "Paiement"
+            )
             percentage = format(installment.pourcentage.normalize(), "f")
-            amount = f"{installment.montant_prevu:,.2f}".replace(",", " ").replace(".", ",")
+            amount = f"{installment.montant_prevu:,.2f}".replace(",", " ").replace(
+                ".", ","
+            )
             payment_history = f"{label} {percentage} % : {amount} {installment.devise}"
         order.add_event(
             user=request.user,
@@ -1172,15 +868,15 @@ class LogisticsPaymentExecutionView(CompanyAccessMixin, APIView):
 
     @transaction.atomic
     def post(self, request, pk, *args, **kwargs):
-        order = LogisticsOrderDetailEditDeleteView.get_object(pk, for_update=True)
+        order = get_order(pk, for_update=True)
         self._check_company_access(request, order.company_id)
-        if not _can_process_assigned_payment(request.user, order):
+        if not can_process_assigned_payment(request.user, order):
             raise PermissionDenied(
                 _(
                     "Ce paiement est réservé à l'utilisateur du Service Comptable affecté."
                 )
             )
-        _ensure_order_active(order)
+        ensure_order_active(order)
         execution_data = request.data.copy()
         if order.is_supplier_purchase:
             try:
@@ -1193,12 +889,16 @@ class LogisticsPaymentExecutionView(CompanyAccessMixin, APIView):
         serializer = LogisticsPaymentExecutionSerializer(data=execution_data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
-        installment = _get_locked_installment(order, data["echeance_id"])
+        installment = get_locked_installment(order, data["echeance_id"])
         if order.is_supplier_purchase:
-            from .purchase import payment_blocker
             reason = payment_blocker(order, installment)
             if not installment.demandee_le or reason:
-                raise ValidationError({"paiement": reason or "Transmettez d’abord cette échéance au comptable."})
+                raise ValidationError(
+                    {
+                        "paiement": reason
+                        or "Transmettez d’abord cette échéance au comptable."
+                    }
+                )
         if installment.statut_traitement != "Paiement en cours":
             raise ValidationError(
                 {"paiement": _("Commencez d'abord le traitement de cette échéance.")}
@@ -1226,7 +926,8 @@ class LogisticsPaymentExecutionView(CompanyAccessMixin, APIView):
                 pourcentage=installment.pourcentage - paid_percentage,
                 devise=installment.devise,
                 methode_paiement=installment.methode_paiement,
-                declencheur=installment.declencheur, demandee_le=installment.demandee_le,
+                declencheur=installment.declencheur,
+                demandee_le=installment.demandee_le,
             )
             installment.montant_prevu = data["montant_paye"]
             installment.pourcentage = paid_percentage
@@ -1241,7 +942,7 @@ class LogisticsPaymentExecutionView(CompanyAccessMixin, APIView):
         installment.execution_enregistree_par = request.user
         installment.statut_traitement = "Paiement effectué – Justificatif à joindre"
         installment.save()
-        _clear_payment_installment_cache(order)
+        clear_payment_installment_cache(order)
 
         order.date_paiement = installment.date_paiement
         order.montant_paiement = installment.montant_paye
@@ -1269,15 +970,15 @@ class LogisticsPaymentValidateView(CompanyAccessMixin, APIView):
 
     @transaction.atomic
     def post(self, request, pk, *args, **kwargs):
-        order = LogisticsOrderDetailEditDeleteView.get_object(pk, for_update=True)
+        order = get_order(pk, for_update=True)
         self._check_company_access(request, order.company_id)
-        if not _can_process_assigned_payment(request.user, order):
+        if not can_process_assigned_payment(request.user, order):
             raise PermissionDenied(
                 _(
                     "Ce paiement est réservé à l'utilisateur du Service Comptable affecté."
                 )
             )
-        _ensure_order_active(order)
+        ensure_order_active(order)
         if order.statut_paiement != "En attente":
             raise ValidationError(
                 {"paiement": _("Aucune demande de paiement n'est en attente.")}
@@ -1285,7 +986,7 @@ class LogisticsPaymentValidateView(CompanyAccessMixin, APIView):
         serializer = LogisticsPaymentValidationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
-        installment = _get_locked_installment(order, data["echeance_id"])
+        installment = get_locked_installment(order, data["echeance_id"])
         if (
             installment.statut_traitement
             != "Paiement effectué – Justificatif à joindre"
@@ -1299,7 +1000,7 @@ class LogisticsPaymentValidateView(CompanyAccessMixin, APIView):
         installment.paiement_valide_par = request.user
         installment.statut_traitement = "Paiement validé"
         installment.save()
-        _clear_payment_installment_cache(order)
+        clear_payment_installment_cache(order)
 
         order.swift_file = data["swift_file"]
         order.date_upload_swift = timezone.now()
@@ -1332,10 +1033,13 @@ class LogisticsPaymentValidateView(CompanyAccessMixin, APIView):
             ),
         )
         if order.is_supplier_purchase:
-            from .tasks import queue_purchase_creator_email
-            transaction.on_commit(lambda installment_id=installment.pk: queue_purchase_creator_email(installment_id))
+            transaction.on_commit(
+                lambda installment_id=installment.pk: queue_purchase_creator_email(
+                    installment_id
+                )
+            )
         elif remaining_balance == 0:
-            _notify_logistics_responsible(
+            notify_logistics_responsible(
                 order,
                 _(
                     "Le paiement du dossier %(reference)s a été validé par le "
@@ -1355,17 +1059,21 @@ class LogisticsPaymentRejectView(CompanyAccessMixin, APIView):
 
     @transaction.atomic
     def post(self, request, pk, *args, **kwargs):
-        order = LogisticsOrderDetailEditDeleteView.get_object(pk, for_update=True)
+        order = get_order(pk, for_update=True)
         self._check_company_access(request, order.company_id)
-        if not _can_process_assigned_payment(request.user, order):
+        if not can_process_assigned_payment(request.user, order):
             raise PermissionDenied(
                 _(
                     "Ce paiement est réservé à l'utilisateur du Service Comptable affecté."
                 )
             )
-        _ensure_order_active(order)
+        ensure_order_active(order)
         if order.is_supplier_purchase:
-            raise ValidationError({"paiement": "Le retour global pour correction est désactivé pour ce dossier fournisseur."})
+            raise ValidationError(
+                {
+                    "paiement": "Le retour global pour correction est désactivé pour ce dossier fournisseur."
+                }
+            )
         if order.statut_paiement != "En attente":
             raise ValidationError(
                 {"paiement": _("Aucune demande de paiement n'est en attente.")}
@@ -1383,7 +1091,7 @@ class LogisticsPaymentRejectView(CompanyAccessMixin, APIView):
                     )
                 }
             )
-        _invalidate_or_block_active_email_deliveries(
+        invalidate_or_block_active_email_deliveries(
             order,
             reason=_("Envoi annulé car le paiement a été retourné pour correction."),
         )
@@ -1425,20 +1133,27 @@ class LogisticsSwiftSentView(CompanyAccessMixin, APIView):
 
     @transaction.atomic
     def post(self, request, pk, *args, **kwargs):
-        order = LogisticsOrderDetailEditDeleteView.get_object(pk, for_update=True)
+        order = get_order(pk, for_update=True)
         self._check_company_access(request, order.company_id)
-        permitted = (_is_order_responsible(request.user, order) if not order.is_supplier_purchase
-                     else request.user.is_superuser or (request.user.pk == order.created_by_user_id and _can_manage_logistics(request.user, order.company_id)))
+        permitted = (
+            is_order_responsible(request.user, order)
+            if not order.is_supplier_purchase
+            else request.user.is_superuser
+            or (
+                request.user.pk == order.created_by_user_id
+                and can_manage_logistics(request.user, order.company_id)
+            )
+        )
         if not permitted:
             raise PermissionDenied(
                 _("Seul le créateur du dossier peut indiquer si l’e-mail a été envoyé.")
             )
-        _ensure_order_active(order)
+        ensure_order_active(order)
         action_serializer = LogisticsPaymentProofEmailStatusSerializer(
             data=request.data
         )
         action_serializer.is_valid(raise_exception=True)
-        installment = _get_locked_installment(
+        installment = get_locked_installment(
             order, action_serializer.validated_data["echeance_id"]
         )
         if not installment.paiement_valide_le or not installment.justificatif_file:
@@ -1480,7 +1195,7 @@ class LogisticsSwiftSentView(CompanyAccessMixin, APIView):
             action="Suivi manuel e-mail fournisseur",
             new_value="E-mail envoyé" if email_sent else "E-mail non envoyé",
         )
-        _clear_payment_installment_cache(order)
+        clear_payment_installment_cache(order)
         serializer = LogisticsOrderDetailSerializer(order, context={"request": request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -1491,17 +1206,20 @@ class LogisticsProcessNoteCreateView(CompanyAccessMixin, APIView):
 
     @transaction.atomic
     def post(self, request, pk, *args, **kwargs):
-        order = LogisticsOrderDetailEditDeleteView.get_object(pk, for_update=True)
+        order = get_order(pk, for_update=True)
         self._check_company_access(request, order.company_id)
         if not (
-            _can_manage_logistics(request.user, order.company_id)
-            or (not order.is_supplier_purchase and _is_order_responsible(request.user, order))
-            or _can_process_assigned_payment(request.user, order)
+            can_manage_logistics(request.user, order.company_id)
+            or (
+                not order.is_supplier_purchase
+                and is_order_responsible(request.user, order)
+            )
+            or can_process_assigned_payment(request.user, order)
         ):
             raise PermissionDenied(
                 _("Vous n'avez pas les droits pour ajouter une remarque à ce dossier.")
             )
-        _ensure_order_active(order)
+        ensure_order_active(order)
         if order.is_supplier_purchase and order.statut == "Clôture":
             raise ValidationError({"dossier": "Ce dossier est clôturé."})
         serializer = LogisticsProcessNoteSerializer(data=request.data)
@@ -1528,20 +1246,22 @@ class LogisticsPaymentReceiptConfirmView(CompanyAccessMixin, APIView):
 
     @transaction.atomic
     def post(self, request, pk, *args, **kwargs):
-        order = LogisticsOrderDetailEditDeleteView.get_object(pk, for_update=True)
+        order = get_order(pk, for_update=True)
         self._check_company_access(request, order.company_id)
-        if not _is_order_responsible(request.user, order):
+        if not is_order_responsible(request.user, order):
             raise PermissionDenied(
                 _(
                     "Seul le Responsable Commande peut confirmer la réception de la preuve par le fournisseur."
                 )
             )
-        _ensure_order_active(order)
+        ensure_order_active(order)
         if order.is_supplier_purchase:
-            raise ValidationError({"dossier": "Utilisez les actions du dossier d’achat fournisseur."})
+            raise ValidationError(
+                {"dossier": "Utilisez les actions du dossier d’achat fournisseur."}
+            )
         serializer = LogisticsPaymentInstallmentActionSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        installment = _get_locked_installment(
+        installment = get_locked_installment(
             order, serializer.validated_data["echeance_id"]
         )
         if (
@@ -1568,7 +1288,7 @@ class LogisticsPaymentReceiptConfirmView(CompanyAccessMixin, APIView):
                 "date_updated",
             ]
         )
-        _clear_payment_installment_cache(order)
+        clear_payment_installment_cache(order)
         if (
             order.solde_restant == 0
             and not order.echeances_paiement.filter(

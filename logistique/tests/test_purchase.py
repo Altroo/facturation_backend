@@ -489,7 +489,7 @@ def test_import_title_extraction_is_a_preview_without_persistence(purchase_conte
     ctx = purchase_context
     order = create_dossier(ctx)
     expected = {"fields": {"banque": "Banque lue"}, "warnings": []}
-    with patch("logistique.import_title.extract_import_title", return_value=expected):
+    with patch("logistique.purchase_views.extract_import_title", return_value=expected):
         response = ctx.api.post(
             reverse("logistique:logistique-extract-title", args=[order.pk]),
             {
@@ -510,7 +510,7 @@ def test_import_title_extraction_is_a_preview_without_persistence(purchase_conte
 def test_import_title_extraction_respects_dossier_permissions(purchase_context, role):
     ctx = purchase_context
     order = create_dossier(ctx)
-    with patch("logistique.import_title.extract_import_title") as extract:
+    with patch("logistique.purchase_views.extract_import_title") as extract:
         response = authenticated(getattr(ctx, role)).post(
             reverse("logistique:logistique-extract-title", args=[order.pk]),
             {
@@ -547,7 +547,7 @@ def test_payment_validation_replay_does_not_notify_twice(
     item = order.echeances_paiement.get(declencheur="advance")
     request_installment(ctx, order, item, django_capture_on_commit_callbacks)
     execute_installment(ctx, order, item, django_capture_on_commit_callbacks)
-    with patch("logistique.tasks.queue_purchase_creator_email") as notify:
+    with patch("logistique.views.queue_purchase_creator_email") as notify:
         with django_capture_on_commit_callbacks(execute=True):
             response = authenticated(ctx.accountant).post(
                 reverse("logistique:logistique-validate-payment", args=[order.pk]),
@@ -565,68 +565,10 @@ def test_payment_validation_replay_does_not_notify_twice(
     notify.assert_not_called()
 
 
-def test_logistics_user_can_create_and_update_supplier_directory(purchase_context):
-    ctx = purchase_context
-    url = (
-        reverse("logistique:logistique-supplier-directory")
-        + f"?company_id={ctx.company.pk}"
-    )
-    response = ctx.api.post(
-        url,
-        {"nom": "Nouvelle marque fournisseur", "email": "brand@example.invalid"},
-        format="json",
-    )
-    assert response.status_code == 200, response.data
-    brand = Marque.objects.get(pk=response.data["id"])
-    assert brand.company_id == ctx.company.pk
-    assert brand.email == "brand@example.invalid"
-    response = ctx.api.post(
-        url,
-        {
-            "id": brand.pk,
-            "nom": brand.nom,
-            "email": "updated@example.invalid",
-            "company": ctx.foreign.pk,
-        },
-        format="json",
-    )
-    assert response.status_code == 200, response.data
-    brand.refresh_from_db()
-    assert brand.email == "updated@example.invalid"
-    assert brand.company_id == ctx.company.pk
 
 
-@pytest.mark.parametrize("actor", ["reader", "outsider"])
-def test_supplier_directory_requires_company_and_write_access(purchase_context, actor):
-    ctx = purchase_context
-    url = (
-        reverse("logistique:logistique-supplier-directory")
-        + f"?company_id={ctx.company.pk}"
-    )
-    response = authenticated(getattr(ctx, actor)).post(
-        url,
-        {"nom": "Forbidden brand", "email": "secret@example.invalid"},
-        format="json",
-    )
-    assert response.status_code == 403
-    assert not Marque.objects.filter(nom="Forbidden brand").exists()
 
 
-def test_supplier_directory_rejects_foreign_brand_identifier(purchase_context):
-    ctx = purchase_context
-    brand = Marque.objects.create(
-        company=ctx.foreign, nom="Private brand", email="private@example.invalid"
-    )
-    response = ctx.api.post(
-        reverse("logistique:logistique-supplier-directory")
-        + f"?company_id={ctx.company.pk}",
-        {"id": brand.pk, "nom": "Changed", "email": "changed@example.invalid"},
-        format="json",
-    )
-    assert response.status_code == 400, response.data
-    brand.refresh_from_db()
-    assert brand.nom == "Private brand"
-    assert brand.email == "private@example.invalid"
 
 
 @pytest.mark.parametrize("phase", ["Transit", "Dédouanement"])
@@ -779,7 +721,7 @@ def test_manager_can_retry_creator_notification_after_closure(
 ):
     ctx = purchase_context
     order, item = closed_paid_dossier(ctx)
-    with patch("logistique.tasks.queue_purchase_creator_email") as queue:
+    with patch("logistique.purchase_services.queue_purchase_creator_email") as queue:
         with django_capture_on_commit_callbacks(execute=True):
             result = purchase_post(
                 ctx, order, "relancer_notification", echeance_id=item.pk
@@ -799,7 +741,7 @@ def test_cancelled_dossier_blocks_payment_communications(
     order, item = closed_paid_dossier(ctx)
     order.statut_global = "Annulé"
     order.save(update_fields=["statut_global"])
-    with patch("logistique.tasks.queue_purchase_creator_email") as queue:
+    with patch("logistique.purchase_services.queue_purchase_creator_email") as queue:
         with django_capture_on_commit_callbacks(execute=True):
             if action == "proof":
                 result = ctx.api.post(
@@ -1539,7 +1481,7 @@ def test_creator_notification_retry_history_describes_the_requested_email(
     ctx = purchase_context
     order, item = closed_paid_dossier(ctx)
     previous_ids = list(order.events.values_list("pk", flat=True))
-    with patch("logistique.tasks.queue_purchase_creator_email") as queue:
+    with patch("logistique.purchase_services.queue_purchase_creator_email") as queue:
         with django_capture_on_commit_callbacks(execute=True):
             response = purchase_post(
                 ctx, order, "relancer_notification", echeance_id=item.pk
@@ -1714,3 +1656,15 @@ def test_number_preview_does_not_allocate_and_creation_assigns_unique_references
     assert LogisticsOrder.objects.filter(company=ctx.company).count() == before + 2
     denied = authenticated(ctx.outsider).get(url, {"company_id": ctx.company.pk})
     assert denied.status_code == 403
+
+
+def test_retired_supplier_directory_does_not_create_brands(purchase_context):
+    ctx = purchase_context
+    before = Marque.objects.filter(company=ctx.company).count()
+    response = ctx.api.post(
+        f"/api/logistique/supplier_directory/?company_id={ctx.company.pk}",
+        {"nom": "Retired contact", "email": "unused@example.invalid"},
+        format="json",
+    )
+    assert response.status_code == 404
+    assert Marque.objects.filter(company=ctx.company).count() == before

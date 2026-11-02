@@ -2,7 +2,6 @@ import json
 import time
 from datetime import timedelta
 from decimal import Decimal
-from types import SimpleNamespace
 
 from chat_ai_assistant.contracts import (
     ChatAIError,
@@ -13,7 +12,6 @@ from django.db.models import F, Q
 from django.utils import timezone
 from jsonschema import Draft202012Validator
 
-from account.models import CustomUser
 from chat_ai.labels import ENGLISH_FORM_LABELS, FIELD_LABELS
 from chat_ai.models import AuditEvent
 from chat_ai.security import authorize, authorize_context
@@ -29,13 +27,13 @@ from chat_ai.utils import parse_dates, period_dates
 from client.models import Client
 from core.nectar import is_nectar_company_id
 from core.permissions import can_create, can_delete, can_print, can_update
-from dashboard.views import CollectionRateView, KPICardsWithTrendsView
+from dashboard.services import calculate_kpi_for_currency, collection_rate
 from devi.filters import DeviFilter
 from devi.models import Devi
 from facture_client.filters import FactureClientFilter
 from facture_client.models import FactureClient
 from facture_client.serializers import FactureClientPaymentFieldsMixin
-from facture_client.views import annotate_payment_and_avoir_totals
+from facture_client.stats import annotate_payment_and_avoir_totals
 
 
 class ChatAIToolExecutor:
@@ -341,17 +339,8 @@ class ChatAIToolExecutor:
         start, end = period_dates(args)
         currency = args["currency"]
         metric = args["metric"]
-        request = SimpleNamespace(
-            user=CustomUser.objects.get(pk=self.user_id),
-            query_params={
-                "company_id": str(self.company_id),
-                "date_from": start.isoformat(),
-                "date_to": end.isoformat(),
-                "devise": currency,
-            },
-        )
         if metric in ("invoiced_net_ttc", "collected"):
-            source = CollectionRateView.get(request).data
+            source = collection_rate(start, end, self.company_id, currency)
             value = Decimal(
                 str(
                     source[
@@ -364,7 +353,7 @@ class ChatAIToolExecutor:
                 )
             )
         elif metric == "outstanding":
-            source = KPICardsWithTrendsView.calculate_kpi_for_currency(
+            source = calculate_kpi_for_currency(
                 currency, start, end, self.company_id, start, end - timedelta(days=7)
             )
             value = Decimal(str(source["outstanding_receivables"]["value"]))

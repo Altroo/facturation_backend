@@ -17,7 +17,7 @@ from django.template.loader import render_to_string
 from account.models import CustomUser
 from facturation_backend.celery_conf import app
 from facturation_backend.settings import STATIC_PATH
-from facturation_backend.utils import ImageProcessor
+from core.images import ImageProcessor
 
 logger = get_task_logger(__name__)
 

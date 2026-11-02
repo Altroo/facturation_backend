@@ -11,7 +11,7 @@ from rest_framework import serializers
 from rest_framework.request import Request
 
 from company.models import Company
-from facturation_backend.utils import ImageProcessor
+from core.images import ImageProcessor
 from parameter.models import Marque, Categorie, Unite, Emplacement
 from stock.models import StockBalance
 from stock.services import (

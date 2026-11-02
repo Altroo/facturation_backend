@@ -290,7 +290,7 @@ def test_edit_preserves_snapshots_dossier_filter_and_protected_delete(suppliers)
 def test_dossier_uses_existing_supplier_and_preserves_link_after_directory_rename(
     suppliers,
 ):
-    from logistique.purchase_views import create_purchase_dossier
+    from logistique.purchase_services import create_purchase_dossier
 
     ctx = suppliers
     allow(ctx)

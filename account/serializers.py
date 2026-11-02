@@ -13,7 +13,7 @@ from rest_framework.request import Request
 
 from company.models import Company
 from company.serializers import MembershipCompanySerializer
-from facturation_backend.utils import ImageProcessor
+from core.images import ImageProcessor
 from .models import CustomUser, Membership, Role
 
 

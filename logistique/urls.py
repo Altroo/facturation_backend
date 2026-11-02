@@ -27,7 +27,6 @@ from .views import (
 from .purchase_views import (
     PurchaseWorkflowView,
     ImportTitleExtractView,
-    SupplierDirectoryView,
 )
 
 from .supplier_views import BulkDeleteLogisticsSupplierView, LogisticsSupplierListView, LogisticsSupplierDetailView
@@ -35,11 +34,6 @@ from .supplier_views import BulkDeleteLogisticsSupplierView, LogisticsSupplierLi
 app_name = "logistique"
 
 urlpatterns = [
-    path(
-        "supplier_directory/",
-        SupplierDirectoryView.as_view(),
-        name="logistique-supplier-directory",
-    ),
     path(
         "<int:pk>/purchase/", PurchaseWorkflowView.as_view(), name="logistique-purchase"
     ),

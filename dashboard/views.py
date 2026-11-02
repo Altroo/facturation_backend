@@ -1,24 +1,21 @@
-from datetime import timedelta, datetime, time
+from datetime import datetime, time, timedelta
 from decimal import Decimal
 from typing import Any
 
 from django.db.models import (
-    Sum,
-    Count,
-    F,
-    Avg,
-    Subquery,
-    OuterRef,
-    DecimalField,
     Case,
-    When,
-    Value,
-    IntegerField,
-    ExpressionWrapper,
+    Count,
+    DecimalField,
     DurationField,
+    ExpressionWrapper,
+    F,
+    IntegerField,
     Q,
+    Sum,
+    Value,
+    When,
 )
-from django.db.models.functions import TruncMonth, TruncDate, Coalesce, Greatest
+from django.db.models.functions import Greatest, TruncDate, TruncMonth
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from rest_framework import status
@@ -31,12 +28,21 @@ from account.models import Membership
 from bon_de_livraison.models import BonDeLivraison, BonDeLivraisonLine
 from client.models import Client
 from devi.models import Devi, DeviLine
-from facture_avoir.models import AVOIR_ACTIVE_STATUSES, FactureAvoir
 from facture_client.models import FactureClient, FactureClientLine
-from facture_proforma.models import FactureProForma, FactureProFormaLine
+from facture_proforma.models import FactureProFormaLine
 from reglement.models import Reglement
+
 from .models import MonthlyObjectives
 from .serializers import MonthlyObjectivesSerializer
+from .services import (
+    annotate_total_reglements,
+    apply_scope_to_filters,
+    apply_scope_to_queryset,
+    avoir_queryset,
+    calculate_kpi_for_currency,
+    collection_rate,
+    total_avoirs,
+)
 
 
 def make_aware_datetime_start(d):
@@ -46,120 +52,18 @@ def make_aware_datetime_start(d):
     return timezone.make_aware(datetime.combine(d, time.min))
 
 
-def _money_field():
-    return DecimalField(max_digits=10, decimal_places=2)
 
 
-def _sum_decimal(queryset, field_name):
-    return queryset.aggregate(
-        total=Coalesce(Sum(field_name), Decimal("0"), output_field=_money_field())
-    )["total"]
 
 
-def _apply_scope_to_queryset(
-    queryset,
-    client_id=None,
-    project_ref=None,
-    client_field="client_id",
-    project_field=None,
-):
-    if client_id and client_field:
-        queryset = queryset.filter(**{client_field: client_id})
-    if project_ref and project_field:
-        queryset = queryset.filter(**{f"{project_field}__icontains": project_ref})
-    return queryset
 
 
-def _apply_scope_to_filters(
-    filters,
-    client_id=None,
-    project_ref=None,
-    client_field="client_id",
-    project_field=None,
-):
-    if client_id and client_field:
-        filters[client_field] = client_id
-    if project_ref and project_field:
-        filters[f"{project_field}__icontains"] = project_ref
-    return filters
 
 
-def _avoir_queryset(
-    date_from=None,
-    date_to=None,
-    company_id=None,
-    devise=None,
-    client_id=None,
-    project_ref=None,
-):
-    queryset = FactureAvoir.objects.filter(statut__in=AVOIR_ACTIVE_STATUSES)
-    if date_from:
-        queryset = queryset.filter(date_avoir__gte=date_from)
-    if date_to:
-        queryset = queryset.filter(date_avoir__lte=date_to)
-    if company_id:
-        queryset = queryset.filter(company_id=company_id)
-    if devise:
-        queryset = queryset.filter(devise=devise)
-    queryset = _apply_scope_to_queryset(
-        queryset,
-        client_id,
-        project_ref,
-        client_field="client_id",
-        project_field="numero_bon_commande_client",
-    )
-    return queryset
 
 
-def _total_avoirs(
-    date_from=None,
-    date_to=None,
-    company_id=None,
-    devise=None,
-    client_id=None,
-    project_ref=None,
-):
-    return _sum_decimal(
-        _avoir_queryset(date_from, date_to, company_id, devise, client_id, project_ref),
-        "total_ttc_apres_remise",
-    )
 
 
-def _annotate_total_reglements(queryset, as_of=None):
-    """Annotate a FactureClient queryset with payments, credits, and net total."""
-    payments = Reglement.objects.filter(
-        facture_client_id=OuterRef("id"), statut="Valide"
-    )
-    credits = FactureAvoir.objects.filter(
-        facture_origine_id=OuterRef("id"), statut__in=AVOIR_ACTIVE_STATUSES
-    )
-    if as_of is not None:
-        payments = payments.filter(date_reglement__lte=as_of)
-        credits = credits.filter(date_avoir__lte=as_of)
-    total_reglements_subquery = Subquery(
-        payments.values("facture_client_id")
-        .annotate(total=Sum("montant"))
-        .values("total")[:1],
-        output_field=_money_field(),
-    )
-    total_avoirs_subquery = Subquery(
-        credits.values("facture_origine_id")
-        .annotate(total=Sum("total_ttc_apres_remise"))
-        .values("total")[:1],
-        output_field=_money_field(),
-    )
-    return queryset.annotate(
-        total_reglements=Coalesce(
-            total_reglements_subquery, Decimal("0"), output_field=_money_field()
-        ),
-        total_avoirs=Coalesce(
-            total_avoirs_subquery, Decimal("0"), output_field=_money_field()
-        ),
-        net_total=ExpressionWrapper(
-            F("total_ttc_apres_remise") - F("total_avoirs"),
-            output_field=_money_field(),
-        ),
-    )
 
 
 def make_aware_datetime_end(d):
@@ -272,7 +176,7 @@ class MonthlyRevenueEvolutionView(APIView):
 
         if devise:
             queryset = queryset.filter(devise=devise)
-        queryset = _apply_scope_to_queryset(
+        queryset = apply_scope_to_queryset(
             queryset,
             client_id,
             project_ref,
@@ -287,7 +191,7 @@ class MonthlyRevenueEvolutionView(APIView):
             .order_by("month")
         )
         avoir_data = (
-            _avoir_queryset(
+            avoir_queryset(
                 date_from, date_to, company_id, devise, client_id, project_ref
             )
             .annotate(month=TruncMonth("date_avoir"))
@@ -326,7 +230,7 @@ def _decision_chart_queryset(request, model, date_field):
     )
     if date_from:
         queryset = queryset.filter(**{f"{date_field}__gte": date_from})
-    queryset = _apply_scope_to_queryset(
+    queryset = apply_scope_to_queryset(
         queryset,
         client_id,
         project_ref,
@@ -347,7 +251,7 @@ class ReceivablesByClientView(APIView):
             request, FactureClient, "date_facture"
         )
         queryset = (
-            _annotate_total_reglements(
+            annotate_total_reglements(
                 queryset.filter(statut__in=["Envoyé", "Accepté"]), as_of=today
             )
             .annotate(outstanding=F("net_total") - F("total_reglements"))
@@ -494,14 +398,14 @@ class PaymentStatusOverviewView(APIView):
             facture_filter["client__company_id"] = company_id
         if devise:
             facture_filter["devise"] = devise
-        _apply_scope_to_filters(
+        apply_scope_to_filters(
             facture_filter,
             client_id,
             project_ref,
             client_field="client_id",
             project_field="numero_bon_commande_client",
         )
-        _apply_scope_to_filters(
+        apply_scope_to_filters(
             facture_filter,
             client_id,
             project_ref,
@@ -509,7 +413,7 @@ class PaymentStatusOverviewView(APIView):
             project_field="numero_bon_commande_client",
         )
 
-        factures = _annotate_total_reglements(
+        factures = annotate_total_reglements(
             FactureClient.objects.filter(**facture_filter)
         )
 
@@ -558,65 +462,7 @@ class CollectionRateView(APIView):
 
     @staticmethod
     def get(request):
-        date_from, date_to, company_id, devise, client_id, project_ref = (
-            parse_date_filters(request)
-        )
-
-        facture_filter: dict[str, Any] = {"date_facture__lte": date_to}
-        reglement_filter: dict[str, Any] = {
-            "date_reglement__lte": date_to,
-            "statut": "Valide",
-        }
-
-        if date_from:
-            facture_filter["date_facture__gte"] = date_from
-            reglement_filter["date_reglement__gte"] = date_from
-
-        if company_id:
-            facture_filter["client__company_id"] = company_id
-            reglement_filter["facture_client__client__company_id"] = company_id
-
-        if devise:
-            facture_filter["devise"] = devise
-            reglement_filter["facture_client__devise"] = devise
-        _apply_scope_to_filters(
-            facture_filter,
-            client_id,
-            project_ref,
-            client_field="client_id",
-            project_field="numero_bon_commande_client",
-        )
-        _apply_scope_to_filters(
-            reglement_filter,
-            client_id,
-            project_ref,
-            client_field="facture_client__client_id",
-            project_field="facture_client__numero_bon_commande_client",
-        )
-
-        total_invoiced = FactureClient.objects.filter(**facture_filter).aggregate(
-            total=Sum("total_ttc_apres_remise")
-        )["total"] or Decimal("0")
-        total_invoiced -= _total_avoirs(
-            date_from, date_to, company_id, devise, client_id, project_ref
-        )
-
-        total_collected = Reglement.objects.filter(**reglement_filter).aggregate(
-            total=Sum("montant")
-        )["total"] or Decimal("0")
-
-        if total_invoiced > 0:
-            rate = (total_collected / total_invoiced) * 100
-        else:
-            rate = 0
-
-        result = {
-            "rate": float(rate),
-            "total_invoiced": float(total_invoiced),
-            "total_collected": float(total_collected),
-        }
-
-        return Response(result)
+        return Response(collection_rate(*parse_date_filters(request)))
 
 
 class TopClientsByRevenueView(APIView):
@@ -637,7 +483,7 @@ class TopClientsByRevenueView(APIView):
             facture_filter["client__company_id"] = company_id
         if devise:
             facture_filter["devise"] = devise
-        _apply_scope_to_filters(
+        apply_scope_to_filters(
             facture_filter,
             client_id,
             project_ref,
@@ -654,7 +500,7 @@ class TopClientsByRevenueView(APIView):
             )
         )
         credit_data = (
-            _avoir_queryset(
+            avoir_queryset(
                 date_from, date_to, company_id, devise, client_id, project_ref
             )
             .values("client__id", "client__code_client", "client__raison_sociale")
@@ -732,28 +578,28 @@ class TopProductsByQuantityView(APIView):
             proforma_filter["facture_pro_forma__client__company_id"] = company_id
             bdl_filter["bon_de_livraison__client__company_id"] = company_id
 
-        _apply_scope_to_filters(
+        apply_scope_to_filters(
             devi_filter,
             client_id,
             project_ref,
             client_field="devis__client_id",
             project_field="devis__numero_demande_prix_client",
         )
-        _apply_scope_to_filters(
+        apply_scope_to_filters(
             facture_filter,
             client_id,
             project_ref,
             client_field="facture_client__client_id",
             project_field="facture_client__numero_bon_commande_client",
         )
-        _apply_scope_to_filters(
+        apply_scope_to_filters(
             proforma_filter,
             client_id,
             project_ref,
             client_field="facture_pro_forma__client_id",
             project_field="facture_pro_forma__numero_bon_commande_client",
         )
-        _apply_scope_to_filters(
+        apply_scope_to_filters(
             bdl_filter,
             client_id,
             project_ref,
@@ -861,7 +707,7 @@ class QuoteConversionRateView(APIView):
             devi_filter["date_devis__gte"] = date_from
         if company_id:
             devi_filter["client__company_id"] = company_id
-        _apply_scope_to_filters(
+        apply_scope_to_filters(
             devi_filter,
             client_id,
             project_ref,
@@ -898,14 +744,14 @@ class ProductPriceVolumeAnalysisView(APIView):
             facture_filter["facture_client__client__company_id"] = company_id
         if devise:
             facture_filter["devise_prix_vente"] = devise
-        _apply_scope_to_filters(
+        apply_scope_to_filters(
             facture_filter,
             client_id,
             project_ref,
             client_field="facture_client__client_id",
             project_field="facture_client__numero_bon_commande_client",
         )
-        _apply_scope_to_filters(
+        apply_scope_to_filters(
             facture_filter,
             client_id,
             project_ref,
@@ -971,21 +817,21 @@ class MonthlyDocumentVolumeView(APIView):
             facture_query = facture_query.filter(client__company_id=company_id)
             bdl_query = bdl_query.filter(client__company_id=company_id)
 
-        devis_query = _apply_scope_to_queryset(
+        devis_query = apply_scope_to_queryset(
             devis_query,
             client_id,
             project_ref,
             client_field="client_id",
             project_field="numero_demande_prix_client",
         )
-        facture_query = _apply_scope_to_queryset(
+        facture_query = apply_scope_to_queryset(
             facture_query,
             client_id,
             project_ref,
             client_field="client_id",
             project_field="numero_bon_commande_client",
         )
-        bdl_query = _apply_scope_to_queryset(
+        bdl_query = apply_scope_to_queryset(
             bdl_query,
             client_id,
             project_ref,
@@ -1074,7 +920,7 @@ class PaymentTimelineView(APIView):
         invoice_query = FactureClient.objects.filter(
             date_facture__gte=date_from, date_facture__lte=date_to
         )
-        credit_query = _avoir_queryset(
+        credit_query = avoir_queryset(
             date_from, date_to, company_id, devise, client_id, project_ref
         )
         payment_query = Reglement.objects.filter(
@@ -1093,14 +939,14 @@ class PaymentTimelineView(APIView):
             invoice_query = invoice_query.filter(devise=devise)
             payment_query = payment_query.filter(facture_client__devise=devise)
 
-        invoice_query = _apply_scope_to_queryset(
+        invoice_query = apply_scope_to_queryset(
             invoice_query,
             client_id,
             project_ref,
             client_field="client_id",
             project_field="numero_bon_commande_client",
         )
-        payment_query = _apply_scope_to_queryset(
+        payment_query = apply_scope_to_queryset(
             payment_query,
             client_id,
             project_ref,
@@ -1173,7 +1019,7 @@ class OverdueReceivablesView(APIView):
             facture_filter["client__company_id"] = company_id
         if devise:
             facture_filter["devise"] = devise
-        _apply_scope_to_filters(
+        apply_scope_to_filters(
             facture_filter,
             client_id,
             project_ref,
@@ -1183,7 +1029,7 @@ class OverdueReceivablesView(APIView):
 
         # Push outstanding calculation into SQL; fetch only the two needed columns.
         factures = (
-            _annotate_total_reglements(FactureClient.objects.filter(**facture_filter))
+            annotate_total_reglements(FactureClient.objects.filter(**facture_filter))
             .annotate(
                 outstanding=Greatest(
                     ExpressionWrapper(
@@ -1250,7 +1096,7 @@ class PaymentDelayByClientView(APIView):
             reglement_filter["facture_client__client__company_id"] = company_id
         if devise:
             reglement_filter["facture_client__devise"] = devise
-        _apply_scope_to_filters(
+        apply_scope_to_filters(
             reglement_filter,
             client_id,
             project_ref,
@@ -1319,7 +1165,7 @@ class ClientMultidimensionalProfileView(APIView):
             facture_filter["client__company_id"] = company_id
         if devise:
             facture_filter["devise"] = devise
-        _apply_scope_to_filters(
+        apply_scope_to_filters(
             facture_filter,
             client_id,
             project_ref,
@@ -1342,7 +1188,7 @@ class ClientMultidimensionalProfileView(APIView):
             return Response([])
 
         credit_data = (
-            _avoir_queryset(
+            avoir_queryset(
                 date_from, date_to, company_id, devise, client_id, project_ref
             )
             .values("client__id")
@@ -1371,7 +1217,7 @@ class ClientMultidimensionalProfileView(APIView):
             reglement_filter_base["date_reglement__gte"] = date_from
         if devise:
             reglement_filter_base["facture_client__devise"] = devise
-        _apply_scope_to_filters(
+        apply_scope_to_filters(
             reglement_filter_base,
             client_id,
             project_ref,
@@ -1406,7 +1252,7 @@ class ClientMultidimensionalProfileView(APIView):
         }
         if date_from:
             devi_filter_base["date_devis__gte"] = date_from
-        _apply_scope_to_filters(
+        apply_scope_to_filters(
             devi_filter_base,
             client_id,
             project_ref,
@@ -1481,150 +1327,6 @@ class KPICardsWithTrendsView(APIView):
 
     permission_classes = [IsAuthenticated]
 
-    @staticmethod
-    def calculate_kpi_for_currency(
-        devise,
-        date_from,
-        date_to,
-        company_id,
-        current_period_start,
-        seven_days_before_date_to,
-        client_id=None,
-        project_ref=None,
-    ):
-        """Calculate KPIs for a specific currency."""
-        # CA total with trend
-        current_month_query = FactureClient.objects.filter(
-            date_facture__gte=current_period_start,
-            date_facture__lte=date_to,
-            devise=devise,
-        )
-        daily_revenue_query = FactureClient.objects.filter(
-            date_facture__gte=seven_days_before_date_to,
-            date_facture__lte=date_to,
-            devise=devise,
-        )
-
-        if company_id:
-            current_month_query = current_month_query.filter(
-                client__company_id=company_id
-            )
-            daily_revenue_query = daily_revenue_query.filter(
-                client__company_id=company_id
-            )
-
-        current_month_query = _apply_scope_to_queryset(
-            current_month_query,
-            client_id,
-            project_ref,
-            client_field="client_id",
-            project_field="numero_bon_commande_client",
-        )
-        daily_revenue_query = _apply_scope_to_queryset(
-            daily_revenue_query,
-            client_id,
-            project_ref,
-            client_field="client_id",
-            project_field="numero_bon_commande_client",
-        )
-
-        current_month_revenue = (
-            current_month_query.aggregate(total=Sum("total_ttc_apres_remise"))["total"]
-            or 0
-        )
-        current_month_revenue -= _total_avoirs(
-            current_period_start, date_to, company_id, devise, client_id, project_ref
-        )
-
-        daily_revenue = (
-            daily_revenue_query.annotate(date=TruncDate("date_facture"))
-            .values("date")
-            .annotate(amount=Sum("total_ttc_apres_remise"))
-            .order_by("date")
-        )
-        daily_credits = (
-            _avoir_queryset(
-                seven_days_before_date_to,
-                date_to,
-                company_id,
-                devise,
-                client_id,
-                project_ref,
-            )
-            .annotate(date=TruncDate("date_avoir"))
-            .values("date")
-            .annotate(amount=Sum("total_ttc_apres_remise"))
-            .order_by("date")
-        )
-
-        daily_amounts = {}
-        for item in daily_revenue:
-            daily_amounts[item["date"]] = item["amount"] or Decimal("0")
-        for item in daily_credits:
-            daily_amounts[item["date"]] = daily_amounts.get(
-                item["date"], Decimal("0")
-            ) - (item["amount"] or Decimal("0"))
-        revenue_trend = [float(amount) for _, amount in sorted(daily_amounts.items())]
-
-        # Créances en cours
-        facture_filter: dict[str, Any] = {
-            "date_facture__lte": date_to,
-            "devise": devise,
-        }
-        if date_from:
-            facture_filter["date_facture__gte"] = date_from
-        if company_id:
-            facture_filter["client__company_id"] = company_id
-        _apply_scope_to_filters(
-            facture_filter,
-            client_id,
-            project_ref,
-            client_field="client_id",
-            project_field="numero_bon_commande_client",
-        )
-
-        factures = _annotate_total_reglements(
-            FactureClient.objects.filter(**facture_filter)
-        )
-        outstanding_current = (
-            factures.annotate(outstanding=F("net_total") - F("total_reglements"))
-            .filter(outstanding__gt=0)
-            .aggregate(total=Coalesce(Sum("outstanding"), Decimal("0")))["total"]
-        )
-
-        outstanding_trend = [
-            float(outstanding_current * Decimal("0.95")),
-            float(outstanding_current),
-        ]
-
-        # Montant moyen des factures
-        avg_amount_current = (
-            _annotate_total_reglements(
-                FactureClient.objects.filter(**facture_filter)
-            ).aggregate(avg=Avg("net_total"))["avg"]
-            or 0
-        )
-
-        # Nombre de clients actifs
-        active_clients = (
-            FactureClient.objects.filter(**facture_filter)
-            .values("client")
-            .distinct()
-            .count()
-        )
-
-        return {
-            "current_month_revenue": {
-                "value": float(current_month_revenue),
-                "trend": revenue_trend,
-            },
-            "outstanding_receivables": {
-                "value": float(outstanding_current),
-                "trend": outstanding_trend,
-            },
-            "average_invoice_amount": {"value": float(avg_amount_current), "trend": []},
-            "active_clients": {"value": active_clients, "trend": []},
-        }
 
     @staticmethod
     def get(request):
@@ -1647,7 +1349,7 @@ class KPICardsWithTrendsView(APIView):
         # Calculate KPIs for each currency
         result = {
             "currency_data": {
-                "MAD": KPICardsWithTrendsView.calculate_kpi_for_currency(
+                "MAD": calculate_kpi_for_currency(
                     "MAD",
                     date_from,
                     date_to,
@@ -1657,7 +1359,7 @@ class KPICardsWithTrendsView(APIView):
                     client_id,
                     project_ref,
                 ),
-                "EUR": KPICardsWithTrendsView.calculate_kpi_for_currency(
+                "EUR": calculate_kpi_for_currency(
                     "EUR",
                     date_from,
                     date_to,
@@ -1667,7 +1369,7 @@ class KPICardsWithTrendsView(APIView):
                     client_id,
                     project_ref,
                 ),
-                "USD": KPICardsWithTrendsView.calculate_kpi_for_currency(
+                "USD": calculate_kpi_for_currency(
                     "USD",
                     date_from,
                     date_to,
@@ -1711,14 +1413,14 @@ class MonthlyObjectivesView(APIView):
         if company_id:
             facture_filter["client__company_id"] = company_id
             devi_filter["client__company_id"] = company_id
-        _apply_scope_to_filters(
+        apply_scope_to_filters(
             facture_filter,
             client_id,
             project_ref,
             client_field="client_id",
             project_field="numero_bon_commande_client",
         )
-        _apply_scope_to_filters(
+        apply_scope_to_filters(
             devi_filter,
             client_id,
             project_ref,
@@ -1733,7 +1435,7 @@ class MonthlyObjectivesView(APIView):
             )["total"]
             or 0
         )
-        current_revenue_mad -= _total_avoirs(
+        current_revenue_mad -= total_avoirs(
             current_period_start, date_to, company_id, "MAD", client_id, project_ref
         )
         current_revenue_eur = (
@@ -1742,7 +1444,7 @@ class MonthlyObjectivesView(APIView):
             )["total"]
             or 0
         )
-        current_revenue_eur -= _total_avoirs(
+        current_revenue_eur -= total_avoirs(
             current_period_start, date_to, company_id, "EUR", client_id, project_ref
         )
         current_revenue_usd = (
@@ -1751,7 +1453,7 @@ class MonthlyObjectivesView(APIView):
             )["total"]
             or 0
         )
-        current_revenue_usd -= _total_avoirs(
+        current_revenue_usd -= total_avoirs(
             current_period_start, date_to, company_id, "USD", client_id, project_ref
         )
 
@@ -2026,42 +1728,42 @@ class MonthlyGlobalPerformanceView(APIView):
             )
             previous_client_query = previous_client_query.filter(company_id=company_id)
 
-        current_facture_query = _apply_scope_to_queryset(
+        current_facture_query = apply_scope_to_queryset(
             current_facture_query,
             client_id,
             project_ref,
             client_field="client_id",
             project_field="numero_bon_commande_client",
         )
-        current_devi_query = _apply_scope_to_queryset(
+        current_devi_query = apply_scope_to_queryset(
             current_devi_query,
             client_id,
             project_ref,
             client_field="client_id",
             project_field="numero_demande_prix_client",
         )
-        current_reglement_query = _apply_scope_to_queryset(
+        current_reglement_query = apply_scope_to_queryset(
             current_reglement_query,
             client_id,
             project_ref,
             client_field="facture_client__client_id",
             project_field="facture_client__numero_bon_commande_client",
         )
-        previous_facture_query = _apply_scope_to_queryset(
+        previous_facture_query = apply_scope_to_queryset(
             previous_facture_query,
             client_id,
             project_ref,
             client_field="client_id",
             project_field="numero_bon_commande_client",
         )
-        previous_devi_query = _apply_scope_to_queryset(
+        previous_devi_query = apply_scope_to_queryset(
             previous_devi_query,
             client_id,
             project_ref,
             client_field="client_id",
             project_field="numero_demande_prix_client",
         )
-        previous_reglement_query = _apply_scope_to_queryset(
+        previous_reglement_query = apply_scope_to_queryset(
             previous_reglement_query,
             client_id,
             project_ref,
@@ -2079,7 +1781,7 @@ class MonthlyGlobalPerformanceView(APIView):
             ]
             or 0
         )
-        current_revenue -= _total_avoirs(
+        current_revenue -= total_avoirs(
             current_start, current_end, company_id, None, client_id, project_ref
         )
 
@@ -2103,7 +1805,7 @@ class MonthlyGlobalPerformanceView(APIView):
             ]
             or 0
         )
-        previous_revenue -= _total_avoirs(
+        previous_revenue -= total_avoirs(
             previous_start, previous_end, company_id, None, client_id, project_ref
         )
 
@@ -2159,7 +1861,7 @@ class SectionMicroTrendsView(APIView):
         financial_query = FactureClient.objects.filter(
             date_facture__gte=date_from, date_facture__lte=date_to
         )
-        financial_credit_query = _avoir_queryset(
+        financial_credit_query = avoir_queryset(
             date_from, date_to, company_id, devise, client_id, project_ref
         )
         commercial_query = Devi.objects.filter(
@@ -2182,28 +1884,28 @@ class SectionMicroTrendsView(APIView):
                 facture_client__client__company_id=company_id
             )
 
-        financial_query = _apply_scope_to_queryset(
+        financial_query = apply_scope_to_queryset(
             financial_query,
             client_id,
             project_ref,
             client_field="client_id",
             project_field="numero_bon_commande_client",
         )
-        commercial_query = _apply_scope_to_queryset(
+        commercial_query = apply_scope_to_queryset(
             commercial_query,
             client_id,
             project_ref,
             client_field="client_id",
             project_field="numero_demande_prix_client",
         )
-        operational_query = _apply_scope_to_queryset(
+        operational_query = apply_scope_to_queryset(
             operational_query,
             client_id,
             project_ref,
             client_field="client_id",
             project_field="numero_bon_commande_client",
         )
-        cashflow_query = _apply_scope_to_queryset(
+        cashflow_query = apply_scope_to_queryset(
             cashflow_query,
             client_id,
             project_ref,

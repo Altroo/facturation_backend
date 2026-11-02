@@ -33,7 +33,7 @@ from rest_framework_simplejwt.settings import (
 
 from account.models import Membership, Role
 from core.constants import ROLES_RESTRICTED
-from facturation_backend.utils import CustomPagination
+from core.pagination import CustomPagination
 from .filters import UsersFilter
 from .models import CustomUser
 from .serializers import (

@@ -1,5 +1,5 @@
 from collections.abc import Iterable, Sized
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import ROUND_HALF_UP, Decimal
 from pathlib import Path
 from typing import Any, cast
 
@@ -10,13 +10,18 @@ from rest_framework import serializers
 from account.models import Membership
 from core.constants import CURRENCY_CHOICES
 from parameter.models import Marque
+
+from .compatibility import can_adopt_supplier_workflow
+from .history import event_value_dates
 from .models import (
     LogisticsOrder,
     LogisticsOrderEvent,
     LogisticsOrderLine,
-    LogisticsProcessNote,
     LogisticsPaymentInstallment,
+    LogisticsProcessNote,
+    LogisticsSupplier,
 )
+from .purchase import validate_purchase_transition, workflow_summary
 
 ALLOWED_DOCUMENT_EXTENSIONS = {
     ".pdf",
@@ -83,7 +88,8 @@ class LogisticsOrderLineSerializer(serializers.ModelSerializer):
     class Meta:
         model = LogisticsOrderLine
         fields = [
-            "id", "type_article",
+            "id",
+            "type_article",
             "proforma",
             "source_line",
             "proforma_numero",
@@ -122,7 +128,10 @@ class LogisticsOrderLineSerializer(serializers.ModelSerializer):
     def get_incoming_active(obj):
         return (
             obj.commande.statut_commande_lancement == "Terminée"
-            and (not obj.commande.is_supplier_purchase or obj.commande.is_proforma_step_complete)
+            and (
+                not obj.commande.is_supplier_purchase
+                or obj.commande.is_proforma_step_complete
+            )
             and obj.commande.statut_global != "Annulé"
             and obj.commande.statut
             not in LogisticsOrder.STOCK_INCOMING_EXCLUDED_STATUSES
@@ -140,7 +149,6 @@ class LogisticsOrderEventSerializer(serializers.ModelSerializer):
     new_value_since = serializers.SerializerMethodField()
 
     def _value_since(self, obj, side):
-        from .history import event_value_dates
         if not hasattr(self, "_value_dates"):
             self._value_dates = {}
         if obj.commande_id not in self._value_dates:
@@ -184,7 +192,11 @@ class LogisticsPaymentInstallmentSerializer(serializers.ModelSerializer):
         model = LogisticsPaymentInstallment
         fields = [
             "id",
-            "date_echeance", "declencheur", "demandee_le", "notification_createur_envoyee_le", "notification_createur_erreur",
+            "date_echeance",
+            "declencheur",
+            "demandee_le",
+            "notification_createur_envoyee_le",
+            "notification_createur_erreur",
             "montant_prevu",
             "pourcentage",
             "devise",
@@ -234,12 +246,10 @@ class LogisticsOrderBaseSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def get_can_adopt_supplier_workflow(obj):
-        from .compatibility import can_adopt_supplier_workflow
         return can_adopt_supplier_workflow(obj)
 
     @staticmethod
     def get_workflow(obj):
-        from .purchase import workflow_summary
         return workflow_summary(obj)
 
     marque_name = serializers.CharField(source="marque.nom", read_only=True)
@@ -268,9 +278,16 @@ class LogisticsOrderBaseSerializer(serializers.ModelSerializer):
     class Meta:
         model = LogisticsOrder
         fields = [
-            "workflow_version", "condition_achat", "workflow", "can_adopt_supplier_workflow", "date_commande_client",
-            "date_expedition_prevue", "production_confirmee_le", "date_expedition_reelle",
-            "date_arrivee_maroc", "documents_remis_banque_le",
+            "workflow_version",
+            "condition_achat",
+            "workflow",
+            "can_adopt_supplier_workflow",
+            "date_commande_client",
+            "date_expedition_prevue",
+            "production_confirmee_le",
+            "date_expedition_reelle",
+            "date_arrivee_maroc",
+            "documents_remis_banque_le",
             "id",
             "company",
             "numero_commande",
@@ -538,7 +555,13 @@ class LogisticsOrderBaseSerializer(serializers.ModelSerializer):
                     f"Proforma client {proforma.numero_facture} expirée — commande à vérifier."
                 )
         if obj.statut_paiement == "En attente":
-            if not obj.is_supplier_purchase or any(item.demandee_le and item.date_echeance and item.date_echeance < timezone.localdate() and not item.paiement_valide_le for item in obj.echeances_paiement.all()):
+            if not obj.is_supplier_purchase or any(
+                item.demandee_le
+                and item.date_echeance
+                and item.date_echeance < timezone.localdate()
+                and not item.paiement_valide_le
+                for item in obj.echeances_paiement.all()
+            ):
                 alerts.append("Échéance de paiement dépassée")
         if obj.has_missing_swift:
             alerts.append("SWIFT manquant")
@@ -557,9 +580,16 @@ class LogisticsOrderBaseSerializer(serializers.ModelSerializer):
 class LogisticsOrderListSerializer(LogisticsOrderBaseSerializer):
     class Meta(LogisticsOrderBaseSerializer.Meta):
         fields = [
-            "workflow_version", "condition_achat", "workflow", "can_adopt_supplier_workflow", "date_commande_client",
-            "date_expedition_prevue", "production_confirmee_le", "date_expedition_reelle",
-            "date_arrivee_maroc", "documents_remis_banque_le",
+            "workflow_version",
+            "condition_achat",
+            "workflow",
+            "can_adopt_supplier_workflow",
+            "date_commande_client",
+            "date_expedition_prevue",
+            "production_confirmee_le",
+            "date_expedition_reelle",
+            "date_arrivee_maroc",
+            "documents_remis_banque_le",
             "id",
             "company",
             "numero_commande",
@@ -623,13 +653,29 @@ class LogisticsOrderDetailSerializer(LogisticsOrderBaseSerializer):
                 row = dict(change)
                 document = documents.get(row["field"])
                 if document:
-                    row["file_url"] = request.build_absolute_uri(document.file.url) if request else document.file.url
+                    row["file_url"] = (
+                        request.build_absolute_uri(document.file.url)
+                        if request
+                        else document.file.url
+                    )
                 changes.append(row)
-            result.append({"id": item.pk, "etape": item.etape, "remarque": item.remarque,
-                "statut": item.statut, "demandeur": item.demandeur_id, "responsable": item.responsable_id,
-                "demandeur_name": f"{item.demandeur.first_name} {item.demandeur.last_name}".strip() or item.demandeur.email,
-                "date_created": item.date_created, "decided_at": item.decided_at, "applied_at": item.applied_at,
-                "has_proposal": bool(item.proposed_data), "changes": changes})
+            result.append(
+                {
+                    "id": item.pk,
+                    "etape": item.etape,
+                    "remarque": item.remarque,
+                    "statut": item.statut,
+                    "demandeur": item.demandeur_id,
+                    "responsable": item.responsable_id,
+                    "demandeur_name": f"{item.demandeur.first_name} {item.demandeur.last_name}".strip()
+                    or item.demandeur.email,
+                    "date_created": item.date_created,
+                    "decided_at": item.decided_at,
+                    "applied_at": item.applied_at,
+                    "has_proposal": bool(item.proposed_data),
+                    "changes": changes,
+                }
+            )
         return result
 
     class Meta(LogisticsOrderBaseSerializer.Meta):
@@ -663,7 +709,8 @@ class LogisticsOrderDetailSerializer(LogisticsOrderBaseSerializer):
                 "date_created": date_time.to_representation(receipt.date_created),
                 "date_validated": (
                     date_time.to_representation(receipt.date_validated)
-                    if receipt.date_validated else None
+                    if receipt.date_validated
+                    else None
                 ),
                 "created_by_name": _user_display_name(receipt.created_by),
                 "validated_by_name": _user_display_name(receipt.validated_by),
@@ -826,7 +873,6 @@ class LogisticsOrderUpdateSerializer(serializers.ModelSerializer):
         return validate_logistics_document(value)
 
     def validate_statut(self, value):
-        from .purchase import validate_purchase_transition
         validate_purchase_transition(self.order, value)
         if value == "Annulé":
             raise serializers.ValidationError(
@@ -876,7 +922,9 @@ class LogisticsOrderUpdateSerializer(serializers.ModelSerializer):
             "commentaire_paiement",
             "swift_file",
         }
-        if self.order.statut_paiement != "Non demandé" and not self.context.get("approved_correction"):
+        if self.order.statut_paiement != "Non demandé" and not self.context.get(
+            "approved_correction"
+        ):
             restricted_fields.update(
                 {
                     field: _(
@@ -900,8 +948,14 @@ class LogisticsOrderUpdateSerializer(serializers.ModelSerializer):
         }
         if errors:
             raise serializers.ValidationError(errors)
-        if self.order.is_supplier_purchase and ({"methode_paiement", "avance_pourcentage"} & set(self.initial_data)):
-            raise serializers.ValidationError({"paiement": "La méthode et l’avance sont calculées depuis les conditions d’achat."})
+        if self.order.is_supplier_purchase and (
+            {"methode_paiement", "avance_pourcentage"} & set(self.initial_data)
+        ):
+            raise serializers.ValidationError(
+                {
+                    "paiement": "La méthode et l’avance sont calculées depuis les conditions d’achat."
+                }
+            )
         payment_method = attrs.get("methode_paiement", self.order.methode_paiement)
         advance = attrs.get("avance_pourcentage", self.order.avance_pourcentage)
         if not self.order.is_supplier_purchase and payment_method != "LC":
@@ -1222,3 +1276,55 @@ class LogisticsProcessNoteSerializer(serializers.ModelSerializer):
     @staticmethod
     def validate_fichier(value):
         return validate_logistics_document(value)
+
+
+class LogisticsSupplierSerializer(serializers.ModelSerializer):
+    marques = serializers.PrimaryKeyRelatedField(
+        many=True, queryset=Marque.objects.all(), required=False
+    )
+    marques_names = serializers.SlugRelatedField(
+        source="marques", many=True, read_only=True, slug_field="nom"
+    )
+    total_dossiers = serializers.IntegerField(read_only=True, default=0)
+    derniere_activite = serializers.DateTimeField(read_only=True)
+    # Existing clients can still display the directory while the frontend deploys.
+    fournisseur = serializers.CharField(source="nom", read_only=True)
+    fournisseur_email = serializers.CharField(source="email", read_only=True)
+
+    class Meta:
+        model = LogisticsSupplier
+        fields = [
+            "id",
+            "company",
+            "nom",
+            "email",
+            "marques",
+            "marques_names",
+            "total_dossiers",
+            "derniere_activite",
+            "date_created",
+            "date_updated",
+            "fournisseur",
+            "fournisseur_email",
+        ]
+        read_only_fields = ["company", "date_created", "date_updated"]
+        validators = []
+
+    def validate_marques(self, values):
+        if any(brand.company_id != self.context["company_id"] for brand in values):
+            raise serializers.ValidationError(
+                "Toutes les marques doivent appartenir à cette société."
+            )
+        return values
+
+    def validate_nom(self, value):
+        existing = LogisticsSupplier.objects.filter(
+            company_id=self.context["company_id"], nom__iexact=value
+        )
+        if self.instance:
+            existing = existing.exclude(pk=self.instance.pk)
+        if existing.exists():
+            raise serializers.ValidationError(
+                "Ce fournisseur existe déjà pour cette société."
+            )
+        return value

@@ -1,10 +1,21 @@
 from decimal import Decimal
 
-from django.db.models import Sum
+from django.db.models import (
+    Count,
+    DecimalField,
+    ExpressionWrapper,
+    F,
+    OuterRef,
+    Subquery,
+    Sum,
+    Value,
+)
+from django.db.models.functions import Coalesce
 
 from company.models import Company
 from facture_avoir.models import AVOIR_ACTIVE_STATUSES, FactureAvoir
 from reglement.models import Reglement
+
 from .models import FactureClient
 
 
@@ -91,3 +102,51 @@ def get_stats_by_currency(company_id: int) -> dict:
         }
 
     return stats_by_currency
+
+
+def annotate_payment_and_avoir_totals(queryset):
+    """Annotate invoice balances without multiplying reglement/avoir joins."""
+    payment_count_subquery = Subquery(
+        Reglement.objects.filter(facture_client_id=OuterRef("pk"), statut="Valide")
+        .values("facture_client_id")
+        .annotate(total=Count("id"))
+        .values("total")[:1],
+    )
+    total_paid_subquery = Subquery(
+        Reglement.objects.filter(facture_client_id=OuterRef("pk"), statut="Valide")
+        .values("facture_client_id")
+        .annotate(total=Sum("montant"))
+        .values("total")[:1],
+        output_field=DecimalField(max_digits=10, decimal_places=2),
+    )
+    total_avoirs_subquery = Subquery(
+        FactureAvoir.objects.filter(
+            facture_origine_id=OuterRef("pk"),
+            statut__in=AVOIR_ACTIVE_STATUSES,
+        )
+        .values("facture_origine_id")
+        .annotate(total=Sum("total_ttc_apres_remise"))
+        .values("total")[:1],
+        output_field=DecimalField(max_digits=10, decimal_places=2),
+    )
+    money_field = DecimalField(max_digits=10, decimal_places=2)
+    return queryset.annotate(
+        total_paid=Coalesce(
+            total_paid_subquery,
+            Value(Decimal("0.00")),
+            output_field=money_field,
+        ),
+        payment_count=Coalesce(
+            payment_count_subquery,
+            Value(0),
+        ),
+        total_avoirs=Coalesce(
+            total_avoirs_subquery,
+            Value(Decimal("0.00")),
+            output_field=money_field,
+        ),
+        net_total=ExpressionWrapper(
+            F("total_ttc_apres_remise") - F("total_avoirs"),
+            output_field=money_field,
+        ),
+    )

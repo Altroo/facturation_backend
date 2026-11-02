@@ -31,7 +31,7 @@ from core.views import (
     BaseStatusUpdateView,
     BaseBulkDeleteView,
 )
-from facturation_backend.utils import CustomPagination
+from core.pagination import CustomPagination
 from facture_client.models import FactureClient
 from notification.services import notify_document_created
 from .filters import FactureAvoirFilter

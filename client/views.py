@@ -22,12 +22,12 @@ from core.permissions import can_create, can_delete, can_update, can_print
 from core.views import CompanyAccessMixin, BaseBulkDeleteView, BaseBulkArchiveView
 from devi.models import Devi
 from devi.serializers import DeviListSerializer
-from facturation_backend.utils import CustomPagination
+from core.pagination import CustomPagination
 from facture_avoir.models import FactureAvoir
 from facture_avoir.serializers import FactureAvoirListSerializer
 from facture_client.models import FactureClient
 from facture_client.serializers import FactureClientListSerializer
-from facture_client.views import annotate_payment_and_avoir_totals
+from facture_client.stats import annotate_payment_and_avoir_totals
 from reglement.models import Reglement
 from reglement.serializers import ReglementListSerializer
 from .filters import ClientFilter

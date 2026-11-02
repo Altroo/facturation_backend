@@ -1,25 +1,14 @@
-from decimal import Decimal
 
 from django.db.models import (
     F,
-    Count,
-    Sum as DjangoSum,
-    Value,
-    Subquery,
-    OuterRef,
-    DecimalField,
-    ExpressionWrapper,
 )
-from django.db.models.functions import Coalesce
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
 from reportlab.lib.units import cm
-from reportlab.platypus import Spacer, Paragraph, KeepTogether
-from rest_framework import permissions
-from rest_framework import status
-from rest_framework.exceptions import PermissionDenied
-from rest_framework.exceptions import ValidationError
+from reportlab.platypus import KeepTogether, Paragraph, Spacer
+from rest_framework import permissions, status
+from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -27,76 +16,27 @@ from account.models import Membership
 from bon_de_livraison.utils import get_next_numero_bon_livraison
 from company.models import Company
 from core.authentication import JWTQueryParamAuthentication
+from core.pagination import CustomPagination
 from core.pdf_utils import BasePDFGenerator
-from core.permissions import can_update, can_validate_factures, can_print
+from core.permissions import can_print, can_update, can_validate_factures
 from core.views import (
-    BaseDocumentListCreateView,
+    BaseBulkDeleteView,
+    BaseConversionView,
     BaseDocumentDetailEditDeleteView,
+    BaseDocumentListCreateView,
     BaseGenerateNumeroView,
     BaseStatusUpdateView,
-    BaseConversionView,
-    BaseBulkDeleteView,
 )
-from facturation_backend.utils import CustomPagination
-from facture_avoir.models import AVOIR_ACTIVE_STATUSES, FactureAvoir
-from reglement.models import Reglement
+
 from .filters import FactureClientFilter
 from .models import FactureClient
 from .serializers import (
-    FactureClientSerializer,
     FactureClientDetailSerializer,
     FactureClientListSerializer,
+    FactureClientSerializer,
 )
-from .stats import get_stats_by_currency
+from .stats import annotate_payment_and_avoir_totals, get_stats_by_currency
 from .utils import get_next_numero_facture_client
-
-
-def annotate_payment_and_avoir_totals(queryset):
-    """Annotate invoice balances without multiplying reglement/avoir joins."""
-    payment_count_subquery = Subquery(
-        Reglement.objects.filter(facture_client_id=OuterRef("pk"), statut="Valide")
-        .values("facture_client_id")
-        .annotate(total=Count("id"))
-        .values("total")[:1],
-    )
-    total_paid_subquery = Subquery(
-        Reglement.objects.filter(facture_client_id=OuterRef("pk"), statut="Valide")
-        .values("facture_client_id")
-        .annotate(total=DjangoSum("montant"))
-        .values("total")[:1],
-        output_field=DecimalField(max_digits=10, decimal_places=2),
-    )
-    total_avoirs_subquery = Subquery(
-        FactureAvoir.objects.filter(
-            facture_origine_id=OuterRef("pk"),
-            statut__in=AVOIR_ACTIVE_STATUSES,
-        )
-        .values("facture_origine_id")
-        .annotate(total=DjangoSum("total_ttc_apres_remise"))
-        .values("total")[:1],
-        output_field=DecimalField(max_digits=10, decimal_places=2),
-    )
-    money_field = DecimalField(max_digits=10, decimal_places=2)
-    return queryset.annotate(
-        total_paid=Coalesce(
-            total_paid_subquery,
-            Value(Decimal("0.00")),
-            output_field=money_field,
-        ),
-        payment_count=Coalesce(
-            payment_count_subquery,
-            Value(0),
-        ),
-        total_avoirs=Coalesce(
-            total_avoirs_subquery,
-            Value(Decimal("0.00")),
-            output_field=money_field,
-        ),
-        net_total=ExpressionWrapper(
-            F("total_ttc_apres_remise") - F("total_avoirs"),
-            output_field=money_field,
-        ),
-    )
 
 
 class FactureClientListCreateView(BaseDocumentListCreateView):

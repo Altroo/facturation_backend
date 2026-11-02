@@ -54,7 +54,7 @@ def test_read_eligibility_does_not_mutate_legacy_data_or_expose_snapshot(purchas
     ctx, order = purchase_context, legacy_dossier
     before = LogisticsOrder.objects.filter(pk=order.pk).values().get()
     history_count, event_count = order.history.count(), order.events.count()
-    with patch("logistique.purchase_views.activate_incoming") as incoming:
+    with patch("logistique.purchase_services.activate_incoming") as incoming:
         response = ctx.api.get(reverse("logistique:logistique-detail", args=[order.pk]))
         listing = ctx.api.get(reverse("logistique:logistique-list-create"), {"company_id": ctx.company.pk})
     assert response.status_code == listing.status_code == 200
@@ -74,7 +74,7 @@ def test_explicit_adoption_preserves_sources_documents_rows_and_original_snapsho
     original_events = list(order.events.values())
     balances = list(ctx.company.stock_balances.values())
     movement_count = StockMovement.objects.count()
-    with patch("logistique.purchase_views.activate_incoming") as incoming:
+    with patch("logistique.purchase_services.activate_incoming") as incoming:
         response = adopt(ctx, order)
     assert response.status_code == 200, response.data
     order.refresh_from_db()

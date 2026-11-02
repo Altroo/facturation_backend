@@ -100,6 +100,17 @@ python -m pytest
 python -m pytest --cov
 ```
 
+Coverage includes the application packages and excludes generated migrations,
+tests, local virtual environments, and vendored dependencies.
+
+The optional synthetic AI fixture profile uses
+`DJANGO_SETTINGS_MODULE=facturation_backend.settings_ai_test`. Configure its
+local PostgreSQL connection with `CHAT_AI_TEST_DB_USER`, `CHAT_AI_TEST_DB_PASSWORD`,
+`CHAT_AI_TEST_DB_HOST`, and `CHAT_AI_TEST_DB_PORT`. It accepts only a local host or
+Unix socket, never inherits production database credentials, and keeps the fixed
+`chat_ai_facturation_dev` database name required by `seed_ai_test_data`. Normal
+backend settings keep the assistant availability flag unchanged.
+
 ## Portfolio Note
 
 The repository is public for portfolio review. Screenshots are redacted, and sensitive production values are intentionally hidden.

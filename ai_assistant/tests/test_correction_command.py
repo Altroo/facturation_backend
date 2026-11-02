@@ -6,19 +6,13 @@ from urllib.error import HTTPError
 import pytest
 from rest_framework.exceptions import Throttled
 
-from ai_assistant import client
 from ai_assistant.exceptions import AssistantDisabled, ModelTimeout, ModelUnavailable
 from ai_assistant.management.commands import ai_correct_texts as command
 
 
 @pytest.fixture
 def assist():
-    target = (
-        "ai_assistant.client.AiAssistantClient.assist"
-        if hasattr(client, "AiAssistantClient")
-        else "ai_assistant.service.AiAssistantService.assist"
-    )
-    with patch(target) as mocked:
+    with patch.object(command.AiAssistantClient, "assist") as mocked:
         yield mocked
 
 
@@ -94,6 +88,7 @@ def test_remaining_time_displays_days_and_hours():
 ])
 def test_gateway_distinguishes_rejected_answer_from_proxy_outage(settings, body, expected):
     from io import BytesIO
+
     from ai_assistant.exceptions import InvalidModelResponse
     settings.AI_ASSISTANT_ENABLED = True
     settings.AI_ASSISTANT_SERVICE_NAME = "test"
@@ -104,4 +99,4 @@ def test_gateway_distinguishes_rejected_answer_from_proxy_outage(settings, body,
     kind = InvalidModelResponse if expected == "InvalidModelResponse" else ModelUnavailable
     with patch("ai_assistant.client.request.urlopen", side_effect=error):
         with pytest.raises(kind):
-            client.AiAssistantClient().assist(action="fix_grammar", text="Texte")
+            command.AiAssistantClient().assist(action="fix_grammar", text="Texte")

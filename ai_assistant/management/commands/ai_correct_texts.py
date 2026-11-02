@@ -15,6 +15,7 @@ from django.db import transaction
 from django.db.models import CharField, TextField
 from rest_framework.exceptions import APIException
 
+from ai_assistant.client import AiAssistantClient
 from ai_assistant.exceptions import AssistantDisabled, InvalidModelResponse
 
 # Business prose only. Never credentials, codes, financial values, parties or history.
@@ -163,14 +164,7 @@ def remaining_time(seconds):
 def correct_text(text, protected_terms):
     if not text or not text.strip():
         return text
-    try:
-        from ai_assistant.client import AiAssistantClient
-
-        assistant = AiAssistantClient()
-    except ImportError:
-        from ai_assistant.service import AiAssistantService
-
-        assistant = AiAssistantService()
+    assistant = AiAssistantClient()
     # Keep line structure and never send a request larger than the model contract.
     remaining, parts = text, []
     while len(remaining) > 4500:

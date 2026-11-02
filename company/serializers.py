@@ -8,7 +8,7 @@ from rest_framework import serializers
 from rest_framework.request import Request
 
 from account.models import Membership, Role
-from facturation_backend.utils import ImageProcessor
+from core.images import ImageProcessor
 from .models import Company
 
 

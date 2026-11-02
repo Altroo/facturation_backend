@@ -28,7 +28,7 @@ from core.views import (
     BaseStatusUpdateView,
     BaseBulkDeleteView,
 )
-from facturation_backend.utils import CustomPagination
+from core.pagination import CustomPagination
 from stock.services import delete_deliveries_with_stock, delete_delivery_with_stock, sync_delivery_stock
 from .filters import BonDeLivraisonFilter
 from .models import BonDeLivraison

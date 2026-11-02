@@ -2,3 +2,10 @@
 omit =
     */config.py
     */config-3.py
+    */migrations/*
+    */tests/*
+    */tests.py
+    */conftest.py
+    */.venv*/*
+    */vendor/*
+    */.codex/*

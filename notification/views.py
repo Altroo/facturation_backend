@@ -2,7 +2,7 @@ from rest_framework import permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from facturation_backend.utils import CustomPagination
+from core.pagination import CustomPagination
 from notification.models import Notification, NotificationPreference
 from notification.serializers import (
     NotificationPreferenceSerializer,

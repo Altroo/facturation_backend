@@ -166,7 +166,7 @@ def execute_installment(ctx, order, installment, callbacks):
         format="json",
     )
     assert response.status_code == 200, response.data
-    with patch("logistique.tasks.queue_purchase_creator_email") as notify:
+    with patch("logistique.views.queue_purchase_creator_email") as notify:
         with callbacks(execute=True):
             response = accountant.post(
                 reverse("logistique:logistique-validate-payment", args=[order.pk]),

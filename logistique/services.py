@@ -9,9 +9,19 @@ from rest_framework.exceptions import ValidationError
 from account.models import Membership
 from core.constants import ROLE_COMPTABLE
 from facture_proforma.models import FactureProForma, FactureProFormaLine
+from notification.models import Notification
 
-from .models import LogisticsOrder, LogisticsOrderLine, LogisticsOrderProforma
-from .tasks import queue_accounting_payment_email
+from .models import (
+    LogisticsOrder,
+    LogisticsOrderLine,
+    LogisticsOrderProforma,
+    LogisticsPaymentInstallment,
+)
+from .suppliers import ensure_supplier
+from .tasks import (
+    queue_accounting_payment_email,
+    queue_logistics_responsible_payment_email,
+)
 from .utils import get_next_numero_logistique
 
 
@@ -232,9 +242,10 @@ def create_orders_from_proformas(*, company_id, proforma_ids, user, defaults):
             }
         )
 
-    from .suppliers import ensure_supplier
     order = LogisticsOrder.objects.create(
-        fournisseur_record=ensure_supplier(company_id, proforma.fournisseur, proforma.fournisseur_email),
+        fournisseur_record=ensure_supplier(
+            company_id, proforma.fournisseur, proforma.fournisseur_email
+        ),
         company_id=company_id,
         numero_commande=get_next_numero_logistique(company_id),
         marque=None,
@@ -349,3 +360,116 @@ def send_payment_request_email(order, *, request_user):
         )
     )
     return order
+
+
+def get_locked_installment(order, installment_id):
+    try:
+        return order.echeances_paiement.select_for_update().get(pk=installment_id)
+    except LogisticsPaymentInstallment.DoesNotExist:
+        raise ValidationError(
+            {"echeance_id": _("Cette échéance n'appartient pas au dossier.")}
+        )
+
+
+def clear_payment_installment_cache(order):
+    getattr(order, "_prefetched_objects_cache", {}).pop("echeances_paiement", None)
+
+
+def ensure_order_active(order):
+    if order.statut_global == "Annulé":
+        raise ValidationError(
+            {"statut_global": _("Rouvrez le dossier avant de poursuivre le workflow.")}
+        )
+
+
+def invalidate_or_block_active_email_deliveries(order, *, reason):
+    installments = list(order.echeances_paiement.select_for_update())
+    if order.demande_paiement_email_statut == "Envoi en cours" or any(
+        item.preuve_email_statut == "Envoi en cours" for item in installments
+    ):
+        raise ValidationError(
+            {
+                "email": _(
+                    "Attendez la fin de l'envoi e-mail en cours avant cette action."
+                )
+            }
+        )
+    if order.demande_paiement_email_statut == "En attente":
+        order.demande_paiement_email_statut = "Échec"
+        order.demande_paiement_email_erreur = reason
+        order.demande_paiement_email_file_token = ""
+        order.demande_paiement_email_mis_en_file_le = None
+        order.save(
+            update_fields=[
+                "demande_paiement_email_statut",
+                "demande_paiement_email_erreur",
+                "demande_paiement_email_file_token",
+                "demande_paiement_email_mis_en_file_le",
+                "date_updated",
+            ]
+        )
+    for installment in installments:
+        if installment.preuve_email_statut != "En attente":
+            continue
+        installment.preuve_email_statut = "Échec"
+        installment.preuve_email_erreur = reason
+        installment.preuve_email_file_token = ""
+        installment.preuve_email_mise_en_file_le = None
+        installment.save(
+            update_fields=[
+                "preuve_email_statut",
+                "preuve_email_erreur",
+                "preuve_email_file_token",
+                "preuve_email_mise_en_file_le",
+                "date_updated",
+            ]
+        )
+
+
+def notify_logistics_responsible(order, message):
+    if not order.responsable_id:
+        return
+    Notification.objects.create(
+        user=order.responsable,
+        title=_("Paiement logistique validé"),
+        message=message,
+        notification_type="status_change",
+        object_id=order.id,
+        target_url=f"/dashboard/logistique/{order.id}?company_id={order.company_id}",
+    )
+    transaction.on_commit(
+        lambda order_id=order.id: queue_logistics_responsible_payment_email(order_id)
+    )
+
+
+def assign_payment_task(order):
+    membership = (
+        Membership.objects.filter(
+            company_id=order.company_id,
+            role__name=ROLE_COMPTABLE,
+            user__is_active=True,
+        )
+        .exclude(user__email="")
+        .select_related("user")
+        .order_by("user_id")
+        .first()
+    )
+    if not membership:
+        raise ValidationError(
+            {
+                "paiement": _(
+                    "Aucun utilisateur actif du Service Comptable n'est disponible."
+                )
+            }
+        )
+    order.paiement_assigne_a = membership.user
+    Notification.objects.create(
+        user=membership.user,
+        title=_("Effectuer le paiement fournisseur"),
+        message=_("Le dossier import %(reference)s est prêt pour paiement.")
+        % {"reference": order.numero_commande},
+        notification_type="status_change",
+        object_id=order.id,
+        target_url=f"/dashboard/logistique/{order.id}?company_id={order.company_id}",
+    )
+    return membership.user

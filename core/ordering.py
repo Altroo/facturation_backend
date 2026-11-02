@@ -218,7 +218,7 @@ def _fields(queryset, field):
             "reste_a_payer",
             "statut_paiement",
         }:
-            from facture_client.views import annotate_payment_and_avoir_totals
+            from facture_client.stats import annotate_payment_and_avoir_totals
 
             queryset = annotate_payment_and_avoir_totals(queryset).alias(
                 _sort_remaining=F("net_total") - F("total_paid")

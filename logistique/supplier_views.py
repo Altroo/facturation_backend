@@ -3,63 +3,19 @@ from django.db.models import Count, F, Max
 from django.db.models.deletion import ProtectedError
 from django.db.models.functions import Coalesce, Lower
 from django.shortcuts import get_object_or_404
-from rest_framework import permissions, serializers, status
+from rest_framework import permissions, status
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from core.permissions import can_delete
 from core.views import BaseBulkDeleteView, CompanyAccessMixin
-from facturation_backend.utils import CustomPagination
-from parameter.models import Marque
+from core.pagination import CustomPagination
+
 from .filters import LogisticsSupplierFilter
 from .models import LogisticsSupplier
-
-
-class LogisticsSupplierSerializer(serializers.ModelSerializer):
-    marques = serializers.PrimaryKeyRelatedField(many=True, queryset=Marque.objects.all(), required=False)
-    marques_names = serializers.SlugRelatedField(source="marques", many=True, read_only=True, slug_field="nom")
-    total_dossiers = serializers.IntegerField(read_only=True, default=0)
-    derniere_activite = serializers.DateTimeField(read_only=True)
-    # Existing clients can still display the directory while the frontend deploys.
-    fournisseur = serializers.CharField(source="nom", read_only=True)
-    fournisseur_email = serializers.CharField(source="email", read_only=True)
-
-    class Meta:
-        model = LogisticsSupplier
-        fields = [
-            "id",
-            "company",
-            "nom",
-            "email",
-            "marques",
-            "marques_names",
-            "total_dossiers",
-            "derniere_activite",
-            "date_created",
-            "date_updated",
-            "fournisseur",
-            "fournisseur_email",
-        ]
-        read_only_fields = ["company", "date_created", "date_updated"]
-        validators = []
-
-    def validate_marques(self, values):
-        if any(brand.company_id != self.context["company_id"] for brand in values):
-            raise serializers.ValidationError("Toutes les marques doivent appartenir à cette société.")
-        return values
-
-    def validate_nom(self, value):
-        existing = LogisticsSupplier.objects.filter(
-            company_id=self.context["company_id"], nom__iexact=value
-        )
-        if self.instance:
-            existing = existing.exclude(pk=self.instance.pk)
-        if existing.exists():
-            raise serializers.ValidationError(
-                "Ce fournisseur existe déjà pour cette société."
-            )
-        return value
+from .permissions import can_manage_logistics
+from .serializers import LogisticsSupplierSerializer
 
 
 class SupplierAccessMixin(CompanyAccessMixin):
@@ -73,18 +29,21 @@ class SupplierAccessMixin(CompanyAccessMixin):
 
     @staticmethod
     def queryset(company_id):
-        return LogisticsSupplier.objects.filter(company_id=company_id).prefetch_related("marques").annotate(
-            total_dossiers=Count("dossiers"),
-            derniere_activite=Coalesce(
-                Max("dossiers__date_updated"), F("date_updated")
-            ),
+        return (
+            LogisticsSupplier.objects.filter(company_id=company_id)
+            .prefetch_related("marques")
+            .annotate(
+                total_dossiers=Count("dossiers"),
+                derniere_activite=Coalesce(
+                    Max("dossiers__date_updated"), F("date_updated")
+                ),
+            )
         )
 
     @staticmethod
     def check_write(request, company_id):
-        from .views import _can_manage_logistics
 
-        if not _can_manage_logistics(request.user, company_id):
+        if not can_manage_logistics(request.user, company_id):
             raise PermissionDenied(
                 "Vous n’avez pas les droits pour modifier le répertoire fournisseur."
             )
@@ -224,7 +183,9 @@ class BulkDeleteLogisticsSupplierView(SupplierAccessMixin, BaseBulkDeleteView):
     def delete(self, request, *args, **kwargs):
         company_id = self.company_id(request)
         if not can_delete(request.user, company_id):
-            raise PermissionDenied("Vous n’avez pas les droits pour supprimer ces fournisseurs.")
+            raise PermissionDenied(
+                "Vous n’avez pas les droits pour supprimer ces fournisseurs."
+            )
         ids = request.data.get("ids") if isinstance(request.data, dict) else None
         if (
             not isinstance(ids, list)
@@ -232,10 +193,16 @@ class BulkDeleteLogisticsSupplierView(SupplierAccessMixin, BaseBulkDeleteView):
             or any(type(value) is not int or value <= 0 for value in ids)
             or len(set(ids)) != len(ids)
         ):
-            raise ValidationError({"ids": "Une liste d’identifiants entiers positifs et uniques est requise."})
+            raise ValidationError(
+                {
+                    "ids": "Une liste d’identifiants entiers positifs et uniques est requise."
+                }
+            )
         try:
             return super().delete(request, *args, **kwargs)
         except ProtectedError:
-            raise ValidationError({
-                "fournisseur": "Un ou plusieurs fournisseurs sont liés à des dossiers logistiques. Aucun fournisseur n’a été supprimé."
-            })
+            raise ValidationError(
+                {
+                    "fournisseur": "Un ou plusieurs fournisseurs sont liés à des dossiers logistiques. Aucun fournisseur n’a été supprimé."
+                }
+            )

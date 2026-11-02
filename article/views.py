@@ -22,7 +22,7 @@ from core.constants import CURRENCY_CHOICES
 from core.permissions import can_create, can_update, can_delete
 from core.utils import format_number_with_dynamic_digits
 from core.views import CompanyAccessMixin, BaseBulkDeleteView, BaseBulkArchiveView
-from facturation_backend.utils import CustomPagination
+from core.pagination import CustomPagination
 from parameter.models import Marque, Categorie, Unite, Emplacement
 from stock.models import StockBalance
 from stock.services import prepare_article_stock_snapshots

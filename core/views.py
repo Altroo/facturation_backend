@@ -17,7 +17,7 @@ from core.permissions import (
     can_update,
     can_delete,
 )
-from facturation_backend.utils import CustomPagination
+from core.pagination import CustomPagination
 from notification.services import notify_document_created
 
 logger = logging.getLogger(__name__)

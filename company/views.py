@@ -13,7 +13,7 @@ from rest_framework.views import APIView
 from account.models import CustomUser, Membership, Role
 from core.constants import ROLE_CAISSIER, ROLES_RESTRICTED
 from core.permissions import can_delete, can_update, can_view
-from facturation_backend.utils import CustomPagination
+from core.pagination import CustomPagination
 from stock.services import ensure_company_stock_ready
 from .filters import CompanyFilter
 from .models import Company
