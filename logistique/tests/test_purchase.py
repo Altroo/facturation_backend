@@ -565,12 +565,6 @@ def test_payment_validation_replay_does_not_notify_twice(
     notify.assert_not_called()
 
 
-
-
-
-
-
-
 @pytest.mark.parametrize("phase", ["Transit", "Dédouanement"])
 def test_stock_can_be_received_from_the_transit_or_customs_phase(
     purchase_context, phase
@@ -1118,7 +1112,7 @@ def test_overdue_payment_requires_a_requested_unpaid_installment(purchase_contex
     advance.save(update_fields=["date_echeance"])
     assert not order.is_payment_overdue
     assert order.calculate_global_status() != "En retard"
-    advance.demandee_le = timezone.now()
+    advance.demandee_le = timezone.now() - timedelta(hours=24)
     advance.save(update_fields=["demandee_le"])
     assert order.is_payment_overdue
     assert order.calculate_global_status() == "En retard"
@@ -1143,7 +1137,7 @@ def test_unrequested_future_balance_does_not_make_a_delivered_dossier_overdue(
     assert not order.is_payment_overdue
     assert order.statut_global == "En cours"
     item.date_echeance = timezone.localdate() - timedelta(days=1)
-    item.demandee_le = timezone.now()
+    item.demandee_le = timezone.now() - timedelta(hours=24)
     item.save(update_fields=["date_echeance", "demandee_le"])
     assert order.is_payment_overdue
     assert order.calculate_global_status() == "En retard"
@@ -1164,6 +1158,8 @@ def test_dossier_deadline_applies_after_delivery_until_actual_closure(purchase_c
     result = purchase_post(ctx, order, "progression", statut="Livraison client")
     assert result.status_code == 200, result.data
     order.refresh_from_db()
+    order.date_created = timezone.now() - timedelta(days=2)
+    order.sync_global_status(preserve_manual=False)
     assert order.is_delivery_overdue
     assert order.statut_global == "En retard"
     item = order.echeances_paiement.get()
@@ -1171,6 +1167,8 @@ def test_dossier_deadline_applies_after_delivery_until_actual_closure(purchase_c
     item.paiement_valide_le = timezone.now()
     item.save()
     assert order.calculate_global_status() == "En retard"
+    order.cout_achat_mad = Decimal("1100.00")
+    order.save(update_fields=["cout_achat_mad"])
     result = purchase_post(ctx, order, "progression", statut="Clôture")
     assert result.status_code == 200, result.data
     order.refresh_from_db()
@@ -1640,7 +1638,7 @@ def test_number_preview_does_not_allocate_and_creation_assigns_unique_references
     before = LogisticsOrder.objects.filter(company=ctx.company).count()
     preview = ctx.api.get(url, {"company_id": ctx.company.pk})
     assert preview.status_code == 200
-    assert preview.data["numero_commande"].startswith("LOG")
+    assert preview.data["numero_commande"].startswith("COM")
     assert LogisticsOrder.objects.filter(company=ctx.company).count() == before
     first = create_dossier(ctx)
     assert first.numero_commande == preview.data["numero_commande"]

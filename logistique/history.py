@@ -1,4 +1,5 @@
 """Resolve value start times from recorded dossier events and status snapshots."""
+
 import re
 from datetime import date, datetime
 from pathlib import Path
@@ -132,6 +133,16 @@ BUSINESS_FIELDS = {
     "documents_originaux_file": "Documents originaux joints",
     "justificatifs_file": "Justificatif joint",
     "cout_transport": "Coût du transport",
+    "date_validite_titre_du": "Date de validité du titre du",
+    "date_validite_titre_au": "Date de validité du titre au",
+    "cout_achat_mad": "Coût d’achat converti (MAD)",
+    "autres_frais_virement_actif": "Autres frais par virement activés",
+    "autres_frais_virement": "Autres frais (virement)",
+    "description_frais_virement": "Description des autres frais (virement)",
+    "autres_frais_cash_actif": "Autres frais cash activés",
+    "autres_frais_cash": "Autres frais (cash)",
+    "description_frais_cash": "Description des autres frais (cash)",
+    "bon_reception_file": "Bon de réception",
     "frais_transit": "Frais de transit",
     "frais_douane": "Droits de douane",
     "tva": "TVA",

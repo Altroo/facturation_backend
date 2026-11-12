@@ -52,6 +52,8 @@ LOGISTICS_IMPORT_TITLE_FIELDS = frozenset(
         "devise_titre_importation",
         "date_titre_importation",
         "date_validation_titre_importation",
+        "date_validite_titre_du",
+        "date_validite_titre_au",
         "statut_titre_importation",
         "titre_importation_file",
         "methode_paiement",
@@ -268,6 +270,9 @@ class LogisticsOrderBaseSerializer(serializers.ModelSerializer):
     projects_display = serializers.SerializerMethodField()
     alerts = serializers.SerializerMethodField()
     is_launch_step_complete = serializers.BooleanField(read_only=True)
+    cout_total_avec_cash = serializers.DecimalField(
+        max_digits=12, decimal_places=2, read_only=True
+    )
     is_proforma_step_complete = serializers.BooleanField(read_only=True)
     statut_global = serializers.SerializerMethodField()
     statut_proforma_conformite = serializers.SerializerMethodField()
@@ -343,6 +348,8 @@ class LogisticsOrderBaseSerializer(serializers.ModelSerializer):
             "devise_titre_importation",
             "date_titre_importation",
             "date_validation_titre_importation",
+            "date_validite_titre_du",
+            "date_validite_titre_au",
             "statut_titre_importation",
             "methode_paiement",
             "avance_pourcentage",
@@ -375,13 +382,22 @@ class LogisticsOrderBaseSerializer(serializers.ModelSerializer):
             "solde_restant",
             "cout_achat",
             "cout_transport",
+            "cout_achat_mad",
+            "autres_frais_virement_actif",
+            "autres_frais_virement",
+            "description_frais_virement",
+            "autres_frais_cash_actif",
+            "autres_frais_cash",
+            "description_frais_cash",
             "frais_transit",
             "frais_douane",
             "tva",
             "livraison_locale",
             "autres_frais",
             "cout_total",
+            "cout_total_avec_cash",
             "titre_importation_file",
+            "bon_reception_file",
             "proforma_fournisseur_file",
             "justificatifs_file",
             "swift_file",
@@ -620,6 +636,7 @@ class LogisticsOrderListSerializer(LogisticsOrderBaseSerializer):
             "responsable",
             "responsable_name",
             "cout_total",
+            "cout_achat_mad",
             "created_by_user_name",
             "date_created",
             "date_updated",
@@ -642,6 +659,12 @@ class LogisticsOrderDetailSerializer(LogisticsOrderBaseSerializer):
     process_notes = serializers.SerializerMethodField()
     receptions = serializers.SerializerMethodField()
     change_requests = serializers.SerializerMethodField()
+    documents = serializers.SerializerMethodField()
+
+    def get_documents(self, obj):
+        from .documents import dossier_documents
+
+        return dossier_documents(obj, self.context.get("request"))
 
     def get_change_requests(self, obj):
         result = []
@@ -687,6 +710,7 @@ class LogisticsOrderDetailSerializer(LogisticsOrderBaseSerializer):
             "process_notes",
             "receptions",
             "change_requests",
+            "documents",
         ]
         read_only_fields = LogisticsOrderBaseSerializer.Meta.read_only_fields + [
             "lignes",
@@ -812,6 +836,8 @@ class LogisticsOrderUpdateSerializer(serializers.ModelSerializer):
             "devise_titre_importation",
             "date_titre_importation",
             "date_validation_titre_importation",
+            "date_validite_titre_du",
+            "date_validite_titre_au",
             "statut_titre_importation",
             "methode_paiement",
             "avance_pourcentage",
@@ -822,12 +848,20 @@ class LogisticsOrderUpdateSerializer(serializers.ModelSerializer):
             "reference_paiement",
             "commentaire_paiement",
             "cout_transport",
+            "cout_achat_mad",
+            "autres_frais_virement_actif",
+            "autres_frais_virement",
+            "description_frais_virement",
+            "autres_frais_cash_actif",
+            "autres_frais_cash",
+            "description_frais_cash",
             "frais_transit",
             "frais_douane",
             "tva",
             "livraison_locale",
             "autres_frais",
             "titre_importation_file",
+            "bon_reception_file",
             "justificatifs_file",
             "swift_file",
             "documents_originaux_file",
@@ -872,6 +906,10 @@ class LogisticsOrderUpdateSerializer(serializers.ModelSerializer):
     def validate_documents_originaux_file(value):
         return validate_logistics_document(value)
 
+    @staticmethod
+    def validate_bon_reception_file(value):
+        return validate_logistics_document(value)
+
     def validate_statut(self, value):
         validate_purchase_transition(self.order, value)
         if value == "Annulé":
@@ -896,6 +934,18 @@ class LogisticsOrderUpdateSerializer(serializers.ModelSerializer):
         return value
 
     def validate(self, attrs):
+        valid_from = attrs.get(
+            "date_validite_titre_du", self.order.date_validite_titre_du
+        )
+        valid_to = attrs.get(
+            "date_validite_titre_au", self.order.date_validite_titre_au
+        )
+        if valid_from and valid_to and valid_to < valid_from:
+            raise serializers.ValidationError(
+                {
+                    "date_validite_titre_au": "La date de fin doit suivre la date de début de validité."
+                }
+            )
         part_two_message = _(
             "Utilisez l'étape Proforma & conformité pour modifier ce champ."
         )

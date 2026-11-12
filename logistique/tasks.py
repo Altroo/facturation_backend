@@ -58,13 +58,20 @@ def _accounting_message(order):
                 and order.avance_pourcentage is not None
                 else []
             ),
-            *([f"À traiter : {item.montant_prevu:.2f} {item.devise} par {item.methode_paiement}, échéance {item.date_echeance}" for item in order.echeances_paiement.all() if item.demandee_le and not item.paiement_valide_le] if order.is_supplier_purchase else []),
+            *(
+                [
+                    f"À traiter : {item.montant_prevu:.2f} {item.devise} par {item.methode_paiement}, échéance {item.date_echeance}"
+                    for item in order.echeances_paiement.all()
+                    if item.demandee_le and not item.paiement_valide_le
+                ]
+                if order.is_supplier_purchase
+                else []
+            ),
             f"Lien direct vers le dossier : {_dossier_url(order)}",
             "",
             (
-                "La fiche de demande de paiement générée par Facturation est jointe "
-                "à ce message. Elle reprend les informations de la pro forma "
-                "fournisseur et du titre d'importation."
+                "La fiche de demande de paiement, la proforma fournisseur et le "
+                "titre d’importation sont joints à ce message."
             ),
         ]
     )
@@ -76,6 +83,8 @@ def _build_accounting_email(order, recipients):
     message = EmailMessage(subject=subject, body=body, to=recipients)
     filename, content, mimetype = build_accounting_payment_pdf(order)
     message.attach(filename, content, mimetype)
+    _attach_file(message, order.proforma_fournisseur_file)
+    _attach_file(message, order.titre_importation_file)
     return message
 
 

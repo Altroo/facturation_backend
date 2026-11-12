@@ -1,5 +1,6 @@
 import json
 from datetime import timedelta
+from decimal import Decimal
 from unittest.mock import patch
 
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -288,6 +289,8 @@ def close_received_dossier(ctx, order):
         purchase_post(ctx, order, "progression", statut="Livraison client").status_code
         == 200
     )
+    order.cout_achat_mad = Decimal("1100.00")
+    order.save(update_fields=["cout_achat_mad"])
     result = purchase_post(ctx, order, "progression", statut="Clôture")
     assert result.status_code == 200, result.data
     order.refresh_from_db()

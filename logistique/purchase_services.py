@@ -1,5 +1,6 @@
 """Supplier dossier operations shared by saves and approved corrections."""
 
+import json
 from copy import copy
 from typing import Any, cast
 
@@ -163,7 +164,7 @@ def apply_purchase_action(order, request, approval):
                 }
             )
         data = copy(request.data)
-        data["action"] = request.data.get("decision", "control")
+        data["action"] = request.data.get("decision", "validate")
         serializer = PurchaseProformaSerializer(data=data, context={"order": order})
         serializer.is_valid(raise_exception=True)
         values = serializer.validated_data.copy()
@@ -301,9 +302,12 @@ def apply_purchase_action(order, request, approval):
         confirm = values.pop("confirmer_production", False)
         target = values.pop(
             "statut",
-            "Expédition"
-            if values.get("date_expedition_reelle") and not order.date_expedition_reelle
-            else order.statut,
+            (
+                "Expédition"
+                if values.get("date_expedition_reelle")
+                and not order.date_expedition_reelle
+                else order.statut
+            ),
         )
         for field, value in values.items():
             setattr(order, field, value)
@@ -334,12 +338,19 @@ def apply_purchase_action(order, request, approval):
             )
             order.add_event(
                 user=request.user,
-                action="Explication du retard d’expédition"
-                if note.remarque.startswith("Retard d’expédition (")
-                else "Remarque ajoutée au dossier",
+                action=(
+                    "Explication du retard d’expédition"
+                    if note.remarque.startswith("Retard d’expédition (")
+                    else "Remarque ajoutée au dossier"
+                ),
                 note=note.remarque,
             )
     elif action == "reception":
+        receipt_file = request.FILES.get("bon_reception_file")
+        if receipt_file:
+            from .serializers import validate_logistics_document
+
+            validate_logistics_document(receipt_file)
         validate_purchase_transition(order, "Expédition", enforce_sequence=False)
         data = {
             "logistics_order": order.pk,
@@ -347,10 +358,20 @@ def apply_purchase_action(order, request, approval):
             "note": request.data.get("note", ""),
             "lines": request.data.get("lines", []),
         }
+        if isinstance(data["lines"], str):
+            try:
+                data["lines"] = json.loads(data["lines"])
+            except (ValueError, TypeError):
+                raise ValidationError(
+                    {"lines": "Les lignes de réception sont invalides."}
+                )
         serializer = StockReceiptSerializer(data=data, context={"request": request})
         serializer.is_valid(raise_exception=True)
         receipt = serializer.save()
         validate_receipt(receipt, request.user)
+        if receipt_file:
+            order.bon_reception_file = receipt_file
+            order.save(update_fields=["bon_reception_file", "date_updated"])
         details = [
             f"Référence : {receipt.reference or f'Réception #{receipt.pk}'}",
             "Quantités reçues :",

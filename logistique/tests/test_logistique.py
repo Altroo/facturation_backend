@@ -867,6 +867,7 @@ def test_overdue_proforma_follow_up_drives_global_status(logistics_company):
         prochaine_relance_proforma=timezone.localdate() - timedelta(days=1),
     )
 
+    order.date_created = timezone.now() - timedelta(days=2)
     assert order.calculate_global_status() == "En retard"
 
 
@@ -1254,6 +1255,9 @@ def test_detail_calculates_overdue_status_without_writing_on_get(
         statut_commande_lancement="À lancer",
     )
 
+    LogisticsOrder.objects.filter(pk=order.pk).update(
+        date_created=timezone.now() - timedelta(days=2)
+    )
     response = api_client.get(reverse("logistique:logistique-detail", args=[order.id]))
 
     assert response.status_code == status.HTTP_200_OK
@@ -1340,7 +1344,7 @@ def test_part_three_full_payment_flow_matches_docx(
         f"/dashboard/logistique/{order.id}?company_id={order.company_id}"
         in accounting_email.body
     )
-    assert len(accounting_email.attachments) == 1
+    assert len(accounting_email.attachments) == 3
     attachment = accounting_email.attachments[0]
     expected_filename = (
         f"demande_paiement_{order.numero_commande.replace('/', '_')}.pdf"
@@ -1349,7 +1353,7 @@ def test_part_three_full_payment_flow_matches_docx(
     assert attachment[1].startswith(b"%PDF")
     assert attachment[2] == "application/pdf"
     assert (
-        "fiche de demande de paiement générée par Facturation" in accounting_email.body
+        "la proforma fournisseur et le titre d’importation sont joints" in accounting_email.body
     )
     assert comptable_user.notifications.filter(
         title="Effectuer le paiement fournisseur", object_id=order.id

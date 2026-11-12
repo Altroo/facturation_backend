@@ -137,6 +137,9 @@ class ArticleBaseSerializer(serializers.ModelSerializer):
         company: Company | None = attrs.get("company") or getattr(
             self.instance, "company", None
         )
+        brand = attrs.get("marque", getattr(self.instance, "marque", None))
+        if brand and company and brand.company_id != company.id:
+            errors["marque"] = _("La marque doit appartenir à la société de l’article.")
         emplacement: Emplacement | None = attrs.get(
             "emplacement", getattr(self.instance, "emplacement", None)
         )
@@ -238,7 +241,7 @@ class ArticleSerializer(ArticleBaseSerializer):
         queryset=Company.objects.all(), required=False, allow_null=True
     )
     marque = serializers.PrimaryKeyRelatedField(
-        queryset=Marque.objects.all(), required=False, allow_null=True
+        queryset=Marque.objects.all(), required=True, allow_null=False
     )
     categorie = serializers.PrimaryKeyRelatedField(
         queryset=Categorie.objects.all(), required=False, allow_null=True

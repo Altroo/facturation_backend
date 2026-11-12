@@ -6,6 +6,7 @@ from uuid import uuid4
 
 from django.db import models, transaction
 from django.utils import timezone
+from django.utils.text import get_valid_filename
 from django.utils.translation import gettext_lazy as _
 from simple_history.models import HistoricalRecords
 
@@ -14,8 +15,11 @@ from core.constants import CURRENCY_CHOICES
 
 
 def get_logistique_document_path(_, filename):
-    _, ext = path.splitext(filename)
-    return path.join("logistique_documents", f"{uuid4()}{ext}")
+    return path.join(
+        "logistique_documents",
+        str(uuid4()),
+        get_valid_filename(path.basename(filename)),
+    )
 
 
 class LogisticsSupplier(models.Model):
@@ -386,6 +390,8 @@ class LogisticsOrder(models.Model):
     )
     date_titre_importation = models.DateField(null=True, blank=True)
     date_validation_titre_importation = models.DateField(null=True, blank=True)
+    date_validite_titre_du = models.DateField(null=True, blank=True)
+    date_validite_titre_au = models.DateField(null=True, blank=True)
     statut_titre_importation = models.CharField(
         max_length=64,
         choices=TI_STATUT_CHOICES,
@@ -493,6 +499,22 @@ class LogisticsOrder(models.Model):
     livraison_locale = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     autres_frais = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     cout_total = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    cout_achat_mad = models.DecimalField(
+        max_digits=12, decimal_places=2, null=True, blank=True
+    )
+    autres_frais_virement_actif = models.BooleanField(default=False)
+    autres_frais_virement = models.DecimalField(
+        max_digits=12, decimal_places=2, default=0
+    )
+    description_frais_virement = models.CharField(
+        max_length=1000, blank=True, default=""
+    )
+    autres_frais_cash_actif = models.BooleanField(default=False)
+    autres_frais_cash = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    description_frais_cash = models.CharField(max_length=1000, blank=True, default="")
+    bon_reception_file = models.FileField(
+        upload_to=get_logistique_document_path, null=True, blank=True, max_length=1000
+    )
 
     titre_importation_file = models.FileField(
         upload_to=get_logistique_document_path, null=True, blank=True, max_length=1000
@@ -564,11 +586,15 @@ class LogisticsOrder(models.Model):
             return any(
                 item.demandee_le
                 and item.date_echeance
-                and item.date_echeance < timezone.localdate()
+                and self.deadline_elapsed(item.date_echeance, item.demandee_le)
                 and not item.paiement_valide_le
                 for item in self.echeances_paiement.all()
             )
-        return self.statut_paiement == "En attente" and self.demande_paiement_envoyee_le
+        return bool(
+            self.statut_paiement == "En attente"
+            and self.demande_paiement_envoyee_le
+            and timezone.now() >= self.demande_paiement_envoyee_le + timedelta(hours=24)
+        )
 
     @property
     def demande_paiement_email_relance_disponible(self):
@@ -634,12 +660,14 @@ class LogisticsOrder(models.Model):
     def is_delivery_overdue(self):
         return bool(
             (
-                (self.date_prevue and self.date_prevue < timezone.localdate())
+                self.deadline_elapsed(self.date_prevue)
                 or (
                     self.is_supplier_purchase
                     and self.date_expedition_prevue
                     and not self.date_expedition_reelle
-                    and self.date_expedition_prevue < timezone.localdate()
+                    and self.deadline_elapsed(
+                        self.date_expedition_prevue, self.production_confirmee_le
+                    )
                 )
             )
             and self.statut
@@ -655,7 +683,9 @@ class LogisticsOrder(models.Model):
     def is_proforma_follow_up_overdue(self):
         return bool(
             self.prochaine_relance_proforma
-            and self.prochaine_relance_proforma < timezone.localdate()
+            and self.deadline_elapsed(
+                self.prochaine_relance_proforma, self.proforma_demandee_le
+            )
             and self.effective_proforma_status == "En attente"
             and self.statut_global != "Annulé"
         )
@@ -740,23 +770,54 @@ class LogisticsOrder(models.Model):
                 self.save(update_fields=["statut_global", "date_updated"])
         return calculated_status
 
+    @property
+    def cout_total_avec_cash(self):
+        return self.cout_total + (
+            self.autres_frais_cash if self.autres_frais_cash_actif else Decimal("0")
+        )
+
+    def deadline_elapsed(self, due_date, started_at=None):
+        """A date deadline retains its start time and always allows a full 24 hours."""
+        if not due_date:
+            return False
+        started_at = started_at or self.date_created
+        if not started_at:
+            return False
+        days = max(1, (due_date - timezone.localtime(started_at).date()).days)
+        return timezone.now() >= started_at + timedelta(days=days)
+
     def recalc_costs(self):
         lines_total = sum(
             (line.total_achat for line in self.lignes.all()), Decimal("0")
         )
         self.cout_achat = lines_total
-        self.cout_total = (
+        purchase_cost = (
             self.cout_achat
+            if not self.is_supplier_purchase or self.devise == "MAD"
+            else (self.cout_achat_mad or Decimal("0"))
+        )
+        self.cout_total = (
+            purchase_cost
             + self.cout_transport
             + self.frais_transit
             + self.frais_douane
-            + self.tva
+            + (self.tva if not self.is_supplier_purchase else Decimal("0"))
+            + (
+                self.autres_frais_virement
+                if self.autres_frais_virement_actif
+                else Decimal("0")
+            )
             + self.livraison_locale
             + self.autres_frais
         )
 
     def save(self, *args, **kwargs):
         cost_fields = {
+            "cout_achat_mad",
+            "autres_frais_virement",
+            "autres_frais_virement_actif",
+            "autres_frais_cash",
+            "autres_frais_cash_actif",
             "cout_transport",
             "frais_transit",
             "frais_douane",

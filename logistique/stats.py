@@ -4,7 +4,7 @@ from collections import Counter
 from datetime import datetime, time
 from decimal import Decimal
 
-from django.db.models import Count, DecimalField, Q, Sum
+from django.db.models import Case, Count, DecimalField, F, Q, Sum, Value, When
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 
@@ -109,7 +109,18 @@ def get_logistics_stats(company_id):
         ),
         "couts_detail": base.aggregate(
             achat=Coalesce(
-                Sum("cout_achat"), Decimal("0"), output_field=_money_field()
+                Sum(
+                    Case(
+                        When(
+                            Q(workflow_version=2) & ~Q(devise="MAD"),
+                            then=F("cout_achat_mad"),
+                        ),
+                        default=F("cout_achat"),
+                        output_field=_money_field(),
+                    )
+                ),
+                Decimal("0"),
+                output_field=_money_field(),
             ),
             transport=Coalesce(
                 Sum("cout_transport"), Decimal("0"), output_field=_money_field()
@@ -120,12 +131,34 @@ def get_logistics_stats(company_id):
             douane=Coalesce(
                 Sum("frais_douane"), Decimal("0"), output_field=_money_field()
             ),
-            tva=Coalesce(Sum("tva"), Decimal("0"), output_field=_money_field()),
+            tva=Coalesce(
+                Sum(
+                    Case(
+                        When(workflow_version=2, then=Value(Decimal("0"))),
+                        default=F("tva"),
+                        output_field=_money_field(),
+                    )
+                ),
+                Decimal("0"),
+                output_field=_money_field(),
+            ),
             livraison_locale=Coalesce(
                 Sum("livraison_locale"), Decimal("0"), output_field=_money_field()
             ),
             autres=Coalesce(
-                Sum("autres_frais"), Decimal("0"), output_field=_money_field()
+                Sum(
+                    F("autres_frais")
+                    + Case(
+                        When(
+                            autres_frais_virement_actif=True,
+                            then=F("autres_frais_virement"),
+                        ),
+                        default=Value(Decimal("0")),
+                        output_field=_money_field(),
+                    )
+                ),
+                Decimal("0"),
+                output_field=_money_field(),
             ),
             total=Coalesce(
                 Sum("cout_total"), Decimal("0"), output_field=_money_field()

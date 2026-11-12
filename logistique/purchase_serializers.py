@@ -201,6 +201,26 @@ class PurchaseProformaSerializer(LogisticsSupplierProformaReviewSerializer):
 
 
 class PurchaseProgressSerializer(serializers.Serializer):
+    cout_achat_mad = serializers.DecimalField(
+        required=False, allow_null=True, max_digits=12, decimal_places=2, min_value=0
+    )
+    autres_frais_virement_actif = serializers.BooleanField(required=False)
+    autres_frais_virement = serializers.DecimalField(
+        required=False, max_digits=12, decimal_places=2, min_value=0
+    )
+    description_frais_virement = serializers.CharField(
+        required=False, allow_blank=True, max_length=1000
+    )
+    autres_frais_cash_actif = serializers.BooleanField(required=False)
+    autres_frais_cash = serializers.DecimalField(
+        required=False, max_digits=12, decimal_places=2, min_value=0
+    )
+    description_frais_cash = serializers.CharField(
+        required=False, allow_blank=True, max_length=1000
+    )
+    bon_reception_file = serializers.FileField(
+        required=False, validators=[validate_logistics_document]
+    )
     date_expedition_prevue = serializers.DateField(required=False, allow_null=True)
     confirmer_production = serializers.BooleanField(required=False)
     date_expedition_reelle = serializers.DateField(required=False, allow_null=True)
@@ -253,6 +273,19 @@ class PurchaseProgressSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         order = self.context["order"]
+        for kind in ("virement", "cash"):
+            enabled = attrs.get(
+                f"autres_frais_{kind}_actif",
+                getattr(order, f"autres_frais_{kind}_actif"),
+            )
+            supplied = {
+                f"autres_frais_{kind}_actif",
+                f"autres_frais_{kind}",
+                f"description_frais_{kind}",
+            } & attrs.keys()
+            if supplied and not enabled:
+                attrs[f"autres_frais_{kind}"] = Decimal("0.00")
+                attrs[f"description_frais_{kind}"] = ""
         today = timezone.localdate()
         for field in (
             "date_expedition_reelle",

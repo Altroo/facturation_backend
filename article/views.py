@@ -133,9 +133,33 @@ class ArticleListCreateView(CompanyAccessMixin, APIView):
 
         # Check if user has created permission
         if not can_create(request.user, company_id):
-            raise PermissionDenied(
-                _("Vous n'avez pas les droits pour créer un article.")
+            from logistique.models import LogisticsOrder
+            from logistique.permissions import can_manage_logistics
+
+            dossier_id = request.data.get("logistics_order")
+            try:
+                dossier_id = int(dossier_id)
+            except (ValueError, TypeError):
+                dossier_id = None
+            dossier = (
+                LogisticsOrder.objects.filter(
+                    pk=dossier_id, company_id=company_id, workflow_version=2
+                ).first()
+                if dossier_id
+                else None
             )
+            if not (
+                dossier
+                and can_manage_logistics(request.user, company_id)
+                and not dossier.is_proforma_step_complete
+                and dossier.statut != "Clôture"
+                and dossier.statut_global != "Annulé"
+            ):
+                raise PermissionDenied(
+                    _(
+                        "Créez l’article depuis un dossier fournisseur actif de votre société."
+                    )
+                )
 
         serializer = ArticleSerializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
@@ -631,6 +655,10 @@ class ImportArticlesView(CompanyAccessMixin, APIView):
                 )
                 continue
             devise_prix_vente = devise_vente_raw or "MAD"
+
+            if not normalized_row.get("marque", "").strip():
+                errors.append({"row": idx, "message": "La marque est obligatoire."})
+                continue
 
             # --- foreign keys ------------------------------------------------
             marque = self._resolve_fk(Marque, normalized_row.get("marque"), company_id)

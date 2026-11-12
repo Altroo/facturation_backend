@@ -241,6 +241,20 @@ class TestArticleAPI:
         assert response.status_code == status.HTTP_201_CREATED
         assert Article.objects.filter(reference="ART0003").exists()
 
+    @pytest.mark.parametrize("brand,expected", [("", 400), ("Import brand", 200)])
+    def test_import_requires_brand(self, brand, expected):
+        content = f"designation;type_article;prix_vente;marque\nArticle importé;Service;20;{brand}\n".encode()
+        file = SimpleUploadedFile("articles.csv", content, content_type="text/csv")
+        response = self.client.post(
+            reverse("article:article-import"),
+            {"company_id": self.company.pk, "file": file},
+            format="multipart",
+        )
+        assert response.status_code == expected, response.data
+        assert response.data["created"] == (1 if brand else 0)
+        if not brand:
+            assert response.data["errors"][0]["message"] == "La marque est obligatoire."
+
     def test_create_article_service(self):
         url = reverse("article:article-list-create")
         payload = {
@@ -248,6 +262,7 @@ class TestArticleAPI:
             "designation": "Nouveau Service",
             "type_article": "Service",
             "company": self.company.id,
+            "marque": self.marque.id,
             "prix_vente": 250,
             "tva": 20,
         }
@@ -262,6 +277,7 @@ class TestArticleAPI:
             "designation": "Service avec base de prix",
             "type_article": "Service",
             "company": self.company.id,
+            "marque": self.marque.id,
             "prix_vente": "100.00",
             "tva": "20.00",
         }
@@ -283,7 +299,9 @@ class TestArticleAPI:
         )
         assert listed["prix_vente_base"] == (basis or "HT")
 
-        updated = self.client.patch(detail_url, {"designation": "Updated"}, format="json")
+        updated = self.client.patch(
+            detail_url, {"designation": "Updated"}, format="json"
+        )
         assert updated.status_code == status.HTTP_200_OK
         article.refresh_from_db()
         assert article.prix_vente_base == (basis or "HT")
@@ -313,6 +331,7 @@ class TestArticleAPI:
             "designation": "Updated Designation",
             "type_article": "Produit",
             "company": self.company.id,
+            "marque": self.marque.id,
             "prix_achat": 110,
             "prix_vente": 160,
             "tva": 20,
@@ -546,6 +565,7 @@ class TestArticleAPI:
         payload = {
             "type_article": "Produit",
             "company": self.company.id,
+            "marque": self.marque.id,
         }
         response = self.client.post(url, payload, format="json")
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -564,6 +584,7 @@ class TestArticleAPI:
             "designation": "Ghost",
             "type_article": "Produit",
             "company": self.company.id,
+            "marque": self.marque.id,
             "prix_vente": 100,
             "tva": 20,
         }
@@ -615,6 +636,7 @@ class TestArticleImagesAndPhotos:
             registre_de_commerce="RCIMG",
             nbr_employe="1 à 5",
         )
+        self.marque = Marque.objects.create(nom="Image brand", company=self.company)
         caissier_role, _ = Role.objects.get_or_create(
             name="Caissier",
         )
@@ -629,6 +651,7 @@ class TestArticleImagesAndPhotos:
             "designation": "Article avec photo",
             "type_article": "Produit",
             "company": self.company.id,
+            "marque": self.marque.id,
             "prix_vente": 100,
             "tva": 20,
             "photo": BASE64_PNG,
@@ -665,6 +688,7 @@ class TestArticleImagesAndPhotos:
                 "designation": article.designation,
                 "type_article": "Produit",
                 "company": self.company.id,
+                "marque": self.marque.id,
                 "prix_vente": 100,
                 "tva": 20,
                 "photo": BASE64_PNG,
@@ -683,6 +707,7 @@ class TestArticleImagesAndPhotos:
                 "designation": article.designation,
                 "type_article": "Produit",
                 "company": self.company.id,
+                "marque": self.marque.id,
                 "prix_vente": 100,
                 "tva": 20,
                 "photo": BASE64_PNG,
@@ -717,6 +742,7 @@ class TestArticleImagesAndPhotos:
                 "designation": article.designation,
                 "type_article": "Produit",
                 "company": self.company.id,
+                "marque": self.marque.id,
                 "prix_vente": 100,
                 "tva": 20,
                 "photo": BASE64_PNG,
@@ -735,6 +761,7 @@ class TestArticleImagesAndPhotos:
                 "designation": article.designation,
                 "type_article": "Produit",
                 "company": self.company.id,
+                "marque": self.marque.id,
                 "prix_vente": 100,
                 "tva": 20,
                 "photo": None,
@@ -772,6 +799,7 @@ class TestArticleImagesAndPhotos:
                 "designation": article.designation,
                 "type_article": "Produit",
                 "company": self.company.id,
+                "marque": self.marque.id,
                 "prix_vente": 100,
                 "tva": 20,
                 "photo": BASE64_PNG,
@@ -790,6 +818,7 @@ class TestArticleImagesAndPhotos:
                 "designation": article.designation,
                 "type_article": "Produit",
                 "company": self.company.id,
+                "marque": self.marque.id,
                 "prix_vente": 100,
                 "tva": 20,
                 "photo": "https://example.com/existing/photo.png",
@@ -837,6 +866,7 @@ class TestArticleImagesAndPhotos:
                 "designation": article.designation,
                 "type_article": "Produit",
                 "company": self.company.id,
+                "marque": self.marque.id,
                 "prix_vente": 100,
                 "tva": 20,
                 "photo": BASE64_PNG,
@@ -874,6 +904,7 @@ class TestArticleFilters:
             registre_de_commerce="RCFILT",
             nbr_employe="1 à 5",
         )
+        self.marque = Marque.objects.create(nom="Image brand", company=self.company)
         caissier_role, _ = Role.objects.get_or_create(
             name="Caissier",
         )
@@ -1593,6 +1624,7 @@ class TestArticleViewsCoverage:
             registre_de_commerce="RC_VIEW",
             nbr_employe="1 à 5",
         )
+        self.marque = Marque.objects.create(nom="Image brand", company=self.company)
         caissier_role, _ = Role.objects.get_or_create(
             name="Caissier",
         )
@@ -1827,7 +1859,7 @@ class TestArticleImport:
             "remarque,marque,categorie,emplacement,unite\n"
             "ART9001,Produit,Bureau,150.00,200.00,20,Un bureau,"
             "TestMarque,TestCategorie,Entrepôt,Pièce\n"
-            "ART9002,Service,Consultation,50.00,100.00,10,Service pro,,,,\n"
+            "ART9002,Service,Consultation,50.00,100.00,10,Service pro,TestMarque,,,\n"
         )
         response = self.client.post(
             self.url,
@@ -1890,7 +1922,7 @@ class TestArticleImport:
             type_article="Produit",
             company=self.company,
         )
-        csv_content = "designation\nArticle Sans Ref\n"
+        csv_content = "designation,marque\nArticle Sans Ref,TestMarque\n"
         response = self.client.post(
             self.url,
             {"file": self._csv_file(csv_content), "company_id": self.company.id},
@@ -1908,7 +1940,7 @@ class TestArticleImport:
     def test_import_french_decimal_format(self):
         """Semicolon-delimited CSV with European decimals (French Excel default)."""
         csv_content = (
-            "designation;prix_achat;prix_vente\n" "Article;1 500,50;2 000,00\n"
+            "designation;prix_achat;prix_vente;marque\n" "Article;1 500,50;2 000,00;TestMarque\n"
         )
         response = self.client.post(
             self.url,
@@ -1966,7 +1998,7 @@ class TestArticleImport:
             type_article="Produit",
             company=self.company,
         )
-        csv_content = "reference,designation\nART5555,DuplicateTry\n"
+        csv_content = "reference,designation,marque\nART5555,DuplicateTry,TestMarque\n"
         response = self.client.post(
             self.url,
             {"file": self._csv_file(csv_content), "company_id": self.company.id},
@@ -2160,6 +2192,7 @@ class TestBulkDeleteArticleAPI:
         self.api_client.force_authenticate(user=self.user)
 
         self.company = Company.objects.create(raison_sociale="BulkArtCo", ICE="BDARTC1")
+        self.marque = Marque.objects.create(nom="Image brand", company=self.company)
         caissier_role, _ = Role.objects.get_or_create(name="Caissier")
         Membership.objects.create(
             user=self.user, company=self.company, role=caissier_role
@@ -2243,6 +2276,7 @@ class TestBulkArchiveArticleAPI:
         self.company = Company.objects.create(
             raison_sociale="BulkArtArcCo", ICE="BAARTC1"
         )
+        self.marque = Marque.objects.create(nom="Image brand", company=self.company)
         caissier_role, _ = Role.objects.get_or_create(name="Caissier")
         Membership.objects.create(
             user=self.user, company=self.company, role=caissier_role

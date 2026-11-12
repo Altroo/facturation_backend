@@ -308,6 +308,12 @@ def validate_purchase_transition(order, status, *, enforce_sequence=True):
         raise ValidationError(
             {"statut": "Enregistrez la réception complète des articles."}
         )
+    if status == "Clôture" and order.devise != "MAD" and order.cout_achat_mad is None:
+        raise ValidationError(
+            {
+                "cout_achat_mad": "Renseignez le coût d’achat converti en MAD par la comptabilité avant la clôture."
+            }
+        )
     if status == "Clôture" and order.solde_restant:
         raise ValidationError({"statut": "Réglez le solde restant avant la clôture."})
 
@@ -385,6 +391,12 @@ PROGRESS_FIELDS = {
         "documents_originaux_file",
     },
     "transit": {
+        "autres_frais_virement_actif",
+        "autres_frais_virement",
+        "description_frais_virement",
+        "autres_frais_cash_actif",
+        "autres_frais_cash",
+        "description_frais_cash",
         "date_arrivee_maroc",
         "documents_remis_banque_le",
         "cout_transport",
@@ -392,8 +404,15 @@ PROGRESS_FIELDS = {
         "frais_douane",
         "tva",
     },
-    "reception": {"date_reelle"},
+    "reception": {"date_reelle", "bon_reception_file"},
     "couts": {
+        "cout_achat_mad",
+        "autres_frais_virement_actif",
+        "autres_frais_virement",
+        "description_frais_virement",
+        "autres_frais_cash_actif",
+        "autres_frais_cash",
+        "description_frais_cash",
         "cout_transport",
         "frais_transit",
         "frais_douane",
