@@ -243,6 +243,9 @@ class LogisticsPaymentInstallmentSerializer(serializers.ModelSerializer):
 
 
 class LogisticsOrderBaseSerializer(serializers.ModelSerializer):
+    incoterm_record = serializers.PrimaryKeyRelatedField(read_only=True)
+    origine_marchandise_record = serializers.PrimaryKeyRelatedField(read_only=True)
+    nature_marchandise_record = serializers.PrimaryKeyRelatedField(read_only=True)
     workflow = serializers.SerializerMethodField()
     can_adopt_supplier_workflow = serializers.SerializerMethodField()
 
@@ -305,6 +308,7 @@ class LogisticsOrderBaseSerializer(serializers.ModelSerializer):
             "marques_names",
             "devise",
             "incoterm",
+            "incoterm_record",
             "transport",
             "conditions_paiement",
             "description",
@@ -341,7 +345,9 @@ class LogisticsOrderBaseSerializer(serializers.ModelSerializer):
             "poids_brut",
             "volume",
             "origine_marchandise",
+            "origine_marchandise_record",
             "nature_marchandise",
+            "nature_marchandise_record",
             "numero_domiciliation",
             "banque",
             "montant_titre_importation",

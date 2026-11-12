@@ -3,11 +3,18 @@ from typing import cast
 from django.utils.translation import gettext_lazy as _
 from rest_framework import mixins, permissions, viewsets
 from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import ValidationError
+from django.db.models.deletion import ProtectedError
+from django.db import transaction
+from .protection import ensure_parameter_unused
 
 from account.models import Membership, CustomUser
 from core.constants import ROLE_CAISSIER
 from core.permissions import get_user_role
 from .models import (
+    Incoterm,
+    OrigineMarchandise,
+    NatureMarchandise,
     Ville,
     Marque,
     Categorie,
@@ -17,6 +24,9 @@ from .models import (
     LivrePar,
 )
 from .serializers import (
+    IncotermSerializer,
+    OrigineMarchandiseSerializer,
+    NatureMarchandiseSerializer,
     VilleSerializer,
     MarqueSerializer,
     CategorieSerializer,
@@ -57,7 +67,11 @@ class BaseModelViewSet(
         company_id = self.request.query_params.get("company_id")
         if company_id:
             qs = qs.filter(company_id=company_id)
-        return qs
+        return qs.filter(
+            company_id__in=Membership.objects.filter(user=self.request.user).values(
+                "company_id"
+            )
+        )
 
     def _check_modification_permission(self, action_name: str) -> None:
         """
@@ -66,7 +80,16 @@ class BaseModelViewSet(
         Validates membership for the company being modified.
         """
         user = cast(CustomUser, self.request.user)
-        company_id = self.request.data.get("company")
+        instance = self.get_object() if self.detail else None
+        company_id = (
+            instance.company_id if instance else self.request.data.get("company")
+        )
+        if instance and str(self.request.data.get("company", company_id)) != str(
+            company_id
+        ):
+            raise PermissionDenied(
+                "Un paramètre ne peut pas être déplacé vers une autre société."
+            )
         if company_id:
             membership = Membership.objects.filter(
                 user=user, company_id=company_id
@@ -103,6 +126,54 @@ class BaseModelViewSet(
     def destroy(self, request, *args, **kwargs):
         self._check_modification_permission("supprimer")
         return super().destroy(request, *args, **kwargs)
+
+    def perform_destroy(self, instance):
+        with transaction.atomic():
+            locked = type(instance).objects.select_for_update().get(pk=instance.pk)
+            ensure_parameter_unused(locked)
+            try:
+                locked.delete()
+            except ProtectedError:
+                raise ValidationError(
+                    {
+                        "nom": "Cette valeur est déjà utilisée et ne peut pas être supprimée."
+                    }
+                )
+
+
+class IncotermViewSet(BaseModelViewSet):
+    queryset = Incoterm.objects.all()
+    serializer_class = IncotermSerializer
+
+    def _check_modification_permission(self, action_name):
+        instance = self.get_object() if self.detail else None
+        company_id = (
+            instance.company_id if instance else self.request.data.get("company")
+        )
+        if instance and str(self.request.data.get("company", company_id)) != str(
+            company_id
+        ):
+            raise PermissionDenied(
+                "Une valeur ne peut pas être déplacée vers une autre société."
+            )
+        if not Membership.objects.filter(
+            user=self.request.user,
+            company_id=company_id,
+            role__name__in=("Caissier", "Logistique"),
+        ).exists():
+            raise PermissionDenied(
+                "Seuls les Caissiers et la Logistique de cette société peuvent gérer ces listes."
+            )
+
+
+class OrigineMarchandiseViewSet(IncotermViewSet):
+    queryset = OrigineMarchandise.objects.all()
+    serializer_class = OrigineMarchandiseSerializer
+
+
+class NatureMarchandiseViewSet(IncotermViewSet):
+    queryset = NatureMarchandise.objects.all()
+    serializer_class = NatureMarchandiseSerializer
 
 
 class VilleViewSet(BaseModelViewSet):

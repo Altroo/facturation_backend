@@ -285,6 +285,13 @@ class LogisticsOrder(models.Model):
         db_index=True,
     )
     incoterm = models.CharField(max_length=50, blank=True, default="")
+    incoterm_record = models.ForeignKey(
+        "parameter.Incoterm",
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name="dossiers",
+    )
     transport = models.CharField(max_length=100, blank=True, default="")
     conditions_paiement = models.TextField(blank=True, default="")
     workflow_version = models.PositiveSmallIntegerField(default=1, editable=False)
@@ -378,7 +385,21 @@ class LogisticsOrder(models.Model):
     poids_brut = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     volume = models.DecimalField(max_digits=10, decimal_places=3, default=0)
     origine_marchandise = models.CharField(max_length=255, blank=True, default="")
+    origine_marchandise_record = models.ForeignKey(
+        "parameter.OrigineMarchandise",
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name="dossiers",
+    )
     nature_marchandise = models.CharField(max_length=255, blank=True, default="")
+    nature_marchandise_record = models.ForeignKey(
+        "parameter.NatureMarchandise",
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name="dossiers",
+    )
 
     numero_domiciliation = models.CharField(max_length=100, blank=True, default="")
     banque = models.CharField(max_length=255, blank=True, default="")
@@ -811,7 +832,54 @@ class LogisticsOrder(models.Model):
             + self.autres_frais
         )
 
+    @transaction.atomic
     def save(self, *args, **kwargs):
+        from parameter.models import Incoterm, OrigineMarchandise, NatureMarchandise
+
+        update_fields = kwargs.get("update_fields")
+        names = {
+            "incoterm": Incoterm,
+            "origine_marchandise": OrigineMarchandise,
+            "nature_marchandise": NatureMarchandise,
+        }
+        previous = None
+        for field, model in names.items():
+            if update_fields is not None and not {field, "company", "company_id"} & set(
+                update_fields
+            ):
+                continue
+            if self.pk and previous is None:
+                previous = (
+                    type(self)
+                    .objects.filter(pk=self.pk)
+                    .values(
+                        "company_id", *names, *(f"{name}_record_id" for name in names)
+                    )
+                    .first()
+                )
+            record_field = f"{field}_record_id"
+            value = getattr(self, field)
+            unchanged = (
+                previous
+                and previous[field] == value
+                and previous["company_id"] == self.company_id
+                and previous[record_field]
+            )
+            if unchanged:
+                setattr(self, record_field, previous[record_field])
+            elif value.strip():
+                item, _ = model.objects.get_or_create(
+                    company_id=self.company_id,
+                    nom__iexact=value.strip(),
+                    defaults={"nom": value.strip()},
+                )
+                setattr(self, record_field, item.pk)
+            else:
+                setattr(self, record_field, None)
+            if update_fields is not None:
+                kwargs["update_fields"] = set(kwargs["update_fields"]) | {
+                    f"{field}_record"
+                }
         cost_fields = {
             "cout_achat_mad",
             "autres_frais_virement",

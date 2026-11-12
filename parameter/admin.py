@@ -1,6 +1,9 @@
 from django.contrib import admin
 
 from .models import (
+    Incoterm,
+    OrigineMarchandise,
+    NatureMarchandise,
     Ville,
     Marque,
     Categorie,
@@ -317,6 +320,9 @@ class HistoricalLivreParAdmin(admin.ModelAdmin):
 
 # Register models
 admin.site.register(Ville, VilleAdmin)
+admin.site.register(Incoterm, VilleAdmin)
+admin.site.register(OrigineMarchandise, VilleAdmin)
+admin.site.register(NatureMarchandise, VilleAdmin)
 admin.site.register(Marque, MarqueAdmin)
 admin.site.register(Categorie, CategorieAdmin)
 admin.site.register(Unite, UniteAdmin)

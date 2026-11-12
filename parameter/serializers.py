@@ -1,6 +1,9 @@
 from rest_framework import serializers
 
 from .models import (
+    Incoterm,
+    OrigineMarchandise,
+    NatureMarchandise,
     Ville,
     Marque,
     Categorie,
@@ -9,6 +12,35 @@ from .models import (
     ModePaiement,
     LivrePar,
 )
+
+
+class IncotermSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Incoterm
+        fields = ("id", "nom", "company")
+
+    def validate(self, attrs):
+        company = attrs.get("company", getattr(self.instance, "company", None))
+        name = attrs.get("nom", getattr(self.instance, "nom", ""))
+        if (
+            self.Meta.model.objects.filter(company=company, nom__iexact=name)
+            .exclude(pk=getattr(self.instance, "pk", None))
+            .exists()
+        ):
+            raise serializers.ValidationError(
+                {"nom": "Cette valeur existe déjà pour cette société."}
+            )
+        return attrs
+
+
+class OrigineMarchandiseSerializer(IncotermSerializer):
+    class Meta(IncotermSerializer.Meta):
+        model = OrigineMarchandise
+
+
+class NatureMarchandiseSerializer(IncotermSerializer):
+    class Meta(IncotermSerializer.Meta):
+        model = NatureMarchandise
 
 
 class VilleSerializer(serializers.ModelSerializer):

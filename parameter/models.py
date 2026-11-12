@@ -3,6 +3,69 @@ from django.utils.translation import gettext_lazy as _
 from simple_history.models import HistoricalRecords
 
 
+class Incoterm(models.Model):
+    company = models.ForeignKey(
+        "company.Company", on_delete=models.CASCADE, related_name="incoterms"
+    )
+    nom = models.CharField(max_length=50)
+    history = HistoricalRecords()
+
+    class Meta:
+        ordering = ("nom", "pk")
+        constraints = [
+            models.UniqueConstraint(
+                models.functions.Lower("nom"),
+                "company",
+                name="unique_incoterm_per_company",
+            )
+        ]
+
+    def __str__(self):
+        return self.nom
+
+
+class NatureMarchandise(models.Model):
+    company = models.ForeignKey(
+        "company.Company", on_delete=models.CASCADE, related_name="natures_marchandise"
+    )
+    nom = models.CharField(max_length=255)
+    history = HistoricalRecords()
+
+    class Meta:
+        ordering = ("nom", "pk")
+        constraints = [
+            models.UniqueConstraint(
+                models.functions.Lower("nom"),
+                "company",
+                name="unique_goods_nature_per_company",
+            )
+        ]
+
+    def __str__(self):
+        return self.nom
+
+
+class OrigineMarchandise(models.Model):
+    company = models.ForeignKey(
+        "company.Company", on_delete=models.CASCADE, related_name="origines_marchandise"
+    )
+    nom = models.CharField(max_length=255)
+    history = HistoricalRecords()
+
+    class Meta:
+        ordering = ("nom", "pk")
+        constraints = [
+            models.UniqueConstraint(
+                models.functions.Lower("nom"),
+                "company",
+                name="unique_goods_origin_per_company",
+            )
+        ]
+
+    def __str__(self):
+        return self.nom
+
+
 class Ville(models.Model):
     company = models.ForeignKey(
         "company.Company",
