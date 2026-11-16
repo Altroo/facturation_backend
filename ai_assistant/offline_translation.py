@@ -16,7 +16,7 @@ PROTECTED_PATTERNS = (
     r"\b[\w-]+[®™]",
     r"\b(?:MAD|DHS?|EUR|USD)\b|[$€£]",
     r"(?<![^\W\d])(?:mm|cm|m)[²³23](?!\w)",
-    r"\b(?=[A-Za-z0-9/_-]*[A-Za-z])(?=[A-Za-z0-9/_-]*\d)[A-Za-z0-9]+(?:[-_/][A-Za-z0-9]+)*\b",
+    r"\b(?=[\w/-]*[^\W\d_])(?=[\w/-]*[\d⁰¹²³⁴⁵⁶⁷⁸⁹₀₁₂₃₄₅₆₇₈₉])\w+(?:[-/]\w+)*\b",
     r"(?<!\w)[-+]?\d+(?:[\s.,:/×x-]\d+)*(?:\s*%)?",
 )
 UNITS = frozenset(("m", "m²", "m³", "m2", "m3", "ml", "kg", "g", "l", "cm", "mm", "u"))
@@ -146,7 +146,7 @@ class OfflineTranslationClient:
         encoded = [tokenizer.encode(text, out_type=str) for text in fragments]
         results = translator.translate_batch(
             encoded, target_prefix=[[prefix]] * len(encoded) if prefix else None,
-            beam_size=2, max_batch_size=16, replace_unknowns=True,
+            beam_size=2, max_batch_size=16, replace_unknowns=True, no_repeat_ngram_size=3,
             max_input_length=0, max_decoding_length=1024,
             suppress_sequences=numeric_token_sequences(tokenizer),
         )

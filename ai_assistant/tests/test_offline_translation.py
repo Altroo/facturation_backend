@@ -55,6 +55,20 @@ def test_registered_names_never_enter_inference(client, name):
     assert all(name not in fragment for fragment in captured)
 
 
+@pytest.mark.parametrize("reference", ["Ø200", "ø350", "Φ300", "ÉTÉ123", "C₂", "R²", "ABC-123", "A_123/B-45"])
+def test_unicode_measurements_and_references_never_enter_inference(client, reference):
+    text = f"Article {reference} en acier poli."
+    captured = []
+    def translate(values, source, target):
+        captured.extend(values)
+        return ["Translated prose" for _ in values]
+    with patch("ai_assistant.offline_translation.detect_source_language", return_value="fr"), patch.object(client, "_translate_fragments", side_effect=translate):
+        result = client.translate_many([text], target_language="nl")[text]
+    assert reference in result
+    assert all(reference not in fragment for fragment in captured)
+    assert all(not any(character.isnumeric() for character in fragment) for fragment in captured)
+
+
 def test_already_translated_text_is_reused(client):
     text = "Houten stoel met een natuurlijke afwerking."
     with patch.object(client, "_translate_fragments") as translate:
@@ -193,6 +207,7 @@ def test_numeric_surface_forms_are_suppressed_during_prose_decoding(client):
     with patch("ai_assistant.offline_translation.load_model", return_value=(translator, tokenizer, "")):
         assert client._translate_fragments(["finition quatre voies"], "fr", "en") == ["four-way finish"]
     assert calls[0]["suppress_sequences"] == [["▁4"], ["2"], ["m²"]]
+    assert calls[0]["no_repeat_ngram_size"] == 3
     assert numeric_token_sequences(tokenizer) == calls[0]["suppress_sequences"]
 
 
