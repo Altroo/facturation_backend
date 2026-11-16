@@ -85,6 +85,31 @@ def test_tab_separated_prose_is_translated_in_bounded_chunks():
     assert all(len(value) <= 400 for literal, value in chunks if not literal)
 
 
+@pytest.mark.parametrize("text", [
+    "Compatible avec 12345. Corps en acier.",
+    "Longueur 100mm, finition blanche.",
+    "Articles 12345, 67890. Corps blanc.",
+    "Référence ABC-123; fixation murale.",
+])
+def test_separators_after_protected_values_do_not_enter_inference(client, text):
+    captured = []
+    def translate(values, source, target):
+        captured.extend(values)
+        return ["Translated prose" for _ in values]
+    with patch("ai_assistant.offline_translation.detect_source_language", return_value="fr"), patch.object(client, "_translate_fragments", side_effect=translate):
+        result = client.translate_many([text], target_language="en")[text]
+    assert [v for literal, v in protected_segments(result) if literal] == [v for literal, v in protected_segments(text) if literal]
+    assert all(value[0].isalnum() and value[-1].isalnum() for value in captured)
+    assert "." in result
+
+
+@pytest.mark.parametrize("text", [". Corps blanc. ", " ; finition blanche!", "...", "\t, \n", "_nom_", "'texte'"])
+def test_edge_punctuation_is_preserved_exactly(text):
+    chunks = free_text_chunks(text)
+    assert "".join(value for _, value in chunks) == text
+    assert all(value[0].isalnum() and value[-1].isalnum() for literal, value in chunks if not literal)
+
+
 def test_missing_models_fail_without_network(client):
     with patch("socket.create_connection", side_effect=AssertionError("No network")):
         with pytest.raises(PdfTranslationEngineUnavailable):

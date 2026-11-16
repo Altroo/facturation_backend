@@ -89,12 +89,14 @@ def free_text_chunks(text, limit=400):
     for part in re.split(r"(\r\n|\n|\r)", text):
         if not part:
             continue
-        if part.isspace():
+        if not any(character.isalnum() for character in part):
             chunks.append((True, part))
             continue
-        leading = part[:len(part) - len(part.lstrip())]
-        trailing = part[len(part.rstrip()):]
-        remaining = part.strip()
+        # Models may drop leading punctuation. Keep separators outside inference
+        # so a code followed by ". Description" cannot become "123Description".
+        leading = re.match(r"^[\W_]*", part).group()
+        trailing = re.search(r"[\W_]*$", part).group()
+        remaining = part[len(leading):len(part) - len(trailing) if trailing else None]
         if leading:
             chunks.append((True, leading))
         while len(remaining) > limit:
