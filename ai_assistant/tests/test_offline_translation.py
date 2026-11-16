@@ -64,6 +64,21 @@ def test_translator_cannot_invent_numbers(client):
             client.translate_many(["Chaise en bois"], target_language="en")
 
 
+@pytest.mark.parametrize("unit", ["m²", "m³", "cm²", "mm³", "m2", "m3"])
+@pytest.mark.parametrize("separator", [" ", ""])
+def test_dimensions_never_enter_inference(client, unit, separator):
+    text = f"Surface totale : 150{separator}{unit}. Finition blanche."
+    captured = []
+    def translate(values, source, target):
+        captured.extend(values)
+        return ["Translated prose" for _ in values]
+    with patch("ai_assistant.offline_translation.detect_source_language", return_value="fr"), patch.object(client, "_translate_fragments", side_effect=translate):
+        result = client.translate_many([text], target_language="nl")[text]
+    assert f"150{separator}{unit}" in result
+    assert all(unit not in fragment for fragment in captured)
+    assert [v for literal, v in protected_segments(result) if literal] == [v for literal, v in protected_segments(text) if literal]
+
+
 def test_whitespace_and_long_text_are_not_lost():
     text = " \t" + "Long texte à traduire. " * 100 + "\r\nDeuxième ligne.\n  "
     chunks = free_text_chunks(text)
