@@ -118,7 +118,7 @@ def test_missing_service_key_fails_without_network(settings):
 
 
 @pytest.mark.parametrize("language", ["fr", "en", "nl"])
-def test_pdf_translates_text_once_without_changing_saved_article(language, settings):
+def test_pdf_uses_prepared_text_without_changing_saved_article(language, settings):
     from datetime import date
     from decimal import Decimal
     from company.models import Company
@@ -158,6 +158,14 @@ def test_pdf_translates_text_once_without_changing_saved_article(language, setti
     )
     document.refresh_from_db()
     translations = {"fr": "Chaise en bois", "en": "Wooden chair", "nl": "Houten stoel"}
+    from ai_assistant.models import PdfTextTranslation
+    from ai_assistant.pdf_translation import ensure_sources, pdf_sources
+
+    ensure_sources(company.pk, pdf_sources(document, company))
+    for row in PdfTextTranslation.objects.filter(company=company, language=language):
+        row.status = "ready"
+        row.translated_text = translations[language] if row.source_text == "Chaise en bois" else "Translated remark"
+        row.save()
     with patch.object(
         AiAssistantClient,
         "translate_many",
@@ -169,9 +177,7 @@ def test_pdf_translates_text_once_without_changing_saved_article(language, setti
         generator = BonDeLivraisonPDFGenerator(document, company, language=language)
         response = generator.generate_pdf()
         assert response.content.startswith(b"%PDF")
-        translate.assert_called_once()
-        assert translate.call_args.kwargs["target_language"] == language
-        assert "ABC-123" in translate.call_args.kwargs["protected_terms"]
+        translate.assert_not_called()
         table = generator._create_delivery_articles_table()
         assert table._cellvalues[1][0].getPlainText() == "ABC-123"
         assert table._cellvalues[1][1].getPlainText() == translations[language]
@@ -218,22 +224,24 @@ def test_pdf_translates_text_once_without_changing_saved_article(language, setti
             )
 
 
-def test_pdf_translation_error_does_not_silently_print_mixed_language(settings):
+def test_unprepared_pdf_does_not_silently_print_mixed_language(settings):
     from types import SimpleNamespace
     from core.pdf_utils import BasePDFGenerator
-    from ai_assistant.exceptions import ModelUnavailable
+    from ai_assistant.exceptions import PdfTranslationPending
+    from company.models import Company
 
     settings.AI_PDF_TRANSLATION_ENABLED = True
     generator = BasePDFGenerator(
         SimpleNamespace(remarque="Texte français"),
-        SimpleNamespace(raison_sociale="CDL"),
+        Company.objects.create(raison_sociale="CDL", ICE="PDF-PENDING-QA"),
         language="en",
     )
     with patch.object(
-        AiAssistantClient, "translate_many", side_effect=ModelUnavailable
-    ):
-        with pytest.raises(ModelUnavailable):
+        AiAssistantClient, "translate_many"
+    ) as model:
+        with pytest.raises(PdfTranslationPending):
             generator.generate_pdf()
+        model.assert_not_called()
 
 
 def test_correction_journal_preview_resume_apply_conflict_and_rollback(tmp_path):

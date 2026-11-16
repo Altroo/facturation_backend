@@ -4,6 +4,31 @@ Django REST API for a billing operations platform for quotes, pro-forma invoices
 
 This is a production-oriented business backend. It models real operational workflows, authenticated staff access, API filtering, document/report generation, realtime notification plumbing, and testable domain behavior.
 
+## Background PDF translations
+
+With `AI_PDF_TRANSLATION_ENABLED=true`, saving PDF content prepares durable French,
+English, and Dutch translations without calling the model in the web request.
+PDF generation reads those saved values. An exact text or protected-name change
+creates a new translation snapshot; original business data is preserved.
+
+The `pdf-translations` Compose worker consumes the `pdf_translations` queue with
+one process, independently of notification and stock jobs. Run it locally with
+`celery -A facturation_backend worker -Q pdf_translations --concurrency=1`.
+Celery Beat recovers pending or expired work every minute. Requests for a newly
+edited PDF have priority over the historical backfill.
+
+After migrations and worker startup, queue existing content with:
+
+```bash
+python manage.py translate_pdf_content
+python manage.py translate_pdf_content --status
+```
+
+The backfill is bounded and safe to repeat. Optional `--company ID`, repeated
+`--language fr|en|nl`, and `--batch-size 100` restrict a run. After resolving a
+translation service failure, `--retry-failed` retries terminal failures. No
+customer text is included in task messages or error logs.
+
 ## What It Shows
 
 - Backend ownership for a complete internal business application.

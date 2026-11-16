@@ -86,6 +86,31 @@ services:
     volumes:
       - ./media:/app/media
 
+  pdf-translations:
+    build: .
+    container_name: facturation_pdf_translations
+    restart: always
+    command: celery -A facturation_backend worker --loglevel=info --concurrency=1 -E -P prefork -Q pdf_translations -n pdf-translations@%h
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env
+    networks:
+      - backend
+      - ai-gateway
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    healthcheck:
+      test: ["CMD-SHELL", "celery -A facturation_backend inspect ping -d pdf-translations@$${HOSTNAME} --timeout 5 | grep -q pong"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
   celery-beat:
     build: .
     container_name: facturation_celery_beat

@@ -20,6 +20,7 @@ app.conf.accept_content = ["json"]
 app.autodiscover_tasks(
     packages=[
         "account.tasks",
+        "ai_assistant.tasks",
         "chat_ai.tasks",
         "logistique.tasks",
         "notification.tasks",
@@ -28,6 +29,11 @@ app.autodiscover_tasks(
 )
 
 app.conf.beat_schedule = {
+    "prepare-pending-pdf-translations": {
+        "task": "ai_assistant.translate_pending_pdf_texts",
+        "schedule": crontab(),
+        "options": {"queue": "pdf_translations"},
+    },
     "purge-assistant-history-daily": {
         "task": "chat_ai.purge_history",
         "schedule": crontab(hour=3, minute=20),

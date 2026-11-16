@@ -8,7 +8,6 @@ from xml.sax.saxutils import escape
 
 from django.conf import settings
 from django.http import HttpResponse
-from ai_assistant.client import AiAssistantClient
 from core.pdf_translations import NL
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_RIGHT, TA_CENTER
@@ -586,44 +585,10 @@ class BasePDFGenerator:
     def _prepare_text_translations(self):
         if not getattr(settings, "AI_PDF_TRANSLATION_ENABLED", False):
             return
-        texts = [
-            getattr(self.document, key, "")
-            for key in ("remarque", "termes_paiement", "libelle", "conditions_paiement")
-        ]
-        protected = [self.company.raison_sociale]
-        client = getattr(self.document, "client", None)
-        if client is None and getattr(self.document, "facture_client", None):
-            client = self.document.facture_client.client
-        if client:
-            protected.extend(
-                getattr(client, key, "") for key in ("raison_sociale", "nom", "prenom")
-            )
-        lines = getattr(self.document, "lignes", None)
-        if lines is not None:
-            for line in lines.select_related("article").all():
-                article = line.article
-                if not article:
-                    continue
-                texts.append(article.designation)
-                protected.append(article.reference)
-                if article.unite:
-                    texts.append(article.unite.nom)
-                if article.marque:
-                    protected.append(article.marque.nom)
-        payment = getattr(self.document, "mode_reglement", None)
-        if payment:
-            texts.append(payment.nom)
-        if hasattr(self.document, "get_motif_avoir_display"):
-            texts.append(self.document.get_motif_avoir_display())
-        self._text_translations = AiAssistantClient().translate_many(
-            texts,
-            target_language=self.language,
-            protected_terms=list(
-                dict.fromkeys(
-                    p for p in protected if isinstance(p, str) and 1 < len(p) <= 200
-                )
-            )[:100],
-            context="invoice_pdf",
+        from ai_assistant.pdf_translation import load_pdf_translations
+
+        self._text_translations = load_pdf_translations(
+            self.document, self.company, self.language
         )
 
     def _text(self, value):

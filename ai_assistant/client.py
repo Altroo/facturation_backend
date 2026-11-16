@@ -111,7 +111,8 @@ class AiAssistantClient:
         return {**result, "original_text": text}
 
     def translate_many(
-        self, texts, *, target_language, protected_terms=(), context="document"
+        self, texts, *, target_language, protected_terms=(),
+        context="document", retry_rate_limit=True
     ):
         unique = list(
             dict.fromkeys(
@@ -132,6 +133,8 @@ class AiAssistantClient:
             try:
                 response = self._post("translate", payload)
             except Throttled as exc:
+                if not retry_rate_limit:
+                    raise
                 time.sleep(float(exc.wait or 60) + 0.1)
                 response = self._post("translate", payload)
             translated = response.get("translations")
