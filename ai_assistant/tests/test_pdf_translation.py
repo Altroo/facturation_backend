@@ -8,7 +8,8 @@ from django.core.management import call_command
 from django.utils import timezone
 
 from ai_assistant.client import AiAssistantClient
-from ai_assistant.exceptions import ModelUnavailable, PdfTranslationFailed, PdfTranslationPending
+from ai_assistant.offline_translation import OfflineTranslationClient
+from ai_assistant.exceptions import InvalidModelResponse, ModelUnavailable, PdfTranslationFailed, PdfTranslationPending
 from ai_assistant.models import PdfTextTranslation
 from ai_assistant.pdf_translation import ensure_sources, load_pdf_translations, own_sources, pdf_sources, source
 from ai_assistant.tasks import backfill_pdf_translations, translate_pending_pdf_texts
@@ -49,7 +50,7 @@ def ready_rows(language="nl"):
 
 
 def test_save_prepares_all_languages_without_model_calls(company, django_capture_on_commit_callbacks, background_settings):
-    with patch.object(AiAssistantClient, "translate_many") as model, django_capture_on_commit_callbacks(execute=True):
+    with patch.object(OfflineTranslationClient, "translate_many") as model, django_capture_on_commit_callbacks(execute=True):
         article = Article.objects.create(company=company, reference="A-123", designation="Chaise en bois")
     assert set(PdfTextTranslation.objects.values_list("language", flat=True)) == {"fr", "en", "nl"}
     assert PdfTextTranslation.objects.filter(status="pending").count() == 3
@@ -95,7 +96,7 @@ def test_pdf_reads_persisted_text_without_ai_and_preserves_original(company, doc
     article = Article.objects.create(company=company, reference="A-123", designation="Chaise en bois\nFinition naturelle", unite=unit)
     DeviLine.objects.create(devis=document, article=article, quantity=1, prix_vente=100, prix_achat=80)
     ready_rows()
-    with patch.object(AiAssistantClient, "translate_many") as model:
+    with patch.object(OfflineTranslationClient, "translate_many") as model:
         result = load_pdf_translations(document, company, "nl")
     assert result["Pièce"] == "NL Pièce"
     assert result[article.designation] == "NL " + article.designation
@@ -106,7 +107,7 @@ def test_pdf_reads_persisted_text_without_ai_and_preserves_original(company, doc
 
 def test_missing_rows_queue_work_but_never_translate_in_pdf(company, document):
     PdfTextTranslation.objects.all().delete()
-    with patch.object(AiAssistantClient, "translate_many") as model:
+    with patch.object(OfflineTranslationClient, "translate_many") as model:
         with pytest.raises(PdfTranslationPending) as failure:
             load_pdf_translations(document, company, "nl")
     assert failure.value.detail["code"] == "pdf_translation_pending"
@@ -119,7 +120,7 @@ def test_requested_pdf_takes_priority_over_existing_backfill(company, document):
     with pytest.raises(PdfTranslationPending):
         load_pdf_translations(document, company, "nl")
     assert PdfTextTranslation.objects.get(language="nl").priority == 0
-    with patch.object(AiAssistantClient, "translate_many", return_value={document.remarque: "Voor de middag leveren"}) as model:
+    with patch.object(OfflineTranslationClient, "translate_many", return_value={document.remarque: "Voor de middag leveren"}) as model:
         translate_pending_pdf_texts()
     assert model.call_args.kwargs["target_language"] == "nl"
 
@@ -136,17 +137,17 @@ def test_failed_translation_is_explicit_and_company_isolated(company, document):
 
 def test_worker_claims_one_company_and_language_and_saves_result(company):
     ensure_sources(company.pk, [source("Chaise en bois"), source("Livrer avant midi")])
-    with patch.object(AiAssistantClient, "translate_many", return_value={"Chaise en bois": "Houten stoel", "Livrer avant midi": "Voor de middag leveren"}) as model:
+    with patch.object(OfflineTranslationClient, "translate_many", return_value={"Chaise en bois": "Houten stoel", "Livrer avant midi": "Voor de middag leveren"}) as model:
         translate_pending_pdf_texts()
     assert PdfTextTranslation.objects.filter(language="fr", status="ready").count() == 2
     assert PdfTextTranslation.objects.filter(status="pending").count() == 4
-    assert model.call_args.kwargs["retry_rate_limit"] is False
+    assert "retry_rate_limit" not in model.call_args.kwargs
     assert model.call_args.kwargs["target_language"] == "fr"
 
 
-def test_worker_failure_retries_later_without_sleeping(company):
+def test_worker_failure_retries_later_without_sleeping(company, caplog):
     ensure_sources(company.pk, [source("Chaise en bois")], ["nl"])
-    with patch.object(AiAssistantClient, "translate_many", side_effect=ModelUnavailable):
+    with patch.object(OfflineTranslationClient, "translate_many", side_effect=ModelUnavailable):
         translate_pending_pdf_texts()
     row = PdfTextTranslation.objects.get()
     assert row.status == "pending"
@@ -154,12 +155,15 @@ def test_worker_failure_retries_later_without_sleeping(company):
     assert row.available_at > timezone.now()
     assert row.last_error == "ai_model_unavailable"
     assert not row.lease_token
+    assert f"row_id={row.pk}" in caplog.text
+    assert "ai_model_unavailable" in caplog.text
+    assert "Chaise en bois" not in caplog.text
 
 
 def test_worker_terminal_failure_and_expired_lease_recovery(company):
     ensure_sources(company.pk, [source("Chaise en bois")], ["nl"])
     PdfTextTranslation.objects.update(status="processing", lease_until=timezone.now() - timedelta(seconds=1), attempts=5, lease_token=uuid4())
-    with patch.object(AiAssistantClient, "translate_many", side_effect=ModelUnavailable):
+    with patch.object(OfflineTranslationClient, "translate_many", side_effect=ModelUnavailable):
         translate_pending_pdf_texts()
     assert PdfTextTranslation.objects.get().status == "failed"
 
@@ -170,7 +174,7 @@ def test_worker_does_not_overwrite_a_newer_lease(company):
     def translate(*args, **kwargs):
         PdfTextTranslation.objects.update(lease_token=new_token)
         return {"Chaise en bois": "Houten stoel"}
-    with patch.object(AiAssistantClient, "translate_many", side_effect=translate):
+    with patch.object(OfflineTranslationClient, "translate_many", side_effect=translate):
         translate_pending_pdf_texts()
     row = PdfTextTranslation.objects.get()
     assert row.status == "processing"
@@ -182,7 +186,7 @@ def test_worker_limits_batches_and_keeps_companies_separate(company):
     other = Company.objects.create(raison_sociale="Other", ICE="OTHER-PDF-QA")
     ensure_sources(company.pk, [source("A" * 3500), source("B" * 3500)], ["nl"])
     ensure_sources(other.pk, [source("Other text")], ["nl"])
-    with patch.object(AiAssistantClient, "translate_many", return_value={"A" * 3500: "Dutch A"}) as model:
+    with patch.object(OfflineTranslationClient, "translate_many", return_value={"A" * 3500: "Dutch A"}) as model:
         translate_pending_pdf_texts()
     assert model.call_args.args[0] == ["A" * 3500]
     assert PdfTextTranslation.objects.filter(status="ready").count() == 1
@@ -258,6 +262,34 @@ def test_gateway_rate_limit_is_retried_by_celery_without_sleep():
     sleep.assert_not_called()
 
 
+def test_pdf_polling_does_not_enqueue_duplicate_jobs(company, document, django_capture_on_commit_callbacks, background_settings):
+    background_settings[0].reset_mock()
+    with django_capture_on_commit_callbacks(execute=True):
+        for _ in range(3):
+            with pytest.raises(PdfTranslationPending):
+                load_pdf_translations(document, company, "nl")
+    background_settings[0].assert_called_once()
+
+
+def test_urgent_work_is_not_mixed_with_backfill(company):
+    ensure_sources(company.pk, [source("Urgent")], ["en"], priority=0)
+    ensure_sources(company.pk, [source("Historique")], ["en"], priority=100)
+    with patch.object(OfflineTranslationClient, "translate_many", return_value={"Urgent":"Urgent translated"}) as translate:
+        translate_pending_pdf_texts()
+    assert translate.call_args.args[0] == ["Urgent"]
+    assert PdfTextTranslation.objects.get(source_text="Historique").status == "pending"
+
+
+def test_one_bad_field_does_not_fail_valid_batch_fields(company):
+    ensure_sources(company.pk, [source("Bad"), source("Good")], ["en"])
+    with patch.object(OfflineTranslationClient, "translate_many", side_effect=[InvalidModelResponse(), InvalidModelResponse(), {"Good":"Translated good"}]):
+        translate_pending_pdf_texts()
+    assert PdfTextTranslation.objects.get(source_text="Bad").status == "pending"
+    good = PdfTextTranslation.objects.get(source_text="Good")
+    assert good.status == "ready"
+    assert good.attempts == 0
+
+
 @pytest.mark.parametrize("kind", ["quote", "invoice", "proforma"])
 @pytest.mark.parametrize("language", ["fr", "en", "nl"])
 @pytest.mark.parametrize("pdf_type", ["avec_remise", "sans_remise", "avec_unite_sans_remise", "avec_unite_avec_remise"])
@@ -282,7 +314,7 @@ def test_all_document_variants_render_from_saved_translations(company, document,
     document.refresh_from_db()
     ensure_sources(company.pk, pdf_sources(document, company))
     ready_rows(language)
-    with patch.object(AiAssistantClient, "translate_many") as model:
+    with patch.object(OfflineTranslationClient, "translate_many") as model:
         generator = generator_class(document, company, pdf_type=pdf_type, language=language)
         response = generator.generate_pdf()
     assert response.content.startswith(b"%PDF")

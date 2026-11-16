@@ -172,12 +172,13 @@ def load_pdf_translations(document, company, language):
     if any(row.status == "failed" for row in rows.values()):
         raise PdfTranslationFailed()
     if missing or any(row.status != "ready" for row in rows.values()):
-        PdfTextTranslation.objects.filter(
+        promoted = PdfTextTranslation.objects.filter(
             company=company,
             language=language,
             pk__in=[row.pk for row in rows.values() if row.status == "pending"],
+            priority__gt=0,
         ).update(priority=0)
-        if not missing:
+        if promoted and not missing:
             transaction.on_commit(dispatch_pending, robust=True)
         raise PdfTranslationPending()
     return {spec.text: rows[spec.fingerprint].translated_text for spec in specs}

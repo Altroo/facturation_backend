@@ -1,0 +1,26 @@
+[
+  {
+    "pair": "fr_en",
+    "version": "1.9",
+    "url": "https://argos-net.com/v1/translate-fr_en-1_9.argosmodel",
+    "sha256": "3b3052fee6bb1e8e8e632a26a723eb2a2c7710dfe73ba61ffd9b83e85d4f14c1"
+  },
+  {
+    "pair": "en_fr",
+    "version": "1.9",
+    "url": "https://argos-net.com/v1/translate-en_fr-1_9.argosmodel",
+    "sha256": "3a65ed83364f4e7b06e30f9dd823db1934899ed3ce839e63f46dc7b09dc797b4"
+  },
+  {
+    "pair": "en_nl",
+    "version": "1.8",
+    "url": "https://argos-net.com/v1/translate-en_nl-1_8.argosmodel",
+    "sha256": "91406f040619fb519e16af9c304709e9f3195297e626eec6924d62c7c981a33b"
+  },
+  {
+    "pair": "nl_en",
+    "version": "1.8",
+    "url": "https://argos-net.com/v1/translate-nl_en-1_8.argosmodel",
+    "sha256": "f49ac90c5812e0cb86a2858f4cfa61accec8709612728e6f805f0771c9a91e0e"
+  }
+]

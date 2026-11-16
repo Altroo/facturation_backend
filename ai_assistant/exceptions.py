@@ -42,3 +42,9 @@ class PdfTranslationFailed(APIException):
 
     def __init__(self):
         super().__init__({"code": self.default_code, "detail": self.default_detail})
+
+
+class PdfTranslationEngineUnavailable(APIException):
+    status_code = 503
+    default_detail = "Le service de traduction est temporairement indisponible."
+    default_code = "pdf_translation_engine_unavailable"

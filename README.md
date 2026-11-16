@@ -11,6 +11,24 @@ English, and Dutch translations without calling the model in the web request.
 PDF generation reads those saved values. An exact text or protected-name change
 creates a new translation snapshot; original business data is preserved.
 
+The worker uses CTranslate2 4.9 with pinned OPUS/Argos models and offline Lingua
+language detection. French and Dutch are routed through English. Model files
+are read from `PDF_TRANSLATION_MODELS_DIR`; inference never downloads files or
+sends document text to a translation server. Names, references and numeric values
+are reinserted outside inference and checked after translation.
+
+Install models once before starting the worker:
+
+```bash
+python manage.py prepare_pdf_translation_models
+python manage.py prepare_pdf_translation_models --check
+```
+
+Downloads have pinned SHA-256 checksums. Runtime weights stay outside Git and
+Docker images; Compose mounts `./translation-models` read-only at `/models`.
+The original model attribution and CC-BY 4.0 notices are retained in each model
+package's README. Local model installation can use `--archives /path/to/archives`.
+
 The `pdf-translations` Compose worker consumes the `pdf_translations` queue with
 one process, independently of notification and stock jobs. Run it locally with
 `celery -A facturation_backend worker -Q pdf_translations --concurrency=1`.

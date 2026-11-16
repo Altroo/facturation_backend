@@ -4,13 +4,14 @@ from datetime import timedelta
 import math
 from uuid import uuid4
 
+from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
 
 from facturation_backend.celery_conf import app
-from .client import AiAssistantClient
+from .offline_translation import OfflineTranslationClient
 from .exceptions import InvalidModelResponse
 from .models import PdfTextTranslation
 from .pdf_translation import (
@@ -22,6 +23,8 @@ from .pdf_translation import (
     source_model,
     translation_enabled,
 )
+
+logger = get_task_logger(__name__)
 
 
 @app.task(name="ai_assistant.translate_pending_pdf_texts", ignore_result=True, queue="pdf_translations")
@@ -37,14 +40,17 @@ def translate_pending_pdf_texts():
         first = (
             PdfTextTranslation.objects.filter(eligible)
             .order_by("priority", "pk")
-            .values("language", "company_id")
+            .values("language", "company_id", "priority")
             .first()
         )
         if first is None:
             return
         candidates = list(
             PdfTextTranslation.objects.select_for_update(skip_locked=True)
-            .filter(eligible, language=first["language"], company_id=first["company_id"])
+            .filter(
+                eligible, language=first["language"], company_id=first["company_id"],
+                priority=first["priority"],
+            )
             .order_by("priority", "pk")[:15]
         )
         rows = []
@@ -67,14 +73,13 @@ def translate_pending_pdf_texts():
             lease_token=token,
         )
     try:
-        translations = AiAssistantClient().translate_many(
+        translations = OfflineTranslationClient().translate_many(
             [row.source_text for row in rows],
             target_language=first["language"],
             protected_terms=list(
                 dict.fromkeys(term for row in rows for term in row.protected_terms)
             ),
             context="invoice_pdf",
-            retry_rate_limit=False,
         )
         for row in rows:
             text = translations.get(row.source_text)
@@ -91,26 +96,52 @@ def translate_pending_pdf_texts():
                     updated_at=timezone.now(),
                 )
     except Exception as exc:
-        # Retry asynchronously. A slow/unavailable model never delays a save or PDF.
-        error_code = str(getattr(exc, "default_code", type(exc).__name__))[:80]
-        for row in rows:
-            attempts = row.attempts + 1
-            delay = max(
-                float(getattr(exc, "wait", 0) or 0),
-                min(3600, 30 * 2 ** min(attempts - 1, 7)),
-            )
-            PdfTextTranslation.objects.filter(pk=row.pk, lease_token=token).update(
-                status="failed" if attempts >= 6 else "pending",
-                attempts=attempts,
-                available_at=timezone.now() + timedelta(seconds=delay),
-                lease_until=None,
-                lease_token=None,
-                last_error=error_code,
-                updated_at=timezone.now(),
-            )
+        if isinstance(exc, InvalidModelResponse) and len(rows) > 1:
+            # A bad legacy field must not fail otherwise valid fields in its batch.
+            for row in rows:
+                try:
+                    translated = OfflineTranslationClient().translate_many(
+                        [row.source_text], target_language=row.language,
+                        protected_terms=row.protected_terms, context="invoice_pdf",
+                    ).get(row.source_text)
+                    if not isinstance(translated, str) or not translated.strip():
+                        raise InvalidModelResponse()
+                    PdfTextTranslation.objects.filter(pk=row.pk, lease_token=token).update(
+                        status="ready", translated_text=translated, lease_until=None,
+                        lease_token=None, last_error="", updated_at=timezone.now(),
+                    )
+                except Exception as single_error:
+                    record_failure(row, token, single_error)
+        else:
+            for row in rows:
+                record_failure(row, token, exc)
     # Beat recovers pending/expired work even if this follow-up cannot be sent.
     if PdfTextTranslation.objects.filter(status="pending", available_at__lte=timezone.now()).exists():
         translate_pending_pdf_texts.apply_async(countdown=1)
+
+
+def record_failure(row, token, exc):
+    # Retry asynchronously. A slow/unavailable engine never delays a save or PDF.
+    error_code = str(getattr(exc, "default_code", type(exc).__name__))[:80]
+    attempts = row.attempts + 1
+    delay = max(
+        float(getattr(exc, "wait", 0) or 0),
+        min(3600, 30 * 2 ** min(attempts - 1, 7)),
+    )
+    changed = PdfTextTranslation.objects.filter(pk=row.pk, lease_token=token).update(
+        status="failed" if attempts >= 6 else "pending",
+        attempts=attempts,
+        available_at=timezone.now() + timedelta(seconds=delay),
+        lease_until=None,
+        lease_token=None,
+        last_error=error_code,
+        updated_at=timezone.now(),
+    )
+    if changed:
+        logger.warning(
+            "PDF translation failed: row_id=%s language=%s attempt=%s code=%s",
+            row.pk, row.language, attempts, error_code,
+        )
 
 
 @app.task(

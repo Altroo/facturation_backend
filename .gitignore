@@ -216,6 +216,8 @@ cython_debug/
 /assistant/
 
 # Runtime weights, training outputs and raw evaluations stay outside Git.
+/translation-models/
+*.argosmodel
 .venv*/
 *.safetensors
 *.gguf

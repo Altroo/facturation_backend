@@ -28,3 +28,5 @@ playwright/.auth/
 
 # Shared AI source, Colibri and training data belong to the independent AI service.
 /assistant/
+/translation-models/
+*.argosmodel

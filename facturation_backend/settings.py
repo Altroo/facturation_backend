@@ -369,6 +369,10 @@ AI_ASSISTANT_TIMEOUT_SECONDS = config(
 AI_PDF_TRANSLATION_ENABLED = config(
     "AI_PDF_TRANSLATION_ENABLED", default=AI_ASSISTANT_ENABLED, cast=bool
 )
+PDF_TRANSLATION_MODELS_DIR = config(
+    "PDF_TRANSLATION_MODELS_DIR", default=str(BASE_DIR / "translation-models")
+)
+PDF_TRANSLATION_THREADS = config("PDF_TRANSLATION_THREADS", default=2, cast=int)
 
 # Chat AI Assistant: separate from prose correction; disabled until deployment approval.
 CHAT_AI_ASSISTANT_ENABLED = config("CHAT_AI_ASSISTANT_ENABLED", default=False, cast=bool)
