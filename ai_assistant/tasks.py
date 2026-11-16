@@ -146,7 +146,7 @@ def record_failure(row, token, exc):
 
 @app.task(
     name="ai_assistant.backfill_pdf_translations",
-    queue="pdf_translations",
+    queue="celery",
     autoretry_for=(Exception,),
     retry_backoff=True,
     retry_kwargs={"max_retries": 5},

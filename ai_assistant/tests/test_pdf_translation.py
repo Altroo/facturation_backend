@@ -193,6 +193,8 @@ def test_worker_limits_batches_and_keeps_companies_separate(company):
 
 
 def test_backfill_is_scoped_idempotent_and_bounded(company, settings):
+    assert backfill_pdf_translations.queue == "celery"
+    assert translate_pending_pdf_texts.queue == "pdf_translations"
     settings.AI_PDF_TRANSLATION_ENABLED = False
     for index in range(3):
         Article.objects.create(company=company, reference=f"A-{index}", designation=f"Chaise {index}")

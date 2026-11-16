@@ -11,6 +11,9 @@ English, and Dutch translations without calling the model in the web request.
 PDF generation reads those saved values. An exact text or protected-name change
 creates a new translation snapshot; original business data is preserved.
 
+The historical scan runs on the normal Celery queue, separately from the dedicated
+translation worker, so scanning existing records keeps progressing during inference.
+
 The worker uses CTranslate2 4.9 with pinned OPUS/Argos models and offline Lingua
 language detection. French and Dutch are routed through English. Model files
 are read from `PDF_TRANSLATION_MODELS_DIR`; inference never downloads files or

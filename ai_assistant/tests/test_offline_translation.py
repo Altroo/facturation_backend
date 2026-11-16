@@ -10,7 +10,7 @@ from ai_assistant.exceptions import InvalidModelResponse, PdfTranslationEngineUn
 from ai_assistant.model_packages import prepare_models
 from ai_assistant.offline_translation import (
     OfflineTranslationClient, detect_source_language, free_text_chunks,
-    load_model, protected_segments,
+    load_model, numeric_token_sequences, protected_segments,
 )
 
 
@@ -40,6 +40,19 @@ def test_codes_amounts_units_and_urls_do_not_require_models(client, text):
     with patch.object(client, "_translate_fragments") as translate:
         assert client.translate_many([text], target_language="nl")[text] == text
     translate.assert_not_called()
+
+
+@pytest.mark.parametrize("name", ["ExampleCoat®", "ExampleCoat™"])
+def test_registered_names_never_enter_inference(client, name):
+    text = f"Revêtement {name} pour une finition naturelle."
+    captured = []
+    def translate(values, source, target):
+        captured.extend(values)
+        return ["Translated prose" for _ in values]
+    with patch("ai_assistant.offline_translation.detect_source_language", return_value="fr"), patch.object(client, "_translate_fragments", side_effect=translate):
+        result = client.translate_many([text], target_language="en")[text]
+    assert name in result
+    assert all(name not in fragment for fragment in captured)
 
 
 def test_already_translated_text_is_reused(client):
@@ -134,6 +147,8 @@ def test_missing_models_fail_without_network(client):
 def test_french_dutch_translation_routes_through_english(client):
     from types import SimpleNamespace
     class Tokenizer:
+        def get_piece_size(self): return 1
+        def id_to_piece(self, index): return "word"
         def encode(self, text, **kwargs): return [text]
         def decode_pieces(self, values): return " ".join(values)
     class Translator:
@@ -152,11 +167,33 @@ def test_french_dutch_translation_routes_through_english(client):
 def test_sentencepiece_space_markers_are_removed_without_changing_underscores(client):
     from types import SimpleNamespace
     class Tokenizer:
+        def get_piece_size(self): return 1
+        def id_to_piece(self, index): return "word"
         def encode(self, text, **kwargs): return [text]
         def decode_pieces(self, values): return "▁Wooden▁chair ref_code"
     translator = SimpleNamespace(translate_batch=lambda *args, **kwargs: [SimpleNamespace(hypotheses=[["tokens"]])])
     with patch("ai_assistant.offline_translation.load_model", return_value=(translator, Tokenizer(), "")):
         assert client._translate_fragments(["Chaise en bois"], "fr", "en") == ["Wooden chair ref_code"]
+
+
+def test_numeric_surface_forms_are_suppressed_during_prose_decoding(client):
+    from types import SimpleNamespace
+    pieces = ["<unk>", "four", "▁4", "2", "m²", "chair"]
+    class Tokenizer:
+        def get_piece_size(self): return len(pieces)
+        def id_to_piece(self, index): return pieces[index]
+        def encode(self, text, **kwargs): return [text]
+        def decode_pieces(self, values): return "four-way finish"
+    calls = []
+    def translate(values, **options):
+        calls.append(options)
+        return [SimpleNamespace(hypotheses=[["four", "way", "finish"]])]
+    tokenizer = Tokenizer()
+    translator = SimpleNamespace(translate_batch=translate)
+    with patch("ai_assistant.offline_translation.load_model", return_value=(translator, tokenizer, "")):
+        assert client._translate_fragments(["finition quatre voies"], "fr", "en") == ["four-way finish"]
+    assert calls[0]["suppress_sequences"] == [["▁4"], ["2"], ["m²"]]
+    assert numeric_token_sequences(tokenizer) == calls[0]["suppress_sequences"]
 
 
 def make_package(tmp_path, *, unsafe=False):

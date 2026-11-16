@@ -13,6 +13,7 @@ LANGUAGES = ("fr", "en", "nl")
 PROTECTED_PATTERNS = (
     r"https?://[^\s<>]+",
     r"\b[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}\b",
+    r"\b[\w-]+[®™]",
     r"\b(?:MAD|DHS?|EUR|USD)\b|[$€£]",
     r"(?<![^\W\d])(?:mm|cm|m)[²³23](?!\w)",
     r"\b(?=[A-Za-z0-9/_-]*[A-Za-z])(?=[A-Za-z0-9/_-]*\d)[A-Za-z0-9]+(?:[-_/][A-Za-z0-9]+)*\b",
@@ -47,7 +48,6 @@ def protected_segments(text, protected_terms=()):
         result.append((False, text[cursor:]))
     return result
 
-
 @lru_cache(maxsize=1)
 def language_detector():
     from lingua import Language, LanguageDetectorBuilder
@@ -62,7 +62,6 @@ def detect_source_language(text):
 
     detected = language_detector().detect_language_of(text)
     return {Language.FRENCH: "fr", Language.ENGLISH: "en", Language.DUTCH: "nl"}.get(detected, "fr")
-
 
 @lru_cache(maxsize=4)
 def load_model(root, source_language, target_language, threads):
@@ -82,6 +81,14 @@ def load_model(root, source_language, target_language, threads):
     except (OSError, RuntimeError, ValueError, KeyError) as exc:
         raise PdfTranslationEngineUnavailable() from exc
     return translator, tokenizer, metadata.get("target_prefix", "")
+
+
+@lru_cache(maxsize=4)
+def numeric_token_sequences(tokenizer):
+    # Free prose excludes source amounts and references. Decode word-based
+    # numbers as words too, so "four-way" cannot introduce an unchecked "4".
+    tokens = (tokenizer.id_to_piece(index) for index in range(tokenizer.get_piece_size()))
+    return [[token] for token in tokens if any(character.isnumeric() for character in token)]
 
 
 def free_text_chunks(text, limit=400):
@@ -141,6 +148,7 @@ class OfflineTranslationClient:
             encoded, target_prefix=[[prefix]] * len(encoded) if prefix else None,
             beam_size=2, max_batch_size=16, replace_unknowns=True,
             max_input_length=0, max_decoding_length=1024,
+            suppress_sequences=numeric_token_sequences(tokenizer),
         )
         if len(results) != len(fragments):
             raise InvalidModelResponse()
