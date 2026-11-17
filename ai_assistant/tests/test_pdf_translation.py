@@ -380,3 +380,14 @@ def test_worker_rejects_changed_layout_or_dimensions(company, translated):
     row = SimpleNamespace(source_text="• Livrer 120*120cm.\n• Marbre non compris.", protected_terms=[])
     with pytest.raises(InvalidModelResponse):
         validate_saved_translation(row, translated)
+
+
+def test_historical_refresh_uses_background_quota_and_reuses_authoritative_french(company):
+    ensure_sources(company.pk, [source("Chaise en bois")], priority=0, dispatch=False)
+    PdfTextTranslation.objects.update(engine_revision=1, status="ready", translated_text="Old output")
+    PdfTextTranslation.objects.filter(language="fr").update(translated_text="Chaise en bois")
+    with patch.object(backfill_pdf_translations,"delay"):
+        call_command("translate_pdf_content",refresh_existing=True,stdout=StringIO())
+    assert PdfTextTranslation.objects.get(language="fr").status == "ready"
+    for row in PdfTextTranslation.objects.exclude(language="fr"):
+        assert (row.status,row.engine_revision,row.priority) == ("pending",2,100)

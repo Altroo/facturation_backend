@@ -51,6 +51,7 @@ class Command(BaseCommand):
                 status="pending",
                 engine_revision=ENGINE_REVISION,
                 attempts=0,
+                priority=100,
                 available_at=timezone.now(),
                 last_error="",
                 lease_until=None,
