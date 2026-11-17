@@ -100,15 +100,12 @@ services:
       - .env
     networks:
       - backend
-    volumes:
-      - ./translation-models:/models:ro
+      - ai-gateway
     environment:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
-      - PDF_TRANSLATION_MODELS_DIR=/models
-      - PDF_TRANSLATION_THREADS=2
     healthcheck:
-      test: ["CMD-SHELL", "python manage.py prepare_pdf_translation_models --check && celery -A facturation_backend inspect ping -d pdf-translations@$${HOSTNAME} --timeout 5 | grep -q pong"]
+      test: ["CMD-SHELL", "celery -A facturation_backend inspect ping -d pdf-translations@$${HOSTNAME} --timeout 5 | grep -q pong"]
       interval: 30s
       timeout: 10s
       retries: 3

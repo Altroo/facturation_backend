@@ -6,16 +6,20 @@ from uuid import uuid4
 
 from celery.utils.log import get_task_logger
 from django.conf import settings
+from django.core.cache import cache
 from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
 
 from facturation_backend.celery_conf import app
-from .offline_translation import OfflineTranslationClient
+from .client import AiAssistantClient
+from rest_framework.exceptions import Throttled
 from .exceptions import InvalidModelResponse
 from .models import PdfTextTranslation
 from .pdf_translation import (
     LANGUAGES,
+    ENGINE_REVISION,
+    validate_saved_translation,
     SOURCE_MODELS,
     company_for,
     ensure_sources,
@@ -27,7 +31,11 @@ from .pdf_translation import (
 logger = get_task_logger(__name__)
 
 
-@app.task(name="ai_assistant.translate_pending_pdf_texts", ignore_result=True, queue="pdf_translations")
+@app.task(
+    name="ai_assistant.translate_pending_pdf_texts",
+    ignore_result=True,
+    queue="pdf_translations",
+)
 def translate_pending_pdf_texts():
     if not translation_enabled():
         return
@@ -48,7 +56,9 @@ def translate_pending_pdf_texts():
         candidates = list(
             PdfTextTranslation.objects.select_for_update(skip_locked=True)
             .filter(
-                eligible, language=first["language"], company_id=first["company_id"],
+                eligible,
+                language=first["language"],
+                company_id=first["company_id"],
                 priority=first["priority"],
             )
             .order_by("priority", "pk")[:15]
@@ -73,22 +83,30 @@ def translate_pending_pdf_texts():
             lease_token=token,
         )
     try:
-        translations = OfflineTranslationClient().translate_many(
+        # Keep retries local while this priority tier has exhausted its allowance.
+        # Foreground PDFs retain access to the gateway's reserved daily capacity.
+        cooldown = cache.get(quota_key(first["priority"]), 0)
+        wait = cooldown - timezone.now().timestamp()
+        if wait > 0:
+            raise Throttled(wait=wait)
+        translations = AiAssistantClient().translate_many(
             [row.source_text for row in rows],
             target_language=first["language"],
             protected_terms=list(
                 dict.fromkeys(term for row in rows for term in row.protected_terms)
             ),
             context="invoice_pdf",
+            retry_rate_limit=False,
+            background=first["priority"] >= 100,
         )
         for row in rows:
             text = translations.get(row.source_text)
-            if not isinstance(text, str) or not text.strip():
-                raise InvalidModelResponse()
+            validate_saved_translation(row, text)
         with transaction.atomic():
             for row in rows:
                 PdfTextTranslation.objects.filter(pk=row.pk, lease_token=token).update(
                     status="ready",
+                    engine_revision=ENGINE_REVISION,
                     translated_text=translations[row.source_text],
                     lease_until=None,
                     lease_token=None,
@@ -100,15 +118,29 @@ def translate_pending_pdf_texts():
             # A bad legacy field must not fail otherwise valid fields in its batch.
             for row in rows:
                 try:
-                    translated = OfflineTranslationClient().translate_many(
-                        [row.source_text], target_language=row.language,
-                        protected_terms=row.protected_terms, context="invoice_pdf",
-                    ).get(row.source_text)
-                    if not isinstance(translated, str) or not translated.strip():
-                        raise InvalidModelResponse()
-                    PdfTextTranslation.objects.filter(pk=row.pk, lease_token=token).update(
-                        status="ready", translated_text=translated, lease_until=None,
-                        lease_token=None, last_error="", updated_at=timezone.now(),
+                    translated = (
+                        AiAssistantClient()
+                        .translate_many(
+                            [row.source_text],
+                            target_language=row.language,
+                            protected_terms=row.protected_terms,
+                            context="invoice_pdf",
+                            retry_rate_limit=False,
+                            background=row.priority >= 100,
+                        )
+                        .get(row.source_text)
+                    )
+                    validate_saved_translation(row, translated)
+                    PdfTextTranslation.objects.filter(
+                        pk=row.pk, lease_token=token
+                    ).update(
+                        status="ready",
+                        engine_revision=ENGINE_REVISION,
+                        translated_text=translated,
+                        lease_until=None,
+                        lease_token=None,
+                        last_error="",
+                        updated_at=timezone.now(),
                     )
                 except Exception as single_error:
                     record_failure(row, token, single_error)
@@ -116,12 +148,37 @@ def translate_pending_pdf_texts():
             for row in rows:
                 record_failure(row, token, exc)
     # Beat recovers pending/expired work even if this follow-up cannot be sent.
-    if PdfTextTranslation.objects.filter(status="pending", available_at__lte=timezone.now()).exists():
+    if PdfTextTranslation.objects.filter(
+        status="pending", available_at__lte=timezone.now()
+    ).exists():
         translate_pending_pdf_texts.apply_async(countdown=1)
+
+
+def quota_key(priority):
+    return "pdf-translation-quota:" + (
+        "background" if priority >= 100 else "foreground"
+    )
 
 
 def record_failure(row, token, exc):
     # Retry asynchronously. A slow/unavailable engine never delays a save or PDF.
+    if isinstance(exc, Throttled):
+        wait = max(1, float(exc.wait or 60))
+        cache.set(
+            quota_key(row.priority),
+            timezone.now().timestamp() + wait,
+            math.ceil(wait) + 1,
+        )
+        PdfTextTranslation.objects.filter(pk=row.pk, lease_token=token).update(
+            status="pending",
+            available_at=timezone.now()
+            + timedelta(seconds=max(1, float(exc.wait or 60))),
+            lease_until=None,
+            lease_token=None,
+            last_error="ai_rate_limited",
+            updated_at=timezone.now(),
+        )
+        return
     error_code = str(getattr(exc, "default_code", type(exc).__name__))[:80]
     attempts = row.attempts + 1
     delay = max(
@@ -140,7 +197,10 @@ def record_failure(row, token, exc):
     if changed:
         logger.warning(
             "PDF translation failed: row_id=%s language=%s attempt=%s code=%s",
-            row.pk, row.language, attempts, error_code,
+            row.pk,
+            row.language,
+            attempts,
+            error_code,
         )
 
 
@@ -187,8 +247,11 @@ def backfill_pdf_translations(
         company = company_for(instance)
         if company:
             ensure_sources(
-                company.pk, own_sources(instance, company), languages,
-                dispatch=False, priority=100,
+                company.pk,
+                own_sources(instance, company),
+                languages,
+                dispatch=False,
+                priority=100,
             )
     from .pdf_translation import dispatch_pending
 
@@ -202,13 +265,17 @@ def backfill_pdf_translations(
     if next_index < len(labels):
         backfill_pdf_translations.apply_async(
             kwargs={
-                "company_id": company_id, "languages": list(languages),
-                "model_index": next_index, "after_pk": next_pk,
+                "company_id": company_id,
+                "languages": list(languages),
+                "model_index": next_index,
+                "after_pk": next_pk,
                 "batch_size": batch_size,
             },
             countdown=1,
         )
     return {
-        "model": labels[model_index], "scanned": len(instances),
-        "after_pk": next_pk, "next_model_index": next_index,
+        "model": labels[model_index],
+        "scanned": len(instances),
+        "after_pk": next_pk,
+        "next_model_index": next_index,
     }

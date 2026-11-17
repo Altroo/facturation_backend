@@ -3510,3 +3510,8 @@ class TestBasePDFGeneratorDraftWatermark:
         generator._add_draft_watermark(fake_canvas, None)
 
         assert fake_canvas.calls == []
+
+
+def test_pdf_text_preserves_nested_list_indentation_and_escapes_markup():
+    from core.pdf_utils import format_multiline_pdf_text
+    assert format_multiline_pdf_text("• A & B\r\n\t• <suite>") == "• A &amp; B<br/>&#160;&#160;&#160;&#160;• &lt;suite&gt;"

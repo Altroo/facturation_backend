@@ -48,3 +48,23 @@ class PdfTranslationEngineUnavailable(APIException):
     status_code = 503
     default_detail = "Le service de traduction est temporairement indisponible."
     default_code = "pdf_translation_engine_unavailable"
+
+
+class PdfTranslationDeferred(APIException):
+    status_code = 409
+    default_detail = (
+        "La traduction du document est en attente. Veuillez réessayer plus tard."
+    )
+    default_code = "pdf_translation_deferred"
+
+    def __init__(self, wait):
+        import math
+
+        self.wait = max(1, math.ceil(wait))
+        super().__init__(
+            {
+                "code": self.default_code,
+                "detail": self.default_detail,
+                "retry_after": self.wait,
+            }
+        )

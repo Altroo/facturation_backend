@@ -1,4 +1,4 @@
-"""Signed calls to the existing self-hosted AI gateway; no external provider."""
+"""Signed calls to the private shared text gateway; provider secrets stay there."""
 
 import hashlib
 import hmac
@@ -60,8 +60,13 @@ class AiAssistantClient:
             raise ModelTimeout() from exc
         except error.HTTPError as exc:
             if exc.code == 429:
+                try:
+                    wait = max(1, float(exc.headers.get("Retry-After", "60")))
+                except (TypeError, ValueError):
+                    wait = 60
                 raise Throttled(
-                    wait=60, detail="L’assistant est occupé. Réessayez dans une minute."
+                    wait=wait,
+                    detail="L’assistant est temporairement occupé. Veuillez réessayer plus tard.",
                 ) from exc
             if exc.code in (408, 504):
                 raise ModelTimeout() from exc
@@ -72,7 +77,10 @@ class AiAssistantClient:
                     failure = json.loads(exc.read(4096).decode("utf-8"))
                 except (ValueError, OSError):
                     failure = None
-                if isinstance(failure, dict) and failure.get("code") == "ai_invalid_response":
+                if (
+                    isinstance(failure, dict)
+                    and failure.get("code") == "ai_invalid_response"
+                ):
                     raise InvalidModelResponse() from exc
             raise ModelUnavailable() from exc
         except (error.URLError, ConnectionError, OSError) as exc:
@@ -111,8 +119,14 @@ class AiAssistantClient:
         return {**result, "original_text": text}
 
     def translate_many(
-        self, texts, *, target_language, protected_terms=(),
-        context="document", retry_rate_limit=True
+        self,
+        texts,
+        *,
+        target_language,
+        protected_terms=(),
+        context="document",
+        retry_rate_limit=True,
+        background=False,
     ):
         unique = list(
             dict.fromkeys(
@@ -129,6 +143,7 @@ class AiAssistantClient:
                 "target_language": target_language,
                 "context": context,
                 "protected_terms": list(protected_terms)[:100],
+                "background": background,
             }
             try:
                 response = self._post("translate", payload)
@@ -163,6 +178,8 @@ class AiAssistantClient:
                     target_language=target_language,
                     protected_terms=protected_terms,
                     context=context,
+                    background=background,
+                    retry_rate_limit=retry_rate_limit,
                 )
                 result[text] = "".join(
                     (

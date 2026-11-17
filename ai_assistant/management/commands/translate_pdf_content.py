@@ -13,6 +13,7 @@ class Command(BaseCommand):
         parser.add_argument("--language", action="append", choices=LANGUAGES)
         parser.add_argument("--batch-size", type=int, default=100)
         parser.add_argument("--retry-failed", action="store_true")
+        parser.add_argument("--refresh-existing", action="store_true")
         parser.add_argument("--status", action="store_true")
 
     def handle(self, *args, **options):
@@ -25,14 +26,45 @@ class Command(BaseCommand):
         if options["language"]:
             queryset = queryset.filter(language__in=options["language"])
         if options["status"]:
-            for group in queryset.values("language", "status").annotate(count=Count("pk")).order_by("language", "status"):
-                self.stdout.write(f"{group['language']} {group['status']}: {group['count']}")
+            for group in (
+                queryset.values("language", "status")
+                .annotate(count=Count("pk"))
+                .order_by("language", "status")
+            ):
+                self.stdout.write(
+                    f"{group['language']} {group['status']}: {group['count']}"
+                )
             return
         if not translation_enabled():
             raise CommandError("AI_PDF_TRANSLATION_ENABLED must be enabled.")
         if not 1 <= options["batch_size"] <= 500:
             raise CommandError("--batch-size must be between 1 and 500.")
+        if options["refresh_existing"]:
+            from ai_assistant.pdf_translation import ENGINE_REVISION
+            from django.db.models import F
+
+            # Identical French values already contain the authoritative source.
+            queryset.filter(
+                language="fr", translated_text=F("source_text"), status="ready"
+            ).update(engine_revision=ENGINE_REVISION)
+            queryset.filter(engine_revision__lt=ENGINE_REVISION).update(
+                status="pending",
+                engine_revision=ENGINE_REVISION,
+                attempts=0,
+                available_at=timezone.now(),
+                last_error="",
+                lease_until=None,
+                lease_token=None,
+            )
         if options["retry_failed"]:
-            queryset.filter(status="failed").update(status="pending", attempts=0, available_at=timezone.now(), last_error="")
-        result = backfill_pdf_translations.delay(company_id=options["company"], languages=options["language"], batch_size=options["batch_size"])
-        self.stdout.write(self.style.SUCCESS(f"PDF translation backfill queued: {result.id}"))
+            queryset.filter(status="failed").update(
+                status="pending", attempts=0, available_at=timezone.now(), last_error=""
+            )
+        result = backfill_pdf_translations.delay(
+            company_id=options["company"],
+            languages=options["language"],
+            batch_size=options["batch_size"],
+        )
+        self.stdout.write(
+            self.style.SUCCESS(f"PDF translation backfill queued: {result.id}")
+        )

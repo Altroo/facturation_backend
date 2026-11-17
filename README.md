@@ -160,3 +160,25 @@ backend settings keep the assistant availability flag unchanged.
 ## Portfolio Note
 
 The repository is public for portfolio review. Screenshots are redacted, and sensitive production values are intentionally hidden.
+
+
+## PDF translations
+
+New or edited PDF text is queued on transaction commit. Saving an article or a
+remark never waits for translation. The dedicated Celery worker calls the signed
+private text gateway; PDFs only read durable, validated translations. Keep the
+provider key in the gateway environment, not in this application.
+
+After deploying the gateway and replacing the PDF worker, run
+`python manage.py translate_pdf_content --refresh-existing --retry-failed`.
+This refreshes older engine revisions asynchronously, retaining authoritative
+French source values. Inspect progress with
+`python manage.py translate_pdf_content --status`. Refreshes are resumable and
+respect the shared free quota, so a large history may take several days.
+Requested documents are promoted ahead of background work. Quota deferrals retain
+pending rows without consuming failure attempts; the UI stops its spinner and
+shows an informational waiting message rather than a generic PDF failure.
+
+Layout and protected business values are validated before persistence. Original
+French text is not overwritten. No local translation model is used as a silent
+fallback, and no synchronous model call occurs while rendering a PDF.

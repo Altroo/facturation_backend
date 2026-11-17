@@ -9,20 +9,43 @@ from dataclasses import dataclass
 from django.apps import apps
 from django.conf import settings
 from django.db import transaction
+from django.utils import timezone
 
 from .models import PdfTextTranslation
 
 logger = logging.getLogger(__name__)
 LANGUAGES = ("fr", "en", "nl")
+ENGINE_REVISION = 2
 TEXT_FIELDS = ("remarque", "termes_paiement", "libelle", "conditions_paiement")
 SOURCE_MODELS = {
-    "article.Article": ("designation", "reference", "marque_id", "unite_id", "company_id"),
+    "article.Article": (
+        "designation",
+        "reference",
+        "marque_id",
+        "unite_id",
+        "company_id",
+    ),
     "parameter.Unite": ("nom", "company_id"),
     "parameter.ModePaiement": ("nom", "company_id"),
     "devi.Devi": ("remarque", "client_id", "company_id"),
-    "facture_client.FactureClient": ("remarque", "termes_paiement", "client_id", "company_id"),
-    "facture_proforma.FactureProForma": ("remarque", "termes_paiement", "client_id", "company_id"),
-    "facture_avoir.FactureAvoir": ("remarque", "motif_avoir", "client_id", "company_id"),
+    "facture_client.FactureClient": (
+        "remarque",
+        "termes_paiement",
+        "client_id",
+        "company_id",
+    ),
+    "facture_proforma.FactureProForma": (
+        "remarque",
+        "termes_paiement",
+        "client_id",
+        "company_id",
+    ),
+    "facture_avoir.FactureAvoir": (
+        "remarque",
+        "motif_avoir",
+        "client_id",
+        "company_id",
+    ),
     "bon_de_livraison.BonDeLivraison": ("remarque", "client_id", "company_id"),
     "reglement.Reglement": ("libelle", "mode_reglement_id", "facture_client_id"),
 }
@@ -81,7 +104,9 @@ def own_sources(instance, company):
     label = getattr(getattr(instance, "_meta", None), "label", "")
     values = [getattr(instance, key, "") for key in TEXT_FIELDS]
     if label == "article.Article":
-        protected.extend([instance.reference, instance.marque.nom if instance.marque else ""])
+        protected.extend(
+            [instance.reference, instance.marque.nom if instance.marque else ""]
+        )
         values = [instance.designation]
     if label in ("parameter.Unite", "parameter.ModePaiement"):
         values = [instance.nom]
@@ -116,7 +141,9 @@ def dispatch_pending():
         logger.exception("Could not dispatch PDF translations; pending rows retained")
 
 
-def ensure_sources(company_id, sources, languages=LANGUAGES, *, dispatch=True, priority=10):
+def ensure_sources(
+    company_id, sources, languages=LANGUAGES, *, dispatch=True, priority=10
+):
     sources = {spec.fingerprint: spec for spec in sources}
     if not sources:
         return
@@ -134,6 +161,23 @@ def ensure_sources(company_id, sources, languages=LANGUAGES, *, dispatch=True, p
             for language in languages
         ],
         ignore_conflicts=True,
+    )
+    # A ready value from an older engine is never silently reused. Keep the
+    # previous text for recovery, but prepare a current validated result.
+    stale = PdfTextTranslation.objects.filter(
+        company_id=company_id,
+        fingerprint__in=sources,
+        language__in=languages,
+        engine_revision__lt=ENGINE_REVISION,
+    )
+    stale.update(
+        status="pending",
+        engine_revision=ENGINE_REVISION,
+        attempts=0,
+        available_at=timezone.now(),
+        last_error="",
+        lease_until=None,
+        lease_token=None,
     )
     PdfTextTranslation.objects.filter(
         company_id=company_id,
@@ -169,6 +213,15 @@ def load_pdf_translations(document, company, language):
     missing = [spec for spec in specs if spec.fingerprint not in rows]
     if missing:
         ensure_sources(company.pk, missing, [language], priority=0)
+    outdated = [
+        spec
+        for spec in specs
+        if spec.fingerprint in rows
+        and rows[spec.fingerprint].engine_revision < ENGINE_REVISION
+    ]
+    if outdated:
+        ensure_sources(company.pk, outdated, [language], priority=0)
+        raise PdfTranslationPending()
     if any(row.status == "failed" for row in rows.values()):
         raise PdfTranslationFailed()
     if missing or any(row.status != "ready" for row in rows.values()):
@@ -178,8 +231,29 @@ def load_pdf_translations(document, company, language):
             pk__in=[row.pk for row in rows.values() if row.status == "pending"],
             priority__gt=0,
         ).update(priority=0)
+        # An explicitly requested PDF can use the foreground quota reserved by
+        # the shared gateway even when the bulk backfill is deferred.
+        if promoted:
+            PdfTextTranslation.objects.filter(
+                company=company,
+                language=language,
+                status="pending",
+                priority=0,
+                last_error="ai_rate_limited",
+                fingerprint__in=[spec.fingerprint for spec in specs],
+            ).update(available_at=timezone.now(), last_error="")
         if promoted and not missing:
             transaction.on_commit(dispatch_pending, robust=True)
+        if not promoted:
+            waits = [
+                (row.available_at - timezone.now()).total_seconds()
+                for row in rows.values()
+                if row.status == "pending" and row.last_error == "ai_rate_limited"
+            ]
+            if waits and min(waits) > 10:
+                from .exceptions import PdfTranslationDeferred
+
+                raise PdfTranslationDeferred(wait=min(waits))
         raise PdfTranslationPending()
     return {spec.text: rows[spec.fingerprint].translated_text for spec in specs}
 
@@ -190,3 +264,29 @@ def translation_enabled():
 
 def source_model(label):
     return apps.get_model(label)
+
+
+def validate_saved_translation(row, translated):
+    """Defence in depth before a model response becomes a reusable PDF value."""
+    from .exceptions import InvalidModelResponse
+    from .offline_translation import protected_segments
+
+    if not isinstance(translated, str) or not translated.strip():
+        raise InvalidModelResponse()
+    if re.findall(r"\r\n|\r|\n", row.source_text) != re.findall(
+        r"\r\n|\r|\n", translated
+    ):
+        raise InvalidModelResponse("La traduction a modifié les retours à la ligne.")
+    marker = r"(?m)^[ \t]*(?:(?:[•●▪◦‣⁃][ \t]*|[-*+][ \t]+|\d+[.)][ \t]+))"
+    if re.findall(marker, row.source_text) != re.findall(marker, translated):
+        raise InvalidModelResponse("La traduction a modifié la liste.")
+    if [
+        value
+        for literal, value in protected_segments(row.source_text, row.protected_terms)
+        if literal
+    ] != [
+        value
+        for literal, value in protected_segments(translated, row.protected_terms)
+        if literal
+    ]:
+        raise InvalidModelResponse("La traduction a modifié une valeur protégée.")

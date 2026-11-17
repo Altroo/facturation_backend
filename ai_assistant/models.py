@@ -13,6 +13,7 @@ class PdfTextTranslation(models.Model):
         max_length=2, choices=[(v, v) for v in ("fr", "en", "nl")]
     )
     translated_text = models.TextField(blank=True)
+    engine_revision = models.PositiveSmallIntegerField(default=2, db_default=1)
     status = models.CharField(
         max_length=12,
         default="pending",

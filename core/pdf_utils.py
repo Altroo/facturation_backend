@@ -37,7 +37,11 @@ logger = logging.getLogger(__name__)
 def format_multiline_pdf_text(value: str | None) -> str:
     """Keep user-entered line breaks while treating the text as plain text."""
     normalized = (value or "-").replace("\r\n", "\n").replace("\r", "\n")
-    return escape(normalized).replace("\n", "<br/>")
+    lines = []
+    for line in normalized.expandtabs(4).split("\n"):
+        leading = len(line) - len(line.lstrip(" "))
+        lines.append("&#160;" * leading + escape(line[leading:]))
+    return "<br/>".join(lines)
 
 
 def number_to_french_words(number: Decimal, currency: str = "MAD") -> str:
