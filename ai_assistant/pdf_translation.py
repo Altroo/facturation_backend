@@ -250,10 +250,10 @@ def load_pdf_translations(document, company, language):
                 for row in rows.values()
                 if row.status == "pending" and row.last_error == "ai_rate_limited"
             ]
-            if waits and min(waits) > 10:
+            if waits:
                 from .exceptions import PdfTranslationDeferred
 
-                raise PdfTranslationDeferred(wait=min(waits))
+                raise PdfTranslationDeferred(wait=max(1, min(waits)))
         raise PdfTranslationPending()
     return {spec.text: rows[spec.fingerprint].translated_text for spec in specs}
 

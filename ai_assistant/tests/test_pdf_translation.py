@@ -413,3 +413,10 @@ def test_repeated_local_retries_do_not_extend_gateway_cooldown(company):
         translate_pending_pdf_texts()
     client.assert_called_once()
     assert PdfTextTranslation.objects.get(source_text="Table en bois").status == "ready"
+
+
+def test_elapsed_quota_wait_still_reports_queued_until_worker_finishes(company,document):
+    from ai_assistant.exceptions import PdfTranslationDeferred
+    PdfTextTranslation.objects.filter(language="en").update(priority=0,last_error="ai_rate_limited",available_at=timezone.now()-timedelta(seconds=10))
+    with pytest.raises(PdfTranslationDeferred):
+        load_pdf_translations(document,company,"en")
