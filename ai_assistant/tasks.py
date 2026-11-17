@@ -40,9 +40,7 @@ def translate_pending_pdf_texts():
     if not translation_enabled():
         return
     now = timezone.now()
-    eligible = Q(status="pending", available_at__lte=now) | Q(
-        status="processing", lease_until__lt=now
-    )
+    eligible = eligible_work(now)
     token = uuid4()
     with transaction.atomic():
         first = (
@@ -83,12 +81,6 @@ def translate_pending_pdf_texts():
             lease_token=token,
         )
     try:
-        # Keep retries local while this priority tier has exhausted its allowance.
-        # Foreground PDFs retain access to the gateway's reserved daily capacity.
-        cooldown = cache.get(quota_key(first["priority"]), 0)
-        wait = cooldown - timezone.now().timestamp()
-        if wait > 0:
-            raise Throttled(wait=wait)
         translations = AiAssistantClient().translate_many(
             [row.source_text for row in rows],
             target_language=first["language"],
@@ -148,10 +140,21 @@ def translate_pending_pdf_texts():
             for row in rows:
                 record_failure(row, token, exc)
     # Beat recovers pending/expired work even if this follow-up cannot be sent.
-    if PdfTextTranslation.objects.filter(
-        status="pending", available_at__lte=timezone.now()
-    ).exists():
+    if PdfTextTranslation.objects.filter(eligible_work(timezone.now())).exists():
         translate_pending_pdf_texts.apply_async(countdown=1)
+
+
+def eligible_work(now):
+    eligible = Q(status="pending", available_at__lte=now) | Q(
+        status="processing", lease_until__lt=now
+    )
+    # Skip the whole tier without rewriting the deadline for every queued batch.
+    # Retrying locally must never extend a gateway-imposed wait.
+    if cache.get(quota_key(100), 0) > now.timestamp():
+        eligible &= ~Q(priority__gte=100)
+    if cache.get(quota_key(0), 0) > now.timestamp():
+        eligible &= ~Q(priority__lt=100)
+    return eligible
 
 
 def quota_key(priority):

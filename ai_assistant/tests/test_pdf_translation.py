@@ -391,3 +391,25 @@ def test_historical_refresh_uses_background_quota_and_reuses_authoritative_frenc
     assert PdfTextTranslation.objects.get(language="fr").status == "ready"
     for row in PdfTextTranslation.objects.exclude(language="fr"):
         assert (row.status,row.engine_revision,row.priority) == ("pending",2,100)
+
+
+def test_repeated_local_retries_do_not_extend_gateway_cooldown(company):
+    from rest_framework.exceptions import Throttled
+    from ai_assistant.tasks import quota_key
+    ensure_sources(company.pk,[source("Chaise en bois")],["en"],dispatch=False,priority=100)
+    with patch.object(AiAssistantClient,"translate_many",side_effect=Throttled(wait=60)):
+        translate_pending_pdf_texts()
+    deadline = cache.get(quota_key(100))
+    ensure_sources(company.pk,[source("Table en bois")],["en"],dispatch=False,priority=100)
+    with patch.object(AiAssistantClient,"translate_many") as client:
+        for _ in range(20):
+            translate_pending_pdf_texts()
+    client.assert_not_called()
+    assert cache.get(quota_key(100)) == deadline
+    untouched=PdfTextTranslation.objects.get(source_text="Table en bois")
+    assert untouched.last_error == "" and untouched.lease_token is None
+    cache.delete(quota_key(100))
+    with patch.object(AiAssistantClient,"translate_many",return_value={"Table en bois":"Wooden table"}) as client:
+        translate_pending_pdf_texts()
+    client.assert_called_once()
+    assert PdfTextTranslation.objects.get(source_text="Table en bois").status == "ready"
