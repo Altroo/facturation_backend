@@ -316,13 +316,15 @@ def test_all_document_variants_render_from_saved_translations(company, document,
     line_model.objects.create(**{parent_field: document}, article=article, quantity=Decimal("2"), prix_vente=Decimal("100"), prix_achat=Decimal("80"))
     document.refresh_from_db()
     ensure_sources(company.pk, pdf_sources(document, company))
-    ready_rows(language)
+    if language != "fr":
+        ready_rows(language)
     with patch.object(AiAssistantClient, "translate_many") as model:
         generator = generator_class(document, company, pdf_type=pdf_type, language=language)
         response = generator.generate_pdf()
     assert response.content.startswith(b"%PDF")
     assert response["Content-Type"] == "application/pdf"
-    assert generator._text("Chaise en bois\nFinition naturelle") == "NL Chaise en bois\nFinition naturelle"
+    text = "Chaise en bois\nFinition naturelle"
+    assert generator._text(text) == (text if language == "fr" else f"NL {text}")
     model.assert_not_called()
 
 
