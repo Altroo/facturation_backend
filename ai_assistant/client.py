@@ -19,6 +19,9 @@ from .exceptions import (
 
 
 class AiAssistantClient:
+    def __init__(self, *, deadline=None):
+        self.deadline = deadline
+
     def _post(self, endpoint, payload):
         if (
             not getattr(settings, "AI_ASSISTANT_ENABLED", False)
@@ -52,9 +55,12 @@ class AiAssistantClient:
             method="POST",
         )
         try:
-            with request.urlopen(
-                http_request, timeout=settings.AI_ASSISTANT_TIMEOUT_SECONDS
-            ) as response:
+            timeout = settings.AI_ASSISTANT_TIMEOUT_SECONDS
+            if self.deadline is not None:
+                timeout = min(timeout, self.deadline - time.monotonic())
+                if timeout <= 0:
+                    raise ModelTimeout()
+            with request.urlopen(http_request, timeout=timeout) as response:
                 payload = json.loads(response.read(1024 * 1024).decode("utf-8"))
         except (TimeoutError, socket.timeout) as exc:
             raise ModelTimeout() from exc

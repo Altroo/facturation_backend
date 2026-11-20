@@ -2,6 +2,7 @@
 
 from datetime import timedelta
 import math
+import time
 from uuid import uuid4
 
 from celery.utils.log import get_task_logger
@@ -10,12 +11,13 @@ from django.core.cache import cache
 from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
+from rest_framework.exceptions import Throttled
 
 from facturation_backend.celery_conf import app
 from .client import AiAssistantClient
-from rest_framework.exceptions import Throttled
-from .exceptions import InvalidModelResponse
+from .exceptions import InvalidModelResponse, ModelTimeout, ModelUnavailable
 from .models import PdfTextTranslation
+from .offline_translation import OfflineTranslationClient
 from .pdf_translation import (
     LANGUAGES,
     ENGINE_REVISION,
@@ -29,6 +31,8 @@ from .pdf_translation import (
 )
 
 logger = get_task_logger(__name__)
+GATEWAY_BATCH_TIMEOUT_SECONDS = 15
+GATEWAY_FAILURE_COOLDOWN_SECONDS = 30
 
 
 @app.task(
@@ -80,20 +84,9 @@ def translate_pending_pdf_texts():
             lease_until=now + timedelta(seconds=lease_seconds),
             lease_token=token,
         )
+    gateway = AiAssistantClient(deadline=time.monotonic() + GATEWAY_BATCH_TIMEOUT_SECONDS)
     try:
-        translations = AiAssistantClient().translate_many(
-            [row.source_text for row in rows],
-            target_language=first["language"],
-            protected_terms=list(
-                dict.fromkeys(term for row in rows for term in row.protected_terms)
-            ),
-            context="invoice_pdf",
-            retry_rate_limit=False,
-            background=first["priority"] >= 100,
-        )
-        for row in rows:
-            text = translations.get(row.source_text)
-            validate_saved_translation(row, text)
+        translations = translate_rows(rows, gateway)
         with transaction.atomic():
             for row in rows:
                 PdfTextTranslation.objects.filter(pk=row.pk, lease_token=token).update(
@@ -110,19 +103,7 @@ def translate_pending_pdf_texts():
             # A bad legacy field must not fail otherwise valid fields in its batch.
             for row in rows:
                 try:
-                    translated = (
-                        AiAssistantClient()
-                        .translate_many(
-                            [row.source_text],
-                            target_language=row.language,
-                            protected_terms=row.protected_terms,
-                            context="invoice_pdf",
-                            retry_rate_limit=False,
-                            background=row.priority >= 100,
-                        )
-                        .get(row.source_text)
-                    )
-                    validate_saved_translation(row, translated)
+                    translated = translate_rows([row], gateway)[row.source_text]
                     PdfTextTranslation.objects.filter(
                         pk=row.pk, lease_token=token
                     ).update(
@@ -144,17 +125,44 @@ def translate_pending_pdf_texts():
         translate_pending_pdf_texts.apply_async(countdown=1)
 
 
+def translate_rows(rows, gateway):
+    texts = [row.source_text for row in rows]
+    first = rows[0]
+    options = {
+        "target_language": first.language,
+        "protected_terms": list(
+            dict.fromkeys(term for row in rows for term in row.protected_terms)
+        ),
+        "context": "invoice_pdf",
+    }
+    key = quota_key(first.priority)
+    translations = None
+    if cache.get(key, 0) <= timezone.now().timestamp():
+        try:
+            translations = gateway.translate_many(
+                texts, **options, retry_rate_limit=False, background=first.priority >= 100
+            )
+        except Throttled as exc:
+            wait = max(1, float(exc.wait or 60))
+        except (ModelTimeout, ModelUnavailable):
+            wait = GATEWAY_FAILURE_COOLDOWN_SECONDS
+        else:
+            wait = 0
+        if wait:
+            cache.set(key, timezone.now().timestamp() + wait, math.ceil(wait) + 1)
+    if translations is None:
+        translations = OfflineTranslationClient().translate_many(texts, **options)
+    for row in rows:
+        validate_saved_translation(row, translations.get(row.source_text))
+    return translations
+
+
 def eligible_work(now):
-    eligible = Q(status="pending", available_at__lte=now) | Q(
-        status="processing", lease_until__lt=now
+    return (
+        Q(status="pending", available_at__lte=now)
+        | Q(status="pending", last_error="ai_rate_limited")
+        | Q(status="processing", lease_until__lt=now)
     )
-    # Skip the whole tier without rewriting the deadline for every queued batch.
-    # Retrying locally must never extend a gateway-imposed wait.
-    if cache.get(quota_key(100), 0) > now.timestamp():
-        eligible &= ~Q(priority__gte=100)
-    if cache.get(quota_key(0), 0) > now.timestamp():
-        eligible &= ~Q(priority__lt=100)
-    return eligible
 
 
 def quota_key(priority):
@@ -165,23 +173,6 @@ def quota_key(priority):
 
 def record_failure(row, token, exc):
     # Retry asynchronously. A slow/unavailable engine never delays a save or PDF.
-    if isinstance(exc, Throttled):
-        wait = max(1, float(exc.wait or 60))
-        cache.set(
-            quota_key(row.priority),
-            timezone.now().timestamp() + wait,
-            math.ceil(wait) + 1,
-        )
-        PdfTextTranslation.objects.filter(pk=row.pk, lease_token=token).update(
-            status="pending",
-            available_at=timezone.now()
-            + timedelta(seconds=max(1, float(exc.wait or 60))),
-            lease_until=None,
-            lease_token=None,
-            last_error="ai_rate_limited",
-            updated_at=timezone.now(),
-        )
-        return
     error_code = str(getattr(exc, "default_code", type(exc).__name__))[:80]
     attempts = row.attempts + 1
     delay = max(

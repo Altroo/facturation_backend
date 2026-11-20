@@ -1,9 +1,11 @@
+import pytest
 from rest_framework.exceptions import (
     APIException,
     AuthenticationFailed,
     MethodNotAllowed,
     NotFound,
     PermissionDenied,
+    Throttled,
     ValidationError,
 )
 from rest_framework.request import Request
@@ -13,6 +15,22 @@ from core.exceptions import api_exception_handler
 
 
 class TestApiExceptionHandler:
+    @pytest.mark.parametrize(
+        "wait, retry_message",
+        [
+            (25_000, "Réessayez dans 6 heures, 56 minutes et 40 secondes."),
+            (3600, "Réessayez dans 1 heure."),
+            (61, "Réessayez dans 1 minute et 1 seconde."),
+            (1, "Réessayez dans 1 seconde."),
+            (None, "Réessayez plus tard."),
+        ],
+    )
+    def test_throttle_formats_duration_and_preserves_retry_header(self, wait, retry_message):
+        response = api_exception_handler(Throttled(wait=wait), {})
+        assert response.status_code == 429
+        assert response.data["details"]["detail"] == f"Requête ralentie. {retry_message}"
+        assert response.get("Retry-After") == (str(wait) if wait else None)
+
     def test_api_exception_handler_wraps_response(self):
         factory = APIRequestFactory()
         req = factory.get("/")

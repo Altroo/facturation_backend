@@ -1,6 +1,7 @@
 from http import HTTPStatus
 
 from django.db.models import ProtectedError
+from django.utils.text import get_text_list
 from rest_framework import status
 from rest_framework.exceptions import ErrorDetail, Throttled
 from rest_framework.response import Response
@@ -23,14 +24,17 @@ def api_exception_handler(exc, context):
         }
         return Response(error_payload, status=status.HTTP_409_CONFLICT)
 
-    # Translate DRF throttle message to French before handling
     if isinstance(exc, Throttled):
-        raw_wait = getattr(exc, "wait", None)
-        wait = int(str(raw_wait)) if raw_wait else 0
-        message = (
-            f"Requête ralentie. Réessayez dans {wait} "
-            f"seconde{'s' if wait != 1 else ''}."
-        )
+        message = "Requête ralentie. Réessayez plus tard."
+        if exc.wait:
+            hours, remainder = divmod(exc.wait, 3600)
+            minutes, seconds = divmod(remainder, 60)
+            parts = [
+                f"{value} {unit}{'s' if value > 1 else ''}"
+                for value, unit in ((hours, "heure"), (minutes, "minute"), (seconds, "seconde"))
+                if value
+            ]
+            message = f"Requête ralentie. Réessayez dans {get_text_list(parts, 'et')}."
         exc.detail = ErrorDetail(message, code="throttled")
 
     response = exception_handler(exc, context)
@@ -53,11 +57,10 @@ def api_exception_handler(exc, context):
             },
         }
 
-        error_payload = {
+        response.data = {
             "status_code": response.status_code,
             "message": http_code_to_message.get(response.status_code, ""),
             "details": response.data,
         }
-        return Response(error_payload, status=response.status_code)
 
     return response

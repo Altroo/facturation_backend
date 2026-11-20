@@ -14,11 +14,12 @@ creates a new translation snapshot; original business data is preserved.
 The historical scan runs on the normal Celery queue, separately from the dedicated
 translation worker, so scanning existing records keeps progressing during inference.
 
-The worker uses CTranslate2 4.9 with pinned OPUS/Argos models and offline Lingua
-language detection. French and Dutch are routed through English. Model files
-are read from `PDF_TRANSLATION_MODELS_DIR`; inference never downloads files or
-sends document text to a translation server. Names, references and numeric values
-are reinserted outside inference and checked after translation.
+The worker first requests a translation through the signed AI gateway. It uses
+the local CTranslate2 OPUS/Argos models when Groq is rate-limited or the gateway
+is slow or unavailable. The offline path uses Lingua for language detection
+and routes French to and from Dutch through English. Model files come from
+`PDF_TRANSLATION_MODELS_DIR`. Names, references, numeric values, and layout
+are checked before a translation is saved.
 
 Install models once before starting the worker:
 

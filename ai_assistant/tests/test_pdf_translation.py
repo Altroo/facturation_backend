@@ -1,16 +1,19 @@
 from datetime import date, timedelta
 from io import StringIO
 from unittest.mock import patch
+from urllib.error import HTTPError
 from uuid import uuid4
 
 import pytest
 from django.core.management import call_command
 from django.core.cache import cache
 from django.utils import timezone
+from rest_framework.exceptions import Throttled
 
 from ai_assistant.client import AiAssistantClient
-from ai_assistant.exceptions import InvalidModelResponse, ModelUnavailable, PdfTranslationFailed, PdfTranslationPending
+from ai_assistant.exceptions import InvalidModelResponse, ModelTimeout, ModelUnavailable, PdfTranslationFailed, PdfTranslationPending
 from ai_assistant.models import PdfTextTranslation
+from ai_assistant.offline_translation import OfflineTranslationClient
 from ai_assistant.pdf_translation import ensure_sources, load_pdf_translations, own_sources, pdf_sources, source
 from ai_assistant.tasks import backfill_pdf_translations, translate_pending_pdf_texts
 from article.models import Article
@@ -148,7 +151,10 @@ def test_worker_claims_one_company_and_language_and_saves_result(company):
 
 def test_worker_failure_retries_later_without_sleeping(company, caplog):
     ensure_sources(company.pk, [source("Chaise en bois")], ["nl"])
-    with patch.object(AiAssistantClient, "translate_many", side_effect=ModelUnavailable):
+    with (
+        patch.object(AiAssistantClient, "translate_many", side_effect=ModelUnavailable),
+        patch.object(OfflineTranslationClient, "translate_many", side_effect=ModelUnavailable),
+    ):
         translate_pending_pdf_texts()
     row = PdfTextTranslation.objects.get()
     assert row.status == "pending"
@@ -164,7 +170,10 @@ def test_worker_failure_retries_later_without_sleeping(company, caplog):
 def test_worker_terminal_failure_and_expired_lease_recovery(company):
     ensure_sources(company.pk, [source("Chaise en bois")], ["nl"])
     PdfTextTranslation.objects.update(status="processing", lease_until=timezone.now() - timedelta(seconds=1), attempts=5, lease_token=uuid4())
-    with patch.object(AiAssistantClient, "translate_many", side_effect=ModelUnavailable):
+    with (
+        patch.object(AiAssistantClient, "translate_many", side_effect=ModelUnavailable),
+        patch.object(OfflineTranslationClient, "translate_many", side_effect=ModelUnavailable),
+    ):
         translate_pending_pdf_texts()
     assert PdfTextTranslation.objects.get().status == "failed"
 
@@ -337,17 +346,24 @@ def test_old_engine_ready_rows_are_requeued_before_pdf_use(company, document):
     assert row.engine_revision == 2 and row.status == "pending" and row.priority == 0
 
 
-def test_quota_wait_is_resumable_and_foreground_has_separate_allowance(company):
-    from rest_framework.exceptions import Throttled
+def test_quota_uses_offline_translation_and_keeps_foreground_allowance(company):
     from ai_assistant.tasks import quota_key
     ensure_sources(company.pk, [source("Chaise en bois")], ["en"], dispatch=False, priority=100)
-    with patch.object(AiAssistantClient, "translate_many", side_effect=Throttled(wait=3600)) as client:
+    with (
+        patch.object(AiAssistantClient, "translate_many", side_effect=Throttled(wait=25_000)) as client,
+        patch.object(OfflineTranslationClient, "translate_many", side_effect=[
+            {"Chaise en bois": "Wooden chair"},
+            {"Table en bois": "Wooden table"},
+        ]) as offline,
+    ):
         translate_pending_pdf_texts()
+        deadline = cache.get(quota_key(100))
         ensure_sources(company.pk, [source("Table en bois")], ["en"], dispatch=False, priority=100)
         translate_pending_pdf_texts()
     assert client.call_count == 1
-    assert not PdfTextTranslation.objects.exclude(status="pending", attempts=0).exists()
-    assert cache.get(quota_key(100))
+    assert offline.call_count == 2
+    assert PdfTextTranslation.objects.filter(status="ready", attempts=0).count() == 2
+    assert cache.get(quota_key(100)) == deadline
     assert not cache.get(quota_key(0))
     ensure_sources(company.pk, [source("Lampe en bois")], ["en"], dispatch=False, priority=0)
     with patch.object(AiAssistantClient, "translate_many", return_value={"Lampe en bois": "Wooden lamp"}) as client:
@@ -356,23 +372,20 @@ def test_quota_wait_is_resumable_and_foreground_has_separate_allowance(company):
     assert PdfTextTranslation.objects.get(source_text="Lampe en bois").status == "ready"
 
 
-def test_deferred_pdf_reports_wait_and_can_be_promoted_once(company, document):
-    from ai_assistant.exceptions import PdfTranslationDeferred
+@pytest.mark.parametrize("priority", [0, 100])
+def test_requested_pdf_recovers_old_quota_wait_once(company, document, priority, django_capture_on_commit_callbacks, background_settings):
     row = PdfTextTranslation.objects.get(language="en")
-    row.priority = 100
+    row.priority = priority
     row.available_at = timezone.now() + timedelta(hours=4)
     row.last_error = "ai_rate_limited"
     row.save()
-    with pytest.raises(PdfTranslationPending):
-        load_pdf_translations(document, company, "en")
+    with django_capture_on_commit_callbacks(execute=True):
+        for _ in range(2):
+            with pytest.raises(PdfTranslationPending):
+                load_pdf_translations(document, company, "en")
     row.refresh_from_db()
-    assert row.priority == 0 and row.available_at <= timezone.now()
-    row.available_at = timezone.now() + timedelta(hours=3)
-    row.last_error = "ai_rate_limited"
-    row.save()
-    with pytest.raises(PdfTranslationDeferred) as error:
-        load_pdf_translations(document, company, "en")
-    assert float(error.value.wait) > 10000
+    assert row.priority == 0 and row.available_at <= timezone.now() and not row.last_error
+    background_settings[0].assert_called_once()
 
 
 @pytest.mark.parametrize("translated", ["One paragraph.", "• Deliver 120x120cm.\n• Marble not included."])
@@ -395,30 +408,54 @@ def test_historical_refresh_uses_background_quota_and_reuses_authoritative_frenc
         assert (row.status,row.engine_revision,row.priority) == ("pending",2,100)
 
 
-def test_repeated_local_retries_do_not_extend_gateway_cooldown(company):
-    from rest_framework.exceptions import Throttled
+def test_worker_drains_old_quota_rows_without_waiting_for_pdf_request(company, document):
     from ai_assistant.tasks import quota_key
-    ensure_sources(company.pk,[source("Chaise en bois")],["en"],dispatch=False,priority=100)
-    with patch.object(AiAssistantClient,"translate_many",side_effect=Throttled(wait=60)):
+    PdfTextTranslation.objects.exclude(language="nl").delete()
+    row = PdfTextTranslation.objects.get(language="nl")
+    row.available_at = timezone.now() + timedelta(hours=4)
+    row.last_error = "ai_rate_limited"
+    row.save()
+    cache.set(quota_key(row.priority), row.available_at.timestamp(), 14_400)
+    with (
+        patch.object(AiAssistantClient, "translate_many") as gateway,
+        patch.object(OfflineTranslationClient, "translate_many", return_value={
+            document.remarque: "Voor de middag leveren",
+        }),
+    ):
         translate_pending_pdf_texts()
-    deadline = cache.get(quota_key(100))
-    ensure_sources(company.pk,[source("Table en bois")],["en"],dispatch=False,priority=100)
-    with patch.object(AiAssistantClient,"translate_many") as client:
-        for _ in range(20):
-            translate_pending_pdf_texts()
-    client.assert_not_called()
-    assert cache.get(quota_key(100)) == deadline
-    untouched=PdfTextTranslation.objects.get(source_text="Table en bois")
-    assert untouched.last_error == "" and untouched.lease_token is None
-    cache.delete(quota_key(100))
-    with patch.object(AiAssistantClient,"translate_many",return_value={"Table en bois":"Wooden table"}) as client:
-        translate_pending_pdf_texts()
-    client.assert_called_once()
-    assert PdfTextTranslation.objects.get(source_text="Table en bois").status == "ready"
+    gateway.assert_not_called()
+    assert load_pdf_translations(document, company, "nl") == {
+        document.remarque: "Voor de middag leveren",
+    }
 
 
-def test_elapsed_quota_wait_still_reports_queued_until_worker_finishes(company,document):
-    from ai_assistant.exceptions import PdfTranslationDeferred
-    PdfTextTranslation.objects.filter(language="en").update(priority=0,last_error="ai_rate_limited",available_at=timezone.now()-timedelta(seconds=10))
-    with pytest.raises(PdfTranslationDeferred):
-        load_pdf_translations(document,company,"en")
+def test_pdf_gateway_http_rate_limit_falls_back_without_sleeping(company, document, settings):
+    settings.AI_ASSISTANT_ENABLED = True
+    settings.AI_ASSISTANT_SERVICE_SECRET = "test-secret"
+    PdfTextTranslation.objects.exclude(language="en").delete()
+    failure = HTTPError("http://gateway/v1/translate", 429, "Quota", {"Retry-After": "25000"}, None)
+    with (
+        patch("ai_assistant.client.request.urlopen", side_effect=failure) as request,
+        patch("ai_assistant.client.time.sleep") as sleep,
+        patch.object(OfflineTranslationClient, "translate_many", return_value={
+            document.remarque: "Deliver before noon",
+        }),
+    ):
+        translate_pending_pdf_texts()
+    sleep.assert_not_called()
+    assert 0 < request.call_args.kwargs["timeout"] <= 15
+    assert load_pdf_translations(document, company, "en")[document.remarque] == "Deliver before noon"
+
+
+@pytest.mark.parametrize("failure", [ModelTimeout, ModelUnavailable])
+def test_pdf_gateway_timeout_or_outage_uses_offline_translation(company, failure):
+    original = "• Livrer REF-123 avant midi.\n• Quantité : 12"
+    translated = "• Deliver REF-123 before noon.\n• Quantity: 12"
+    ensure_sources(company.pk, [source(original, ["REF-123"])], ["en"])
+    with (
+        patch.object(AiAssistantClient, "translate_many", side_effect=failure),
+        patch.object(OfflineTranslationClient, "translate_many", return_value={original: translated}),
+    ):
+        translate_pending_pdf_texts()
+    row = PdfTextTranslation.objects.get()
+    assert (row.status, row.translated_text) == ("ready", translated)

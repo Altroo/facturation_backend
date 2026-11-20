@@ -230,35 +230,19 @@ def load_pdf_translations(document, company, language):
     if any(row.status == "failed" for row in rows.values()):
         raise PdfTranslationFailed()
     if missing or any(row.status != "ready" for row in rows.values()):
-        promoted = PdfTextTranslation.objects.filter(
+        pending = PdfTextTranslation.objects.filter(
             company=company,
             language=language,
             pk__in=[row.pk for row in rows.values() if row.status == "pending"],
-            priority__gt=0,
-        ).update(priority=0)
-        # An explicitly requested PDF can use the foreground quota reserved by
-        # the shared gateway even when the bulk backfill is deferred.
-        if promoted:
-            PdfTextTranslation.objects.filter(
-                company=company,
-                language=language,
-                status="pending",
-                priority=0,
-                last_error="ai_rate_limited",
-                fingerprint__in=[spec.fingerprint for spec in specs],
-            ).update(available_at=timezone.now(), last_error="")
-        if promoted and not missing:
+            status="pending",
+        )
+        # Wake rows deferred by the former Groq-only worker, including urgent rows.
+        recovered = pending.filter(last_error="ai_rate_limited").update(
+            priority=0, available_at=timezone.now(), last_error=""
+        )
+        promoted = pending.filter(priority__gt=0).update(priority=0)
+        if (promoted or recovered) and not missing:
             transaction.on_commit(dispatch_pending, robust=True)
-        if not promoted:
-            waits = [
-                (row.available_at - timezone.now()).total_seconds()
-                for row in rows.values()
-                if row.status == "pending" and row.last_error == "ai_rate_limited"
-            ]
-            if waits:
-                from .exceptions import PdfTranslationDeferred
-
-                raise PdfTranslationDeferred(wait=max(1, min(waits)))
         raise PdfTranslationPending()
     return originals | {spec.text: rows[spec.fingerprint].translated_text for spec in specs}
 
